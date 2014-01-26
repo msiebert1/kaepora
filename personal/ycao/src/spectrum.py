@@ -1,9 +1,15 @@
+# Load the data files and produce an average spectrum
+#
+
 import matplotlib.pyplot as plt
 import numpy as np
 
+datadir = '../../../data/'
+pltdir = '../plots/'
+
 plt.yscale('log')
 
-f1 = open('../../data/sn2011by-hst+lick.flm')
+f1 = open(datadir+'sn2011by-hst+lick.flm')
 lines = f1.readlines()
 f1.close()
 
@@ -22,7 +28,7 @@ mediany1 = np.median(y1)
 y1 = y1/mediany1
 p1,=plt.plot(x1,y1)
 
-f2 = open('../../data/sn2011fe-visit3-hst.flm')
+f2 = open(datadir+'sn2011fe-visit3-hst.flm')
 lines = f2.readlines()
 f2.close()
 
@@ -47,6 +53,6 @@ plt.xlabel('Wavelength [A]')
 plt.ylabel('Scaled Flux')
 plt.legend([p1,p2,p3],['SN2011BY','SN2011FE','Avarage'],
            2)
-plt.savefig('spectrum.eps')
+plt.savefig(pltdir+'spectrum.eps')
 plt.show()
 
