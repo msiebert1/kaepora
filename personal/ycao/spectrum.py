@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+plt.yscale('log')
+
 f1 = open('../../data/sn2011by-hst+lick.flm')
 lines = f1.readlines()
 f1.close()
@@ -41,8 +43,10 @@ ax = x1
 ay = (y1+y2)/2
 p3,=plt.plot(ax,ay)
 
-plt.set_xlabel('Wavelength')
-plt.legend([p1,p2,p3],['hst+lick','visit3-hst','avarage'],
+plt.xlabel('Wavelength [A]')
+plt.ylabel('Scaled Flux')
+plt.legend([p1,p2,p3],['SN2011BY','SN2011FE','Avarage'],
            2)
+plt.savefig('spectrum.eps')
 plt.show()
 
