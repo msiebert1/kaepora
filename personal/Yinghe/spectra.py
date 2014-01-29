@@ -54,7 +54,7 @@ arr1 = ImpArr(d1,z1)
 d2 = ReadIn(data2)
 arr2 = ImpArr(d2,z2)
 #     
-mini = min(arr1[0][0],arr2[0][0])
+mini = max(arr1[0][0],arr2[0][0])
 maxi = min(arr1[0][len(arr1[0])-1],arr2[0][len(arr2[0])-1]) 
 #print mini,maxi
 
