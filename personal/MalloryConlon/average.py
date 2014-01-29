@@ -41,7 +41,7 @@ medflux2=np.median(flux2)
 
 
 
-#Average the two spectra and plot
+#Average the two spectra
 average_wave=(wave1+wave2)/2
 average_flux=(flux1+flux2)/2
 
@@ -57,6 +57,6 @@ plt.legend([plot1,plot2,plot3],['SN2011BY','SN2011FE','Average Spectrum'],4)
 plt.savefig('../personal/malloryconlon/'+'spectrum.pdf')
 plt.show()
 
-#Write average spectrum to file
+#Write average spectrum to file...need to think more about how to store this properly.
 
-np.savetxt('../personal/malloryconlon/'+'average.flm',(average_wave,average_flux))
+#np.savetxt('../personal/malloryconlon/'+'average.flm',(average_wave,average_flux))
