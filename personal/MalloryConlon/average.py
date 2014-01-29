@@ -37,15 +37,15 @@ medflux2=np.median(flux2)
 average_wave=(wave1+wave2)/2
 average_flux=(flux1+flux2)/2
 
-#Make plots of individual and average spectra
+#Make plots of individual and average spectra, save plot
 plt.yscale('log')
 plot1,=plt.plot(wave1,flux1,'k')
 plot2,=plt.plot(wave2,flux2, 'g')
 plot3,=plt.plot(average_wave,average_flux, 'r')
 
 plt.xlabel('Wavelength ($\AA$)')
-plt.ylabel('Scaled Flux')
-plt.legend([plot1,plot2,plot3],['SN2011BY','SN2011FE','Average Spectrum'],
-           4,)
+plt.ylabel('log[Scaled Flux]')
+plt.legend([plot1,plot2,plot3],['SN2011BY','SN2011FE','Average Spectrum'])
+plt.savefig('../personal/malloryconlon/'+'spectrum.pdf')
 plt.show()
 
