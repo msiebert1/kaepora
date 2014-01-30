@@ -34,12 +34,11 @@ flux1=flux[start:end]
 #wave2=wave2/(1+0.001208)
 
 #Scale the two spectra such that they are comparable.  Again, this will need to be automated...
-medwave1=np.median(wave1)
-medwave2=np.median(wave2)
 medflux1=np.median(flux1)
 medflux2=np.median(flux2)
 
-
+flux1=flux1/medflux1
+flux2=flux2/medflux2
 
 #Average the two spectra
 average_wave=(wave1+wave2)/2
@@ -51,7 +50,7 @@ plot1,=plt.plot(wave1,flux1,'k')
 plot2,=plt.plot(wave2,flux2, 'g')
 plot3,=plt.plot(average_wave,average_flux, 'r')
 
-plt.xlabel('Wavelength ($\AA$)')
+plt.xlabel('Observed Wavelength ($\AA$)')
 plt.ylabel('log[Scaled Flux]')
 plt.legend([plot1,plot2,plot3],['SN2011BY','SN2011FE','Average Spectrum'],4)
 plt.savefig('../personal/malloryconlon/'+'spectrum.pdf')
