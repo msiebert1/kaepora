@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import os, glob, re
 
 ### Grab the file names. (You have to change the path to the directory where you put the spectra files.)
-link = '/Users/rickyccy/Documents/Urbana-Champaign/Courses/ASTR596_Spring2014/astr596/data/'
+link = '/Users/rickyccy/Documents/Urbana-Champaign/Courses/ASTR596_Spring2014/astr596bak/data/'
 
 os.chdir(link)
 
@@ -38,23 +38,19 @@ plt.plot()
 plt.savefig(link + 'two_spectra.png')
 plt.close()
 
-### The graph of the average for two spectra (as there are fewer data points for 'sn2011fe-visit3-hst.flm' than 'sn2011by-hst+lick.flm', the wavelength which 'sn2011fe-visit3-hst.flm' does not cover is set to be zero.
+
+
+### The graph of the average for two spectra (as there are fewer data points for 'sn2011fe-visit3-hst.flm' than 'sn2011by-hst+lick.flm', the wavelength which 'sn2011fe-visit3-hst.flm' does not cover is deleted.
 ### The average of the two spectra is taken as the mean of the spectra.
-lamda1_new = lamda0
-flux1_new = np.zeros(flux0.size)
-
-front_pad = int(np.where(lamda1_new == lamda1[0])[0])
-back_pad = lamda0.size - int(np.where(lamda1_new == lamda1[-1])[0]) - 1
-
-
-b = np.lib.pad(flux1, (front_pad, back_pad), 'constant', constant_values = (0, 0))
+lamda0_new = lamda0[np.searchsorted(lamda0, lamda1)]
+flux0_new = flux0[np.searchsorted(lamda0, lamda1)]
 
 ### The mean of the two spectra
-spectra_mean = np.mean([b, flux0], axis = 0)
+spectra_mean = np.mean([flux0_new, flux1], axis = 0)
 
 
 ### The graph for the mean spectra.
-plt.scatter(lamda1_new, spectra_mean, color = 'b', marker = '.')
+plt.scatter(lamda0_new, spectra_mean, color = 'b', marker = '.')
 plt.ylim((np.min(spectra_mean) * 1.05, np.max(spectra_mean) * 1.05))
 plt.xlabel(r'Wavelength, $\lambda$ (nm)')
 plt.ylabel(r'Flux, $f_{\lambda}$ (Jy)')
@@ -65,8 +61,8 @@ plt.close()
 ### Writing the average spectra in a file.
 spectra_outfile = open(link + 'average_spectra.dat', 'w')
 
-for i in range(b.size):
-    spectra_outfile.write(str(lamda1_new[i]) + '\t' + str(spectra_mean[i]) + '\n')
+for i in range(flux0_new.size):
+    spectra_outfile.write(str(lamda0_new[i]) + '\t' + str(spectra_mean[i]) + '\n')
 
 spectra_outfile.close()
 
