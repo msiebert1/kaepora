@@ -1,6 +1,0 @@
-Firstly, put the files in the directory.
-git add -A
-git status
-git commit
-git pull origin master
-git push
