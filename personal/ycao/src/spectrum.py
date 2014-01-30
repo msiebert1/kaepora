@@ -50,18 +50,24 @@ for line in lines:
 x2 = np.array(x2)
 y2 = np.array(y2)
 
-#Match the frequencies
+#Truncate the extra wavelength of SN2011by
 low = halfSearch(x1,x2[0])
 high = halfSearch(x1,x2[len(x2)-1])
 x1 = x1[low:high+1] #Caution: wired +1 here,different from IDL
 y1 = y1[low:high+1]
 
-#Normalize y
-mediany1 = np.median(y1)
-y1 = y1/mediany1 
+#De-redshift
+z1 = 0.003402
+z2 = 0.001208
+x1 /= 1+z1
+x2 /= 1+z2
 
-mediany2 = np.median(y2)
-y2 = y2/mediany2
+#Normalize y
+nfac = np.median(y1) #normalization factor
+y1 = y1/nfac
+
+nfac = np.median(y2)
+y2 = y2/nfac
 
 #Average two spectrum
 ax = x1
@@ -77,7 +83,7 @@ p3,=plt.plot(ax,ay)
 
 plt.xlabel('Wavelength [A]')
 plt.ylabel('Scaled Flux')
-plt.legend([p1,p2,p3],['SN2011BY','SN2011FE','Avarage'],
+plt.legend([p1,p2,p3],['SN2011BY','SN2011FE','Average'],
            4,)
 plt.savefig(pltdir+'spectrum.eps')
 plt.show()

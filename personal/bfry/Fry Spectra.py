@@ -33,12 +33,12 @@ int_ave = (int1 + int2)/2.0
 scale1 = np.average(int1/int_ave)
 scale2 = np.average(int2/int_ave)
 
-plt.xlabel('freq')
-plt.ylabel('flux')
-plt.plot(freq1, flux1)
-plt.plot(freq2, flux2)
-plt.plot(x_val, int_ave)
+plt.xlabel('freq (A)')
+plt.ylabel('relative flux')
+Plot = [plt.plot(freq1, flux1*1e13, label = "SN2011BY"), plt.plot(freq2, flux2*1e13, label = "SN2011FE"), plt.plot(x_val, int_ave*1e13, label = "Average")]
+plt.legend()
 
+plt.savefig('Fry spectra.png')
 plt.show()
 
 file = open("average spectra.txt", "w")
