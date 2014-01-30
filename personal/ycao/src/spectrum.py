@@ -2,6 +2,8 @@
 #
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy
+from scipy import interpolate
 
 def halfSearch(arr,find):
     median = 0
@@ -19,36 +21,37 @@ def halfSearch(arr,find):
                 ceil = median - 1
     return -1 #not found
 
-#Load data
-datadir = '../../../data/'
 
-f1 = open(datadir+'sn2011by-hst+lick.flm')
-lines = f1.readlines()
-f1.close()
+#Loading data from data files
+def loadData(file):
+    datadir = '../../../data/'
+    f = open(datadir+file)
+    lines = f.readlines()
+    f.close()
 
-x1 = []
-y1 = []
-for line in lines:
-    p = line.split()
-    x1.append(float(p[0]))
-    y1.append(float(p[1]))
+    x = []
+    y = []
 
-x1 = np.array(x1)
-y1 = np.array(y1)
+    for line in lines:
+        p = line.split()
+        x.append(float(p[0]))
+        y.append(float(p[1]))
 
-f2 = open(datadir+'sn2011fe-visit3-hst.flm')
-lines = f2.readlines()
-f2.close()
+    x = np.array(x)
+    y = np.array(y)        
 
-x2 = []
-y2 = []
-for line in lines:
-    p = line.split()
-    x2.append(float(p[0]))
-    y2.append(float(p[1]))
+    return np.array([x,y])
 
-x2 = np.array(x2)
-y2 = np.array(y2)
+
+file1 = 'sn2011by-hst+lick.flm'
+data = loadData(file1)
+x1 = data[0]
+y1 = data[1]
+
+file2 = 'sn2011fe-visit3-hst.flm'
+data = loadData(file2)
+x2 = data[0]
+y2 = data[1]
 
 #Truncate the extra wavelength of SN2011by
 low = halfSearch(x1,x2[0])
@@ -56,11 +59,21 @@ high = halfSearch(x1,x2[len(x2)-1])
 x1 = x1[low:high+1] #Caution: wired +1 here,different from IDL
 y1 = y1[low:high+1]
 
-#De-redshift
+#De-redshift and resample by B-spline interpolation 
 z1 = 0.003402
 z2 = 0.001208
 x1 /= 1+z1
 x2 /= 1+z2
+
+xmin = max(x1[0],x2[0])
+xmax = min(x1[-1],x2[-1])
+xs = scipy.linspace(xmin,xmax,len(x1)*2)
+tck1 = interpolate.splrep(x1, y1)
+tck2 = interpolate.splrep(x2, y2)
+x1 = xs
+x2 = xs
+y1 = interpolate.splev(xs,tck1)
+y2 = interpolate.splev(xs,tck2)
 
 #Normalize y
 nfac = np.median(y1) #normalization factor
@@ -70,8 +83,8 @@ nfac = np.median(y2)
 y2 = y2/nfac
 
 #Average two spectrum
-ax = x1
-ay = (y1+y2)/2
+ax = xs
+ay = np.mean(np.array([y1,y2]), axis=0)
 
 #plot
 pltdir = '../plots/'
