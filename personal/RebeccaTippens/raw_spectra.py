@@ -8,7 +8,7 @@ from matplotlib import pyplot
 #could also use array = np.loadtext()
 x1=[]
 y1=[]
-for line in open('/home/becca/astr596/data/sn2011by-hst+lick.flm'):
+for line in open('/Users/Rebecca/astr596/data/sn2011by-hst+lick.flm'):
 	columns = line.split()
 	if len(columns) == 2:
 		x1.append(float(columns[0]))
@@ -18,7 +18,7 @@ for line in open('/home/becca/astr596/data/sn2011by-hst+lick.flm'):
 
 x2 = []
 y2 = []
-for line in open('/home/becca/astr596/data/sn2011fe-visit3-hst.flm'):
+for line in open('/Users/Rebecca/astr596/data/sn2011fe-visit3-hst.flm'):
 	columns = line.split()
 	if len(columns) == 2:
 		x2.append(float(columns[0]))
@@ -31,8 +31,11 @@ for line in open('/home/becca/astr596/data/sn2011fe-visit3-hst.flm'):
 #print y2
 
 #Plot arrays one by the other
-pyplot.plot(x1, y1, color='c', linewidth=2)
-pyplot.plot(x2, y2, color='m', linewidth=2)
-#pyplot.axis([float('1e-17'), float('1e-12'), 1200, 6000]) #define range for x and y
+pyplot.plot(x1, y1, color='c', linewidth=1)
+pyplot.plot(x2, y2, color='m', linewidth=1)
 pyplot.yscale('log')
+pyplot.xlabel('Wavelength ' + '(' + u'\u212B' + ')')
+pyplot.ylabel('log (Flux)')
+#pyplot.savefig('raw_spectra.eps', format='eps') # saves plot as .eps
+pyplot.savefig('raw_spectra.pdf', format='PDF')
 pyplot.show()
