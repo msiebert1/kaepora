@@ -2,58 +2,63 @@
 import numpy as np
 import matplotlib.pylab as pl
 
-#Need to go back and organize labeling/commenting
 #load data from files
-data1  = np.loadtxt('sn2011fe-visit3-hst.flm')
-data2  = np.loadtxt('sn2011by-hst+lick.flm')
+unscaled_SN1 = np.loadtxt('../data/sn2011fe-visit3-hst.flm')
+will_cutSN2  = np.loadtxt('../data/sn2011by-hst+lick.flm')
 
 #find the overlapping region of X (wavelength values)
-for i in range(len(data2[:,0])):
-	if data2[:,0][i]==data1[:,0][0]:
+for i in range(len(will_cutSN2[:,0])):
+	if will_cutSN2[:,0][i]==unscaled_SN1[:,0][0]:
 		start = i
 
-stop = start+len(data1[:,0])
+#Find the end of the data array
+stop = start+len(unscaled_SN1[:,0])
 
-#Truncate data2 and label it as newdata2
-newdata2_X = []
-newdata2_Y = []
-newdata2_X = data2[:,0][start:stop] 
-newdata2_Y = data2[:,1][start:stop]
+#Truncate spectrum for longer data file
+#rename arrays for both SNR
+SN2_X          = []
+SN2_X          = will_cutSN2[:,0][start:stop] 
+unscaled_SN2_Y = []
+unscaled_SN2_Y = will_cutSN2[:,1][start:stop]
 
-data1_X = []
-data1_Y = []
+SN1_X          = []
+SN1_X          = unscaled_SN1[:,0]
+unscaled_SN1_Y = []
+unscaled_SN1_Y = unscaled_SN1[:,1]
 
-data1_X = data1[:,0]
-#print data1_X 
-data1_Y = data1[:,1]
+#Median of both spectrum, wavelength and flux
+med_SN1_Y = np.median(unscaled_SN1_Y)
+med_SN2_Y = np.median(unscaled_SN2_Y)
+#Scale both arrays by dividing by the median
+SN1_Y     = np.divide(unscaled_SN1_Y,med_SN1_Y)
+SN2_Y     = np.divide(unscaled_SN2_Y,med_SN2_Y)
 
 #Calculate the average of the spectra
-#Spectra has not been redshifted or the flux adjusted, this needs to be done.
-avg_wave = np.divide(np.add(data1_X,newdata2_X),2)
-avg_flux = np.divide(np.add(data1_Y,newdata2_Y),2)
+#Spectra has not been redshifted, this needs to be done.
+avg_wave = np.divide(np.add(SN1_X,SN2_X),2)
+avg_flux = np.divide(np.add(SN1_Y,SN2_Y),2)
 
-#Some bugs in wrting avg values to file, will fix
-"""
-datafile = open('testdata.txt','w')
-
+#Write average data to file AVG_Spectrum.txt
+datafile = open('AVG_Spectrum.txt','w')
 for i in range(len(avg_wave)):
-	row = str(avg_wave[i] + '\t' + str(avg_flux[i] + '\n'
-	datafile.write('row')
+	row = str(avg_wave[i]) + '\t' + str(avg_flux[i]) + '\n'
+	datafile.write(row)
 datafile.close()
-"""
-plot1,  = pl.plot(data1_X,data1_Y,'m')
-plot2,  = pl.plot(newdata2_X,newdata2_Y,'r')
+
+#Plot all data
+plot1,  = pl.plot(SN1_X,SN1_Y,'m')
+plot2,  = pl.plot(SN2_X,SN2_Y,'r')
 plot3,  = pl.plot(avg_wave,avg_flux,'k')
 
+#Add titles and legend
 pl.title('Comparison of Spectra')
 pl.xlabel('Wavelength (??)')
-pl.ylabel('Flux (??)')
-
+pl.ylabel('Scaled Flux')
 pl.legend([plot1,plot2,plot3],('SN2011fe','SN2011by','Average Flux'),'upper right',numpoints=1)
-#pl.savefig('Spectra.png')
+
+#save the plot and show it
+pl.savefig('Spectra.png')
 pl.show()
-
-
 
 
 
