@@ -31,18 +31,20 @@ def ReadIn(file):
 # Function: import into an array, and find the mean value
 def ImpArr(d) :
     walen = []
-    flux = []
-    fluxavg = []            
+    flux = []           
     for i in range(len(d)) :
         walen.append(d[i][0])
         flux.append(d[i][1])
+    med = np.median(flux)
+    print med
+    flux = flux/med
 #    print flux
-    avg = float(sum(flux))/len(flux)
-    print avg
-    for i in range(len(flux)) :
-        fluxavg.append(flux[i]-avg)
+#    avg = float(sum(flux))/len(flux)
+#    print avg
+#    for i in range(len(flux)) :
+#        fluxavg.append(flux[i]-avg)
 #        print fluxavg[i]
-    return [walen,flux,fluxavg]
+    return [walen,flux]
     
 
 # main function (can be updated)        
@@ -56,7 +58,7 @@ arr2 = ImpArr(d2)
 # For two-case only. Still working on how to do multi-cases...
 mini = max(arr1[0][0],arr2[0][0])
 maxi = min(arr1[0][len(arr1[0])-1],arr2[0][len(arr2[0])-1]) 
-print mini,maxi
+#print mini,maxi
 for i in range(len(arr1[0])) : # what if the range is overlapped?
     if arr1[0][i] == mini : 
         minum = i
@@ -69,6 +71,8 @@ avwalen= arr1[0][minum:manum+1]
 #print avwalen
 for k in range(len(avwalen)) :
     avflux.append((arr1[1][k]+arr2[1][k])/2)
+#print avfluxnorm
+
 # plotting spectra
 f1 = plt.figure(1)
 ax = f1.add_subplot(111)
@@ -83,3 +87,17 @@ ax.set_yscale('log')
 legend = ax.legend(loc='lower right', shadow=True)
 f1.show()
 f1.savefig('spectra.png')
+
+# plotting normalized spectra
+"""f2 = plt.figure(2)
+ax2 = f2.add_subplot(111)
+plot4 = ax2.plot(arr1[0],arr1[2],label = 'SN2011BY')
+plot5 = ax2.plot(arr2[0],arr2[2], label = 'SN2011FE')
+plot6 = ax2.plot(avwalen,avfluxnorm, label = 'average')
+#l = plt.axhline(y=0,color = 'r')
+plt.xlabel('Wavelength [A]')
+plt.xlim(mini,maxi)
+ax2.set_yscale('log')
+plt.ylabel('Normalized Flux')
+f2.show()
+f2.savefig('spectra2.png')"""
