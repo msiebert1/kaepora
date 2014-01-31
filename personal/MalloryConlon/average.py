@@ -1,12 +1,19 @@
-##This code finds the average spectrum for two provided spectra.  Work is being done such that it can have an input directory with n spectra. 
+##This code finds the average spectrum for two provided spectra.  The required input is a list of files in a particular directory that you wish to be averaged.
 
 import numpy as np
 import matplotlib.pyplot as plt
+import glob
+import os
 
-start=0
 #Read in files.  This will need to be automated once we are looking at a ton of spectra...
-file1_red=np.loadtxt('sn2011by-hst+lick.flm')
-file2_red=np.loadtxt('sn2011fe-visit3-hst.flm')
+
+for dirs,subdirs,files in os.walk('../data/'):
+    for subdirs in dirs:
+        list= glob.glob("*.flm")
+print list
+
+file1_red=np.loadtxt(list[0])
+file2_red=np.loadtxt(list[1])
 
 wave=file1_red[:,0]
 wave2=file2_red[:,0]
@@ -41,8 +48,8 @@ flux1=flux1/medflux1
 flux2=flux2/medflux2
 
 #Average the two spectra
-average_wave=(wave1+wave2)/2
-average_flux=(flux1+flux2)/2
+average_wave=(wave1+wave2)/(len(list))
+average_flux=(flux1+flux2)/(len(list))
 
 #Make plots of individual and average spectra, save plot
 plt.yscale('log')
