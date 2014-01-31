@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy
 from scipy import interpolate
+from matplotlib.ticker import AutoMinorLocator
 
 def halfSearch(arr,find):
     median = 0
@@ -89,7 +90,13 @@ ay = np.mean(np.array([y1,y2]), axis=0)
 #plot
 pltdir = '../plots/'
 
+fig, axx = plt.subplots(1, 1)
+minorLocator  = AutoMinorLocator(10)
+axx.xaxis.set_minor_locator(minorLocator)
+plt.tick_params(which='major', length=7)
+plt.tick_params(which='minor', length=4)
 plt.yscale('log')
+
 p1,=plt.plot(x1,y1)
 p2,=plt.plot(x2,y2)
 p3,=plt.plot(ax,ay)
