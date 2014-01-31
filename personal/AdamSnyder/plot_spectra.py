@@ -1,8 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-SN1 = np.loadtxt("sn2011by-hst+lick.flm")
-SN2 = np.loadtxt("sn2011fe-visit3-hst.flm")
+SN1 = np.loadtxt("../../data/sn2011by-hst+lick.flm")
+SN2 = np.loadtxt("../../data/sn2011fe-visit3-hst.flm")
 
 f1 = plt.figure()
 plt.plot(SN1[:,0], SN1[:,1], SN2[:,0], SN2[:,1])
