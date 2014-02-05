@@ -26,8 +26,8 @@ for dirs,subdirs,files in os.walk(path):
             spectra_files.append(os.path.join(dirs,file))
 
 #Read in data, store unreadable files (give an error when read in) in a separate array
-
-for i in range(20):
+num = 20 # the number of spectra to analyze
+for i in range(num):
     try:
         spectra_arrays.append(np.loadtxt(spectra_files[i]))
         spectra_name.append(spectra_files[i])
@@ -63,21 +63,26 @@ for i in range(len(spectra_arrays)):
     y1=inter.splev(wavelength,sm1)	#fits b-spline over wavelength range
     y1 /= np.median(y1)
     fitted_flux.append(y1)
+#print fitted_flux
     
 Comp_flux = []   
-RMS_flux = []
+RMS1_flux = []
+RMS2_flux = []
 for i in range(len(wavelength)): 
     fluxa = sum(flux[i] for flux in fitted_flux)
-#    print fluxa
-    fluxb = sum(float(flux[i])**2 for flux in fitted_flux)  
-    Comp_flux.append(fluxa/float(len(wavelength)))
-    RMS_flux.append(math.sqrt(fluxb/float(len(wavelength))))     
-print RMS_flux
+    Comp_flux.append(fluxa/num)
+    fluxb = sum((flux[i]-Comp_flux[i])**2 for flux in fitted_flux)
+    fluxc = sum((flux[i])**2 for flux in fitted_flux)
+    print fluxb,fluxc,Comp_flux[i]
+    RMS1_flux.append(Comp_flux[i]+math.sqrt(fluxb/num))
+    RMS2_flux.append(Comp_flux[i]-math.sqrt(fluxb/num)) 
+#print RMS_flux
     
 #plot composite spectrum
 plot1 = plt.plot(wavelength,Comp_flux,label = 'comp')
-plot2 = plt.plot(wavelength,RMS_flux,label = 'rms')
-legend = plt.legend(loc='lower right', shadow=True)
+plot2 = plt.plot(wavelength,RMS1_flux,label = 'rms+')
+plot3 = plt.plot(wavelength,RMS2_flux,label = 'rms-')
+legend = plt.legend(loc='upper right', shadow=True)
 plt.xlim(wave_min,wave_max)
 plt.xlabel('Wavelength')
 plt.ylabel('Flux')
