@@ -5,6 +5,7 @@
 import numpy as np
 import os
 import scipy
+import math
 #from astropy.table import Table
 import scipy.interpolate as inter
 import matplotlib.pyplot as plt
@@ -26,7 +27,7 @@ for dirs,subdirs,files in os.walk(path):
 
 #Read in data, store unreadable files (give an error when read in) in a separate array
 
-for i in range(100):
+for i in range(20):
     try:
         spectra_arrays.append(np.loadtxt(spectra_files[i]))
         spectra_name.append(spectra_files[i])
@@ -64,19 +65,25 @@ for i in range(len(spectra_arrays)):
     fitted_flux.append(y1)
     
 Comp_flux = []   
-for i in range(len(wavelength)): # For each wavelength, sum associated flux for each spectra and average 
+RMS_flux = []
+for i in range(len(wavelength)): 
     fluxa = sum(flux[i] for flux in fitted_flux)
-    Comp_flux.append(fluxa/float(len(wavelength)))     
-#print Comp_flux
+#    print fluxa
+    fluxb = sum(float(flux[i])**2 for flux in fitted_flux)  
+    Comp_flux.append(fluxa/float(len(wavelength)))
+    RMS_flux.append(math.sqrt(fluxb/float(len(wavelength))))     
+print RMS_flux
     
 #plot composite spectrum
-plt.plot(wavelength,Comp_flux)
+plot1 = plt.plot(wavelength,Comp_flux,label = 'comp')
+plot2 = plt.plot(wavelength,RMS_flux,label = 'rms')
+legend = plt.legend(loc='lower right', shadow=True)
 plt.xlim(wave_min,wave_max)
 plt.xlabel('Wavelength')
 plt.ylabel('Flux')
 #plt.yscale('log')
 plt.show()
-plt.savefig('composite.png')
+plt.savefig('compositerms.png')
 
 #RMS Spectrum
 
