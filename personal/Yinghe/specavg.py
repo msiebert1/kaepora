@@ -2,8 +2,6 @@
 #Measure the scatter for the composite spectrum.  
 #Make a two-panel plot which shows the composite spectrum with the RMS spectrum around it on top and the residual RMS spectrum on bottom.
 
-
-
 import numpy as np
 import os
 import scipy
@@ -39,7 +37,7 @@ for i in range(100):
 #deredshift data
 
 
-#scale spectra
+#scale/truncate spectra
 wave_min=0  #arbitrary minimum of wavelength range
 wave_max=1000000   #arbitrary maximum of wavelength range
 
@@ -52,10 +50,7 @@ for i in range(len(spectra_arrays)):
         wave_max=max(spectra[:,0])
 #        print spectra_name[i]
 #print wave_min,wave_max
-
-
 wavelength = np.linspace(wave_min,wave_max,100)  #creates 100 equally spaced wavelength values between the smallest range
-
 fitted_flux=[]
 #generates composite spectrum
 for i in range(len(spectra_arrays)):
@@ -72,8 +67,8 @@ Comp_flux = []
 for i in range(len(wavelength)): # For each wavelength, sum associated flux for each spectra and average 
     fluxa = sum(flux[i] for flux in fitted_flux)
     Comp_flux.append(fluxa/float(len(wavelength)))     
-print Comp_flux
-
+#print Comp_flux
+    
 #plot composite spectrum
 plt.plot(wavelength,Comp_flux)
 plt.xlim(wave_min,wave_max)
@@ -97,4 +92,5 @@ ax1.set_title('Residual RMS')
 ax1.set_yscale('log')
 ax1.set_ylabel('')
 plt.subplots_adjust(hspace=0.3)
-plt.show()
+#plt.show()
+#plt.savefig('')
