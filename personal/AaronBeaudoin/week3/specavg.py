@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import math
 
 #Reads in spectra file names
-spectra_files = glob.glob("data/cfa/*/*.flm")
+spectra_files = glob.glob("../../../data/cfa/*/*.flm")
 
 spectra_arrays=[]
 bad_files = []
@@ -25,13 +25,12 @@ for i in range(num):
 
 
 #deredshift data
-parameters = Table.read('data/cfa/cfasnIa_param.dat',format='ascii')
+parameters = Table.read('../../../data/cfa/cfasnIa_param.dat',format='ascii')
 sn_name = parameters["col1"]
 sn_z = parameters["col2"]
 for i in range(len(file_name)):
 	old_spectrum=spectra_arrays[i]
 	z=0
-	#file_name = spectra_files[i]
 	for j in range(len(sn_name)):
 		if sn_name[j] in file_name[i]:
 			z=sn_z[j]
@@ -88,29 +87,13 @@ for i in range(len(wavelength)):
 		spectrum=spectra_arrays[j]
 		flux = spectrum["col2"]
 		flux_sum = flux_sum + (flux[i]-avg_flux[i])**2
-	#flux_rms=(flux_sum)**.5
-	flux_rms=(flux_sum/len(spectra_arrays))**.5
+	flux_rms=(flux_sum)**.5
+	#flux_rms=(flux_sum/len(spectra_arrays))**.5
 	rms_max=avg_flux[i] + flux_rms
 	rms_min=avg_flux[i] - flux_rms
 	rms_flux_max.append(rms_max)
 	rms_flux_min.append(rms_min)
-	scatter.append(flux_rms/avg_flux[i])	
-"""
-
-for i in range(len(wavelength)):
-	chi_square = 0
-	a_flux = avg_flux[i]
-	for j in range(len(spectra_arrays)):
-		spectrum=spectra_arrays[j]
-		flux = spectrum["col2"]
-		chi_square = chi_square + ((flux[i]-a_flux)**2/flux[i])
-	flux_rms= chi_square
-	rms_max=a_flux + flux_rms
-	rms_min=a_flux - flux_rms
-	rms_flux_max.append(rms_max)
-	rms_flux_min.append(rms_min)
-	scatter.append(flux_rms/a_flux)
-	"""
+	scatter.append(flux_rms/avg_flux[i])
 	
 rms_max_spectrum=Table([wavelength,rms_flux_max],names=('col1','col2'))
 rms_min_spectrum=Table([wavelength,rms_flux_min],names=('col1','col2'))
