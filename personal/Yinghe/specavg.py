@@ -28,22 +28,24 @@ for dirs,subdirs,files in os.walk(path):
 spectra_files=glob.glob("../../data/cfa/*/*.flm")
                     
 #Read in data, store unreadable files (give an error when read in) in a separate array
-num = 50 # the number of spectra to analyze
+num = 70 # the number of spectra to analyze
 for i in range(num):
     try:
         spectra_arrays.append(np.loadtxt(spectra_files[i]))
         spectra_name.append(spectra_files[i])
     except ValueError:
         bad_files.append(spectra_files[i])
+num = len(spectra_arrays) # Reset the number to the number of good files
 
 #deredshift data
 parameters = Table.read('../../data/cfa/cfasnIa_param.dat',format='ascii')
 sn_name = parameters['col1']
 sn_z = parameters['col2']
+#old_spectrum = []
 for i in range(num):
-    old_spectrum=spectra_arrays[i]
+    old_spectrum = spectra_arrays[i]
     z=0
-    file_name = spectra_files[i]
+    file_name = spectra_name[i]
     for j in range(len(sn_name)):
         if sn_name[j] in file_name:
 		z=sn_z[j]
@@ -64,11 +66,12 @@ for i in range(len(spectra_arrays)):
         wave_max=max(spectra['col1'])
 #        print spectra_name[i]
 #print wave_min,wave_max
+
 wavelength = np.linspace(wave_min,wave_max,100)  #creates 100 equally spaced wavelength values between the smallest range
 fitted_flux=[]
 
 #generates composite spectrum
-for i in range(len(spectra_arrays)):
+for i in range(num):
     new_spectrum=spectra_arrays[i]	#declares new spectrum from list
     new_wave=new_spectrum['col1']	#wavelengths
     new_flux=new_spectrum['col2']	#fluxes
@@ -91,7 +94,7 @@ for i in range(len(wavelength)):
     RMS1_flux.append(Comp_flux[i]+math.sqrt(fluxb/num))
     RMS2_flux.append(Comp_flux[i]-math.sqrt(fluxb/num))
     scatter.append(math.sqrt(fluxb/num)/Comp_flux[i])
-#print RMS_flux
+print Comp_flux,RMS1_flux
     
 
 #plot composite spectrum with RMS Spectrum on top and Residual RMS on bottom
