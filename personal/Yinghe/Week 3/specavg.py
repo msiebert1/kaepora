@@ -28,7 +28,7 @@ for dirs,subdirs,files in os.walk(path):
 spectra_files=glob.glob("../../data/cfa/*/*.flm")
                     
 #Read in data, store unreadable files (give an error when read in) in a separate array
-num = 70 # the number of spectra to analyze
+num = 80 # the number of spectra to analyze
 for i in range(num):
     try:
         spectra_arrays.append(np.loadtxt(spectra_files[i]))

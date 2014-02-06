@@ -1,2 +1,2 @@
-specavg.py are written by Yinghe, Mallory and Aaron together
+specavg.py is written by Yinghe, Mallory and Aaron together
 
