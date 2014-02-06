@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 plt.yscale('log')
 
-f1 = open('sn2011by-hst+lick.flm')
+f1 = open('../../data/sn2011by-hst+lick.flm')
 lines = f1.readlines()
 f1.close()
 
@@ -21,7 +21,7 @@ y1=y1[0:2689]
 p1,=plt.plot(x1, y1)
 
 
-f2=open('sn2011fe-visit3-hst.flm')
+f2=open('../../data/sn2011fe-visit3-hst.flm')
 lines=f2.readlines()
 f2.close()
 

@@ -48,14 +48,13 @@ flux1=flux1/medflux1
 flux2=flux2/medflux2
 
 #Average the two spectra
-average_wave=(wave1+wave2)/(len(list))
 average_flux=(flux1+flux2)/(len(list))
 
 #Make plots of individual and average spectra, save plot
 plt.yscale('log')
 plot1,=plt.plot(wave1,flux1,'k')
 plot2,=plt.plot(wave2,flux2, 'g')
-plot3,=plt.plot(average_wave,average_flux, 'r')
+plot3,=plt.plot(wave1,average_flux, 'r')
 
 plt.xlabel('Observed Wavelength ($\AA$)')
 plt.ylabel('log[Scaled Flux]')
