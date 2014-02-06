@@ -68,41 +68,34 @@ for i in range(len(spectra_arrays)):
 Comp_flux = []   
 RMS1_flux = []
 RMS2_flux = []
+scatter = []
 for i in range(len(wavelength)): 
     fluxa = sum(flux[i] for flux in fitted_flux)
     Comp_flux.append(fluxa/num)
     fluxb = sum((flux[i]-Comp_flux[i])**2 for flux in fitted_flux)
-    fluxc = sum((flux[i])**2 for flux in fitted_flux)
-    print fluxb,fluxc,Comp_flux[i]
+#    print fluxb
     RMS1_flux.append(Comp_flux[i]+math.sqrt(fluxb/num))
-    RMS2_flux.append(Comp_flux[i]-math.sqrt(fluxb/num)) 
+    RMS2_flux.append(Comp_flux[i]-math.sqrt(fluxb/num))
+    scatter.append(math.sqrt(fluxb/num)/Comp_flux[i])
 #print RMS_flux
     
 #plot composite spectrum
-plot1 = plt.plot(wavelength,Comp_flux,label = 'comp')
-plot2 = plt.plot(wavelength,RMS1_flux,label = 'rms+')
-plot3 = plt.plot(wavelength,RMS2_flux,label = 'rms-')
-legend = plt.legend(loc='upper right', shadow=True)
-plt.xlim(wave_min,wave_max)
-plt.xlabel('Wavelength')
-plt.ylabel('Flux')
-#plt.yscale('log')
-plt.show()
-plt.savefig('compositerms.png')
 
-#RMS Spectrum
-
-#RMS residual
 
 #plot composite spectrum with RMS Spectrum on top and Residual RMS on bottom
 fig, (ax0, ax1) = plt.subplots(nrows=2, sharex=True)
-ax0.plot()
+plot1 = ax0.plot(wavelength,Comp_flux,label = 'comp')
+plot2 = ax0.plot(wavelength,RMS1_flux,label = 'rms+')
+plot3 = ax0.plot(wavelength,RMS2_flux,label = 'rms-')
+legend = ax0.legend(loc='upper right', shadow=True)
+ax0.set_xlim(wave_min,wave_max)
 ax0.set_title('RMS')
-ax0.set_ylabel('')
-ax1.plot()
-ax1.set_title('Residual RMS')
-ax1.set_yscale('log')
-ax1.set_ylabel('')
-plt.subplots_adjust(hspace=0.3)
-#plt.show()
-#plt.savefig('')
+ax0.set_ylabel('Flux')
+ax1.plot(wavelength,scatter,'o')
+ax1.set_title('Residual')
+legend = ax1.legend(loc='upper right', shadow=True)
+#ax1.set_yscale('log')
+#ax1.set_ylabel('')
+plt.subplots_adjust(hspace=0.2)
+plt.show()
+plt.savefig('all.png')
