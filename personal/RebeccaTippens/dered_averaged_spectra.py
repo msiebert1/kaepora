@@ -41,7 +41,7 @@ for x1_val in range(0,len(x1)):
 		x2_val += 1
 	x1_val += 1
 
-np.savetxt('averaged_spectra.txt', np.transpose([x3,y3]), fmt="%d %26.18e")
+np.savetxt('dered_averaged_spectra.txt', np.transpose([x3,y3]), fmt="%d %26.18e")
 #printed data to check that it read in right
 #print x1
 #print y1
@@ -56,5 +56,5 @@ pyplot.yscale('log')
 pyplot.xlabel('Wavelength ' + '(' + u'\u212B' + ')')
 pyplot.ylabel('log (Flux)')
 #pyplot.savefig('averaged_spectra.eps', format='eps') # saves plot as .eps
-pyplot.savefig('averaged_spectra.pdf', format='PDF')
+pyplot.savefig('dered_averaged_spectra.pdf', format='PDF')
 pyplot.show()

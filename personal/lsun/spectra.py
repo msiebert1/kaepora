@@ -30,13 +30,19 @@ miny = np.minimum(np.min(flux0), np.min(flux1))
 maxy = np.maximum(np.max(flux0), np.max(flux1))
 
 # plot two spectra
-plt.scatter(wavelength0, flux0, color = 'c', marker = '.')
-plt.scatter(wavelength1, flux1, color = 'm', marker = '.')
+
+m = plt.scatter(wavelength0, flux0, color = 'c', marker = '.' )
+
+n = plt.scatter(wavelength1, flux1, color = 'm', marker = '.' )
+
+plt.legend((m,n), ('sn2011by', 'sn2011fe'),scatterpoints=1,loc='upper right', ncol=3)
+
 
 #scaled plotting
 plt.ylim((miny * 1.01, maxy * 1.01))
 plt.xlabel(r'Wavelength, $\lambda$ ($10^{-9}$m)')
 plt.ylabel(r'Flux, $f_{\lambda}$ (Jy)')
+
 plt.plot()
 plt.show()
 plt.savefig(link + 'original spectra.png')
@@ -50,7 +56,9 @@ minx = np.minimum(wavelength0.size, wavelength1.size)
 spectra_outfile = open(link + 'average_spectra.dat', 'w')
 
 for i in range(minx):
-    plt.scatter(wavelength0[i], (flux0[i]+flux1[i])/2, color = 'b', marker = '.')
+
+#meanflux = (flux0[i]+flux1)/2  #np.mean([flux0,flux1], axis=0)
+    plt.scatter(wavelength0[i], (flux0[i]+flux1[i])/2  , color = 'b', marker = '.')
     plt.ylim((miny * 1.01, maxy * 1.01))
     plt.xlabel(r'Wavelength, $\lambda$ ($10^{-9}$m)')
     plt.ylabel(r'Flux, $f_{\lambda}$ (Jy)')
@@ -60,5 +68,6 @@ for i in range(minx):
 
 
 plt.savefig(link + 'averaged spectra.png')
+
 plt.show()
 plt.close()

@@ -1,8 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as mp
 
+files = glob.glob('/./data/cfa/*.flm')
 
-#read spectra 
+
+#read spectra
 sn1 = np.loadtxt('sn2011by-hst+lick.flm')
 sn2 = np.loadtxt('sn2011fe-visit3-hst.flm')
 

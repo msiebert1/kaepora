@@ -1,54 +1,62 @@
 from __future__ import division
 import matplotlib.pyplot as plt
 import numpy as np
+import os
+import glob
 
-def find_boundaries(arr1, arr2):
+#consider changing to binary search for O(logn)
+def find_lo_hi(lo, hi, arr):
+    d = arr[:, 0]
+    if min(d) > lo:
+        lo = min(d)
+    if max(d) < hi:
+        hi = max(d)
+
+    return lo, hi
+
+def trim_data(lo, hi, arr):
     """
-    Takes 2 1d arrays and returns the indicies between which
-    they overlap.
+    Returns section of each array between given high and low values
     """
-    start = arr1[0]
-    if arr1[0] < arr2[0]:
-        start = arr2[0]
+    start = np.where(arr == lo)
+    end = np.where(arr == hi)
+    trimmed = arr[start[0]:end[0]]
+    return trimmed
 
-    end = arr1[len(arr1) - 1]
-    if arr1[len(arr1) - 1] > arr2[len(arr2) - 1]:
-        end = arr2[len(arr2) - 1]
+path = '../../data/'
+files = os.listdir(path)
 
-    return start, end
+#initialize lo and hi to min/max possible
+lo = 0.0
+hi = float('inf')
 
+for f in files:
+    print f
+    if f.endswith('.flm'):
+        data = np.loadtxt(f)
+    else:
+        continue
+    print datais
+    lo, hi = find_lo_hi(lo, hi, data)
 
-def trim_arrays(arr1, arr2):
-    """
-    Returns section of each array that overlaps
-    """
-    start, end = find_boundaries(arr1[:,0], arr2[:,0])
+spectra = {}
 
-    ind1 = np.where(arr1 == start)
-    ind2 = np.where(arr2 == start)
-    end1 = np.where(arr1 == end)
-    end2 = np.where(arr2 == end)
-
-    g1 = data1[ind1[0]:end1[0]]
-    g2 = data2[ind2[0]:end2[0]]
-
-    return g1, g2
-
-
-data1 = np.loadtxt('sn2011by-hst+lick.flm')
-data2 = np.loadtxt('sn2011fe-visit3-hst.flm')
-
-g1, g2 = trim_arrays(data1, data2)
-
-#scales data by dividing by median
-gmed1 = np.median(g1[:,1])
-gmed2 = np.median(g2[:,1])
-sg1 = np.divide(g1[:, 1], gmed1)
-sg2 = np.divide(g2[:, 1], gmed2)
+for f in files:
+    if f.endswith('.flm') or f.endswith('.dat'):
+        data = np.loadtxt(f)
+    else:
+        continue
+    trimmed = trim_data(lo, hi, data)
+    #scale data by dividing by median
+    med = np.median(data[:, 1])
+    scaled = np.divide(trimmed, med)
+    spectra[f] = trimmed
+    print spectra
 
 #average flux
 avx = g1[:, 0]
-avy = np.divide(np.add(sg1, sg2), 2)
+#avy = np.divide(np.add(sg1, sg2), 2)
+avy = np.divide((sg1+sg2), 2)
 
 #plot trimmed wavelength vs. trimmed/scaled flux
 p1 ,= plt.plot(avx, avy, 'g')
