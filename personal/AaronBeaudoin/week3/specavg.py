@@ -31,6 +31,7 @@ sn_z = parameters["col2"]
 for i in range(len(file_name)):
 	old_spectrum=spectra_arrays[i]
 	z=0
+	#file_name = spectra_files[i]
 	for j in range(len(sn_name)):
 		if sn_name[j] in file_name[i]:
 			z=sn_z[j]
@@ -62,6 +63,7 @@ for i in range(len(spectra_arrays)):
 	lines=np.where((new_wave>wave_min) & (new_wave<wave_max))	#creates an array of wavelength values between minimum and maximum wavelengths from new spectrum
 	sm1=inter.splrep(new_wave[lines],new_flux[lines])	#creates b-spline from new spectrum
 	y1=inter.splev(wavelength,sm1)	#fits b-spline over wavelength range
+	y1 /= np.median(y1)
 	fitted_flux.append(y1)
 
 sum = fitted_flux[0]
@@ -87,16 +89,32 @@ for i in range(len(wavelength)):
 		spectrum=spectra_arrays[j]
 		flux = spectrum["col2"]
 		flux_sum = flux_sum + (flux[i]-avg_flux[i])**2
-	flux_rms=(flux_sum)**.5
-	#flux_rms=(flux_sum/len(spectra_arrays))**.5
+	#flux_rms=(flux_sum)**.5
+	flux_rms=(flux_sum/len(spectra_arrays))**.5
 	rms_max=avg_flux[i] + flux_rms
 	rms_min=avg_flux[i] - flux_rms
 	rms_flux_max.append(rms_max)
 	rms_flux_min.append(rms_min)
-	scatter.append(flux_rms/avg_flux[i])
+	scatter.append(flux_rms/avg_flux[i]*100)	
+"""
+
+for i in range(len(wavelength)):
+	chi_square = 0
+	a_flux = avg_flux[i]
+	for j in range(len(spectra_arrays)):
+		spectrum=spectra_arrays[j]
+		flux = spectrum["col2"]
+		chi_square = chi_square + ((flux[i]-a_flux)**2/flux[i])
+	flux_rms= chi_square
+	rms_max=a_flux + flux_rms
+	rms_min=a_flux - flux_rms
+	rms_flux_max.append(rms_max)
+	rms_flux_min.append(rms_min)
+	scatter.append(flux_rms/a_flux)
+	"""
 	
-rms_max_spectrum=Table([wavelength,rms_flux_max],names=('col1','col2'))
-rms_min_spectrum=Table([wavelength,rms_flux_min],names=('col1','col2'))
+#rms_max_spectrum=Table([wavelength,rms_flux_max],names=('col1','col2'))
+#rms_min_spectrum=Table([wavelength,rms_flux_min],names=('col1','col2'))
 
 #RMS Residual
 plt.figure(1)
