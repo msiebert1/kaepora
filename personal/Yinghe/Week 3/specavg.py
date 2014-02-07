@@ -67,7 +67,7 @@ for i in range(len(spectra_arrays)):
 #        print spectra_name[i]
 #print wave_min,wave_max
 
-wavelength = np.linspace(wave_min,wave_max,100)  #creates 100 equally spaced wavelength values between the smallest range
+wavelength = np.linspace(wave_min,wave_max,500)  #creates 100 equally spaced wavelength values between the smallest range
 fitted_flux=[]
 
 #generates composite spectrum
