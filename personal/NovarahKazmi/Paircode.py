@@ -12,7 +12,7 @@ spectra_files  = glob.glob('../data/cfa/*/*.flm')
 spectra_arrays = []
 bad_files      = []
 
-for i in range(2):
+for i in range(20):
     try:
         spectra_arrays.append(np.loadtxt(spectra_files[i]))
     except ValueError:
