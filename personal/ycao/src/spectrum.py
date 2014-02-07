@@ -5,7 +5,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy
 from scipy import interpolate
+
 from matplotlib.ticker import AutoMinorLocator
+import matplotlib.gridspec as gridspec
+
 
 def halfSearch(arr,find):
     median = 0
@@ -61,8 +64,8 @@ def findBoundary(files,zhels):
         wavemint, wavemaxt = loadSpec(file,z,xmax=True)
         if wavemint > wavemin:
             wavemin = wavemint
-            if wavemaxt < wavemax:
-                wavemax = wavemaxt
+        if wavemaxt < wavemax:
+            wavemax = wavemaxt
     
     wavemin = (int(wavemin/10) + 1) * 10
     wavemax = (int(wavemax/10) - 1) * 10
@@ -81,6 +84,7 @@ def interpSpec(wave,flux,bound):
 def averSpec(files,zhels):
     fluxs = []
     bound = findBoundary(files,zhels)
+#     bound = [3500,6000]
 
     for file,z in zip(files,zhels):
         wave,flux = loadSpec(file,z)
@@ -95,9 +99,11 @@ def averSpec(files,zhels):
             fluxs = np.append(fluxs,np.array([intflux]),axis=0)
 #             print np.shape(fluxs)
             
-        averflux = np.mean(fluxs, axis=0)
-        
-        resflux = fluxs - averflux
+
+    averflux = np.mean(fluxs, axis = 0)
+    averflux /= np.max(averflux)
+    resflux = np.std(fluxs, axis = 0)    
+
 
     return intwave,averflux,fluxs,resflux
 
@@ -105,10 +111,10 @@ def plotSpec(wave,averflux,fluxs,resflux):
 
     pltdir = '../plots/'
 
-    f, axarr = plt.subplots(2, sharex=True)
+    ax1 = plt.subplot2grid((3,1), (0,0),rowspan=2)
+    ax2 = plt.subplot2grid((3,1), (2,0))
 
-    ax1 = axarr[0]
-    ax2 = axarr[1]
+    plt.subplots_adjust(hspace = .001)
 
     minorLocator  = AutoMinorLocator(10)
     ax2.xaxis.set_minor_locator(minorLocator)
@@ -119,23 +125,29 @@ def plotSpec(wave,averflux,fluxs,resflux):
     ax2.tick_params(which='major', length=7)
     ax2.tick_params(which='minor', length=4)
 
+    ax1.set_ylabel('Scaled Flux')
+    ax2.set_ylabel('Residule Flux')
 
-    ax2.set_title('Wavelength [A]')
-#     ax2.ylabel('Residule Flux')
-#     ax1.ylabel('Scaled Flux')
-    
+    ax2.set_xlabel('Wavelength [A]')
 
-    ax1.plot(wave, averflux,marker='o')
-    ax2.plot(wave,np.zeros(len(wave)), marker='o')
+    ax1.set_ylim(0., np.max(averflux+resflux))
 
-    nspec = np.shape(fluxs)[0]
-    index = range(0,nspec,1)
+    ax1.plot(wave, averflux,color='b')
+    ax1.plot(wave, averflux + resflux,color = 'g')
+    ax1.plot(wave, averflux - resflux,color = 'g')
 
-    for i in index:
-        ax1.plot(wave,fluxs[i,:])
-        ax2.plot(wave,resflux[i,:])
+    ax2.plot(wave,np.zeros(len(wave)),color='b')
+    ax2.plot(wave,resflux,color='g')
+    ax2.plot(wave,-1.*resflux,color='g')
 
-    plt.savefig(pltdir+'spectrum.eps')
+#     nspec = np.shape(fluxs)[0]
+#     index = range(0,nspec,1)
+
+#     for i in index:
+#         ax1.plot(wave,fluxs[i,:])
+#         ax2.plot(wave,resflux[i,:])
+
+    plt.savefig(pltdir+'averspectra.png')
     plt.show()
 
 
