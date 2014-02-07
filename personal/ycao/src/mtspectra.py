@@ -52,15 +52,20 @@ from astropy.time import Time
 
 #Select the first 25 as the samples 
 #sns = snnames[0:24]
-sns = snnames[0:30]
-print 'Our sample: ',sns
+sns = snnames[0:10]
 
 # from string import Template
 import string
 
+snsample = []
+files = []
+zsample = []
 for sn in sns:
     index = names.index(sn)
+    name = names[index]
+    zhel = zhels[index]
     tmax = tmaxs[index]
+
     if tmax == 99999.9: 
         continue
 
@@ -85,12 +90,23 @@ for sn in sns:
     mdays = np.ma.array(days,mask = days < 0.)# Calculate the delt_day and mask negtive values
 
     fn = np.nanargmin(mdays)
-
-    file = list[fn]
     
     if days[fn] > 8:
         continue
 
-    print daymax, dates[fn], days[fn]
+    file = list[fn]
 
-        
+    snsample.append(name)
+    zsample.append(zhel)
+    files.append(file)
+
+#    print daymax, dates[fn], days[fn]
+
+print snsample
+print zsample
+print files
+
+import spectrum 
+from spectrum import *
+
+spectrum(files,zsample)

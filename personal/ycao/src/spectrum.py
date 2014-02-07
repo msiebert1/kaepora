@@ -1,3 +1,4 @@
+#!/usr/bin/env python -i
 # Load the data files and produce an average spectrum
 #
 import matplotlib.pyplot as plt
@@ -22,11 +23,14 @@ def halfSearch(arr,find):
                 ceil = median - 1
     return -1 #not found
 
+# Deredshifting wave  with redshift z
+def dered(wave, z):
+    wave /= 1. + z
+    return wave
 
-#Loading data from data files
-def loadData(file):
-    datadir = '../../../data/'
-    f = open(datadir+file)
+#Loading data from data files and do the deredshifting 
+def loadSpec(file,z,xmax=False):
+    f = open(file)
     lines = f.readlines()
     f.close()
 
@@ -40,71 +44,120 @@ def loadData(file):
 
     x = np.array(x)
     y = np.array(y)        
+    
+    dered(x,z)
 
-    return np.array([x,y])
+    if xmax == True :
+        return min(x),max(x)
+    else:
+        return x,y
+
+    
+def findBoundary(files,zhels):
+    wavemin = 0.
+    wavemax = 1e10
+    
+    for file,z in zip(files,zhels):
+        wavemint, wavemaxt = loadSpec(file,z,xmax=True)
+        if wavemint > wavemin:
+            wavemin = wavemint
+            if wavemaxt < wavemax:
+                wavemax = wavemaxt
+    
+    wavemin = (int(wavemin/10) + 1) * 10
+    wavemax = (int(wavemax/10) - 1) * 10
+    return  np.array([wavemin,wavemax])
 
 
-file1 = 'sn2011by-hst+lick.flm'
-data = loadData(file1)
-x1 = data[0]
-y1 = data[1]
+# Interpalate spectrum
+def interpSpec(wave,flux,bound):
+    nsample = int(1e5)
+    intwave = scipy.linspace(bound[0],bound[1],nsample) 
+    tck = interpolate.splrep(wave, flux)
+    intflux = interpolate.splev(intwave,tck)
+    return intwave,intflux    
 
-file2 = 'sn2011fe-visit3-hst.flm'
-data = loadData(file2)
-x2 = data[0]
-y2 = data[1]
+# Get average spectrum
+def averSpec(files,zhels):
+    fluxs = []
+    bound = findBoundary(files,zhels)
 
-#Truncate the extra wavelength of SN2011by
-low = halfSearch(x1,x2[0])
-high = halfSearch(x1,x2[len(x2)-1])
-x1 = x1[low:high+1] #Caution: wired +1 here,different from IDL
-y1 = y1[low:high+1]
+    for file,z in zip(files,zhels):
+        wave,flux = loadSpec(file,z)
+        intwave,intflux = interpSpec(wave,flux,bound)
 
-#De-redshift and resample by B-spline interpolation 
-z1 = 0.003402
-z2 = 0.001208
-x1 /= 1+z1
-x2 /= 1+z2
+        #Normalize flux
+        intflux /= np.median(intflux)
+        
+        if len(fluxs) == 0:
+            fluxs = np.array([intflux])
+        else:
+            fluxs = np.append(fluxs,np.array([intflux]),axis=0)
+#             print np.shape(fluxs)
+            
+        averflux = np.mean(fluxs, axis=0)
+        
+        resflux = fluxs - averflux
 
-xmin = max(x1[0],x2[0])
-xmax = min(x1[-1],x2[-1])
-xs = scipy.linspace(xmin,xmax,len(x1)*2)
-tck1 = interpolate.splrep(x1, y1)
-tck2 = interpolate.splrep(x2, y2)
-x1 = xs
-x2 = xs
-y1 = interpolate.splev(xs,tck1)
-y2 = interpolate.splev(xs,tck2)
+    return intwave,averflux,fluxs,resflux
 
-#Normalize y
-nfac = np.median(y1) #normalization factor
-y1 = y1/nfac
+def plotSpec(wave,averflux,fluxs,resflux):
 
-nfac = np.median(y2)
-y2 = y2/nfac
+    pltdir = '../plots/'
 
-#Average two spectrum
-ax = xs
-ay = np.mean(np.array([y1,y2]), axis=0)
+    f, axarr = plt.subplots(2, sharex=True)
 
-#plot
-pltdir = '../plots/'
+    ax1 = axarr[0]
+    ax2 = axarr[1]
 
-fig, axx = plt.subplots(1, 1)
-minorLocator  = AutoMinorLocator(10)
-axx.xaxis.set_minor_locator(minorLocator)
-plt.tick_params(which='major', length=7)
-plt.tick_params(which='minor', length=4)
-plt.yscale('log')
+    minorLocator  = AutoMinorLocator(10)
+    ax2.xaxis.set_minor_locator(minorLocator)
 
-p1,=plt.plot(x1,y1)
-p2,=plt.plot(x2,y2)
-p3,=plt.plot(ax,ay)
+    minorLocator  = AutoMinorLocator(10)
+    ax2.xaxis.set_minor_locator(minorLocator)
 
-plt.xlabel('Wavelength [A]')
-plt.ylabel('Scaled Flux')
-plt.legend([p1,p2,p3],['SN2011BY','SN2011FE','Average'],
-           4,)
-plt.savefig(pltdir+'spectrum.eps')
-plt.show()
+    ax2.tick_params(which='major', length=7)
+    ax2.tick_params(which='minor', length=4)
+
+
+    ax2.set_title('Wavelength [A]')
+#     ax2.ylabel('Residule Flux')
+#     ax1.ylabel('Scaled Flux')
+    
+
+    ax1.plot(wave, averflux,marker='o')
+    ax2.plot(wave,np.zeros(len(wave)), marker='o')
+
+    nspec = np.shape(fluxs)[0]
+    index = range(0,nspec,1)
+
+    for i in index:
+        ax1.plot(wave,fluxs[i,:])
+        ax2.plot(wave,resflux[i,:])
+
+    plt.savefig(pltdir+'spectrum.eps')
+    plt.show()
+
+
+
+#     print 'flux:', fluxs[1,0:3]
+#     print 'residule:',resflux[1,0:3]
+#     print 'average:',averflux[0:3]
+
+# datadir = '../../../data/'
+
+# file1 = 'sn2011by-hst+lick.flm'
+# file2 = 'sn2011fe-visit3-hst.flm'
+# z1 = 0.003402
+# z2 = 0.001208
+
+# files = [datadir+file1,datadir+file2]
+# zhels = [z1,z2]
+
+def spectrum(files,zhels):
+    wave,averflux,fluxs,resflux = averSpec(files,zhels)
+    plotSpec(wave,averflux,fluxs,resflux)
+    
+    return
+
 
