@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import glob
 import os
-import scipy.interpolate as intp
 
 array = []
 ignore = []
@@ -53,19 +52,26 @@ for i in range(500):
 		composite_dict[a.name] = combined #create dictionary for later use
 		
 	except ValueError:
-		print "exception"
+		print "not a number"
 #print composite_dict
 
 #averaging spectra
 avgflux = []
 for i in range(len(b)):
-	for key, value in composite_dict.iteritems():
+	for key, value in composite_dict.items():
 		try:
 			x = []
-			x.append(composite_dict.iteritems(key[i,1])) #this is a problem
+			x.append(composite_dict[key[i]]) #this is still a problem
 		except ValueError:
-			print "exception"
-	avgflux.append((sum(x)/len(x)))
+			print "also not a number"
+		except KeyError:
+			print "key does not exist"
+	print x
+	if len(x)==0:
+		pass
+	else:
+		avgflux.append((sum(x)/len(x)))
+	
 
 #plot the averaged spectrum on a lin-log scale
 p1,=plt.plot(b, avgflux)
