@@ -47,12 +47,12 @@ def dez(path,data,name,z):
 		if name[i] in path:
 			### Found SN corresponding to file
 			### and adjusts with proper z
-			print "matched",name[i],"to",path
-			print "Redshift is",z[i]
-			print "...calculating..."
+			print "matched SN",name[i],"to",path
+			print "z =",z[i]
+			print "...de-redshifting..."
 			for j in range(len(data)):
 				data[j,0] /= 1+z[i]
-				data[j,0] = int(data[j,0])
+				data[j,0] = data[j,0]
 			break	
 
 	
@@ -74,90 +74,75 @@ flux = []	#holds flux
 num = 2		#measure num spectra
 wave_min = 0	
 wave_max = 10000
-###########################
-### Pre-loop Debug area ###
+
 ###########################
 print "===================="
 print "There are",len(files),"files to read"
 print "There are",len(stats),"Supernovae with stats"
-print "initiating loop"
 print "===================="
 ###########################
 
-"""
-Three Loops for C++ coders on their desktop computers
-Seven for the C# coders on their mobile devices
-Nine for the Java coders doomed to mis-manage memory
-One for the Python Lord on his dark throne
-In the Land of Type 1a Supernovae where Dark Energies lie
-One Loop to rule them all, One Loop to find them,
-One Loop to bring them all and in the darkness composite them
-In the Land of Type 1a Supernovae where Dark Energies lie
-"""
 #loop for getting data and de-redshifting
 for i in range(num):
-	###########################
-	### Per-loop Debug area ###	
-	###########################
-	#print "loop",i
-	#print "===================="
-	###########################
+	print"\nData #",i
 
 	#read in data
 	get_data(files[i])	#gets pathname, wavelength, and flux from files
 	get_stats(stats[i])	#gets name and z-value from stats file
 	#de-redshift data
 
-	#print "working on path ",path[i]
-	#print "orig wavelengths", data[i][:,0]
-	#print "...processing..."
+	print "working on path ",path[i]
+	print "orig wavelengths", data[i][:,0]
 
 	dez(path[i],data[i],name,z)
-	#print "new wavelengths",data[i][:,0]
+
+	print "new wavelengths",data[i][:,0]
+
 	wave.append(data[i][:,0])
 	flux.append(data[i][:,1])
 
-print "calculating range from start:",wave_min,wave_max
+print "\n calculating min/max from:",wave_min,wave_max
 for i in range(num):
+	print "\nwaves #",i
 	if data[i][0][0] > wave_min:
-		wave_min = data[i][0][0]
-		print "new min",wave_min
+		print data[i][0][0],">",wave_min,"\n-->","new min = ",data[i][0][0]
+		wave_min = int(data[i][0][0])
 	if data[i][-1][0] < wave_max:
-		wave_max = data[i][-1][0]
-		print "new max",wave_max
+		print data[i][-1][0],"<",wave_max,"\n-->","new max = ",data[i][-1][0]
+		wave_max = int(data[i][-1][0])
+		
 
-print "truncating data..."
-for i in range(num):
-	low = np.where(np.logical_and(wave[i] > wave_min-1,wave[i] < wave_min+1))[0]
+
+print "\nusing min:",wave_min
+print "using max:",wave_max
+"""for i in range(num):
+	print "\ntruncating data #",i
 	print wave[i]
-	print low
+	low = np.where(np.logical_and(wave[i] > wave_min-1,wave[i] < wave_min+1))[0]
+	print "minimum wave",wave_min,"at index",low
 	high = np.where(np.logical_and(wave[i] > wave_max-1,wave[i] < wave_max+1))[0]
-	print high
+	print "maximum wave",wave_max,"at index",high
 	wave[i] = wave[i][low:high]
 	flux[i] = flux[i][low:high]
-
-
+"""
+print "\nCreating linspace from",wave_min,"to",wave_max,"with",(wave_max-wave_min)*100,"points"
 #creates space for wavelengths given min/max parameters
-wavelengths = np.linspace(wave_min,wave_max,(wave_max-wave_min)/5)
+wavelengths = np.linspace(wave_min,wave_max,(wave_max-wave_min))
 
-#Interpolating loop
+
+#Interpolating
 fit= []
 fit_flux = []
 for i in range(num):
 	spline = intp.splrep(wave[i],flux[i])
 	curr_flux = intp.splev(wavelengths, spline)
+	curr_flux /= np.median(curr_flux)
 	fit.append([wavelengths,curr_flux])
-	fit_flux.append(curr_flux)
+	fit_flux.append(curr_flux) 
 
 
-#averaging flux
-sum_flux = []
+avg_flux = sum(fit_flux)/num
 
-for i in range(len(fit_flux[0])):
-	sum_flux.append(0)
-for i in range(num):
-	sum_flux += fit_flux[i]
-avg_flux = sum_flux/num
 
 res_flux = []
 #residual and RMS 
@@ -165,30 +150,32 @@ for i in range(num):
 	res_flux.append(fit_flux[i]-avg_flux)
 
 rms = np.sqrt(np.mean(np.power(res_flux,2)))
-pos = fit_flux + rms
-neg = fit_flux - rms
+pos = avg_flux + rms
+neg = avg_flux - rms
 
 ############################
-### Post-loop Debug area ###
+### Post-loop Debug area ###matplo
 ############################
 print "===================="
 print "finished"
 ############################
 print "plotting..."
+fig = plt.figure()
 
-fig, (x0, x1) = plt.subplot(nrows=2, sharex=True)
-plot1 = x0.plot(wavelength,fit_flux,label = 'comp')
-plot2 = x0.plot(wavelength,pos,label = 'rms+')
-plot3 = x0.plot(wavelength,neg,label = 'rms-')
-legend = x0.legend(loc='lower right')
-x0.set_xlim(wave_min,wave_max)
-x0.set_title('RMS spectrum')
-x0.set_ylabel('Flux')
-x1.plot(wavelength,scatter,'o-')
-x1.set_ylabel('Residual')
-x1.set_ylim(0,1)
-legend = ax1.legend(loc='lower right')
+#top plot containing the Composite spectrum +/- the RMS
+top = fig.add_subplot(211)
+plot1 = top.plot(wavelengths,avg_flux)
+plot2 = top.plot(wavelengths,pos)
+plot3 = top.plot(wavelengths,neg)
+plt.title('Composite Spectrum +/- RMS spectrum')
+plt.ylabel('Flux')
+plt.legend([plot1,plot2,plot3],('Composite Flux','+RMS','-RMS'),'upper right',numpoints=1)
 
-plt.subplots_adjust(hspace=0.1)
+#bottom plot of the Residual
+bottom = fig.add_subplot(212)
+bottom.plot(wavelengths,rms)
+plt.title('Residual RMS')
+plt.xlabel('Wavelength')
+plt.ylabel('Flux')
 plt.show()
-plt.savefig('all.png')
+
