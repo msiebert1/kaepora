@@ -20,6 +20,7 @@ for dirs,subdirs,files in os.walk(datadir):
 #         snpaths.append(os.path.join(dirs,subdirs))
         snnames.append(subdirs)
 
+snnames = np.array(snnames)
 #Find the maximum spectra for each SNe
 #--Reading datadir/cfasnIa_param.dat, Colum1, 2, 3: Name, redshift, MJD at B-band maximum light
 #--Then converst UT time to MJD to match *.flm filename with tmax 
@@ -52,7 +53,11 @@ from astropy.time import Time
 
 #Select the first 25 as the samples 
 #sns = snnames[0:24]
-sns = snnames[0:10]
+
+nsample = 50
+
+rand = np.random.randint(0,len(snnames),len(snnames))
+sns = snnames[rand]
 
 # from string import Template
 import string
@@ -60,7 +65,15 @@ import string
 snsample = []
 files = []
 zsample = []
+count = 0
 for sn in sns:
+    if count == nsample:
+        break
+
+    try:
+        index = names.index(sn)
+    except ValueError:
+        continue
     index = names.index(sn)
     name = names[index]
     zhel = zhels[index]
@@ -91,7 +104,7 @@ for sn in sns:
 
     fn = np.nanargmin(mdays)
     
-    if days[fn] > 8:
+    if days[fn] > 7:
         continue
 
     file = list[fn]
@@ -99,14 +112,27 @@ for sn in sns:
     snsample.append(name)
     zsample.append(zhel)
     files.append(file)
+    
+    count += 1
 
 #    print daymax, dates[fn], days[fn]
 
-print snsample
-print zsample
-print files
+# print zsample
+# print files
 
 import spectrum 
 from spectrum import *
 
 spectrum(files,zsample)
+
+pltdir = '../plots/'
+
+range = range(nsample/10)
+
+plt.figtext(0.15,0.35,'Samples:',fontsize=10)
+
+for i in range:
+    plt.figtext(0.15,0.32-0.03*i,snsample[10*i:10*(i+1)],fontsize=8)
+
+plt.savefig(pltdir+'averspectra.png')
+plt.show()
