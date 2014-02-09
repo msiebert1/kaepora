@@ -84,7 +84,7 @@ def interpSpec(wave,flux,bound):
 def averSpec(files,zhels):
     fluxs = []
     bound = findBoundary(files,zhels)
-#     bound = [3500,6000]
+#    bound = [3500,7000]
 
     for file,z in zip(files,zhels):
         wave,flux = loadSpec(file,z)
@@ -107,38 +107,49 @@ def averSpec(files,zhels):
 
     return intwave,averflux,fluxs,resflux
 
-def plotSpec(wave,averflux,fluxs,resflux):
 
-    pltdir = '../plots/'
+# Plot average spectrum and the residuals. 
+def plotAverSpec(wave,averflux,fluxs,resflux):
 
     ax1 = plt.subplot2grid((3,1), (0,0),rowspan=2)
     ax2 = plt.subplot2grid((3,1), (2,0))
 
     plt.subplots_adjust(hspace = .001)
 
-    minorLocator  = AutoMinorLocator(10)
+    minorLocator  = AutoMinorLocator(5)
+    ax1.xaxis.set_minor_locator(minorLocator)
+
+    minorLocator  = AutoMinorLocator(5)
     ax2.xaxis.set_minor_locator(minorLocator)
 
-    minorLocator  = AutoMinorLocator(10)
-    ax2.xaxis.set_minor_locator(minorLocator)
-
+    ax1.tick_params(which='major', length=7)
+    ax1.tick_params(which='minor', length=4)
     ax2.tick_params(which='major', length=7)
     ax2.tick_params(which='minor', length=4)
+
+
+    ax1.set_title('Spectra of 50 SNe within 7 days after maximum')
 
     ax1.set_ylabel('Scaled Flux')
     ax2.set_ylabel('Residule Flux')
 
     ax2.set_xlabel('Wavelength [A]')
 
+    ax1.set_xlim(wave[0]-100, wave[-1]+100)
     ax1.set_ylim(0., np.max(averflux+resflux))
 
-    ax1.plot(wave, averflux,color='b')
-    ax1.plot(wave, averflux + resflux,color = 'g')
+    ax2.set_xlim(wave[0]-100, wave[-1]+100)
+    ax2.set_ylim(-0.1)
+
+    ax1.plot(wave, averflux,color='b',label='Average')
+    ax1.plot(wave, averflux + resflux,color = 'g',label='Residual')
     ax1.plot(wave, averflux - resflux,color = 'g')
 
     ax2.plot(wave,np.zeros(len(wave)),color='b')
     ax2.plot(wave,resflux,color='g')
-    ax2.plot(wave,-1.*resflux,color='g')
+
+    ax1.legend()
+#     ax2.plot(wave,-1.*resflux,color='g')
 
 #     nspec = np.shape(fluxs)[0]
 #     index = range(0,nspec,1)
@@ -147,14 +158,17 @@ def plotSpec(wave,averflux,fluxs,resflux):
 #         ax1.plot(wave,fluxs[i,:])
 #         ax2.plot(wave,resflux[i,:])
 
-    plt.savefig(pltdir+'averspectra.png')
-    plt.show()
-
-
 
 #     print 'flux:', fluxs[1,0:3]
 #     print 'residule:',resflux[1,0:3]
 #     print 'average:',averflux[0:3]
+
+
+def spectrum(files,zhels):
+    wave,averflux,fluxs,resflux = averSpec(files,zhels)
+    plotAverSpec(wave,averflux,fluxs,resflux)
+    
+    return
 
 # datadir = '../../../data/'
 
@@ -166,10 +180,4 @@ def plotSpec(wave,averflux,fluxs,resflux):
 # files = [datadir+file1,datadir+file2]
 # zhels = [z1,z2]
 
-def spectrum(files,zhels):
-    wave,averflux,fluxs,resflux = averSpec(files,zhels)
-    plotSpec(wave,averflux,fluxs,resflux)
-    
-    return
-
-
+# spectrum(files,zhels)
