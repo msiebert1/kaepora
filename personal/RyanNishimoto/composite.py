@@ -71,7 +71,7 @@ path = []	#holds pathname of files
 wave = []	#holds wavelengths			
 flux = []	#holds flux
 
-num = 2		#measure num spectra
+num = 20		#measure num spectra
 wave_min = 0	
 wave_max = 10000
 
@@ -84,7 +84,7 @@ print "===================="
 
 #loop for getting data and de-redshifting
 for i in range(num):
-	print"\nData #",i
+	print"=== Data #",i,"==="
 
 	#read in data
 	get_data(files[i])	#gets pathname, wavelength, and flux from files
@@ -101,9 +101,10 @@ for i in range(num):
 	wave.append(data[i][:,0])
 	flux.append(data[i][:,1])
 
-print "\n calculating min/max from:",wave_min,wave_max
+print "\ncalculating min/max from:",wave_min,wave_max
+print "===================="
 for i in range(num):
-	print "\nwaves #",i
+	print "waves #",i
 	if data[i][0][0] > wave_min:
 		print data[i][0][0],">",wave_min,"\n-->","new min = ",data[i][0][0]
 		wave_min = int(data[i][0][0])
@@ -127,7 +128,7 @@ print "using max:",wave_max
 """
 print "\nCreating linspace from",wave_min,"to",wave_max,"with",(wave_max-wave_min)*100,"points"
 #creates space for wavelengths given min/max parameters
-wavelengths = np.linspace(wave_min,wave_max,(wave_max-wave_min))
+wavelengths = np.linspace(wave_min,wave_max,(wave_max-wave_min)*100)
 
 
 #Interpolating
@@ -143,7 +144,6 @@ for i in range(num):
 
 avg_flux = sum(fit_flux)/num
 
-
 res_flux = []
 #residual and RMS 
 for i in range(num):
@@ -152,6 +152,7 @@ for i in range(num):
 rms = np.sqrt(np.mean(np.power(res_flux,2)))
 pos = avg_flux + rms
 neg = avg_flux - rms
+scatter = np.divide(rms,avg_flux)
 
 ############################
 ### Post-loop Debug area ###matplo
@@ -164,16 +165,16 @@ fig = plt.figure()
 
 #top plot containing the Composite spectrum +/- the RMS
 top = fig.add_subplot(211)
-plot1 = top.plot(wavelengths,avg_flux)
-plot2 = top.plot(wavelengths,pos)
-plot3 = top.plot(wavelengths,neg)
+plot1 = top.plot(wavelengths,avg_flux,'k')
+plot2 = top.plot(wavelengths,pos,'b')
+plot3 = top.plot(wavelengths,neg,'r')
 plt.title('Composite Spectrum +/- RMS spectrum')
 plt.ylabel('Flux')
 plt.legend([plot1,plot2,plot3],('Composite Flux','+RMS','-RMS'),'upper right',numpoints=1)
 
 #bottom plot of the Residual
 bottom = fig.add_subplot(212)
-bottom.plot(wavelengths,rms)
+bottom.plot(wavelengths,scatter, 'k')
 plt.title('Residual RMS')
 plt.xlabel('Wavelength')
 plt.ylabel('Flux')
