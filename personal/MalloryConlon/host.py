@@ -1,12 +1,13 @@
 import numpy as np
 import os
+import glob
 import matplotlib.pyplot as plt
 import sqlite3 as sq3
 
 #con = sq3.connect('SNe.db')
 #cur = con.cursor()
 
-#max = cur.execute('SELECT * FROM Supernovae ORDER BY M_B DESC LIMIT 10000')
+#max = cur.execute('SELECT * FROM Supernovae ORDER BY M_B DESC LIMIT 1')
 
 #print max.fetchall()
 
@@ -23,6 +24,8 @@ anon = []
 spectra_files = []
 good_files = []
 bad_files = []
+sn_subdir = []
+sn_path = []
 
 #Load in host galaxy information with morphology as reported in NED.
 ## Retrieved from http://www.cfa.harvard.edu/supernova/CfA3/snmorph.txt
@@ -30,7 +33,7 @@ bad_files = []
 ## 1,2,3,4,5,6,7,8,9,10,11 = E,E/S0,S0,S0a,Sa,Sab,Sb,Sbc,Sc,Scd,Sd/Irr
 ## 0 = No morphology available
 
-host = np.genfromtxt("../../host_info.dat", dtype = None, unpack = True)
+host = np.genfromtxt("/users/malloryconlon/astr596/personal/malloryconlon/host_info.dat", dtype = None, unpack = True)
 
 for i in range(len(host)):
     load_host = host[i]
@@ -50,21 +53,13 @@ for j in range(len(host)):
     if host_type[j]==0:
         anon.append(sn_name[j])
 
-#Walk through data directory and make a list of all file paths
-
 for dirs,subdirs,files in os.walk('/users/malloryconlon/astr596/data/cfa/'):
-    for file in files:
-        if file.endswith('.flm'):
-            spectra_files.append(os.path.join(dirs,file))
+    for subdir in subdirs:
+        sn_subdir.append(subdir)
 
-#Read in files and store files that produce read-in errors in separate array
+for k in range(len(sn_subdir)):
+    for l in range(len(sn_name)):
+        if sn_name[l]==sn_subdir[k]:
+             sn_path.append(glob.glob('/users/malloryconlon/astr596/data/cfa/'+sn_name[l]))
 
-for k in range(len(spectra_files)):
-    try:
-        np.genfromtxt(spectra_files[k])
-        good_files.append(spectra_files[k])
-    except:
-        bad_files.append(spectra_files[k])
-
-print good_files
 
