@@ -2,7 +2,11 @@ from __future__ import division
 import numpy as np
 import os
 import sqlite3 as sq3
-import cPickle as pickle
+import msgpack
+import msgpack_numpy as mn
+
+#makes msgpack aware of numpy addons
+mn.patch()
 
 def find_key(name):
     sn = name.split('-')
@@ -12,7 +16,6 @@ def find_key(name):
         key = '-'.join(keylist).upper()
     else:
         key = sn[0][2:]
-
     return key
 
 #julian day - mjd =~ phase
@@ -31,7 +34,6 @@ for line in lines:
 f = open('../../data/cfa/cfasnIa_mjdspec.dat')
 lines = f.readlines()
 datedict = {}
-print "Populating dictionary"
 for line in lines:
     if not line.startswith('#'):
         data = line.split()
@@ -40,13 +42,13 @@ for line in lines:
 #initialize database
 print "Creating table"
 con = sq3.connect('SNe.db')
-cur = con.cursor()
+#cur = con.cursor()
 
 #make sure no prior table in db to avoid doubling/multiple copies of same data
-cur.execute("""DROP TABLE IF EXISTS Supernovae""")
-cur.execute("""CREATE TABLE IF NOT EXISTS Supernovae (Filename TEXT,
-                    Redshift REAL, Phase REAL, MinWave REAL,
-                    MaxWave REAL, Dm15 REAL, M_B REAL, B_mMinusV_m REAL)""")
+con.execute("""DROP TABLE IF EXISTS Supernovae""")
+con.execute("""CREATE TABLE IF NOT EXISTS Supernovae (Filename TEXT, SN Text,
+                    Redshift REAL, Phase REAL, MinWave REAL, MaxWave REAL,
+                    Dm15 REAL, M_B REAL, B_mMinusV_m REAL, Spectra BLOB)""")
 
 root = '../../data/'
 spectra = {}
@@ -61,7 +63,6 @@ for path, subdirs, files in os.walk(root):
             #ignore spectra that produce loaderrors
             try:
                 data = np.loadtxt(f)
-
             except:
                 bad_files.append(f)
                 continue
@@ -96,13 +97,15 @@ for path, subdirs, files in os.walk(root):
                 bm_vm = vals[11]
 
 
+            msg = msgpack.packb(data)
             waves = data[:, 0]
             min_wave = waves[0]
             max_wave = waves[len(waves) - 1]
 
-            cur.execute("""INSERT INTO Supernovae(Filename, Redshift, Phase,
-                                MinWave, MaxWave, Dm15, M_B, B_mMinusV_m)
-                                VALUES(?, ?, ?, ?, ?, ?, ?, ?)""", (name, redshift, phase, min_wave, max_wave, dm15, m_b, bm_vm))
+            con.execute("""INSERT INTO Supernovae(Filename, SN, Redshift, Phase,
+                                MinWave, MaxWave, Dm15, M_B, B_mMinusV_m, Spectra)
+                                VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", (name, key, redshift, phase,
+                                min_wave, max_wave, dm15, m_b, bm_vm, buffer(msg)))
         else:
             continue
 con.commit()
