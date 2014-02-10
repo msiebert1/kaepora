@@ -1,0 +1,15 @@
+# Nebular Shift Data
+#
+# Column 1: SN name
+# Column 2: vneb
+# Column 3: v-error
+# Column 4: Ref.
+# References:
+#
+# 1: Blondin et al. 2012
+# 2: Maeda et al. 2011
+
+#
+#SN	vneb[km/s]	v-error	ref.          
+#************************************************************************************************************************************
+1994D	-2220		220	2
