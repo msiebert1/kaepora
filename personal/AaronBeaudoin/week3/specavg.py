@@ -52,7 +52,7 @@ for i in range(len(spectra_arrays)):
 		wave_max=max(spectra["col1"])
 
 
-wavelength = np.linspace(wave_min,wave_max,100)  #creates 100 equally spaced wavelength values between the smallest range
+wavelength = np.linspace(wave_min,wave_max,wave_max-wave_min)  #creates 100 equally spaced wavelength values between the smallest range
 
 fitted_flux=[]
 #generates composite spectrum
@@ -66,22 +66,53 @@ for i in range(len(spectra_arrays)):
 	y1 /= np.median(y1)
 	fitted_flux.append(y1)
 
-sum = fitted_flux[0]
+avg_flux = np.mean(fitted_flux,axis=0)
+
+"""
+sum_flux = fitted_flux[0]
 #sums fluxes to be averaged
 for i in range(len(fitted_flux[0])):
-	sum[i] = 0
+	sum_flux[i] = 0
 	
 for i in range(len(fitted_flux)):
-	sum = sum + fitted_flux[i]
+	sum_flux = sum_flux + fitted_flux[i]
 
+avg_flux=sum_flux/len(spectra_arrays)	#averages fluxes
+"""
 
-avg_flux=sum/len(spectra_arrays)	#averages fluxes
 avg_spectrum=Table([wavelength,avg_flux],names=('col1','col2'))	#puts together the average spectrum
 
 rms_flux_max=[]
 rms_flux_min=[]
+delta=[]
 scatter=[]
 #RMS Spectrum, Residual
+
+for i in range(len(fitted_flux)):
+	delta.append(avg_flux-fitted_flux[i])
+
+rms_flux = np.sqrt(np.mean(np.square(delta),axis=0))
+
+print len(rms_flux)
+print len(avg_flux)
+
+for i in range(len(rms_flux)):
+	scatter.append(rms_flux[i]/avg_flux[i]*100)
+	
+"""
+
+for i in range(len(wavelength)):
+	flux_sum = 0
+	for j in range(len(fitted_flux)):
+		flux_sum = flux_sum + (avg_flux[i]-fitted_flux[j])**2
+	#flux_rms=(flux_sum)**.5
+	flux_rms=(flux_sum/len(fitted_flux))**.5
+	rms_max=avg_flux[i] + flux_rms
+	rms_min=avg_flux[i] - flux_rms
+	rms_flux_max.append(rms_max)
+	rms_flux_min.append(rms_min)
+	scatter.append(flux_rms/avg_flux[i]*100)
+
 
 for i in range(len(wavelength)):
 	flux_sum = 0
@@ -96,7 +127,7 @@ for i in range(len(wavelength)):
 	rms_flux_max.append(rms_max)
 	rms_flux_min.append(rms_min)
 	scatter.append(flux_rms/avg_flux[i]*100)	
-"""
+
 
 for i in range(len(wavelength)):
 	chi_square = 0
@@ -119,14 +150,14 @@ for i in range(len(wavelength)):
 #RMS Residual
 plt.figure(1)
 plt.subplot(211)
-plot1,=plt.plot(wavelength,rms_flux_max,label= 'rms+')
-plot2,=plt.plot(wavelength,rms_flux_min, label= 'rms-')
+plot1,=plt.plot(wavelength,avg_flux+rms_flux,label= 'rms+')
+plot2,=plt.plot(wavelength,avg_flux-rms_flux, label= 'rms-')
 plot3,=plt.plot(wavelength,avg_flux,label='comp')
 legend=plt.legend(loc='upper right', shadow=True)
 plt.xlim(wave_min,wave_max)
 plt.ylabel('Flux')
 plt.subplot(212)
-plot1,=plt.plot(wavelength,scatter,'o',label='rms residual')
+plot1,=plt.plot(wavelength,scatter,label='rms residual')
 plt.xlim(wave_min,wave_max)
 plt.xlabel('Wavelength')
 plt.ylabel('RMS Flux/ Average Flux')
