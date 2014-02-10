@@ -12,7 +12,7 @@ spectra_files  = glob.glob('../data/cfa/*/*.flm')
 spectra_arrays = []
 bad_files      = []
 
-for i in range(20):
+for i in range(3):
     try:
         spectra_arrays.append(np.loadtxt(spectra_files[i]))
     except ValueError:
@@ -70,6 +70,7 @@ for i in range(num_spectra):
 flux_err_pos = np.add(Comp_flux,RMS)
 flux_err_neg = Comp_flux - RMS
 
+# Read scatter into a data file?
 scatter = np.divide(RMS,Comp_flux)
 
 # Plotting both the Comoposite and Residual in a two-panel plot
@@ -79,14 +80,15 @@ fig = plt.figure()
 ax1 = fig.add_subplot(211)
 plot1, = ax1.plot(Comp_wave, Comp_flux,'b')
 # Plot RMS Value once it is calculated and the correct dimensions
-plot2, = ax1.plot(Comp_wave, Comp_flux,'m')
+plot2, = ax1.plot(Comp_wave, flux_err_pos,'m')
+plot3, = ax1.plot(Comp_wave, flux_err_neg,'r')
 plt.title('Composite & RMS Spectrums')
 plt.ylabel('Scaled Flux')
-plt.legend([plot1,plot2],('Composite Flux','RMS'),'upper right',numpoints=1)
+plt.legend([plot1,plot2,plot3],('Composite Flux','+ RMS','-RMS'),'upper right',numpoints=1)
 
 # Labeling. Pt2.
 ax2 = fig.add_subplot(212)
-ax2.plot(Comp_wave, res_flux_array,'k')
+ax2.plot(Comp_wave, scatter,'k')
 plt.title('Residual RMS Spectrum')
 plt.xlabel('Wavelength ($\AA$)')
 plt.ylabel('Scaled Flux')
