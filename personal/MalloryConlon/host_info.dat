@@ -224,13 +224,14 @@ sn2007qe 0 Anon.
 sn2008L 3 NGC1259
 sn2008bf 1 NGC4055
 
+#Host information obtained from SIMBAD and HYPERLEDA. 
+#http://simbad.u-strasbg.fr/simbad/sim-fbasic and http://leda.univ-lyon1.fr/
+#Be aware that the majority
+#of these are apparent hosts with the SN very nearby.
+# Morphology translation:
+# 1,2,3,4,5,6,7,8,9,10,11 = E,E/S0,S0,S0a,Sa,Sab,Sb,Sbc,Sc,Scd,Sd/Irr
+# 0 = N/A
 
-#Host information obtained from SIMBAD and HYPERLEDA. Be aware that the majority
--#of these are apparent hosts with the SN very nearby.
--# Morphology translation:  
--# 1,2,3,4,5,6,7,8,9,10,11 = E,E/S0,S0,S0a,Sa,Sab,Sb,Sbc,Sc,Scd,Sd/Irr
--# 0 = N/A
--
 sn1993ac 1 LEDA17787
 sn1994M 1 NGC4493
 sn1995ak 8 IC1844
@@ -272,7 +273,7 @@ sn1999gh 5 NGC2968
 sn1999gj 7 NGC3251
 sn1999gm 3 LEDA24106
 sn2000A 5 MCG+01-59-81
-sn2000bh 9 ESO 573-14
+sn2000bh 9 ESO573-14
 sn2000bk 2 NGC4520
 sn2000ce 7 UGC4195
 sn2000cf 8 MCG+11-19-25 
