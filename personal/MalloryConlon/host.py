@@ -26,6 +26,7 @@ good_files = []
 bad_files = []
 sn_subdir = []
 sn_path = []
+unlisted = []
 
 #Load in host galaxy information with morphology as reported in NED.
 ## Retrieved from http://www.cfa.harvard.edu/supernova/CfA3/snmorph.txt
@@ -58,8 +59,7 @@ for dirs,subdirs,files in os.walk('/users/malloryconlon/astr596/data/cfa/'):
         sn_subdir.append(subdir)
 
 for k in range(len(sn_subdir)):
-    for l in range(len(sn_name)):
-        if sn_name[l]==sn_subdir[k]:
-             sn_path.append(glob.glob('/users/malloryconlon/astr596/data/cfa/'+sn_name[l]))
-
-
+   for l in range(len(sn_name)):
+       if sn_subdir[k]!=sn_name[l]:
+             unlisted.append(sn_name[l])
+print unlisted
