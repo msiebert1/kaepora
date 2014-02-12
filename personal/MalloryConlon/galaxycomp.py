@@ -1,3 +1,8 @@
+#Find spectrum at max light
+#Read in galaxy info, and pair with proper spectra
+#separate spectra between elliptical and spiral host galaxy
+#create composite and RMS spectrum for each type of galaxy
+
 import numpy as np
 import os
 from astropy.table import Table
@@ -22,7 +27,6 @@ for i in range(num):
 	except ValueError:
 		bad_files.append(spectra_files[i])
 
-print len(spectra_arrays)
 #deredshift data
 parameters = Table.read('../../../data/cfa/cfasnIa_param.dat',format='ascii')
 sn_name = parameters["col1"]
@@ -36,7 +40,6 @@ for i in range(len(file_name)):
 	lambda_obs=old_spectrum["col1"]
 	lambda_emit= lambda_obs/(1+z)
 	spectra_arrays[i]=Table([lambda_emit,old_spectrum["col2"]],names=('col1','col2'))
-
 	
 #scale spectra		
 wave_min=0  #arbitrary minimum of wavelength range
@@ -95,4 +98,3 @@ plt.xlabel('Wavelength')
 plt.ylabel('RMS Flux/ Average Flux')
 plt.savefig('rmsplot.png')
 plt.show()
-
