@@ -53,13 +53,10 @@ for j in range(len(host)):
     if host_type[j]==0:
         anon.append(sn_name[j])
 
-for dirs,subdirs,files in os.walk('/users/malloryconlon/astr596/data/cfa/'):
-    for subdir in subdirs:
-        sn_subdir.append(subdir)
-
-for k in range(len(sn_subdir)):
-    for l in range(len(sn_name)):
-        if sn_name[l]==sn_subdir[k]:
-             sn_path.append(glob.glob('/users/malloryconlon/astr596/data/cfa/'+sn_name[l]))
+print len(elliptical)
+print len(S0)
+print len(spiral)
+print len(irregular)
+print len(anon)
 
 
