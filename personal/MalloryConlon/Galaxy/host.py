@@ -2,15 +2,6 @@ import numpy as np
 import os
 import glob
 import matplotlib.pyplot as plt
-import sqlite3 as sq3
-
-#con = sq3.connect('SNe.db')
-#cur = con.cursor()
-
-#max = cur.execute('SELECT * FROM Supernovae ORDER BY M_B DESC LIMIT 1')
-
-#print max.fetchall()
-
 
 #Pre-allocate arrays
 sn_name = []
@@ -33,7 +24,7 @@ sn_path = []
 ## 1,2,3,4,5,6,7,8,9,10,11 = E,E/S0,S0,S0a,Sa,Sab,Sb,Sbc,Sc,Scd,Sd/Irr
 ## 0 = No morphology available
 
-host = np.genfromtxt("/users/malloryconlon/astr596/personal/malloryconlon/host_info.dat", dtype = None, unpack = True)
+host = np.genfromtxt("/users/malloryconlon/astr596/personal/malloryconlon/galaxy/host_info.dat", dtype = None, unpack = True)
 
 for i in range(len(host)):
     load_host = host[i]
