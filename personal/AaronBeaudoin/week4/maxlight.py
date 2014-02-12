@@ -26,6 +26,7 @@ def find_max(file_names):
 	sn_name = parameters["col1"]
 	jdate=parameters["col3"]
 	sn_date = []
+	spectra_name=[]
 	snj_date=0
 	#finds MJD for the SN by searching the parameter file
 	for i in range(len(file_names)):
@@ -56,12 +57,22 @@ def find_max(file_names):
 			max_light = file_names[i]
 	
 	return max_light
+	
+def find_name(spectra_files):
+	spectra_names=[]
+	for i in range(len(spectra_files)):
+		file = spectra_files[i]
+		file = file[18:]
+		file = file[:8]
+		spectra_names.append(file)
+	return spectra_names
 
 #finds the max light spectrum for every SN
 spectra_files=[]
 for i in range(len(sn_folders)):
 	spectra_files.append(find_max(glob.glob(sn_folders[i]+"/*.flm")))
-
+spectra_names=find_name(spectra_files)
+spectra_names
 #writes max light spectrum files to a flm file
-max_spectra=Table([spectra_files],names=["col1"])
+max_spectra=Table([spectra_names,spectra_files],names=('col1','col2'))
 max_spectra.write('MaxSpectra.flm',format='ascii')
