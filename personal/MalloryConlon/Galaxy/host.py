@@ -44,7 +44,7 @@ for j in range(len(host)):
     if host_type[j]==0:
         anon.append(sn_name[j])
 
-print len(elliptical)
+print elliptical
 print len(S0)
 print len(spiral)
 print len(irregular)
