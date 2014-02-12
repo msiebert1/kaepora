@@ -11,15 +11,18 @@ import matplotlib.pyplot as plt
 import math
 
 #Reads in spectra file names
-spectra_files=Table.read('MaxSpectra.flm',format='ascii')["col1"]
+spectra_files=Table.read('MaxSpectra.dat',format='ascii')
 spectra_arrays=[]
+spectra_names=[]
 bad_files=[]
 
 num=20	#number of spectra to analyse, eventually will be len(spectra_files)
 
 for i in range(num):
+	spectrum_file=spectra_files[i]
 	try:
-		spectra_arrays.append(Table.read(spectra_files[i],format='ascii'))
+		spectra_arrays.append(Table.read(spectrum_file["col2"],format='ascii'))
+		spectra_names.append(spectrum_file["col1"])
 	except ValueError:
 		bad_files.append(spectra_files[i])
 
@@ -77,7 +80,7 @@ def gal_comp_res(spectra_arrays):
 	for i in range(len(rms_flux)):
 		scatter.append(rms_flux[i]/avg_flux[i]*100)	#creates residual values
 	return wavelength, avg_flux, rms_flux, scatter
-"""
+
 host_info=Table.read('../../MalloryConlon/host_info.dat',format='ascii')
 sn_name=host_info["col1"]
 type=host_info["col2"]
@@ -87,29 +90,72 @@ S0=[]
 spiral=[]
 irregular=[]
 anon=[]
-for j in range(len(host)):
-	host_type=host_info["col2"]
-    if host_type[j]==1 or host_type[j]==2:
-        elliptical.append(sn_name[j])
-    if host_type[j]==3 or host_type[j]==4:
-        S0.append(sn_name[j])
-    if host_type[j]==5 or host_type[j]==6 or host_type[j]==7 or host_type[j]==8 or host_type[j]==9 or host_type[j]==10:
-        spiral.append(sn_name[j])
-    if host_type[j]==11:
-        irregular.append(sn_name[j])
-    if host_type[j]==0:
-        anon.append(sn_name[j])
-		
-sn_elliptical=[]
-sn_S0=[]
-sn_spiral=[]
-sn_irregular=[]
-sn_anon=[]
-for i in range(len(spectra_files)):
-	name=spectra_files[i]
+
+for i in range(len(spectra_names)):
 	for j in range(len(sn_name)):
-		if sn_name[j] in file_name[i]:
-			sn_
+		host_type = type
+		if host_type[j]==1 or host_type[j]==2:
+			elliptical.append(spectra_arrays[i])
+		if host_type[j]==3 or host_type[j]==4:
+			S0.append(spectra_arrays[i])
+		if host_type[j]==5 or host_type[j]==6 or host_type[j]==7 or host_type[j]==8 or host_type[j]==9 or host_type[j]==10:
+			spiral.append(spectra_arrays[i])
+		if host_type[j]==11:
+			irregular.append(spectra_arrays[i])
+		if host_type[j]==0:
+			anon.append(spectra_arrays[i])
+
+e_wavelength, e_avg_flux, e_rms_flux, e_scatter = gal_comp_res(elliptical)
+print e_avg_flux
+"""
+e_wave_min=min(e_wavelength)
+e_wave_max=max(e_wavelength)
+S_wavelength, S_avg_flux, S_rms_flux, S_scatter = gal_comp_res(S0)
+S_wave_min=min(S_wavelength)
+S_wave_max=max(S_wavelength)
+s_wavelength, s_avg_flux, s_rms_flux, s_scatter = gal_comp_res(spiral)
+s_wave_min=min(s_wavelength)
+s_wave_max=max(s_wavelength)
+
+plt.figure(1)
+plt.subplot(231)
+plot1,=plt.plot(e_wavelength,e_avg_flux,label='comp')
+plot2,=plt.plot(e_wavelength,e_avg_flux+e_rms_flux,label='rms+')
+plot3,=plt.plot(e_wavelength,e_avg_flux-e_rms_flux,label='rms-')
+legend=plt.legend(loc='upper right', shadow=True)
+plt.xlim(e_wave_min,e_wave_max)
+plt.ylabel('Flux')
+plt.subplot(234)
+plot1,=plt.plot(e_wavelength,e_scatter,label='comp')
+plt.xlim(e_wave_min,e_wave_max)
+plt.ylim(0.100)
+plt.xlabel('Wavelength')
+plt.ylabel('Rms Flux/Average Flux')
+plt.subplot(232)
+plot1,=plt.plot(S_wavelength,S_avg_flux,label='comp')
+plot2,=plt.plot(S_wavelength,S_avg_flux+S_rms_flux,label='rms+')
+plot3,=plt.plot(S_wavelength,S_avg_flux-S_rms_flux,label='rms-')
+legend=plt.legend(loc='upper right', shadow=True)
+plt.xlim(S_wave_min,S_wave_max)
+plt.subplot(235)
+plot1,=plt.plot(S_wavelength,S_scatter,label='rms residual')
+plt.xlim(S_wave_min,S_wave_max)
+plt.ylim(0,100)
+plt.xlabel('Wavelength')
+plt.subplot(233)
+plot1,=plt.plot(s_wavelength,s_avg_flux,label='comp')
+plot2,=plt.plot(s_wavelength,s_avg_flux+s_rms_flux,label='rms+')
+plot3,=plt.plot(s_wavelength,s_avg_flux-s_rms_flux,label='rms-')
+legend=plt.legend(loc='upper right', shadow=True)
+plt.xlim(s_wave_min,s_wave_max)
+plt.subplot(236)
+plot1,=plt.plot(s_wavelength,s_scatter,label='rms residual')
+plt.xlim(s_wave_min,s_wave_max)
+plt.ylim(0,100)
+plt.xlabel('Wavelength')
+plt.show()
+
+"""
 """
 wavelength, avg_flux, rms_flux, scatter = gal_comp_res(spectra_arrays)
 wave_min=min(wavelength)
@@ -133,3 +179,4 @@ plt.ylabel('RMS Flux/ Average Flux')
 plt.subplots_adjust(hspace=0)
 plt.savefig('plot.png')
 plt.show()
+"""

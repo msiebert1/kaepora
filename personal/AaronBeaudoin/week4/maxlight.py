@@ -59,12 +59,13 @@ def find_max(file_names):
 	return max_light
 	
 def find_name(spectra_files):
+	parameters = Table.read('../../../data/cfa/cfasnIa_param.dat',format='ascii')
+	sn_name = parameters["col1"]
 	spectra_names=[]
 	for i in range(len(spectra_files)):
-		file = spectra_files[i]
-		file = file[18:]
-		file = file[:8]
-		spectra_names.append(file)
+		for j in range(len(sn_name)):
+			if sn_name[j] in spectra_files[i]:
+				spectra_names.append(sn_name[j])
 	return spectra_names
 
 #finds the max light spectrum for every SN
@@ -72,7 +73,9 @@ spectra_files=[]
 for i in range(len(sn_folders)):
 	spectra_files.append(find_max(glob.glob(sn_folders[i]+"/*.flm")))
 spectra_names=find_name(spectra_files)
-spectra_names
 #writes max light spectrum files to a flm file
 max_spectra=Table([spectra_names,spectra_files],names=('col1','col2'))
-max_spectra.write('MaxSpectra.flm',format='ascii')
+max_spectra.write('MaxSpectra.dat',format='ascii')
+
+#ascii.write([spectra_names,spectra_files], 'MaxSpectra.flm', names=['col1','col2'])
+
