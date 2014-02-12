@@ -25,6 +25,34 @@ for i in range(num):
 		spectra_names.append(spectrum_file["col1"])
 	except ValueError:
 		bad_files.append(spectra_files[i])
+		
+host_info=Table.read('../../MalloryConlon/Galaxy/host_info.dat',format='ascii')
+sn_name=host_info["col1"]
+host_type=host_info["col2"]
+elliptical=[]
+S0=[]
+spiral=[]
+irregular=[]
+anon=[]
+for j in range(len(host_info)):
+	if host_type[j]==1 or host_type[j]==2:
+		elliptical.append(sn_name[j])
+	if host_type[j]==3 or host_type[j]==4:
+		S0.append(sn_name[j])
+	if host_type[j]==5 or host_type[j]==6 or host_type[j]==7 or host_type[j]==8 or host_type[j]==9 or host_type[j]==10:
+		spiral.append(sn_name[j])
+	if host_type[j]==11:
+		irregular.append(sn_name[j])
+	if host_type[j]==0:
+		anon.append(sn_name[j])
+		
+sn_elliptical=[]
+sn_S0=[]
+sn_spiral=[]
+for i in range(len(elliptical)):
+	for j in range(len(spectra_arrays)):
+		if spectra_names[j] in elliptical[i]:
+			sn_elliptical.append(spectra_arrays[j])
 
 def gal_comp_res(spectra_arrays):
 	#deredshift data
@@ -81,32 +109,11 @@ def gal_comp_res(spectra_arrays):
 		scatter.append(rms_flux[i]/avg_flux[i]*100)	#creates residual values
 	return wavelength, avg_flux, rms_flux, scatter
 
-host_info=Table.read('../../MalloryConlon/host_info.dat',format='ascii')
-sn_name=host_info["col1"]
-type=host_info["col2"]
 
-elliptical=[]
-S0=[]
-spiral=[]
-irregular=[]
-anon=[]
+e_wavelength, e_avg_flux, e_rms_flux, e_scatter = gal_comp_res(sn_elliptical)
+plot1,=plt.plot(e_wavelength,e_avg_flux)
+plt.show()
 
-for i in range(len(spectra_names)):
-	for j in range(len(sn_name)):
-		host_type = type
-		if host_type[j]==1 or host_type[j]==2:
-			elliptical.append(spectra_arrays[i])
-		if host_type[j]==3 or host_type[j]==4:
-			S0.append(spectra_arrays[i])
-		if host_type[j]==5 or host_type[j]==6 or host_type[j]==7 or host_type[j]==8 or host_type[j]==9 or host_type[j]==10:
-			spiral.append(spectra_arrays[i])
-		if host_type[j]==11:
-			irregular.append(spectra_arrays[i])
-		if host_type[j]==0:
-			anon.append(spectra_arrays[i])
-
-e_wavelength, e_avg_flux, e_rms_flux, e_scatter = gal_comp_res(elliptical)
-print e_avg_flux
 """
 e_wave_min=min(e_wavelength)
 e_wave_max=max(e_wavelength)
@@ -155,8 +162,6 @@ plt.ylim(0,100)
 plt.xlabel('Wavelength')
 plt.show()
 
-"""
-"""
 wavelength, avg_flux, rms_flux, scatter = gal_comp_res(spectra_arrays)
 wave_min=min(wavelength)
 wave_max=max(wavelength)
