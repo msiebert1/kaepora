@@ -15,7 +15,7 @@ spectra_arrays=[]
 spectra_names=[]
 bad_files=[]
 
-num=20	#number of spectra to analyse, eventually will be len(spectra_files)
+num=len(spectra_files)	#number of spectra to analyse, eventually will be len(spectra_files)
 
 for i in range(num):
 	spectrum_file=spectra_files[i]
@@ -25,6 +25,7 @@ for i in range(num):
 	except ValueError:
 		bad_files.append(spectra_files[i])
 		
+#classifies each spectra by the type of host galaxy
 host_info=Table.read('../../MalloryConlon/Galaxy/host_info.dat',format='ascii')
 sn_name=host_info["col1"]
 host_type=host_info["col2"]
@@ -44,7 +45,7 @@ for j in range(len(host_info)):
 		irregular.append(sn_name[j])
 	if host_type[j]==0:
 		anon.append(sn_name[j])
-		
+
 sn_elliptical=[]
 for i in range(len(elliptical)):
 	for j in range(len(spectra_arrays)):
@@ -69,6 +70,7 @@ for i in range(len(irregular)):
 		if spectra_names[j] in irregular[i]:
 			sn_irregular.append(spectra_arrays[j])
 
+#finds average flux, RMS, and scatter
 def gal_comp_res(spectra_arrays):
 	#deredshift data
 	parameters = Table.read('../../../data/cfa/cfasnIa_param.dat',format='ascii')
@@ -125,6 +127,7 @@ def gal_comp_res(spectra_arrays):
 	return wavelength, avg_flux, rms_flux, scatter
 
 
+#finds Composite spectrum, RMS spectrum, and scatter for each type of host galaxy
 e_wavelength, e_avg_flux, e_rms_flux, e_scatter = gal_comp_res(sn_elliptical)
 e_wave_min=min(e_wavelength)
 e_wave_max=max(e_wavelength)
@@ -134,18 +137,17 @@ S_wave_max=max(S_wavelength)
 s_wavelength, s_avg_flux, s_rms_flux, s_scatter = gal_comp_res(sn_spiral)
 s_wave_min=min(s_wavelength)
 s_wave_max=max(s_wavelength)
-
-"""
 i_wavelength, i_avg_flux, i_rms_flux, i_scatter = gal_comp_res(sn_irregular)
 i_wave_min=min(i_wavelength)
 i_wave_max=max(i_wavelength)
-"""
 
+
+#Plots spectra based on host galaxy type
 plt.figure(1)
 plt.subplot(211)
-plot1,=plt.plot(e_wavelength,e_avg_flux,label='comp')
-plot2,=plt.plot(e_wavelength,e_avg_flux+e_rms_flux,label='rms+')
-plot3,=plt.plot(e_wavelength,e_avg_flux-e_rms_flux,label='rms-')
+plot1,=plt.plot(e_wavelength,e_avg_flux,label='comp', color='k')
+plot2,=plt.plot(e_wavelength,e_avg_flux+e_rms_flux,label='rms+', color='b')
+plot3,=plt.plot(e_wavelength,e_avg_flux-e_rms_flux,label='rms-', color='c')
 legend=plt.legend(loc='upper right', shadow=True)
 plt.xlim(e_wave_min,e_wave_max)
 plt.ylabel('Flux')
@@ -160,9 +162,9 @@ plt.show()
 
 plt.figure(2)
 plt.subplot(211)
-plot1,=plt.plot(S_wavelength,S_avg_flux,label='comp')
-plot2,=plt.plot(S_wavelength,S_avg_flux+S_rms_flux,label='rms+')
-plot3,=plt.plot(S_wavelength,S_avg_flux-S_rms_flux,label='rms-')
+plot1,=plt.plot(S_wavelength,S_avg_flux,label='comp', color='k')
+plot2,=plt.plot(S_wavelength,S_avg_flux+S_rms_flux,label='rms+', color='b')
+plot3,=plt.plot(S_wavelength,S_avg_flux-S_rms_flux,label='rms-', color='c')
 legend=plt.legend(loc='upper right', shadow=True)
 plt.xlim(S_wave_min,S_wave_max)
 plt.ylabel('Flux')
@@ -177,9 +179,9 @@ plt.show()
 
 plt.figure(3)
 plt.subplot(211)
-plot1,=plt.plot(s_wavelength,s_avg_flux,label='comp')
-plot2,=plt.plot(s_wavelength,s_avg_flux+s_rms_flux,label='rms+')
-plot3,=plt.plot(s_wavelength,s_avg_flux-s_rms_flux,label='rms-')
+plot1,=plt.plot(s_wavelength,s_avg_flux,label='comp', color='k')
+plot2,=plt.plot(s_wavelength,s_avg_flux+s_rms_flux,label='rms+', color='b')
+plot3,=plt.plot(s_wavelength,s_avg_flux-s_rms_flux,label='rms-', color='c')
 legend=plt.legend(loc='upper right', shadow=True)
 plt.xlim(s_wave_min,s_wave_max)
 plt.ylabel('Flux')
@@ -192,12 +194,12 @@ plt.ylabel('Rms Flux/Average Flux')
 plt.savefig('SpiralPlot.png')
 plt.show()
 
-"""
+
 plt.figure(4)
 plt.subplot(211)
-plot1,=plt.plot(i_wavelength,i_avg_flux,label='comp')
-plot2,=plt.plot(i_wavelength,i_avg_flux+i_rms_flux,label='rms+')
-plot3,=plt.plot(i_wavelength,i_avg_flux-i_rms_flux,label='rms-')
+plot1,=plt.plot(i_wavelength,i_avg_flux,label='comp', color='k')
+plot2,=plt.plot(i_wavelength,i_avg_flux+i_rms_flux,label='rms+', color='b')
+plot3,=plt.plot(i_wavelength,i_avg_flux-i_rms_flux,label='rms-', color='c')
 legend=plt.legend(loc='upper right', shadow=True)
 plt.xlim(i_wave_min,i_wave_max)
 plt.ylabel('Flux')
@@ -209,4 +211,3 @@ plt.xlabel('Wavelength')
 plt.ylabel('Rms Flux/Average Flux')
 plt.savefig('IrregularPlot.png')
 plt.show()
-"""
