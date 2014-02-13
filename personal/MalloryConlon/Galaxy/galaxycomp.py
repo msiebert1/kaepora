@@ -1,7 +1,3 @@
-#Read in galaxy info, and pair with proper spectra!
-#separate spectra between elliptical and spiral host galaxy
-#create composite and RMS spectrum for each type of galaxy!!
-
 import numpy as np
 import os
 from astropy.table import Table
@@ -16,7 +12,7 @@ spectra_arrays=[]
 spectra_names=[]
 bad_files=[]
 
-num=20	#number of spectra to analyse, eventually will be len(spectra_files)
+num=len(spectra_files)	#number of spectra to analyse, eventually will be len(spectra_files)
 
 for i in range(num):
 spectrum_file=spectra_files[i]
@@ -47,12 +43,28 @@ if host_type[j]==0:
 anon.append(sn_name[j])
 
 sn_elliptical=[]
-sn_S0=[]
-sn_spiral=[]
 for i in range(len(elliptical)):
 for j in range(len(spectra_arrays)):
 if spectra_names[j] in elliptical[i]:
 sn_elliptical.append(spectra_arrays[j])
+
+sn_S0=[]
+for i in range(len(S0)):
+for j in range(len(spectra_arrays)):
+if spectra_names[j] in S0[i]:
+sn_S0.append(spectra_arrays[j])
+
+sn_spiral=[]
+for i in range(len(spiral)):
+for j in range(len(spectra_arrays)):
+if spectra_names[j] in spiral[i]:
+sn_spiral.append(spectra_arrays[j])
+
+sn_irregular=[]
+for i in range(len(irregular)):
+for j in range(len(spectra_arrays)):
+if spectra_names[j] in irregular[i]:
+sn_irregular.append(spectra_arrays[j])
 
 def gal_comp_res(spectra_arrays):
 #deredshift data
@@ -111,80 +123,87 @@ return wavelength, avg_flux, rms_flux, scatter
 
 
 e_wavelength, e_avg_flux, e_rms_flux, e_scatter = gal_comp_res(sn_elliptical)
-e_wavelength, e_avg_flux, e_rms_flux, e_scatter = gal_comp_res(sn_S0)
-e_wavelength, e_avg_flux, e_rms_flux, e_scatter = gal_comp_res(sn_spiral)
-e_wavelength, e_avg_flux, e_rms_flux, e_scatter = gal_comp_res(sn_irregular)
-plot1,=plt.plot(e_wavelength,e_avg_flux)
+e_wave_min=min(e_wavelength)
+e_wave_max=max(e_wavelength)
+S_wavelength, S_avg_flux, S_rms_flux, S_scatter = gal_comp_res(sn_S0)
+S_wave_min=min(S_wavelength)
+S_wave_max=max(S_wavelength)
+s_wavelength, s_avg_flux, s_rms_flux, s_scatter = gal_comp_res(sn_spiral)
+s_wave_min=min(s_wavelength)
+s_wave_max=max(s_wavelength)
+
+"""
+    i_wavelength, i_avg_flux, i_rms_flux, i_scatter = gal_comp_res(sn_irregular)
+    i_wave_min=min(i_wavelength)
+    i_wave_max=max(i_wavelength)
+    """
+
+plt.figure(1)
+plt.subplot(211)
+plot1,=plt.plot(e_wavelength,e_avg_flux,label='comp')
+plot2,=plt.plot(e_wavelength,e_avg_flux+e_rms_flux,label='rms+')
+plot3,=plt.plot(e_wavelength,e_avg_flux-e_rms_flux,label='rms-')
+legend=plt.legend(loc='upper right', shadow=True)
+plt.xlim(e_wave_min,e_wave_max)
+plt.ylabel('Flux')
+plt.subplot(212)
+plot1,=plt.plot(e_wavelength,e_scatter)
+plt.xlim(e_wave_min,e_wave_max)
+plt.ylim(0,100)
+plt.xlabel('Wavelength')
+plt.ylabel('Rms Flux/Average Flux')
+plt.savefig('EllipticalPlot.png')
+plt.show()
+
+plt.figure(2)
+plt.subplot(211)
+plot1,=plt.plot(S_wavelength,S_avg_flux,label='comp')
+plot2,=plt.plot(S_wavelength,S_avg_flux+S_rms_flux,label='rms+')
+plot3,=plt.plot(S_wavelength,S_avg_flux-S_rms_flux,label='rms-')
+legend=plt.legend(loc='upper right', shadow=True)
+plt.xlim(S_wave_min,S_wave_max)
+plt.ylabel('Flux')
+plt.subplot(212)
+plot1,=plt.plot(S_wavelength,S_scatter)
+plt.xlim(S_wave_min,S_wave_max)
+plt.ylim(0,100)
+plt.xlabel('Wavelength')
+plt.ylabel('Rms Flux/Average Flux')
+plt.savefig('S0Plot.png')
+plt.show()
+
+plt.figure(3)
+plt.subplot(211)
+plot1,=plt.plot(s_wavelength,s_avg_flux,label='comp')
+plot2,=plt.plot(s_wavelength,s_avg_flux+s_rms_flux,label='rms+')
+plot3,=plt.plot(s_wavelength,s_avg_flux-s_rms_flux,label='rms-')
+legend=plt.legend(loc='upper right', shadow=True)
+plt.xlim(s_wave_min,s_wave_max)
+plt.ylabel('Flux')
+plt.subplot(212)
+plot1,=plt.plot(s_wavelength,s_scatter)
+plt.xlim(s_wave_min,s_wave_max)
+plt.ylim(0,100)
+plt.xlabel('Wavelength')
+plt.ylabel('Rms Flux/Average Flux')
+plt.savefig('SpiralPlot.png')
 plt.show()
 
 """
-    e_wave_min=min(e_wavelength)
-    e_wave_max=max(e_wavelength)
-    S_wavelength, S_avg_flux, S_rms_flux, S_scatter = gal_comp_res(S0)
-    S_wave_min=min(S_wavelength)
-    S_wave_max=max(S_wavelength)
-    s_wavelength, s_avg_flux, s_rms_flux, s_scatter = gal_comp_res(spiral)
-    s_wave_min=min(s_wavelength)
-    s_wave_max=max(s_wavelength)
-    
-    plt.figure(1)
-    plt.subplot(231)
-    plot1,=plt.plot(e_wavelength,e_avg_flux,label='comp')
-    plot2,=plt.plot(e_wavelength,e_avg_flux+e_rms_flux,label='rms+')
-    plot3,=plt.plot(e_wavelength,e_avg_flux-e_rms_flux,label='rms-')
-    legend=plt.legend(loc='upper right', shadow=True)
-    plt.xlim(e_wave_min,e_wave_max)
-    plt.ylabel('Flux')
-    plt.subplot(234)
-    plot1,=plt.plot(e_wavelength,e_scatter,label='comp')
-    plt.xlim(e_wave_min,e_wave_max)
-    plt.ylim(0.100)
-    plt.xlabel('Wavelength')
-    plt.ylabel('Rms Flux/Average Flux')
-    plt.subplot(232)
-    plot1,=plt.plot(S_wavelength,S_avg_flux,label='comp')
-    plot2,=plt.plot(S_wavelength,S_avg_flux+S_rms_flux,label='rms+')
-    plot3,=plt.plot(S_wavelength,S_avg_flux-S_rms_flux,label='rms-')
-    legend=plt.legend(loc='upper right', shadow=True)
-    plt.xlim(S_wave_min,S_wave_max)
-    plt.subplot(235)
-    plot1,=plt.plot(S_wavelength,S_scatter,label='rms residual')
-    plt.xlim(S_wave_min,S_wave_max)
-    plt.ylim(0,100)
-    plt.xlabel('Wavelength')
-    plt.subplot(233)
-    plot1,=plt.plot(s_wavelength,s_avg_flux,label='comp')
-    plot2,=plt.plot(s_wavelength,s_avg_flux+s_rms_flux,label='rms+')
-    plot3,=plt.plot(s_wavelength,s_avg_flux-s_rms_flux,label='rms-')
-    legend=plt.legend(loc='upper right', shadow=True)
-    plt.xlim(s_wave_min,s_wave_max)
-    plt.subplot(236)
-    plot1,=plt.plot(s_wavelength,s_scatter,label='rms residual')
-    plt.xlim(s_wave_min,s_wave_max)
-    plt.ylim(0,100)
-    plt.xlabel('Wavelength')
-    plt.show()
-    
-    wavelength, avg_flux, rms_flux, scatter = gal_comp_res(spectra_arrays)
-    wave_min=min(wavelength)
-    wave_max=max(wavelength)
-    
-    #plot Composite and Residual
-    plt.figure(1)
+    plt.figure(4)
     plt.subplot(211)
-    plot1,=plt.plot(wavelength,avg_flux+rms_flux,label= 'rms+')
-    plot2,=plt.plot(wavelength,avg_flux-rms_flux, label= 'rms-')
-    plot3,=plt.plot(wavelength,avg_flux,label='comp')
+    plot1,=plt.plot(i_wavelength,i_avg_flux,label='comp')
+    plot2,=plt.plot(i_wavelength,i_avg_flux+i_rms_flux,label='rms+')
+    plot3,=plt.plot(i_wavelength,i_avg_flux-i_rms_flux,label='rms-')
     legend=plt.legend(loc='upper right', shadow=True)
-    plt.xlim(wave_min,wave_max)
+    plt.xlim(i_wave_min,i_wave_max)
     plt.ylabel('Flux')
     plt.subplot(212)
-    plot1,=plt.plot(wavelength,scatter,label='rms residual')
-    plt.xlim(wave_min,wave_max)
+    plot1,=plt.plot(i_wavelength,i_scatter)
+    plt.xlim(i_wave_min,i_wave_max)
     plt.ylim(0,100)
     plt.xlabel('Wavelength')
-    plt.ylabel('RMS Flux/ Average Flux')
-    plt.subplots_adjust(hspace=0)
-    plt.savefig('plot.png')
+    plt.ylabel('Rms Flux/Average Flux')
+    plt.savefig('IrregularPlot.png')
     plt.show()
     """
