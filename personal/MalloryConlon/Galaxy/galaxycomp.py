@@ -15,7 +15,7 @@ spectra_arrays=[]
 spectra_names=[]
 bad_files=[]
 
-num=1000	#number of spectra to analyse, eventually will be len(spectra_files)
+num=len(spectra_files)	#number of spectra to analyse, eventually will be len(spectra_files)
 
 for i in range(num):
 	spectrum_file=spectra_files[i]
