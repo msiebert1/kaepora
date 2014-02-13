@@ -36,15 +36,14 @@ Things to work on/Known issues(wk3 code):
 """
 this function reads in a file (from an array of paths)
 and extracts the relevant data (Pathname, Wavelength and Flux),
-appending the folder/file.flm path and Wavelength/flux into 
-separate lists 'path' and 'data' respectively
+as well as keeping a counter of the number of spectra for a 
+particular SN
 """
-def get_data(f):
+def get_data(f,p,d,c,i):
 	try:
-		data.append(np.loadtxt(f))	#adds spectra data into array 
-		path.append(f[14:-4])		#adds SN path name into array
-		wave.append(data[i][:,0])
-		flux.append(data[i][:,1])
+		d.append(np.loadtxt(f))		#adds spectra data into array 
+		p.append(f[14:-4])		#adds SN path name into array
+		c[i] += 1			#number of spectra for particular SN
 	except ValueError:
 		junk.append(f)			#adds faulty files into array
 
@@ -55,25 +54,25 @@ SNe names and z values (among other stats) and appends
 relevent information (right now name and z value) into
 lists 'name' and 'z' respectively
 """
-def get_stats(s):				#reads in particular row from stat file
-	name.append(s[0])			#adds SN name into array
+def get_stats(s,n,z,t):				#reads in particular row from stat file
+	n.append(s[0])				#adds SN name into array
 	z.append(s[1])				#adds z-value into array
-
+	t.append(s[2])				#adds time of max light
 
 """
 this function takes a single spectra 'path' and 'data', 
 the lists 'name' and 'z', and de-redshifts the wavelength
 of this particular data 
 """
-def dez(data,path,name,z):
-	for i in range(len(name)):				#Goes through list of names
-		if name[i] in path:				#Current name is in path list
+def dez(d,p,n,z):
+	for i in range(len(n)):				#Goes through list of names
+		if n[i] in p:				#Current name is in path list
 			#print"redshift wavelengths:",(data[:,0])
 			#print "matched SN",name[i],"to",path
 			#print "z =",z[i]
 			#print "...de-redshifting..."			
 			for j in range(len(data)):		#Goes through each wavelength in single spectra
-				data[j,0] /= 1+z[i]		#De-redshifts the wavelength 
+				d[j,0] /= 1+z[i]		#De-redshifts the wavelength 
 			#print"de-redshifted values:",(data[:,0]),"\n"
 			break	
 
@@ -81,65 +80,85 @@ def dez(data,path,name,z):
 #Reads in files and stats 
 #Initializes variables
 
-carbon = np.loadtxt('wk4_carbon.txt',dtype = str)
+carbon_pos = np.loadtxt('files/wk4_carbon_neg.txt',dtype = str)
+carbon_neg = np.loadtxt('files/wk4_carbon_neg.txt',dtype = str)
 
 files = glob.glob ('../../data/cfa/*/*.flm')	#array of files
 stats = np.genfromtxt('../../data/cfa/cfasnIa_param.dat',dtype = None)	#stats of SNe
-name = []	#sn name from stats
-z = []		#z from stats
+ages = np.genfromtxt('../../data/cfa/cfasnIa_mjdspec.dat',dtype = None)	#age of each spectra file
 
-data = []	#holds spectra data from files
+
+name_pos = []	#sn name from stats
+name_neg = []
+
+z_pos = []	#z from stats
+z_neg = []
+
+tmax_pos = []	#time of maxiumum light from stats
+tmax_neg = []
+
+data_pos = []	#holds spectra data from files
+data_neg = []
+
+count_pos = [0]*len(carbon_pos)		#array to hold number of spectra per SN
+count_neg = [0]*len(carbon_neg)
+
 junk = []	#holds junk files 
 
-path = []	#holds pathname of files
-wave = []	#holds wavelengths			
-flux = []	#holds flux
+path_pos = []	#holds pathname of files
+path_neg = []
 
-num = len(carbon)		#measure num spectra
-wave_min = 0	
-wave_max = 10000
+num_pos = len(carbon_neg)		#measure num spectra
+num_neg = len(carbon_neg)
+
+wave_min = 3800
+wave_max = 7400
 
 
 ###########################
 print "===================="
 print "There are",len(files),"files to read"
 print "There are",len(stats),"Supernovae with stats"
-print "There are",len(carbon),"Carbon positive Supernovae we want"
+print "There are",len(carbon_pos),"Carbon positive (CP) Supernovae"
+print "There are",len(carbon_neg),"Carbon negative (CN) Supernovae"
 print "===================="
 print "reading in data..."
 print "checking for corrupt files..."
 ###########################
-count = [0]*len(carbon)
+
 
 #for each file, find the matching SN, record the number of spectra for that SN, and extract
 #Wavelength/Flux for each one
 for file in files:
-	for i in range(len(carbon)):
-		if carbon[i] in file:
-			try:
-				#print "adding",carbon[i],"data:\n",file[14:-4]
-				data.append(np.loadtxt(file))	#adds spectra data into array 
-				path.append(file[14:-4])		#adds SN path name into array
-				count[i] += 1
-			except ValueError:
-				#print "poop file",file
-				junk.append(file)			#adds faulty files into array
+	for i in range(len(carbon_pos)):
+		if carbon_pos[i] in file:
+			get_data(file,path_pos,data_pos,count_pos,i)
 
 print "\nsearch complete"		
 print "===================="
-print "found",len(data),"files to read"
+print "found",len(data_pos),"CP files to read"
+print "found",len(data_neg),"CN files to read"
 print "found",len(junk),"corrupt files"
 print "===================="
 print "file breakdown"
 print "===================="
-for i in range(len(carbon)):
-	print carbon[i],"has",count[i],"files"
+for i in range(len(carbon_pos)):
+	print "CP sn",carbon_pos[i],"has",count_pos[i],"files"
+
+count_pos = [0]*len(carbon_pos)		#array to hold number of spectra per SN
+count_neg = [0]*len(carbon_neg)
+
+#for i in range(len(carbon_neg)):
+	#print "CN sn",carbon_neg[i],"has",count_neg[i],"files"
 print "\ntrimming the fat...(removing SNe with no files)"
+
+
+
 
 carbon_new = []
 count_new = []
-for i in range(len(count)):
-	if (count[i] != 0):
+for i in range(len(count_pos)):
+	if (count_pos[i] != 0):
 		carbon_new.append(carbon[i])
 		count_new.append(count[i])
 
@@ -148,8 +167,7 @@ print "searching for relevant SNe statistics...\n"
 for stat in stats:
 	for i in range(len(carbon_new)):
 		if carbon_new[i] in stat[0]:
-			print carbon_new[i],"=",stat[0],"with z =",stat[1]
-			z.append(stat[1])
+			get_stats(stat,name_pos,z_pos,tmax_pos)
 
 
 
@@ -165,25 +183,30 @@ path		length 211	contains path to data
 
 """
 #de-redshifting data
-for i in range(len(data)):
+for i in range(len(data_pos)):
 	
-	dez(data[i],path[i],carbon_new,z)
+	dez(data_pos[i],path_pos[i],carbon_new,z_pos)
 	
 
 
-num = len(data)
-print "\ncalculating min/max from:",wave_min,wave_max
-print "===================="
+num = len(data_pos)
+
+#this code will determine the data to take based off of the the given ranges
+print "\nfinding spectra in range:",wave_min,wave_max
+
+delete = []
 for i in range(num):
-	#print "waves #",i
-	if data[i][0][0] > wave_min:
-		#print data[i][0][0],">",wave_min,"\n-->","new min = ",data[i][0][0]
-		wave_min = int(data[i][0][0])
-	if data[i][-1][0] < wave_max:
-		#print data[i][-1][0],"<",wave_max,"\n-->","new max = ",data[i][-1][0]
-		wave_max = int(data[i][-1][0])
+	#print "\nwaves #",i,":",data_pos[i][:,0]
+	#print "from path:",path_pos[i]
+	if data_pos[i][0][0] > wave_min or data_pos[i][-1][0] < wave_max:
+		delete.append(i)
+		#print "\nwaves #",i,":",data_pos[i][:,0]
+		#print "from path:",path_pos[i],"does not make the cut"
 
-
+for i in range(len(delete)):
+	print "remove",data_pos[delete[len(delete)-1-i]]
+	del data_pos[delete[len(delete)-1-i]]
+	print data_pos[delete[len(delete)-1-i]]
 
 print "\nhighest minimum:",wave_min
 print "lowest maximum:",wave_max
@@ -205,8 +228,8 @@ fit = []
 fit_flux = []
 
 
-for i in range(num):
-	spline = intp.splrep(data[i][:,0],data[i][:,1])
+for i in range(len(data_pos)):
+	spline = intp.splrep(data_pos[i][:,0],data_pos[i][:,1])
 	curr_flux = intp.splev(wavelengths, spline)
 	curr_flux /= np.median(curr_flux)
 	fit.append([wavelengths,curr_flux])
@@ -218,13 +241,14 @@ avg_flux = sum(fit_flux)/num
 
 res_flux = []
 #residual and RMS 
-for i in range(num):
+for i in range(len(data_pos)):
 	res_flux.append(fit_flux[i]-avg_flux)
 
 rms = np.sqrt(np.mean(np.square(res_flux),axis = 0))
 pos = avg_flux + rms
 neg = avg_flux - rms
 scatter = np.divide(rms,avg_flux)
+
 
 ############################
 print "===================="
@@ -249,6 +273,35 @@ bottom.plot(wavelengths,scatter, 'k')
 plt.title('Residual')
 plt.xlabel('Wavelength')
 plt.ylabel('Residual RMS')
-plt.savefig('Carbon.png')
+plt.savefig('plots/Carbon_pos.png')
 plt.show()
 
+"""#labeling plot1 carbon +
+top = fig.add_subplot(4,1,1)
+plot1 = top.plot(wavelengths,avg_flux,'k')
+plot2 = top.plot(wavelengths,pos,'b')
+plot3 = top.plot(wavelengths,neg,'r')
+plt.title('Composite Spectrum: Carbon +')
+plt.ylabel('Relative Flux')
+plt.legend([plot1,plot2,plot3],('Carbon +','+ RMS','- RMS'),'upper right',numpoints=1)
+
+#labeling plot2 carbon -
+mid = fig.add_subplot(4,1,2)
+#for carbon -, need a different avg_flux, pos, neg
+plot4 = mid.plot(wavelengths,avg_flux,'k')
+plot5 = mid.plot(wavelengths,pos,'b')
+plot6 = mid.plot(wavelengths,neg,'r')
+plt.title('Composite Spectrum: Carbon -')
+plt.ylabel('Relative Flux')
+plt.legend([plot4,plot5,plot6],('Carbon - ','+ RMS','- RMS'),'upper right',numpoints=1)
+
+#labeling plot3 residual
+bottom = fig.add_subplot(4,1,4)
+bottom.plot(wavelengths,scatter, 'k')
+plt.title('Residual')
+plt.xlabel('Wavelength')
+plt.ylabel('Residual RMS')
+
+plt.savefig('Composite_Spectra.png')
+plt.show()
+"""
