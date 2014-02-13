@@ -22,7 +22,6 @@ for i in range(num):
 	except ValueError:
 		bad_files.append(spectra_files[i])
 
-print len(spectra_arrays)
 #deredshift data
 parameters = Table.read('../../../data/cfa/cfasnIa_param.dat',format='ascii')
 sn_name = parameters["col1"]
@@ -81,7 +80,7 @@ for i in range(len(rms_flux)):
 #RMS Residual
 plt.figure(1)
 plt.subplot(211)
-plot1,=plt.plot(wavelength,avg_flux+rms_flux,label= 'rms+')
+plot1,=plt.plot(wavelength,avg_flux+rms_flux,label= 'rms+', color='k')
 plot2,=plt.plot(wavelength,avg_flux-rms_flux, label= 'rms-')
 plot3,=plt.plot(wavelength,avg_flux,label='comp')
 legend=plt.legend(loc='upper right', shadow=True)
