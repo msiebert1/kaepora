@@ -90,11 +90,11 @@ def dez(d,p,n,z):
 this function cleans the data by removing the files that
 are outside of the range of wavelengths we want to look at
 """
-def chop_data(data,path):
+def chop_data(data,path,age):
 	delete = []	#temporary variable to track which indices to remove
 
 	for i in range(len(data)):
-		if data[i][0][0] > wave_min or data[i][-1][0] < wave_max:
+		if data[i][0][0] > wave_min or data[i][-1][0] < wave_max or age[i][1] > 10 or age[i][1] < -10:
 			delete.append(i)
 			#print "\nwaves #",i,":",data_pos[i][:,0]
 			#print "from path:",path_pos[i],"does not make the cut"
@@ -181,7 +181,7 @@ fit_flux_pos = []		#new fitted/scaled flux (following interpolation)
 fit_flux_neg = []
 
 wave_min = 3800
-wave_max = 7000
+wave_max = 6500
 
 
 ###########################
@@ -229,15 +229,7 @@ for i in range(len(carbon_neg)):
 print "total of",sum(count_neg),"CN files found"
 """
 
-#chops the data based on wavelength 
-print "\nremoving data not within wavelength range:",wave_min,":",wave_max
-chop_data(data_pos,path_pos)
-chop_data(data_neg,path_neg)
 
-#removes sn names we don't want to look at
-print "\nupdating list of SN..."
-chop_sn(carbon_pos,count_pos)
-chop_sn(carbon_neg,count_neg)
 
 #find the corresponding redshift and max light times
 print "\nsearching for relevant SNe statistics..."
@@ -255,24 +247,40 @@ def scale_age(sn_list,tmax,age_list):
 	for i in range(len(age_list)):
 		for j in range(len(sn_list)):
 			if sn_list[j] in age_list[i][0]:
-				print "matched",sn_list[j],"with max light",tmax[j],"to",age_list[i][0]
+				#print "matched",sn_list[j],"with max light",tmax[j],"to",age_list[i][0]
 				age_list[i][1] -= tmax[j]
-				print "scaled age",age_list[i][1]
+				#print "scaled age",age_list[i][1]
+
+
+#removes sn names we don't want to look at
+print "\nupdating list of SN..."
+chop_sn(carbon_pos,count_pos)
+chop_sn(carbon_neg,count_neg)
+
 
 print len(carbon_pos),len(tmax_pos),len(age_pos)
 print len(carbon_neg),len(tmax_neg),len(age_neg)
+#scales the age by subtracting the time of max light from the age of the current spectra
 print "scaling age..."
-
-print age_pos[0][0]
-
-print age_pos[0][1]
-
 scale_age(carbon_pos,tmax_pos,age_pos)
 scale_age(carbon_neg,tmax_neg,age_neg)
 
-#chops data based on age restriction
+
+print len(data_pos),len(path_pos),len(age_pos)
+print len(data_neg),len(path_neg),len(age_neg)
 
 
+print "originally looking at",len(data_pos),"CP data"
+print "originally looking at",len(data_neg),"CN data"
+#chops the data based on wavelength and age
+print "\nremoving data not within wavelength range:",wave_min,":",wave_max
+print "\nand within 10 days of maximum light"
+
+chop_data(data_pos,path_pos,age_pos)
+chop_data(data_neg,path_neg,age_neg)
+
+print "now looking at",len(data_pos),"CP data"
+print "now looking at",len(data_neg),"CN data"
 
 #de-redshifting data
 print "\nde-redshifting spectra"
@@ -416,5 +424,5 @@ plt.xlabel('Wavelength')
 plt.ylabel('Residual RMS')
 plt.legend([plot7,plot8],('Carbon +','Carbon -'),'upper right',numpoints=1)
 
-#plt.savefig('Composite_Spectra_error.png')
+#plt.savefig('Carbon_SNe_within_10_days_max.png')
 plt.show()
