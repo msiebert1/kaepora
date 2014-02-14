@@ -137,10 +137,12 @@ def plotAverSpec(wave,averflux,fluxs,resflux):
     ax2.set_xlabel('Wavelength [A]')
 
     ax1.set_xlim(3500, 7500)
-    ax1.set_ylim(0.,2)
+#     ax1.set_ylim(0.,2)
+    ax1.set_ylim(-2,3)
 
     ax2.set_xlim(3500, 7500)
-    ax2.set_ylim(-0.1, 1)
+#     ax2.set_ylim(-0.1, 1)
+    ax2.set_ylim(-0.1,2)
 
     ax1.plot(wave, averflux,color='b',label='Average')
     ax1.plot(wave, averflux + resflux,color = 'g',label='Residual')
