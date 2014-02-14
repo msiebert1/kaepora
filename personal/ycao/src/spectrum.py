@@ -74,7 +74,7 @@ def findBoundary(files,zhels):
 
 # Interpalate spectrum
 def interpSpec(wave,flux,bound):
-    nsample = int(1e5)
+    nsample = int(2*1e5)
     intwave = scipy.linspace(bound[0],bound[1],nsample) 
     tck = interpolate.splrep(wave, flux)
     intflux = interpolate.splev(intwave,tck)
@@ -84,8 +84,8 @@ def interpSpec(wave,flux,bound):
 def averSpec(files,zhels):
     fluxs = []
     bound = findBoundary(files,zhels)
-#    bound = [3500,7000]
-
+#    bound = np.array([3500.,7000.])
+   
     for file,z in zip(files,zhels):
         wave,flux = loadSpec(file,z)
         intwave,intflux = interpSpec(wave,flux,bound)
@@ -128,6 +128,7 @@ def plotAverSpec(wave,averflux,fluxs,resflux):
     ax2.tick_params(which='minor', length=4)
 
 
+#     ax1.set_title('Spectra of SNe within 14 days after maximum')
     ax1.set_title('Spectra of SNe 150 days after maximum')
 
     ax1.set_ylabel('Scaled Flux')
@@ -135,11 +136,11 @@ def plotAverSpec(wave,averflux,fluxs,resflux):
 
     ax2.set_xlabel('Wavelength [A]')
 
-    ax1.set_xlim(wave[0]-100, wave[-1]+100)
-    ax1.set_ylim(0., np.max(averflux+resflux))
+    ax1.set_xlim(3500, 7500)
+    ax1.set_ylim(0.,2)
 
-    ax2.set_xlim(wave[0]-100, wave[-1]+100)
-    ax2.set_ylim(-0.1)
+    ax2.set_xlim(3500, 7500)
+    ax2.set_ylim(-0.1, 1)
 
     ax1.plot(wave, averflux,color='b',label='Average')
     ax1.plot(wave, averflux + resflux,color = 'g',label='Residual')
@@ -149,19 +150,6 @@ def plotAverSpec(wave,averflux,fluxs,resflux):
     ax2.plot(wave,resflux,color='g')
 
     ax1.legend()
-#     ax2.plot(wave,-1.*resflux,color='g')
-
-#     nspec = np.shape(fluxs)[0]
-#     index = range(0,nspec,1)
-
-#     for i in index:
-#         ax1.plot(wave,fluxs[i,:])
-#         ax2.plot(wave,resflux[i,:])
-
-
-#     print 'flux:', fluxs[1,0:3]
-#     print 'residule:',resflux[1,0:3]
-#     print 'average:',averflux[0:3]
 
 
 def spectrum(files,zhels):

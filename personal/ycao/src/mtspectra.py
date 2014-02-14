@@ -109,9 +109,11 @@ for sn,vneb in zip(nbnames,vnebs):
     days = dates - daymax
     mdays = np.ma.array(days,mask = days < 0.)# Calculate the delt_day and mask negtive values
 
-    fn = np.nanargmin(mdays)
+#     fn = np.nanargmin(mdays)
+    fn = np.nanargmax(mdays)
     
-    if days[fn] > 150:
+#     if days[fn] > 14:
+    if days[fn] < 150:
         continue
 
     file = list[fn]
@@ -137,18 +139,14 @@ def vbin(vmin,vmax):
            nz.append(z)
            nv.append(vneb)
            nname.append(name)
-
-#     nfile = np.array(nfile)
-#     nz = np.array(nz)
-#     nv = np.array(nv)
-#     nnname = np.array(nname)
     return nfile,nz,nv,nname
+
+import spectrum 
+from spectrum import *
 
 ##Set plotting...
 pltdir = '../plots/'
 
-import spectrum 
-from spectrum import *
 
 ############################################
 
