@@ -158,6 +158,8 @@ pos = avg_flux + rms
 neg = avg_flux - rms
 scatter = np.divide(rms,avg_flux)
 
+print type(pos), type(wavelengths)
+
 ############################
 print "===================="
 print "finished"
