@@ -2,11 +2,11 @@ from __future__ import division
 import numpy as np
 import os
 import sqlite3 as sq3
-import msgpack
-import msgpack_numpy as mn
-
+import time
 #makes msgpack aware of numpy addons
-mn.patch()
+#mn.patch()
+
+tstart = time.clock()
 
 def find_key(name):
     sn = name.split('-')
@@ -29,6 +29,7 @@ for line in lines:
     if not line.startswith('#'):
         data = line.split()
         sndict[data[0]] = data[1:]
+f.close()
 
 #get time spectra was taken
 f = open('../../data/cfa/cfasnIa_mjdspec.dat')
@@ -38,6 +39,7 @@ for line in lines:
     if not line.startswith('#'):
         data = line.split()
         datedict[data[0]] = data[1]
+f.close()
 
 #initialize database
 print "Creating table"
@@ -46,9 +48,9 @@ con = sq3.connect('SNe.db')
 
 #make sure no prior table in db to avoid doubling/multiple copies of same data
 con.execute("""DROP TABLE IF EXISTS Supernovae""")
-con.execute("""CREATE TABLE IF NOT EXISTS Supernovae (Filename TEXT, SN Text,
-                    Redshift REAL, Phase REAL, MinWave REAL, MaxWave REAL,
-                    Dm15 REAL, M_B REAL, B_mMinusV_m REAL, Spectra BLOB)""")
+con.execute("""CREATE TABLE IF NOT EXISTS Supernovae (Filename TEXT PRIMARY KEY,
+                    SN Text, Redshift REAL, Phase REAL, MinWave REAL, MaxWave REAL,
+                    RedMin REAL, RedMax REAL, Dm15 REAL, M_B REAL, B_mMinusV_m REAL)""")
 
 root = '../../data/'
 spectra = {}
@@ -96,18 +98,24 @@ for path, subdirs, files in os.walk(root):
             else:
                 bm_vm = vals[11]
 
-
-            msg = msgpack.packb(data)
             waves = data[:, 0]
             min_wave = waves[0]
             max_wave = waves[len(waves) - 1]
-
+            if redshift is not None:
+                red_min = min_wave/(1+float(redshift))
+                red_max = max_wave/(1+float(redshift))
+            else:
+                red_min = None
+                red_max = None
             con.execute("""INSERT INTO Supernovae(Filename, SN, Redshift, Phase,
-                                MinWave, MaxWave, Dm15, M_B, B_mMinusV_m, Spectra)
-                                VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", (name, key, redshift, phase,
-                                min_wave, max_wave, dm15, m_b, bm_vm, buffer(msg)))
+                                MinWave, MaxWave, RedMin, RedMax, Dm15, M_B, B_mMinusV_m)
+                                VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", (name, key, redshift, phase,
+                                min_wave, max_wave, red_min, red_max, dm15, m_b, bm_vm))
         else:
             continue
 con.commit()
+tend = time.clock()
+
+print tend - tstart
 
 
