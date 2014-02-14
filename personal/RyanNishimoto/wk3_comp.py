@@ -153,10 +153,12 @@ res_flux = []
 for i in range(num):
 	res_flux.append(fit_flux[i]-avg_flux)
 
-rms = np.sqrt(np.mean(np.power(res_flux,2)))
+rms = np.sqrt(np.mean(np.square(res_flux),axis = 0))
 pos = avg_flux + rms
 neg = avg_flux - rms
 scatter = np.divide(rms,avg_flux)
+
+print type(pos), type(wavelengths)
 
 ############################
 print "===================="
