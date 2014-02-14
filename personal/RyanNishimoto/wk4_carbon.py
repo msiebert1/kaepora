@@ -47,13 +47,15 @@ and extracts the relevant data (Pathname, Wavelength and Flux),
 as well as keeping a counter of the number of spectra for a 
 particular SN
 """
-def get_data(f,p,d,c,i):
+def get_data(flm_file,pathname,data,sn_file_count,i,ages,age):
 	try:
-		d.append(np.loadtxt(f))		#adds spectra data into array 
-		p.append(f[14:-4])		#adds SN path name into array
-		c[i] += 1			#number of spectra for particular SN
+		data.append(np.loadtxt(flm_file))	#adds spectra data into array 
+		pathname.append(flm_file[14:-4])	#adds SN path name into array
+		sn_file_count[i] += 1			#number of spectra for particular SN
+		age.append(ages)			#adds files and their ages to an array
 	except ValueError:
-		junk.append(f)			#adds faulty files into array
+		junk.append(flm_file)				#adds faulty files into array
+
 
 
 """
@@ -80,7 +82,7 @@ def dez(d,p,n,z):
 			#print "z =",z[i]
 			#print "...de-redshifting..."			
 			for j in range(len(d)):		#Goes through each wavelength in single spectra
-				d[j,0] /= 1+z[i]		#De-redshifts the wavelength 
+				d[j,0] /= 1+z[i]	#De-redshifts the wavelength 
 			#print"de-redshifted values:",(data[:,0]),"\n"
 			break	
 
@@ -88,19 +90,22 @@ def dez(d,p,n,z):
 this function cleans the data by removing the files that
 are outside of the range of wavelengths we want to look at
 """
-def chop_data(d,p):
+def chop_data(data,path):
 	delete = []	#temporary variable to track which indices to remove
 
-	for i in range(len(d)):
-		if d[i][0][0] > wave_min or d[i][-1][0] < wave_max:
+	for i in range(len(data)):
+		if data[i][0][0] > wave_min or data[i][-1][0] < wave_max:
 			delete.append(i)
 			#print "\nwaves #",i,":",data_pos[i][:,0]
 			#print "from path:",path_pos[i],"does not make the cut"
 	for i in range(len(delete)):
+		#print "orig length",len(d)
 		#print "remove",d[delete[len(delete)-1-i]]
-		del d[delete[len(delete)-1-i]]	#have to remove from end of array to account for moving indexes
-		del p[delete[len(delete)-1-i]]
+		del data[delete[len(delete)-1-i]]	#have to remove from end of array to account for moving indexes
+		del path[delete[len(delete)-1-i]]
 		#print d[delete[len(delete)-1-i]]
+		#print "new length",len(d)
+
 """
 this function cleans the lists of SN we are looking at
 by removing the ones that have no corresponding file
@@ -109,13 +114,13 @@ def chop_sn(sn,count):
 	delete = []
 	
 	for i in range(len(count)):
-		print i
 		if (count[i] == 0):
-			print sn[i],"has",count[i],"files"
 			delete.append(i)
 	for j in range(len(delete)):
 		del sn[delete[len(delete)-1-j]]
 		del count[delete[len(delete)-1-j]]
+
+
 """
 This function interpolates the data. It reads in the wavelength and flux
 file for both C + and C -. Using built in functions we complete the 
@@ -134,38 +139,44 @@ def interpolate(d,ff):
 		ff.append(curr_flux) 
 
 
-#Reads in files, stats(z,time of max, etc), and ages(time of each spectra)
+	
+		
+#List of Carbon Positive and Carbon Negative SNe
 carbon_pos = np.loadtxt('files/wk4_carbon_pos.txt',dtype = str).tolist()
 carbon_neg = np.loadtxt('files/wk4_carbon_neg.txt',dtype = str).tolist()
-
-files = glob.glob ('../../data/cfa/*/*.flm')	#array of files
-stats = np.genfromtxt('../../data/cfa/cfasnIa_param.dat',dtype = None)	#stats of SNe
-ages = np.genfromtxt('../../data/cfa/cfasnIa_mjdspec.dat',dtype = None)	#age of each spectra file
-
-#Initializes variables
-name_pos = []	#sn name from stats
-name_neg = []
-
-z_pos = []	#z from stats
-z_neg = []
-
-tmax_pos = []	#time of maxiumum light from stats
-tmax_neg = []
-
-data_pos = []	#holds spectra data from files
-data_neg = []
-
+#Associated Variables
 count_pos = [0]*len(carbon_pos)		#array to hold number of spectra per SN
 count_neg = [0]*len(carbon_neg)
-
-junk = []	#holds junk files 
-
-path_pos = []	#holds pathname of files
-path_neg = []
-
 num_pos = len(carbon_pos)		#measure num spectra
 num_neg = len(carbon_neg)
 
+
+#List of Files containing Spectra Data
+files = glob.glob ('../../data/cfa/*/*.flm')	#array of files
+#Accociated Variables
+path_pos = []	#holds pathname of files
+path_neg = []
+data_pos = []	#holds spectra data from files
+data_neg = []
+junk = []	#holds junk files 
+
+#List of pathnames to spectra data and the associated age of the SNe at time of spectra
+ages = np.genfromtxt('../../data/cfa/cfasnIa_mjdspec.dat',dtype = None)	#age of each spectra file
+age_pos = []
+age_neg = []
+
+#Table containing SNe names, redshift values, and time of Max Luminosity (among other data)
+stats = np.genfromtxt('../../data/cfa/cfasnIa_param.dat',dtype = None)	#stats of SNe
+#Associated Variables
+name_pos = []	#sn name from stats
+name_neg = []
+z_pos = []	#z from stats
+z_neg = []
+tmax_pos = []	#time of maxiumum light from stats
+tmax_neg = []
+
+
+#Variables for later
 fit_flux_pos = []		#new fitted/scaled flux (following interpolation)
 fit_flux_neg = []
 
@@ -176,26 +187,30 @@ wave_max = 7000
 ###########################
 print "\n===================="
 print "There are",len(files),"files to read"
+print "There are",len(ages), "ages to compute"
 print "There are",len(stats),"Supernovae with stats"
-print "There are",len(carbon_pos),"Carbon positive (CP) Supernovae"
-print "There are",len(carbon_neg),"Carbon negative (CN) Supernovae"
+print "There are",len(carbon_pos),"Carbon positive (CP) Supernovae to find"
+print "There are",len(carbon_neg),"Carbon negative (CN) Supernovae to find"
 print "===================="
 print "reading in data..."
 print "checking for corrupt files..."
 ###########################
 
-
 #for each file, find the matching SN, record the number of spectra for that SN, and extract
 #Wavelength/Flux for each one
-for file in files:
-	for i in range(len(carbon_pos)):
-		if carbon_pos[i] in file:
-			get_data(file,path_pos,data_pos,count_pos,i)
+###############################################################################################################
+
+for i in range(len(files)):
+	for j in range(len(carbon_pos)):
+		if carbon_pos[j] in files[i]:
+			get_data(files[i],path_pos,data_pos,count_pos,j,ages[i],age_pos)
 			continue
 	for j in range(len(carbon_neg)):
-		if carbon_neg[j] in file:
-			get_data(file,path_neg,data_neg,count_neg,j)
+		if carbon_neg[j] in files[i]:
+			get_data(files[i],path_neg,data_neg,count_neg,j,ages[i],age_neg)
 			continue
+
+
 
 print "\nsearch complete"		
 print "===================="
@@ -205,42 +220,27 @@ print "found",len(junk),"corrupt files"
 print "===================="
 print "file breakdown"
 print "===================="
-
-
+"""
 for i in range(len(carbon_pos)):
 	print "CP sn",carbon_pos[i],"has",count_pos[i],"files"
 print "total of",sum(count_pos),"CP files found"
 for i in range(len(carbon_neg)):
 	print "CN sn",carbon_neg[i],"has",count_neg[i],"files"
 print "total of",sum(count_neg),"CN files found"
+"""
 
-
-#remove files outside of range of wavelengths wanted
-print "\nfinding spectra in range:",wave_min,wave_max
-
-
-
-#print "\noriginal data/path of length",len(data_pos),"/",len(path_pos)
+#chops the data based on wavelength 
+print "\nremoving data not within wavelength range:",wave_min,":",wave_max
 chop_data(data_pos,path_pos)
-#print "copped data/path of length",len(data_pos),"/",len(path_pos)
-
-print "\nChopping C + complete."
-
-#print "\noriginal data/path of length",len(data_neg),"/",len(path_neg)
 chop_data(data_neg,path_neg)
-print "\nChopping C - complete."
-
 
 #removes sn names we don't want to look at
-print "\ntrimming the fat...(removing SNe with no files)"
-print "originally have",len(carbon_pos),"CP SNe matching",len(count_pos),"count"
+print "\nupdating list of SN..."
 chop_sn(carbon_pos,count_pos)
 chop_sn(carbon_neg,count_neg)
 
-
-
-print "searching for relevant SNe statistics...\n"
-#for each row of stats, find the corresponding redshift and add it to an array
+#find the corresponding redshift and max light times
+print "\nsearching for relevant SNe statistics..."
 for stat in stats:
 	for i in range(len(carbon_pos)):
 		if carbon_pos[i] in stat[0]:
@@ -249,40 +249,59 @@ for stat in stats:
 		if carbon_neg[i] in stat[0]:
 			get_stats(stat,name_neg,z_neg,tmax_neg)
 
+############################################################################################
+#scales the ages for relevant files
+def scale_age(sn_list,tmax,age_list):
+	for i in range(len(age_list)):
+		for j in range(len(sn_list)):
+			if sn_list[j] in age_list[i][0]:
+				print "matched",sn_list[j],"with max light",tmax[j],"to",age_list[i][0]
+				age_list[i][1] -= tmax[j]
+				print "scaled age",age_list[i][1]
+
+print len(carbon_pos),len(tmax_pos),len(age_pos)
+print len(carbon_neg),len(tmax_neg),len(age_neg)
+print "scaling age..."
+
+print age_pos[0][0]
+
+print age_pos[0][1]
+
+scale_age(carbon_pos,tmax_pos,age_pos)
+scale_age(carbon_neg,tmax_neg,age_neg)
+
+#chops data based on age restriction
 
 
 
 #de-redshifting data
-
+print "\nde-redshifting spectra"
 for i in range(len(data_pos)):
 	dez(data_pos[i],path_pos[i],carbon_pos,z_pos)
-print "De-reddening C + complete."
 
-print len(data_neg),len(z_neg),len(carbon_neg)
 for i in range(len(data_neg)):
 	dez(data_neg[i],path_neg[i],carbon_neg,z_neg)
-print "De-reddening C - complete."
 
 
-print "\nhighest minimum:",wave_min
-print "lowest maximum:",wave_max
 
-print "\nCreating linspace from",wave_min,"to",wave_max,"with",(wave_max-wave_min),"points"
 #creates space for wavelengths given min/max parameters
+print "\ncreating linspace from",wave_min,"to",wave_max,"with",(wave_max-wave_min),"points"
 wavelengths = np.linspace(wave_min,wave_max,(wave_max-wave_min+1))
-
-print "plots will have data at these wavelength values:",wavelengths
+print "plots will have data at these wavelength values:\n",wavelengths
 
 #Interpolating
+print "\ninterpolating data"
 interpolate(data_pos, fit_flux_pos)
 interpolate(data_neg, fit_flux_neg)
 
-########## Both C +/- to this point #################
+#Average flux
+print "\ncomputing compoosite flux"
 avg_flux_p = sum(fit_flux_pos)/len(data_pos)
 avg_flux_n = sum(fit_flux_neg)/len(data_neg)
 
 
 #residual and RMS 
+print "\ncomputing RMS and residual"
 res_flux_p = []
 res_flux_n = []
 
@@ -321,7 +340,6 @@ plus_p = np.asarray(plus_p)
 print type(plus_p), len(plus_p)
 minus_p = np.array(minus_p)
 
-#print len(plus_p), len(wavelengths)
 """
 ############################
 print "===================="
@@ -398,5 +416,5 @@ plt.xlabel('Wavelength')
 plt.ylabel('Residual RMS')
 plt.legend([plot7,plot8],('Carbon +','Carbon -'),'upper right',numpoints=1)
 
-plt.savefig('Composite_Spectra_error.png')
+#plt.savefig('Composite_Spectra_error.png')
 plt.show()
