@@ -2,6 +2,7 @@ import numpy as np
 import glob
 import matplotlib.pyplot as plt
 import scipy
+import math
 from scipy import interpolate
 
 # Read spectra files from folder /cfa
@@ -26,10 +27,11 @@ num_spectra = len(spectra_arrays)
 #    spectra_arrays[i][:, 0] /= 1 + redshifts[i]
 
 # Interpolate data, first find min and max
+# floor/ceiling to round to nearest integer wavelength
 
-wave_min = max(spectra[0, 0] for spectra in spectra_arrays)
-wave_max = min(spectra[-1, 0] for spectra in spectra_arrays)
-wavelength = scipy.linspace(wave_min, wave_max, (wave_max-wave_min)*100)
+wave_min = math.floor(max(spectra[0, 0] for spectra in spectra_arrays))
+wave_max = math.floor(min(spectra[-1, 0] for spectra in spectra_arrays))
+wavelength = scipy.linspace(wave_min, wave_max, (wave_max-wave_min)*10)
 
 new_spectra = [] # generate a new array of spectra graphs that share common x-values
 
@@ -49,17 +51,24 @@ for i in range(num_spectra):
     res_flux.append(np.array(new_spectra[i][1]-Comp_spectra[1, :]))
 
 res_flux = np.array(res_flux)
-RMS = np.mean(res_flux*res_flux, axis = 0)
+RMS = np.sqrt(np.mean(res_flux*res_flux, axis = 0))
 flux_err_pos = Comp_spectra[1, :] + RMS
-flux_err_neg = Comp_spectra[1, :] + RMS
+flux_err_neg = Comp_spectra[1, :] - RMS
 scatter = RMS / Comp_spectra[1, :]
 
 # Plot composite spectra (Jut need to figure out what to plot, and look up to make single figures)
 
-ax1 = fig.add_subplot(211)
-plot1, = ax1.plot(
-
-plt.plot(Comp_spectra[0, :], Comp_spectra[1, :], Comp_spectra[0, :], flux_err_pos)
+plt.figure(1)
+plt.subplot(211)
+plt.plot(Comp_spectra[0, :], Comp_spectra[1, :], 'b' , Comp_spectra[0, :], flux_err_pos, 'r', Comp_spectra[0, :], flux_err_neg, 'g')
+plt.title('Composite Spectra and (+/-) RMS')
+plt.xlabel('Wavelength (A)')
+plt.ylabel('Flux')
+plt.subplot(212)
+plt.plot(wavelength, scatter)
+plt.title('Residual')
+plt.xlabel('Wavelength (A)')
+plt.ylabel('Percantage')
 plt.show()
 
                                          
