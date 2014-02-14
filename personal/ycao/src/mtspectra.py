@@ -151,19 +151,21 @@ import spectrum
 from spectrum import *
 
 ############################################
-files,zhels,nv,nname= vbin(-5000,0)
-spectrum(files,zhels)
+
+def mtspectra(vmin,vmax):
+    files,zhels,nv,nname= vbin(vmin,vmax)
+    spectrum(files,zhels)
 
 # files,zhels,nv = vbin(0,5000)
 # spectrum(files,zhels)
 
-plt.figtext(0.15,0.35,'Samples:',fontsize=10)
+    plt.figtext(0.15,0.35,'Samples:',fontsize=10)
 
-range = range(nsample/10)
+    plt.figtext(0.15,0.32,nname,fontsize=8)
+    plt.figtext(0.15,0.29,nv,fontsize=8)
 
-# for i in range:
-plt.figtext(0.15,0.32,nname,fontsize=8)
-plt.figtext(0.15,0.29,nv,fontsize=8)
+    plt.savefig(pltdir+'averspectra'+str(vmin)+'-'+str(vmax)+'.png')
+    plt.show()
+    return
 
-plt.savefig(pltdir+'averspectra.png')
-plt.show()
+

@@ -128,7 +128,7 @@ def plotAverSpec(wave,averflux,fluxs,resflux):
     ax2.tick_params(which='minor', length=4)
 
 
-    ax1.set_title('Spectra of 50 SNe 150 days after maximum')
+    ax1.set_title('Spectra of SNe 150 days after maximum')
 
     ax1.set_ylabel('Scaled Flux')
     ax2.set_ylabel('Residule Flux')
