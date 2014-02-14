@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import scipy
 from scipy import interpolate
 
-# Read spectra files from folder
+# Read spectra files from folder /cfa
 
 spectra_files = glob.glob("../../data/cfa/*/*.flm")
 spectra_arrays = []
@@ -12,7 +12,7 @@ bad_files = []
 
 # Create list of spectra graphs
 
-for i in range(20):
+for i in range(20): # Set to read 20 SN spectra, can change
     try:
         spectra_arrays.append(np.loadtxt(spectra_files[i]))
     except ValueError:
@@ -41,16 +41,26 @@ for i in range(num_spectra):
 
 # Generate composite spectra by averaging
 
-Comp_wave = wavelength
-Comp_flux = []
+Comp_spectra = np.mean(new_spectra, axis = 0)
 
-for i in range(len(wavelength)): # For each wavelength, sum associated flux for each spectra and average 
-    flux = sum(spectra[1][i] for spectra in new_spectra)
-    Comp_flux.append(flux/float(num_spectra))
+res_flux = []
 
-# Plot composite spectra
+for i in range(num_spectra):
+    res_flux.append(np.array(new_spectra[i][1]-Comp_spectra[1, :]))
 
-plt.plot(Comp_wave, Comp_flux)
-plt.show()                                 
+res_flux = np.array(res_flux)
+RMS = np.mean(res_flux*res_flux, axis = 0)
+flux_err_pos = Comp_spectra[1, :] + RMS
+flux_err_neg = Comp_spectra[1, :] + RMS
+scatter = RMS / Comp_spectra[1, :]
+
+# Plot composite spectra (Jut need to figure out what to plot, and look up to make single figures)
+
+ax1 = fig.add_subplot(211)
+plot1, = ax1.plot(
+
+plt.plot(Comp_spectra[0, :], Comp_spectra[1, :], Comp_spectra[0, :], flux_err_pos)
+plt.show()
+
                                          
 

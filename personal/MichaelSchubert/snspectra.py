@@ -2,16 +2,17 @@ from __future__ import division
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-import glob
 
 #consider changing to binary search for O(logn)
 def find_lo_hi(lo, hi, arr):
     d = arr[:, 0]
-    if min(d) > lo:
-        lo = min(d)
-    if max(d) < hi:
-        hi = max(d)
 
+    if d[0] > lo:
+        lo = d[0]
+    if d[len(d) - 1] < hi:
+        hi = d[len(d) - 1]
+
+    print lo, hi
     return lo, hi
 
 def trim_data(lo, hi, arr):
@@ -23,26 +24,33 @@ def trim_data(lo, hi, arr):
     trimmed = arr[start[0]:end[0]]
     return trimmed
 
-path = '../../data/'
-files = os.listdir(path)
+root = '../../data/'
 
 #initialize lo and hi to min/max possible
 lo = 0.0
 hi = float('inf')
-
-for f in files:
-    print f
-    if f.endswith('.flm'):
-        data = np.loadtxt(f)
-    else:
-        continue
-    print datais
-    lo, hi = find_lo_hi(lo, hi, data)
-
+bad = 0
+count = 0
+for path, subdirs, files in os.walk(root):
+    for name in files:
+        f = os.path.join(path, name)
+        count += 1
+        if f.endswith('.flm'):
+            #ignore spectra that produce loaderrors
+            try:
+                data = np.loadtxt(f)
+            except:
+                bad += 1
+                continue
+        else:
+            continue
+        lo, hi = find_lo_hi(lo, hi, data)
+print bad
+print count
 spectra = {}
 
 for f in files:
-    if f.endswith('.flm') or f.endswith('.dat'):
+    if f.endswith('.flm'):
         data = np.loadtxt(f)
     else:
         continue

@@ -4,20 +4,15 @@ import matplotlib.pyplot as plt
 import scipy
 from scipy import interpolate
 from math import log
-"""
-! Create program which reads in at least 20 spectra (from multiple SNe)
->>> deredshifts them
-! scales them
-! and generates a composite spectrum.
->>> Measure the scatter for the composite spectrum. 
-! Make a two-panel plot which shows the composite spectrum with the RMS spectrum around it on top and the residual RMS spectrum on bottom.
-"""
+# This code needs to be made more efficients. Too many for-loops.
 
-spectra_files  = glob.glob("../astr596/data/cfa/*/*.flm")
+# Read data from repository /cfa/, need ALL the Supernovae data
+spectra_files  = glob.glob('../data/cfa/*/*.flm')
+
 spectra_arrays = []
 bad_files      = []
 
-for i in range(2):
+for i in range(3):
     try:
         spectra_arrays.append(np.loadtxt(spectra_files[i]))
     except ValueError:
@@ -25,27 +20,18 @@ for i in range(2):
 
 num_spectra = len(spectra_arrays)
 
-#Dereddining spectrum
+# Dereddining spectrum. It is so embarrassed, it is blushing  
+red = np.genfromtxt('../data/cfa/cfasnIa_param.dat',dtype = None)
 
-#Want to skip the first line in cfasnIa_mjdspec.dat
-"""
-with open("../astr596/data/cfa/cfasnIa_mjdspec.dat") as redshift_files:
-    next(redshift_files)
-   
-SN_name  = [] 
-redshift = []
-redshift_files[:,0] = SN_name
-redshift_files[:,1] = redshift
-
-# need to match SN_name with the spectra file being redshifted
+# Fun Facts: red[row][column]
+# The for-loop needs to be able to check all the spectra_array file names
+# and compare that the red[i][0] (the SN name). 
+# It probably isn't smart enough to do that yet. Such a pity. 
 for i in range(num_spectra):
-	if spectra_arrays[i][:,0] == SN_name[i]:
-		spectra_arrays[i][:, 0] /= 1 + redshifts[i]
-	else continue:
+	if spectra_arrays[i][:,0] == red[i][0]:
+		spectra_arrays[i][:, 0] /= 1 + red[i][1]
 
-print spectra_arrays
-"""
-# Interpolate Data
+# Interpolate Data. Yes.
 wave_min    = max(spectra[0, 0] for spectra in spectra_arrays)
 wave_max    = min(spectra[-1, 0] for spectra in spectra_arrays)
 wavelength  = scipy.linspace(wave_min,wave_max,(wave_max-wave_min)*100)
@@ -58,7 +44,7 @@ for i in range(num_spectra):
 	new_flux /= np.median(new_flux)
 	new_spectra.append([wavelength, new_flux])
 
-# Generate a composite spectrum
+# Generate a composite spectrum.
 Comp_wave = wavelength
 Comp_flux = []
 sum_flux  = sum(spectra[1][:] for spectra in spectra_arrays)
@@ -68,35 +54,44 @@ for i in range(len(wavelength)):
 	Comp_flux.append(flux/float(num_spectra))
 
 # Measure the scatter for the composite spectrum
-"""
-# Need to fill in information, general steps are written out
-res_flux     = []
-rms          = []
-flux_err_pos = []
-flux_err_neg = []
+res_flux_array = []
+RMS            = []
+flux_err_pos   = []
+flux_err_neg   = []
 
-res_flux = new_spectra[] - Comp_flux[]
+for i in range(num_spectra): 
+	res_flux_array = new_spectra[i][1] - Comp_flux[i]
 
-rms = sqrt(mean(res_flux[]^2))
+RMS = np.array(RMS)
 
-flux_err_pos = Comp_flux + rms
-flux_err_neg = Comp_flux - rms
+for i in range(num_spectra):
+	RMS = np.sqrt(np.mean(np.multiply(res_flux_array[i],res_flux_array[i])))
 
-scatter = rms[]/Comp_flux[]
-"""
+flux_err_pos = np.add(Comp_flux,RMS)
+flux_err_neg = Comp_flux - RMS
 
+# Read scatter into a data file?
+scatter = np.divide(RMS,Comp_flux)
 
 # Plotting both the Comoposite and Residual in a two-panel plot
 fig = plt.figure()
+
+# Labeling the plots. Pt1.
 ax1 = fig.add_subplot(211)
-ax1.plot(Comp_wave, Comp_flux)
+plot1, = ax1.plot(Comp_wave, Comp_flux,'b')
+# Plot RMS Value once it is calculated and the correct dimensions
+plot2, = ax1.plot(Comp_wave, flux_err_pos,'m')
+plot3, = ax1.plot(Comp_wave, flux_err_neg,'r')
 plt.title('Composite & RMS Spectrums')
-#plt.xlabel('Wavelength (??)')
 plt.ylabel('Scaled Flux')
+plt.legend([plot1,plot2,plot3],('Composite Flux','+ RMS','-RMS'),'upper right',numpoints=1)
+
+# Labeling. Pt2.
 ax2 = fig.add_subplot(212)
-ax2.plot(Comp_wave, Comp_flux)
+ax2.plot(Comp_wave, scatter,'k')
 plt.title('Residual RMS Spectrum')
 plt.xlabel('Wavelength ($\AA$)')
 plt.ylabel('Scaled Flux')
+
 plt.show()
 
