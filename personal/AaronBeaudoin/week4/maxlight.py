@@ -23,6 +23,9 @@ for i in range(len(spectra_folders)):
 #Finds the max light spectrum of one SN by comparing the date the spectrum was taken and the MJD given in the parameter file
 def find_max(file_names):
 	parameters = Table.read('../../../data/cfa/cfasnIa_param.dat',format='ascii')
+	mjd = Table.read('../../../data/cfa/cfasnIa_mjdspec.dat', format='ascii')
+	sn_file = mjd["col1"]
+	sn_mjd=mjd["col2"]
 	sn_name = parameters["col1"]
 	jdate=parameters["col3"]
 	sn_date = []
@@ -34,13 +37,11 @@ def find_max(file_names):
 		name=""
 		for j in range(len(sn_name)):		
 			if sn_name[j] in file_names[i]:
-				date=file_names[i]
-				name=sn_name[j]
 				if jdate[j] != 99999.9:
 					snj_date = jdate[j]
-		x = 24 + 2*len(name)	#18(directory length) +1 (/) + 2 (sn) + len(name)-1 +2 (//) + 2 (sn) + len(name) -1 + 1 (-)
-		date = date[x:]
-		date = date[:8] #length of date string
+		for k in range(len(sn_file)):
+			if sn_file[k] in file_names[i]:
+				date = sn_mjd[k]
 		sn_date.append(date)
 	
 	#compares the MJD with the date of each spectra, and returns the file name of the correct one
@@ -48,12 +49,8 @@ def find_max(file_names):
 	max_light=''
 	for i in range(len(sn_date)):
 		date=sn_date[i]
-		year=date[:4]
-		month=date[4:-2]
-		day=date[6:]
-		julian_date=float(year)*365+(float(month)-1)*365/12+float(day)
-		if (julian_date-snj_date)<max_delta:
-			max_delta = julian_date-snj_date
+		if (date-snj_date)<max_delta:
+			max_delta = date-snj_date
 			max_light = file_names[i]
 	
 	return max_light
