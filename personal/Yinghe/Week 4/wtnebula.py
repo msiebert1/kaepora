@@ -1,3 +1,8 @@
+
+
+
+
+
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy
@@ -58,7 +63,7 @@ sns = snnames[rand]'''
 
 from astropy.table import Table
 
-parameters = Table.read('nebular_data.txt',format='ascii')
+parameters = Table.read('nebular_dat.dat')
 sn_name = parameters['col1']
 vneb = parameters['col2']
 for i in range(sn_name):
@@ -66,7 +71,6 @@ for i in range(sn_name):
         sns_1.append(sn_name[i])
     else : 
         sns_2.append(sn_name[i])
-
 nsample = len(sns_1)
 
 # from string import Template
