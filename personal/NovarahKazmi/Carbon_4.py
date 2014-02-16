@@ -109,9 +109,9 @@ def chop_sn(sn,count):
 	delete = []
 	
 	for i in range(len(count)):
-		print i
+		#print i
 		if (count[i] == 0):
-			print sn[i],"has",count[i],"files"
+			#print sn[i],"has",count[i],"files"
 			delete.append(i)
 	for j in range(len(delete)):
 		del sn[delete[len(delete)-1-j]]
@@ -139,10 +139,9 @@ carbon_pos = np.loadtxt('files/wk4_carbon_pos.txt',dtype = str).tolist()
 carbon_neg = np.loadtxt('files/wk4_carbon_neg.txt',dtype = str).tolist()
 
 
-#### Changed file location
-files = glob.glob ('../astr596/data/cfa/*/*.flm')	#array of files
-stats = np.genfromtxt('../astr596/data/cfa/cfasnIa_param.dat',dtype = None)	#stats of SNe
-ages = np.genfromtxt('../astr596/data/cfa/cfasnIa_mjdspec.dat',dtype = None)	#age of each spectra file
+files = glob.glob ('../../data/cfa/*/*.flm')	#array of files
+stats = np.genfromtxt('../../data/cfa/cfasnIa_param.dat',dtype = None)	#stats of SNe
+ages = np.genfromtxt('../../data/cfa/cfasnIa_mjdspec.dat',dtype = None)	#age of each spectra file
 
 #Initializes variables
 name_pos = []	#sn name from stats
@@ -172,7 +171,7 @@ fit_flux_pos = []		#new fitted/scaled flux (following interpolation)
 fit_flux_neg = []
 
 wave_min = 3800
-wave_max = 7000
+wave_max = 6500
 
 
 ###########################
@@ -234,8 +233,8 @@ print "\nChopping C - complete."
 
 
 #removes sn names we don't want to look at
-print "\ntrimming the fat...(removing SNe with no files)"
-print "originally have",len(carbon_pos),"CP SNe matching",len(count_pos),"count"
+#print "\ntrimming the fat...(removing SNe with no files)"
+#print "originally have",len(carbon_pos),"CP SNe matching",len(count_pos),"count"
 chop_sn(carbon_pos,count_pos)
 chop_sn(carbon_neg,count_neg)
 
@@ -251,11 +250,36 @@ for stat in stats:
 		if carbon_neg[i] in stat[0]:
 			get_stats(stat,name_neg,z_neg,tmax_neg)
 
+###################################
 
-
-#### Commenting out things I don't need to work on right now
-
+# Weight the spectra
 """
+for i in range(len(data_pos)):
+	s = np.multiply(data_pos[i][:,1],data_pos[i][:,2])
+	e = data_pos[i][:,1]
+	w = np.divide(s,e)
+	data_pos[i][:,1] = w
+	
+for i in range(len(data_neg)):
+	s2 = np.multiply(data_neg[i][:,1],data_neg[i][:,2])
+	e2 = data_neg[i][:,1]
+	w2 = np.divide(s2,e2)
+	data_neg[i][:,1] = w2
+"""
+"""
+def weight(d):
+	for i in range(len(d)):
+		s = np.multiply(d[i][:,1],d[i][:,2])
+		e = d[i][:,1]
+		w = np.divide(s,e)
+		d[i][:,1] = w
+		print d[i][:,1]
+"""
+#weight(data_pos)
+#weight(data_neg)	
+
+	
+###################################
 #de-redshifting data
 
 for i in range(len(data_pos)):
@@ -281,7 +305,6 @@ print "plots will have data at these wavelength values:",wavelengths
 interpolate(data_pos, fit_flux_pos)
 interpolate(data_neg, fit_flux_neg)
 
-########## Both C +/- to this point #################
 avg_flux_p = sum(fit_flux_pos)/len(data_pos)
 avg_flux_n = sum(fit_flux_neg)/len(data_neg)
 
@@ -306,7 +329,7 @@ rms_n     = np.sqrt(np.mean(np.square(res_flux_n),axis = 0))
 plus_n    = avg_flux_n + rms_n
 minus_n   = avg_flux_n - rms_n
 scatter_n = np.divide(rms_n,avg_flux_n)
-"""
+
 """
 #RMS function needs lots of debugging.
 #Will work on this on a later date. 
@@ -328,17 +351,16 @@ minus_p = np.array(minus_p)
 """
 
 #print len(plus_p), len(wavelengths)
-"""
+
 ############################
 print "===================="
 print "calculations finished"
 print "plotting..."
 print "===================="
 ############################
-"""
-"""
-fig = plt.figure()
 
+fig = plt.figure()
+"""
 #top plot containing the Composite spectrum +/- the RMS
 top = fig.add_subplot(211)
 plot1 = top.plot(wavelengths,avg_flux_p,'k')
@@ -389,7 +411,6 @@ plt.legend([plot7,plot8],('Carbon +','Carbon -'),'upper right',numpoints=1)
 plt.savefig('Composite_Spectra.png')
 plt.show()
 """
-"""
 
 #labeling plot1 carbon +
 top = fig.add_subplot(2,1,1)
@@ -411,4 +432,3 @@ plt.legend([plot7,plot8],('Carbon +','Carbon -'),'upper right',numpoints=1)
 plt.savefig('Composite_Spectra_error.png')
 plt.show()
 
-"""
