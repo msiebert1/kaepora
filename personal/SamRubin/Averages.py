@@ -21,18 +21,20 @@ SN_Array = []
 #    SN.input = row[0]
 #    SN_Array.append(SN)
 #print len(names), #"supernovae found"
-
+file_list = []
 file_list = glob.glob("../../data/cfa/*/*.flm")
 
 con = sq3.connect('../MichaelSchubert/SNe.db')
 cur = con.cursor()
 print "Reading supernovae from database..."
 for SN in SN_Array:
-    for row in cur.execute('SELECT Filename, SN, MinWave, MaxWave FROM Supernovae'):
-        SN.filename = row[0]
-        SN.minwave = row[2]
-        SN.maxwave = row[3]
-        break    
+    for row in cur.execute('SELECT Filename, SN, Redshift, MinWave, MaxWave FROM Supernovae'):
+        SN = supernova()
+        if row[2] != None:
+            SN.filename = row[0]
+            SN.minwave = row[3]
+            SN.maxwave = row[4]
+            SN_Array.append(SN) 
 print len(SN_Array), "items found"
         
 #"""Adds flux to the stuff"""
