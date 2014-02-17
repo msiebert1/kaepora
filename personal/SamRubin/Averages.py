@@ -1,7 +1,7 @@
 '''
 Created on Feb 14, 2014
 
-@author: Alien
+@author: Sam Rubin
 '''
 import matplotlib.pyplot as plt
 import numpy as np
@@ -27,14 +27,13 @@ file_list = glob.glob("../../data/cfa/*/*.flm")
 con = sq3.connect('../MichaelSchubert/SNe.db')
 cur = con.cursor()
 print "Reading supernovae from database..."
-for SN in SN_Array:
-    for row in cur.execute('SELECT Filename, SN, Redshift, MinWave, MaxWave FROM Supernovae'):
-        SN = supernova()
-        if row[2] != None:
-            SN.filename = row[0]
-            SN.minwave = row[3]
-            SN.maxwave = row[4]
-            SN_Array.append(SN) 
+for row in cur.execute('SELECT Filename, SN, Redshift, MinWave, MaxWave FROM Supernovae'):
+    SN = supernova()
+    if row[2] != None:
+        SN.name = row[1]
+        SN.minwave = row[3]
+        SN.maxwave = row[4]
+        SN_Array.append(SN) 
 print len(SN_Array), "items found"
         
 #"""Adds flux to the stuff"""
@@ -43,7 +42,7 @@ j = 1
 for SN in SN_Array[0:100]:
     k = 1
     for filename in file_list:   
-        if SN.filename in filename:
+        if SN.name in filename:
             data = np.loadtxt(filename)
             SN.wavelength = data[:,0]
             SN.flux = data[:,1]
@@ -59,29 +58,34 @@ SN_Array = [SN for SN in SN_Array if hasattr(SN, 'error')]
 print "Done checking. ", len(SN_Array), "items remain"       
 
 
-high_wave = 4000
-low_wave = 3000
+
 
 compare_spectrum = SN_Array[0]
 
 
 """scale"""
-print "scaling.."
+print "Scaling.."
+q = 1
 for SN in SN_Array[1:]:
-    low = SN.wavelength.index(3000)
-    high = SN.wavelength.index(4000)
+    high_wave = 4000
+    low_wave = 3000
     if SN.wavelength.min >= low_wave:
         low_wave = SN.wavelength.min
-        low = SN.wavelength.index(low_wave)
     if SN.wavelength.max <= high_wave:
         high_wave = SN.wavelength.max
-        high = SN.wavelength.index(high_wave)
+    lowindex = np.where(SN.wavelength == low_wave)
+    highindex = np.where(SN.wavelength == high_wave)
+    print lowindex, "low", highindex, "high"
+    low = SN.wavelength[lowindex]
+    high = SN.wavelength[highindex]
     SN.flux /= np.median(SN.flux)
     if SN != SN_Array[0]:
-        factors = compare_spectrum.flux[low:high] / SN.flux[low:high]
+        factors = compare_spectrum.flux[lowindex:highindex] / SN.flux[lowindex:highindex]
         scale_factor = np.mean(factors) #"""Maybe make this a weighted average"""
         SN.flux[low:high] *= scale_factor
         SN.error[low:high] *= scale_factor
+    print q, "items scaled"
+    q += 1
 
 """composite"""
 avg_flux = []
