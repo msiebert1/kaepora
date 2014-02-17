@@ -37,6 +37,12 @@ for row in cur.execute('SELECT Filename, SN, Redshift, MinWave, MaxWave FROM Sup
         SN_Array.append(SN) 
 print len(SN_Array), "items found"
         
+# rand = np.random.randint(0,len(SN_Array),10)
+# all_array = SN_Array
+# SN_Array=[]
+# for i in rand:
+#     tempSN = all_array[i]
+#     SN_Array.append(tempSN)
 #"""Adds flux to the stuff"""
 print "Matching flux data..."
 j = 1
@@ -59,8 +65,6 @@ SN_Array = [SN for SN in SN_Array if hasattr(SN, 'error')]
 print "Done checking. ", len(SN_Array), "items remain"       
 
 
-compare_spectrum = SN_Array[0]
-
 def average(compare_spectrum,SN):
     avg_flux = compare_spectrum.flux
     lowindex = np.where(compare_spectrum.wavelength == np.min(SN.wavelength))
@@ -68,7 +72,10 @@ def average(compare_spectrum,SN):
     highindex = np.where(compare_spectrum.wavelength == np.max(SN.wavelength))
     highindex = highindex[0]
 
-    for i in lowindex+range(len(compare_spectrum.wavelength[lowindex:highindex])):
+    if len(lowindex) == 0 or len(highindex) == 0: #temperary test
+        return compare_spectrum
+
+    for i in lowindex+range(highindex-lowindex):
 #        avg_flux[i] = np.sum(SN.flux[i]/SN.error[i]**2 for SN in SN_Array if SN.error[i] != 0)/np.sum(1/SN.error[i]**2 for SN in SN_Array if SN.error[i] != 0 and SN.error[i] != None)
         fluxes = np.array([compare_spectrum.flux[i],SN.flux[i]])
         weights = np.array([1./compare_spectrum.error[i], 1./SN.error[i]])
@@ -80,13 +87,14 @@ def average(compare_spectrum,SN):
 print "Scaling.."
 q = 1
 for SN in SN_Array:
-    high_wave = 3500
-    low_wave = 4000
+    low_wave = 3500
+    high_wave = 4000
+#     plt.plot(SN.wavelength, SN.flux,label=SN.name)
     if np.min(SN.wavelength)>= low_wave:
         low_wave = np.min(SN.wavelength)
     if np.max(SN.wavelength) <= high_wave:
         high_wave = np.max(SN.wavelength)
-    temp = np.abs(SN.wavelength-high_wave)
+    temp = np.abs(SN.wavelength-low_wave)
     lowindex = np.where(temp == np.min(temp))
     temp = np.abs(SN.wavelength-high_wave)
     highindex = np.where(temp == np.min(temp))
@@ -114,6 +122,6 @@ for SN in SN_Array:
 
 q = 0
 
-plt.plot(compare_spectrum.wavelength, compare_spectrum.flux,'--',label='Composite')
-plt.legend(prop={'size':6})
+# plt.plot(compare_spectrum.wavelength, compare_spectrum.flux,'--',label='Composite')
+plt.legend(prop={'size':10})
 plt.show()
