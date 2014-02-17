@@ -40,7 +40,7 @@ print len(SN_Array), "items found"
 #"""Adds flux to the stuff"""
 print "Matching flux data..."
 j = 1
-for SN in SN_Array[0:100]:
+for SN in SN_Array[0:5]:
     k = 1
     for filename in file_list:   
         if SN.name in filename:
@@ -59,25 +59,24 @@ SN_Array = [SN for SN in SN_Array if hasattr(SN, 'error')]
 print "Done checking. ", len(SN_Array), "items remain"       
 
 
-
-
 compare_spectrum = SN_Array[0]
 
 def average(compare_spectrum,SN):
     avg_flux = compare_spectrum.flux
-    lowindex = np.min(SN.wavelength)
-    highindex = np.max(SN.wavelength)
-    waverange = SN.wavelength[lowindex:highindex]
-    for i in range(len(compare_spectrum.wavelength)):
+    lowindex = np.where(compare_spectrum.wavelength == np.min(SN.wavelength))
+    lowindex = lowindex[0]
+    highindex = np.where(compare_spectrum.wavelength == np.max(SN.wavelength))
+    highindex = highindex[0]
+
+    for i in lowindex+range(len(compare_spectrum.wavelength[lowindex:highindex])):
         avg_flux[i] = np.sum(SN.flux[i]/SN.error[i]**2 for SN in SN_Array if SN.error[i] != 0)/np.sum(1/SN.error[i]**2 for SN in SN_Array if SN.error[i] != 0 and SN.error[i] != None)
     return avg_flux
-
 
 
 """scale"""
 print "Scaling.."
 q = 1
-for SN in SN_Array[1:]:
+for SN in SN_Array:
     high_wave = 4000
     low_wave = 3000
     if np.min(SN.wavelength)>= low_wave:
@@ -98,11 +97,17 @@ for SN in SN_Array[1:]:
         scale_factor = np.mean(factors) #"""Maybe make this a weighted average"""
         SN.flux[lowindex:highindex] *= scale_factor
         SN.error[lowindex:highindex] *= scale_factor
+        plt.plot(compare_spectrum.wavelength, compare_spectrum.flux)
+    else:
+        p1,= plt.plot(compare_spectrum.wavelength, compare_spectrum.flux)
     print q, "items scaled"
     compare_spectrum.flux = average(compare_spectrum,SN)
+    q += 1
 """composite"""
+
 
 q = 0
 
-p1,= plt.plot(compare_spectrum.wavelength, avg_flux)
+p2,= plt.plot(compare_spectrum.wavelength, compare_spectrum.flux)
+plt.legend([p1,p2],['original','composite'])
 plt.show()
