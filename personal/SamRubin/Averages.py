@@ -10,6 +10,7 @@ import glob
 import sqlite3 as sq3
 from scipy import interpolate as intp
 import math
+from astropy.table import Table
 
 class supernova(object):
     """Attributes can be added"""
@@ -23,7 +24,11 @@ SN_Array = []
 #    SN_Array.append(SN)
 #print len(names), #"supernovae found"
 file_list = []
-file_list = glob.glob("../../data/cfa/*/*.flm")
+files = Table.read('../AaronBeaudoin/week4/MaxSpectra.dat',format='ascii')
+
+for i in range(len(files)):
+	file=files[i]
+	file_list.append(file["col2"])
 
 con = sq3.connect('../MichaelSchubert/SNe.db')
 cur = con.cursor()
@@ -46,7 +51,7 @@ print len(SN_Array), "items found"
 #"""Adds flux to the stuff"""
 print "Matching flux data..."
 j = 1
-for SN in SN_Array[0:20]:
+for SN in SN_Array[0:50]:
     k = 1
     for filename in file_list:   
         if SN.name in filename:
