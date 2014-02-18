@@ -24,24 +24,29 @@ SN_Array = []
 #    SN_Array.append(SN)
 #print len(names), #"supernovae found"
 file_list = []
-files = Table.read('../AaronBeaudoin/week4/MaxSpectra.dat',format='ascii')
+file_list = glob.glob("../../data/cfa/*/*.flm")
+# files = Table.read('../AaronBeaudoin/week4/MaxSpectra.dat',format='ascii')
 
-for i in range(len(files)):
-	file=files[i]
-	file_list.append(file["col2"])
+# for i in range(len(files)):
+# 	file=files[i]
+# 	file_list.append(file["col2"])
 
 con = sq3.connect('../MichaelSchubert/SNe.db')
 cur = con.cursor()
 print "Reading supernovae from database..."
+names = []
 for row in cur.execute('SELECT Filename, SN, Redshift, MinWave, MaxWave FROM Supernovae'):
     SN = supernova()
     if row[2] != None:
         SN.name = row[1]
         SN.minwave = row[3]
         SN.maxwave = row[4]
-        SN_Array.append(SN) 
+        SN_Array.append(SN)
+        names.append(SN.name)
 print len(SN_Array), "items found"
-        
+
+names,temp = np.unique(names,return_index=True)
+SN_Array =  [SN_Array[i] for i in temp]      
 # rand = np.random.randint(0,len(SN_Array),10)
 # all_array = SN_Array
 # SN_Array=[]
@@ -51,7 +56,10 @@ print len(SN_Array), "items found"
 #"""Adds flux to the stuff"""
 print "Matching flux data..."
 j = 1
-for SN in SN_Array[0:50]:
+
+
+
+for SN in SN_Array[0:5]:
     k = 1
     for filename in file_list:   
         if SN.name in filename:
@@ -70,30 +78,33 @@ SN_Array = [SN for SN in SN_Array if hasattr(SN, 'error')]
 print "Done checking. ", len(SN_Array), "items remain"       
 
 
+def find_nearest(array,value):
+    idx = (np.abs(array-value)).argmin()
+    return idx
+
 def average(compare_spectrum,SN):
     avg_flux = compare_spectrum.flux
-    lowindex = np.where(compare_spectrum.wavelength == np.min(SN.wavelength))
-    lowindex = lowindex[0]
-    highindex = np.where(compare_spectrum.wavelength == np.max(SN.wavelength))
-    highindex = highindex[0]
 
-    if len(lowindex) == 0 or len(highindex) == 0: #temperary test
-        return compare_spectrum
+    lowindex = find_nearest(compare_spectrum.wavelength,np.min(SN.wavelength))
+    highindex = find_nearest(compare_spectrum.wavelength,np.max(SN.wavelength))
+#should be np.where(compare_spectrum.wavelength == np.min(SN.wavelength) if data aligned)
 
-    for i in lowindex+range(highindex-lowindex):
+
+    for i in lowindex+np.arange(highindex-lowindex):
 #        avg_flux[i] = np.sum(SN.flux[i]/SN.error[i]**2 for SN in SN_Array if SN.error[i] != 0)/np.sum(1/SN.error[i]**2 for SN in SN_Array if SN.error[i] != 0 and SN.error[i] != None)
         fluxes = np.array([compare_spectrum.flux[i],SN.flux[i]])
         weights = np.array([1./compare_spectrum.error[i], 1./SN.error[i]])
         avg_flux[i] = np.average(fluxes,weights=weights)
-
-    return avg_flux
+    compare_spectrum.flux = avg_flux
+# Add residual
+    return compare_spectrum
 
 """scale"""
 print "Scaling.."
 q = 1
 for SN in SN_Array:
-    low_wave = 3500
-    high_wave = 4000
+    low_wave = 4500
+    high_wave = 5000
 #     plt.plot(SN.wavelength, SN.flux,label=SN.name)
     if np.min(SN.wavelength)>= low_wave:
         low_wave = np.min(SN.wavelength)
@@ -119,14 +130,15 @@ for SN in SN_Array:
     SN.flux[lowindex:highindex] *= scale_factor
     SN.error[lowindex:highindex] *= scale_factor
     print q, "items scaled"
-    compare_spectrum.flux = average(compare_spectrum,SN)
+    compare_spectrum = average(compare_spectrum,SN)
         
     q += 1
+    print q
 """composite"""
 
 
 q = 0
 
-# plt.plot(compare_spectrum.wavelength, compare_spectrum.flux,'--',label='Composite')
+plt.plot(compare_spectrum.wavelength, compare_spectrum.flux,'--',label='Composite')
 plt.legend(prop={'size':10})
 plt.show()
