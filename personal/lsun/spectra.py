@@ -18,6 +18,8 @@ text0 = np.loadtxt(address + data[0], unpack = True)
 
 text1 = np.loadtxt(address + data[1], unpack = True)
 
+print text0
+
 # set coordinate, wavelength and flux
 wavelength0 = text0[0]
 wavelength1 = text1[0]
@@ -49,7 +51,7 @@ plt.savefig(link + 'original spectra.png')
 plt.close()
 
 
-#since one set of data has more points, we want to turncate the excess points. For the rest, take average with the other data set and plot.
+#since one set of data has more points, we want to truncate the excess points. For the rest, take average with the other data set and plot.
 
 minx = np.minimum(wavelength0.size, wavelength1.size)
 
@@ -69,5 +71,5 @@ for i in range(minx):
 
 plt.savefig(link + 'averaged spectra.png')
 
-plt.show()
+#plt.show()
 plt.close()
