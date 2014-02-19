@@ -1,0 +1,5 @@
+../../data/cfa/sn2006E/sn2006E-20060126.53-fast.flm
+Informative Title
+Wavelength_$\AA$
+Flux
+SN 2006E
