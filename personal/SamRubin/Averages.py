@@ -62,7 +62,7 @@ print len(SN_Array), "unique spectra found"
 print "Matching flux data..."
 j = 1
 
-for SN in SN_Array:
+for SN in SN_Array[0:50]:
     k = 1
     for filename in max_light:   
         if SN.filename in filename:
@@ -135,8 +135,15 @@ for SN in SN_Array:
         
     q += 1
 """composite"""
-
-plt.plot(compare_spectrum.wavelength, compare_spectrum.flux,'--',label='Composite')
+plt.figure(1)
+plt.subplot(211)
+plt.plot(compare_spectrum.wavelength, compare_spectrum.flux,label='Composite')
+plt.xlabel('Wavelength (A)')
+plt.ylabel('Scaled Flux')
+plt.subplot(212)
+plt.plot(compare_spectrum.wavelength, compare_spectrum.error, label='Error')
+plt.ylabel('Error')
+plt.subplot(211)
 plt.legend(prop={'size':10})
 plt.savefig('Average.png')
 plt.show()
