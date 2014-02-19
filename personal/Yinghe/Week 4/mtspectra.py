@@ -153,7 +153,7 @@ pltdir = '../plots/'
 def mtspectra(vmin,vmax):
     files,zhels,nv,nname= vbin(vmin,vmax)
     spectrum(files,zhels)
-    
+
 # files,zhels,nv = vbin(0,5000)
 # spectrum(files,zhels)
 

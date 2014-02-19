@@ -1,6 +1,3 @@
-#separate spectra between elliptical and spiral host galaxy
-#create composite and RMS spectrum for each type of galaxy
-
 import numpy as np
 import os
 from astropy.table import Table
