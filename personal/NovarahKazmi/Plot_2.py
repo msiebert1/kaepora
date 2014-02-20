@@ -6,6 +6,7 @@ import math
 from pylab import *
 import matplotlib.font_manager
 from matplotlib.font_manager import FontProperties
+from matplotlib.ticker import FuncFormatter
 
 #Doesn't look professional yet. Neet better fonts. Test file is also childish looking. 
 """
@@ -30,8 +31,9 @@ test_data = np.loadtxt( name[0] ,dtype = str)
 
 # This version of python doesn't like using LaTex
 # 'usetex = True' causes the code to crash
-rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
-rc('text', usetex=False)
+#mpl.rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
+#mpl.rc('text', usetex=False)
+#set_family(monospace)
 
 # re-name variables
 xaxis = test_data[:,0] 
@@ -63,6 +65,17 @@ plt.fill_between(xaxis[:],err_p[:],err_n[:],alpha=1.5, edgecolor='#000080', face
 l = legend()
 l.draw_frame(False)
 draw()
+
+#plt.xticks( xaxis )
+#plt.xticks(ticks)
+#ind = range(300,450)    # the x locations for the groups
+#plt.xticks(xaxis, ind)
+#plt.xticks(xaxis[:], 100, rotation='vertical')
+
+#Set the visual range. Automatic range is ugly. 
+xmin = int(float(xaxis[0]))
+xmax = int(float(xaxis[-1]))
+plt.xlim((xmin,xmax))
 
 #Label the figure
 plt.title( name[2] )
