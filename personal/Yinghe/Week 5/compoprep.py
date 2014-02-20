@@ -15,7 +15,7 @@ from astropy.io import ascii
 from astropy.table import Column
 import scipy.interpolate as inter
 #import matplotlib.pyplot as plt
-
+#import specutils
 #Pre-allocate arrays
 spectra_files = []
 spectra_arrays = []
@@ -31,7 +31,8 @@ num0 = 20 # the number of spectra to analyze
 for i in range(num0):
     try:
         spectra_arrays.append(Table.read(spectra_files[i],format='ascii'))
-        spectra_name.append(spectra_files[i])
+        spectra_name.append(spectra_files[i][27:-4])
+#        print spectra_name[i]
     except ValueError:
         bad_files.append(spectra_files[i])
 
@@ -95,8 +96,8 @@ for i in range(num):
     
 
     # output data into a file (just for testing, no need to implement)
-#    output = 'modified%s.dat'%(spectra_files[i])
-    ascii.write(new, 'output.dat')
+    output = 'modified-%s.dat'%(spectra_name[i])
+    ascii.write(new, output)
     
     # plot spectra (just for testing, no need to implement)
 
