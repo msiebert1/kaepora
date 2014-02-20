@@ -299,5 +299,13 @@ for i in range(num):
     
 
     # output data into a file (just for testing, no need to implement)
-    output = 'testdata/modified-%s.dat'%(spectra_files[i][27:-4])
-    ascii.write(new, output)
+#    output = 'testdata/modified-%s.dat'%(spectra_files[i][27:-4])
+#    ascii.write(new, output)
+    
+     # plot spectra (just for testing, no need to implement)
+
+    plt.plot(wavelength,fitted_flux)
+    
+plt.xlim(3000,7000)
+plt.show()
+plt.savefig('test.png')
