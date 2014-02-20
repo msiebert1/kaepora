@@ -201,6 +201,8 @@ def fm_unred(wave, flux, ebv, *args, **kwargs):
         ExtCurve = curve - R_V
         return flux, ExtCurve
 
+
+
 #list of files
 spectra_files = glob.glob ('../../data/cfa/*/*.flm')
 
@@ -243,21 +245,26 @@ for i in range(len(sn_parameters)):
 	bv_i.append(sn_parameters[i][10])
 	bv_o.append(0)
 
+"""
+NOTE:
+Require E(B-V) = (B-V)_observed - (B-V)_intrinsic to use function
 
+Only have B-V_intrinsic in database
+"""
 #deredden and deredshift the spectra
 for i in range(num):#go through selected spectra data
 	for j in range(len(sn)):#go through list of SN parameters
 		if sn[j] in file_path[i]:#SN with parameter matches the path
 			if bv_i[j] != -9.99:
-				print "\n",sn[j]			
-				print "starting wavelength:\n",spectra_data[i][:,0]
-				print "starting flux:\n",spectra_data[i][:,1]
-				print "b-v value:",bv_i[j]
-				spectra_data[i][:,1] = fm_unred(spectra_data[i][:,0],spectra_data[i][:,1],bv_o[j]-bv_i[j])
-				print "de-reddened flux:\n",spectra_data[i][:,1]
+				#print "\n",sn[j]			
+				#print "starting flux:\n",spectra_data[i][:,1]
+				#print "b-v value:",bv_i[j]
+				spectra_data[i][:,1] = fm_unred(spectra_data[i][:,0],spectra_data[i][:,1],bv_o[j]-bv_i[j],R_V=3.1)
+				#print "de-reddened flux:\n",spectra_data[i][:,1]
+				#print "starting wavelength:\n",spectra_data[i][:,0]
 				spectra_data[i][:,0] /= (1+z[j])
-				print "z:",z[j]
-				print "de-red-shifted wavelength:\n",spectra_data[i][:,0]	
+				#print "z:",z[j]
+				#print "de-red-shifted wavelength:\n",spectra_data[i][:,0]	
 			else:
-				print "no b-v"
+				print "no estimate for b-v"
 
