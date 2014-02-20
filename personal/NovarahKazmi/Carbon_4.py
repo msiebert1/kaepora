@@ -330,6 +330,16 @@ plus_n    = avg_flux_n + rms_n
 minus_n   = avg_flux_n - rms_n
 scatter_n = np.divide(rms_n,avg_flux_n)
 
+print scatter_p
+
+#Write data to file
+datafile = open('Carbon_Results.txt','w')
+for i in range(len(data_pos)):
+	row = str(wavelengths[i]) + '\t' + str(avg_flux_p[i]) + '\t' + str(plus_p[i]) + '\t' + str(minus_n[i]) + '\n'
+	datafile.write(row)
+datafile.close()
+
+
 """
 #RMS function needs lots of debugging.
 #Will work on this on a later date. 
@@ -429,6 +439,5 @@ plt.xlabel('Wavelength')
 plt.ylabel('Residual RMS')
 plt.legend([plot7,plot8],('Carbon +','Carbon -'),'upper right',numpoints=1)
 
-plt.savefig('Composite_Spectra_error.png')
 plt.show()
 

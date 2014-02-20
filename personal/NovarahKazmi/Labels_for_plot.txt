@@ -1,5 +1,16 @@
-../../data/cfa/sn2006E/sn2006E-20060126.53-fast.flm
-Informative Title
-Wavelength_$\AA$
-Flux
-SN 2006E
+### file location  ### name[0], Data File: X_range , Y_range , Error_Plus , Error_minus
+Carbon_Results.txt
+#../../data/cfa/sn2006E/sn2006E-20060126.53-fast.flm
+### Name of plot   ### name[1]
+Carbon_Test.png
+### title for plot ### name[2]
+Test Plot 
+### x axis label   ### name[3]
+Wavelength ($\AA$)
+### y axis label   ### name[4]
+Scaled Flux
+### legend label   ### name[5], name[6], name[7]
+Red and Unscaled 
+Error +
+Error -
+
