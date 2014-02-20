@@ -1,0 +1,39 @@
+# Nebular Shift Data
+#
+# Column 1: SN name
+# Column 2: vneb
+# Column 3: v-error
+# Column 4: Ref.
+# Column 5 : Other Notes
+#
+# References:
+#
+# 1: Blondin et al. 2012
+# 2: Maeda et al. 2011
+#
+#SN	vneb[km/s]	v-error	ref.	Other Notes          
+#*********************************************************************************
+1994D	-2220		220	2
+1994ae	-1204		600	1
+1995D	-1193		600	1
+1997bp	2539		410	2
+1998aq	-1157		129	1	
+1998bu	-1351	 	305	1	AV  > 1 mag
+2000cx	-172 		600	1	Peculiar SN Ia
+2001el	980 		206	1
+2002bo	2258 		361	1
+2002dj	2021 		414	1
+2002er	582		600	1
+2003du	-443 		283	1	
+2003hv	-2825	 	384	1	
+2003kf	1070 		201	1	
+2004dt	-2623	 	600	1	
+2004eo	-170 		25	1	
+2005cf	-123 		600	1	
+2006X	2832 		343	1	AV  > 1 mag
+2006dd	-1553	 	201	1	No spectra around max
+2007on	272		600	2
+2007af	831 		350	1	
+2007sr	1185 		600	1
+2009ab	-634		486	2	
+2009dc	-1190	 	600	1	Peculiar SN Ia

@@ -8,6 +8,8 @@ import scipy
 import glob
 import fnmatch
 import os
+from matplotlib.ticker import AutoMinorLocator
+import matplotlib.gridspec as gridspec
 
 datadir = '../../../data/cfa/'
 
@@ -47,6 +49,7 @@ def loadPara(parafile):
 
 names,zhels,tmaxs = loadPara(datadir+"cfasnIa_param.dat")
 
+nbnames,vnebs,verrs = loadPara("../nebular.dat")
 # Convert UT to MJD
 #def ut2jd()
 from astropy.time import Time
@@ -54,10 +57,12 @@ from astropy.time import Time
 #Select the first 25 as the samples 
 #sns = snnames[0:24]
 
-nsample = 50
+# nsample = 50
 
-rand = np.random.randint(0,len(snnames),len(snnames))
-sns = snnames[rand]
+# rand = np.random.randint(0,len(snnames),len(snnames))
+# sns = snnames[rand]
+sns = nbnames
+nsample = 24
 
 # from string import Template
 import string
@@ -65,8 +70,9 @@ import string
 snsample = []
 files = []
 zsample = []
+vnebsample = []
 count = 0
-for sn in sns:
+for sn,vneb in zip(nbnames,vnebs):
     if count == nsample:
         break
 
@@ -74,6 +80,7 @@ for sn in sns:
         index = names.index(sn)
     except ValueError:
         continue
+
     index = names.index(sn)
     name = names[index]
     zhel = zhels[index]
@@ -102,9 +109,11 @@ for sn in sns:
     days = dates - daymax
     mdays = np.ma.array(days,mask = days < 0.)# Calculate the delt_day and mask negtive values
 
-    fn = np.nanargmin(mdays)
+#     fn = np.nanargmin(mdays)
+    fn = np.nanargmax(mdays)
     
-    if days[fn] > 7:
+#     if days[fn] > 14:
+    if days[fn] < 150:
         continue
 
     file = list[fn]
@@ -112,27 +121,49 @@ for sn in sns:
     snsample.append(name)
     zsample.append(zhel)
     files.append(file)
+    vnebsample.append(vneb)
     
     count += 1
 
-#    print daymax, dates[fn], days[fn]
 
-# print zsample
-# print files
+# snsample,vnebsample,zsample,files
+
+def vbin(vmin,vmax):
+    nfile=[]
+    nz = []
+    nv = []
+    nname = []
+    for file,z,vneb,name in zip(files, zsample,vnebsample,snsample):
+        if vneb >= vmin and vneb < vmax:
+           nfile.append(file)
+           nz.append(z)
+           nv.append(vneb)
+           nname.append(name)
+    return nfile,nz,nv,nname
 
 import spectrum 
 from spectrum import *
 
-spectrum(files,zsample)
-
+##Set plotting...
 pltdir = '../plots/'
 
-range = range(nsample/10)
 
-plt.figtext(0.15,0.35,'Samples:',fontsize=10)
+############################################
 
-for i in range:
-    plt.figtext(0.15,0.32-0.03*i,snsample[10*i:10*(i+1)],fontsize=8)
+def mtspectra(vmin,vmax):
+    files,zhels,nv,nname= vbin(vmin,vmax)
+    spectrum(files,zhels)
+    
+# files,zhels,nv = vbin(0,5000)
+# spectrum(files,zhels)
 
-plt.savefig(pltdir+'averspectra.png')
-plt.show()
+    plt.figtext(0.15,0.35,'Samples:',fontsize=10)
+
+    plt.figtext(0.15,0.32,nname,fontsize=8)
+    plt.figtext(0.15,0.29,nv,fontsize=8)
+
+    plt.savefig(pltdir+'averspectra'+str(vmin)+'-'+str(vmax)+'.png')
+    plt.show()
+    return
+
+
