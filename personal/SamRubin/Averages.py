@@ -62,7 +62,7 @@ print len(SN_Array), "unique spectra found"
 print "Matching flux data..."
 j = 1
 
-for SN in SN_Array[0:50]:
+for SN in SN_Array[2:20]:
     k = 1
     for filename in max_light:   
         if SN.filename in filename:
@@ -85,7 +85,9 @@ def find_nearest(array,value):
     idx = (np.abs(array-value)).argmin()
     return idx
 
+bad_range_Array = []
 def average(compare_spectrum,SN):
+    residual = compare_spectrum.error
     avg_flux = compare_spectrum.flux
     lowindex = find_nearest(compare_spectrum.wavelength,np.min(SN.wavelength))
     highindex = find_nearest(compare_spectrum.wavelength,np.max(SN.wavelength))
@@ -93,12 +95,18 @@ def average(compare_spectrum,SN):
     for i in lowindex+np.arange(highindex-lowindex):
 #        avg_flux[i] = np.sum(SN.flux[i]/SN.error[i]**2 for SN in SN_Array if SN.error[i] != 0)/np.sum(1/SN.error[i]**2 for SN in SN_Array if SN.error[i] != 0 and SN.error[i] != None)
         try:
-            fluxes = np.array([compare_spectrum.flux[i],SN.flux[i]])
-            weights = np.array([1./compare_spectrum.error[i], 1./SN.error[i]])    
-            avg_flux[i] = np.average(fluxes,weights=weights)
+            if SN.error[i] != 0:
+                fluxes = np.array([compare_spectrum.flux[i],SN.flux[i]])
+                weights = np.array([1./compare_spectrum.error[i], 1./SN.error[i]])    
+                avg_flux[i] = np.average(fluxes,weights=weights)
+                compare_spectrum.error[i] = math.sqrt((compare_spectrum.flux[i]-avg_flux[i])**2 + (SN.flux[i]-avg_flux[i])**2)
+            else:
+                break
         except IndexError:
-            print "Index out of bounds"
+            print "No flux data?"
+            i += 1
             break
+            
     compare_spectrum.flux = avg_flux
 # Add residual
     return compare_spectrum
@@ -106,10 +114,10 @@ def average(compare_spectrum,SN):
 """scale"""
 print "Scaling.."
 q = 1
-compare_spectrum = SN_Array[0]
+compare_spectrum = SN_Array[3]
 for SN in SN_Array:
-    low_wave = 4500
-    high_wave = 5000
+    low_wave = 3000
+    high_wave = 7000
 #     plt.plot(SN.wavelength, SN.flux,label=SN.name)
     if np.min(SN.wavelength)>= low_wave:
         low_wave = np.min(SN.wavelength)
@@ -131,6 +139,7 @@ for SN in SN_Array:
     SN.flux[lowindex:highindex] *= scale_factor
     SN.error[lowindex:highindex] *= scale_factor
     print q, "items scaled"
+    
     compare_spectrum = average(compare_spectrum,SN)
         
     q += 1
