@@ -63,7 +63,7 @@ print len(SN_Array), "unique spectra found"
 print "Matching flux data..."
 j = 1
 
-for SN in SN_Array[0:100]:
+for SN in SN_Array[0:10]:
     k = 1
     for filename in max_light:   
         if SN.filename in filename:
@@ -92,36 +92,38 @@ bad_range_Array = []
 
 #averages with weights based on the given errors in .flm files
 def average(compare_spectrum,SN):
-    residual = compare_spectrum.error
-    avg_flux = compare_spectrum.flux
-    mean_flux = compare_spectrum.flux
-    redshifts = compare_spectrum.redshifts
-    lowindex = find_nearest(compare_spectrum.wavelength,np.min(SN.wavelength))
-    highindex = find_nearest(compare_spectrum.wavelength,np.max(SN.wavelength))
+	residual = compare_spectrum.error
+	avg_flux = compare_spectrum.flux
+	avg_red = compare_spectrum.redshifts
+	mean_flux = compare_spectrum.flux
+	redshifts = compare_spectrum.redshifts
+	lowindex = find_nearest(compare_spectrum.wavelength,np.min(SN.wavelength))
+	highindex = find_nearest(compare_spectrum.wavelength,np.max(SN.wavelength))
 #should be np.where(compare_spectrum.wavelength == np.min(SN.wavelength) if data aligned)
-    for i in lowindex+np.arange(highindex-lowindex):
+	for i in lowindex+np.arange(highindex-lowindex):
 #        avg_flux[i] = np.sum(SN.flux[i]/SN.error[i]**2 for SN in SN_Array if SN.error[i] != 0)/np.sum(1/SN.error[i]**2 for SN in SN_Array if SN.error[i] != 0 and SN.error[i] != None)
-        try:
-            if SN.error[i] != 0:
-                fluxes = np.array([compare_spectrum.flux[i],SN.flux[i]])
-                weights = np.array([1./compare_spectrum.error[i], 1./SN.error[i]])
-                redshifts = np.array([compare_spectrum.redshifts, SN.redshifts])
-                mean_flux[i] = np.average(fluxes, weights=weights)
-                avg_flux[i] = np.average(fluxes,weights=weights)
-                compare_spectrum.redshifts[i] = np.average(redshifts, axis=1, weights=weights)
+		try:
+			if SN.error[i] != 0:
+				fluxes = np.array([compare_spectrum.flux[i],SN.flux[i]])
+				weights = np.array([1./compare_spectrum.error[i], 1./SN.error[i]])
+				redshifts = np.array([compare_spectrum.redshifts[i],SN.redshifts[i]])
+				mean_flux[i] = np.average(fluxes, weights=weights)
+				avg_flux[i] = np.average(fluxes,weights=weights)
+				avg_red[i] = np.average(redshifts, weights = weights) 
+				compare_spectrum.redshifts[i] = np.average(redshifts, weights=weights)
                 #compare_spectrum.error[i] = math.sqrt((compare_spectrum.flux[i]-avg_flux[i])**2 + (SN.flux[i]-avg_flux[i])**2)
-            else:
-                break
-        except IndexError:
-            print "No flux data?"
-            i += 1
-            break
+			else:
+				break
+		except IndexError:
+			print "No flux data?"
+			i += 1
+			break
             
-    compare_spectrum.flux = avg_flux
-    compare_spectrum.mean = mean_flux
-    compare_spectrum.redshifts = redshifts
+	compare_spectrum.flux = avg_flux
+	compare_spectrum.mean = mean_flux
+	compare_spectrum.redshifts = avg_red
 # Add residual formula?
-    return compare_spectrum
+	return compare_spectrum
 
 """scale"""
 print "Scaling.."
@@ -156,19 +158,21 @@ for SN in SN_Array:
     compare_spectrum = average(compare_spectrum,SN)
         
     q += 1
+	
+print len(compare_spectrum.wavelength), len(compare_spectrum.redshifts)
 """composite"""
 plt.figure(1)
-plt.subplot(211)
+plt.subplot(311)
 plt.plot(compare_spectrum.wavelength, compare_spectrum.flux,label='Weighted Composite')
 plt.plot(compare_spectrum.wavelength, compare_spectrum.mean,label='Composite')
 plt.xlabel('Wavelength (A)')
 plt.ylabel('Scaled Flux')
-plt.subplot(212)
+plt.subplot(312)
 plt.plot(compare_spectrum.wavelength, compare_spectrum.error, label='Error')
 plt.ylabel('Error')
-plt.subplot(213)
+plt.subplot(313)
 plt.plot(compare_spectrum.wavelength, compare_spectrum.redshifts, label='Redshift')
-plt.subplot(211)
+plt.subplot(311)
 plt.legend(prop={'size':10})
 plt.savefig('Average.png')
 plt.show()
