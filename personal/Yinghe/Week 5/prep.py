@@ -2,8 +2,10 @@ import os
 import glob
 #import astropy
 import numpy as np
-import scipy.interpolate as intp
-
+import scipy.interpolate as inter
+from astropy.table import Table
+import matplotlib.pyplot as plt
+from astropy.io import ascii
 
 
 def fm_unred(wave, flux, ebv, *args, **kwargs):
@@ -210,7 +212,6 @@ spectra_files = glob.glob ('../../../data/cfa/*/*.flm')
 spectra_data = []
 #holds file pathname
 file_path = []
-
 junk_data = []
 
 #number of spectra to modify
@@ -271,18 +272,20 @@ for i in range(num):#go through selected spectra data
 				print "no estimate for b-v"
 
 # data interpolation
-# pixel size: every 10 As (subject to change)
+# pixel size: every 2 As (subject to change)
 
 # still working on putting into one big data structure
-wave_min = 1000
-wave_max = 20000
-wavelength = np.linspace(wave_min,wave_max,(wave_max-wave_min)/10+1)  #creates N equally spaced wavelength values
-fitted_flux = []
-new = []
-#new = Table()
-#new['col0'] = Column(wavelength,name = 'wavelength')
-for i in range(num):
-    new_spectrum=spectra_data[i]	#declares new spectrum from list
+def Interpo(spectra) :
+    wave_min = 1000
+    wave_max = 20000
+    pix = 2
+    #wavelength = np.linspace(wave_min,wave_max,(wave_max-wave_min)/pix+1)  #creates N equally spaced wavelength values
+    wavelength = np.arange(ceil(wave_min), floor(wave_max), dtype=int, step=2)
+    fitted_flux = []
+    new = []
+    #new = Table()
+    #new['col0'] = Column(wavelength,name = 'wavelength')
+    new_spectrum=spectra	#declares new spectrum from list
     new_wave=new_spectrum[:,0]	#wavelengths
     new_flux=new_spectrum[:,1]	#fluxes
     lower = new_wave[0] # Find the area where interpolation is valid
@@ -292,19 +295,29 @@ for i in range(num):
     fitted_flux=inter.splev(wavelength,indata)	#fits b-spline over wavelength range
     badlines = np.where((wavelength<lower) | (wavelength>upper))
     fitted_flux[badlines] = 0  # set the bad values to ZERO !!! 
-    new = Table([wavelength,fitted_flux],names=('Wavelength','Flux')) # put the interpolated data into the new table
+    new = Table([wavelength,fitted_flux],names=('col1','col2')) # put the interpolated data into the new table    
     #newcol = Column(fitted_flux,name = 'Flux')  
     #new.add_column(newcol,index = None)
+    return new
     
+overall = []
+for i in range(num):
+    newdata = Interpo(spectra_data[i])
+    overall.append(newdata)
+#    print newdata
     
+
+    
+    """ For the upcoming people's reference, use table 'new'. """
 
     # output data into a file (just for testing, no need to implement)
 #    output = 'testdata/modified-%s.dat'%(spectra_files[i][27:-4])
-#    ascii.write(new, output)
-    
+#    ascii.write(newdata, output)
+   
      # plot spectra (just for testing, no need to implement)
-
-    plt.plot(wavelength,fitted_flux)
+    x = newdata['col1']
+    y = newdata['col2']
+    plt.plot(x,y)
     
 plt.xlim(3000,7000)
 plt.show()

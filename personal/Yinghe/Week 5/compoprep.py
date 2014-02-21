@@ -6,7 +6,7 @@ Created on Fri Feb 14 14:20:45 2014
 """
 # 
 import numpy as np
-import scipy
+#import scipy
 #import math
 import glob
 from astropy.table import Table
