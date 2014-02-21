@@ -23,10 +23,11 @@ v_data = np.loadtxt('foley_master_data', dtype={'names': ('name', 'z', 'v', 'dv'
 
 print "Reading data file..."
 
-for line in v_data[0:100]:
+for line in v_data:
     SN = Supernovae()
     SN.name = line[0]
-    SN.redshift = line[1] #check for anomalous redshift
+    if line[1] >=0.0:
+        SN.redshift = line[1] #check for anomalous redshift
     SN.v_Si = line[2]
     SN.dv_Si = line[3]
     SN_Array.append(SN)
@@ -48,7 +49,7 @@ for SN in SN_Array:
 
 print "Cleaning array..."
 
-SN_Array = [SN for SN in SN_Array if hasattr(SN, 'filename')]
+SN_Array = [SN for SN in SN_Array if hasattr(SN, 'filename') and hasattr(SN, 'redshift')]
 
 print len(SN_Array), "supernovae read."
 print "Reading lists of spectra files to find the fluxes"
@@ -108,8 +109,15 @@ for i in range(len(wavelength)):
     flux = np.sum(SN.flux[i]/SN.error[i]**2 for SN in SN_Low if SN.error[i] != 0)/np.sum(1/SN.error[i]**2 for SN in SN_Low if SN.error[i] != 0)
     Comp_flux_low.append(flux)
 
+plt.figure(1)
+plt.subplot(211)
 plt.plot(wavelength, Comp_flux_high, 'b', wavelength, Comp_flux_low, 'r')
 plt.title('High/Low Velocity Composite Fluxes')
 plt.xlabel('Wavelength (A)')
 plt.ylabel('Flux')
+plt.subplot(212)
+#plt.plot(stuff)
+plt.title('Residual')
+plt.xlabel('Wavelength (A)')
+plt.ylabel('Percantage')
 plt.show()

@@ -1,71 +1,104 @@
-#import os
-#import glob
 import numpy as np
+import matplotlib as mpl
+from matplotlib import rc
 import matplotlib.pyplot as plt
-#import scipy.interpolate as intp
 import math
 from pylab import *
+import matplotlib.font_manager
+from matplotlib.font_manager import FontProperties
+from matplotlib.ticker import FuncFormatter
 
+#Doesn't look professional yet. Neet better fonts. Test file is also childish looking. 
 """
 ### Tasks
-[X] what figures to plot - Just main light curve plot
+[X] what figures to plot - atm just main light curve plot 
 [X] flexible data label 
-[]  need to account for spaces in labels
+[X] need to account for spaces in labels
+[X] pipe functions
+[] personalizing the plots from the data
 [] zoom
-[] stacked data (different y axis) 
-"""
 
-# open .txt file that has
-# file location , title for plot, x axis label, y axis label, legend label
-name = np.loadtxt('Labels_for_plot.txt',dtype = str)
-test_data = np.loadtxt( name[0] ,dtype = str)
+[] Write using latex font or similar
+[] stacked data (different y axis) 
+
+"""
+"""
+#Testing out different font commands
+import tkFont
+helv36 = tkFont.Font(family="Helvetica",size=36,weight="bold")
+"""
+def main():
+# open .txt file. Has the following: 
+# file location , title for plot, title for saved figure, x axis label, y axis label, legend label(s)
+	name = np.loadtxt( 'Labels_for_plot.txt' , dtype = str , delimiter="\n" )
+	test_data = np.loadtxt( name[0] ,dtype = str)
+
+# This version of python doesn't like using LaTex
+# 'usetex = True' causes the code to crash
+#mpl.rc('font', **{'family': 'serif', 'serif': ['Computer Modern']})
+#mpl.rc('text', usetex=False)
+#set_family(monospace)
+
+# re-name variables
+	xaxis = test_data[:,0] 
+	yaxis = test_data[:,1]
+	err_p = test_data[:,2] 
+	err_n = test_data[:,3]
 
 # Legend parameters, must come before plotting
-params = {'legend.fontsize': 15, 'legend.linewidth':2}
-plt.rcParams.update(params)
+	params = {'legend.fontsize': 15, 'legend.linewidth':2}
+	plt.rcParams.update(params)
 
 # Create the plot
-ax1 = subplot(1,1,1)
+	ax1 = subplot(1,1,1)
 
-# Don't like manual labels # ax1.plot(test_data[:,0],test_data[:,1],'k',label = leg_1 )
-ax1.plot(test_data[:,0],test_data[:,1],'k',label = name[4] )
+# Read legend labels from files
+# (X_comp, Y_comp, 'color', curve name)
+	ax1.plot(xaxis[:],yaxis[:],'k',label = name[5] )
 
-# FIX THIS : Need error to surround curve
-ax1.fill_between(test_data[:,0],test_data[:,2],test_data[:,2],alpha=0.5, edgecolor='#1B2ACC', facecolor='#089FFF')
+# Error surrounds data
+	plt.fill_between(xaxis[:],err_p[:],err_n[:],alpha=1.5, edgecolor='#000080', facecolor='#5F9EA0')
 
-# Not sure how to standardize curve labeling when all cuves will be different and have different labels
+# Not sure how to standardize curve labeling when all cuves will be different and have coordinates
 #ax1.text(6000, 1000000, r"Plot_1", fontsize=20, color="k")
 
 # Grid lines parameters
-ax1.grid(color='b', alpha=0.5, linestyle='dashed', linewidth=0.5)
+#ax1.grid(color='b', alpha=0.5, linestyle='dashed', linewidth=0.5)
 
 # Remove legend box frame 
-l = legend()
-l.draw_frame(False)
-draw()
+	l = legend()
+	l.draw_frame(False)
+	draw()
+
+#plt.xticks( xaxis )
+#plt.xticks(ticks)
+#ind = range(300,450)    # the x locations for the groups
+#plt.xticks(xaxis, ind)
+#plt.xticks(xaxis[:], 100, rotation='vertical')
+
+#Set the visual range. Automatic range is ugly. 
+	xmin = int(float(xaxis[0]))
+	xmax = int(float(xaxis[-1]))
+	plt.xlim((xmin,xmax))
 
 #Label the figure
-plt.title( name[1] )
-plt.xlabel( name[2] )
-plt.ylabel( name[3] )
+	plt.title( name[2] )
+	plt.xlabel( name[3] )
+	plt.ylabel( name[4] )
 
 # Label the saved plot
+	plt.savefig( name[1] )
 
-plt.savefig('title')
-
-plt.show()
-
-
+	plt.show()
+	
 ### Only plotting a single figure
 ### Subplots can be introduced at any point
 """
 # axes rect in relative 0,1 coords left, bottom, width, height.  Turn
 # off xtick labels on all but the lower plot
 
-
 f = figure()
 subplots_adjust(hspace=0.001)
-
 
 ax1 = subplot(3,1,1)
 ax1.plot(t,s1)
@@ -88,37 +121,5 @@ ylim(-1,1)
 
 xticklabels = ax1.get_xticklabels()+ax2.get_xticklabels()
 setp(xticklabels, visible=False)
-"""
-############## Below this line is garbage ###############
-######### Final code for class won't have this ##########
-# Not needed for what the code is doing at the moment
-#f = figure()
-#subplots_adjust(hspace=0.001)
-
-# Allow customization of plots 
-"""
-# pauses created for ease
-# Better to have users make a text file and write in the titles they want.
-# This method is very time consuming 
-title   = raw_input('Input title name: ' )
-raw_input()
-print "Symbol for Angstrom is: $\AA$ ( In case you needed ) "
-x_label = raw_input('Label X Axis: ' )
-raw_input()
-y_label = raw_input('Label Y Axis: ' )
-raw_input()
-leg_1 = raw_input('Label for legend ')
-"""
-
-""" Dummy names
-plt.title( "Hat" )
-plt.xlabel( "Floor" )
-plt.ylabel( "Lamp" )
-"""
-""" Don't like manual labels
-plt.title( title )
-plt.xlabel( x_label )
-plt.ylabel( y_label )
-plt.savefig('Plot_Test_2.png')
 """
 

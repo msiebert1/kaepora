@@ -6,15 +6,16 @@ Created on Fri Feb 14 14:20:45 2014
 """
 # 
 import numpy as np
-#import os
-import scipy
+#import scipy
 #import math
 import glob
 from astropy.table import Table
 from astropy.io import ascii
-from astropy.table import Column
+#from astropy.table import Column
 import scipy.interpolate as inter
+#import sqlite3 as sq3
 #import matplotlib.pyplot as plt
+import specutils
 
 #Pre-allocate arrays
 spectra_files = []
@@ -27,15 +28,17 @@ bad_files = []
 spectra_files=glob.glob("../../../data/cfa/*/*.flm")
                     
 #Read in data, store unreadable files (give an error when read in) in a separate array
-num0 = 20 # the number of spectra to analyze
+num0 = 50 # the number of spectra to analyze
 for i in range(num0):
     try:
         spectra_arrays.append(Table.read(spectra_files[i],format='ascii'))
-        spectra_name.append(spectra_files[i])
+        spectra_name.append(spectra_files[i][27:-4])
+#        print spectra_name[i]
     except ValueError:
         bad_files.append(spectra_files[i])
 
 num = len(spectra_arrays) # Reset the number to the number of good files
+#print num
 
 # dereddening from dust and milky way
 # Use model- Fitzpatrick & Massa (2007) extinction model for R_V = 3.1.
@@ -95,8 +98,8 @@ for i in range(num):
     
 
     # output data into a file (just for testing, no need to implement)
-#    output = 'modified%s.dat'%(spectra_files[i])
-    ascii.write(new, 'output.dat')
+    output = 'testdata/modified-%s.dat'%(spectra_name[i])
+    ascii.write(new, output)
     
     # plot spectra (just for testing, no need to implement)
 

@@ -44,6 +44,7 @@ plt.title('Make Title an input')
 plt.xlabel('Wavelength (probably wont change)')
 plt.ylabel('Make into an input statement')
 
+plt.savefig('Plot_Test_1.png')
 plt.show()
 
 """
