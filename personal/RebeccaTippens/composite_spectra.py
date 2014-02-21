@@ -1,13 +1,10 @@
-from __future__ import division #Future statement to use New-style division
+from __future__ import division #Enables new-style division
 from math import floor, ceil
 from random import sample
 import matplotlib.pyplot as plt
-import os #Uses operating system-dependent functionality
-import glob #Enables filename pattern matching
 import numpy as np 
-import scipy as sy 
 import sqlite3 as sq3
-import time
+import os
 
 """
 #Declares path to root directory
@@ -22,7 +19,7 @@ con = sq3.connect(path)
 cur = con.cursor()
 
 #Returns the 10 SNe with the highest redshifts
-cur.execute("SELECT * FROM Supernovae ORDER BY Redshift DESC LIMIT 30")
+cur.execute("SELECT * FROM Supernovae ORDER BY Redshift DESC LIMIT 40")
 
 root = "/Users/Rebecca/astr596/data/cfa/"
 
@@ -64,7 +61,7 @@ else:
 min_wave = min(min_waves) #Finds overall min deredshifted wavelength
 max_wave = max(max_waves) #Finds overall max deredshifted wavelength
 
-integer_wave = np.arange(ceil(min_wave), floor(max_wave), dtype=int, step=1)
+integer_wave = np.arange(ceil(min_wave), floor(max_wave), dtype=int, step=2)
 
 table_for_composite = []
 
@@ -72,9 +69,11 @@ for key in SN_data.keys():
     deredshifted_wave = SN_data[key][1]
     flux = SN_data[key][2]
     interpolated_flux = np.interp(integer_wave, deredshifted_wave, flux)
+    median_flux = np.median(interpolated_flux)
+    scaled_flux = interpolated_flux/median_flux
     SN_data[key].append(integer_wave)
-    SN_data[key].append(interpolated_flux)
-    table_for_composite.append(interpolated_flux)
+    SN_data[key].append(scaled_flux)
+    table_for_composite.append(scaled_flux)
 
 composite_flux = np.mean(table_for_composite, axis = 0) #Averages flux values to make composite
 
@@ -88,20 +87,36 @@ for key in SN_data.keys():
 
 RMS = np.sqrt(np.mean(np.square(dist_from_mean_table), axis = 0))
 
-#Plots composite spectra
-plt.subplot(211)
-plt.plot(integer_wave, composite_flux, color="c", label = "Composite")
-plt.plot(integer_wave, (composite_flux + RMS), color="m", label = "+ RMS")
-plt.plot(integer_wave, (composite_flux - RMS), color="#ff6600", label = "- RMS")
-plt.yscale("log")
-plt.xlabel("Wavelength " + "(" + u"\u212B" + ")") #need to replace unicode?
-plt.ylabel("log (Flux)")
-plt.legend(loc=4)
+np.savetxt('composite_spectra.flm', np.transpose([integer_wave, composite_flux]), fmt="%d %26.18e")
 
-#Plots residuals
-plt.subplot(212)
-plt.plot(integer_wave, (RMS/composite_flux)*100, label = "Residual RMS")
-plt.xlabel("Wavelength " + "(" + u"\u212B" + ")") #need to replace unicode?
-plt.ylabel("Residual RMS")
+#Plots composite spectra
+fig = plt.figure()
+ax1 = fig.add_subplot(211)
+ax1.plot(integer_wave, composite_flux, color="#9acd32", label = "Composite")
+ax1.plot(integer_wave, (composite_flux + RMS), color="#ff6600", label = "+ RMS")
+ax1.plot(integer_wave, (composite_flux - RMS), color="c", label = "- RMS")
+ax1.set_xlim(min(integer_wave), max(integer_wave))
+ax1.set_xlabel("Rest Wavelength " + "(" + u"\u212B" + ")") #need to replace unicode?
+ax1.set_ylabel("Relative Flux")
+ax1.legend(loc = "best")
+
+#Legend Options ---
+#upper right: loc=1
+#upper left: loc=2
+#lower left: loc=3
+#lower right: loc=4
+#right: loc=5
+#center left: loc=6
+#center right: loc=7
+#lower center: loc=8
+#upper center: loc=9
+#center: loc=10
+
+#Plots 
+ax2 = fig.add_subplot(212)
+ax2.plot(integer_wave, (RMS/composite_flux)*100, color="m", label = "Residual RMS")
+ax2.set_xlim(min(integer_wave), max(integer_wave))
+ax2.set_ylabel("Residual RMS")
+fig.set_tight_layout(True)
 plt.savefig("composite_spectra.pdf", format="PDF")
 plt.show()

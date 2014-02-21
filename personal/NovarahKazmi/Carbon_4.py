@@ -5,6 +5,9 @@ import matplotlib.pyplot as plt
 import scipy.interpolate as intp
 import math
 
+#'#'#'#'#
+import Plot_2
+#'#'#'#'#
 
 
 #authors @nkazmi2, @nishimo1 
@@ -369,7 +372,38 @@ print "plotting..."
 print "===================="
 ############################
 
-fig = plt.figure()
+
+#'#'#'#'#
+title    = "Gram Test"
+x_axis   = "Wavelength ($\AA$)"
+y_axis   = "Scaled Flux"
+legend1  = "Red and Unscaled"
+legend2  = "Error +"
+legend3  = "Error -"
+x_range  = wavelengths
+y_range  = avg_flux_p
+Plot_2.main(x_range, y_range ,title, x_axis, y_axis, legend1, legend2, legend3)
+#'#'#'#'#
+"""
+### file location  ### name[0], Data File: X_range , Y_range , Error_Plus , Error_minus
+Carbon_Results.txt
+#../../data/cfa/sn2006E/sn2006E-20060126.53-fast.flm
+### Name of plot   ### name[1]
+Carbon_Test.png
+### title for plot ### name[2]
+Test Plot
+### x axis label   ### name[3]
+$\mathtt{Wavelength}$ ($\AA$)
+### y axis label   ### name[4]
+Scaled Flux
+### legend label   ### name[5], name[6], name[7]
+Red and Unscaled
+Error +
+Error -
+
+"""
+
+#fig = plt.figure()
 """
 #top plot containing the Composite spectrum +/- the RMS
 top = fig.add_subplot(211)
@@ -421,6 +455,7 @@ plt.legend([plot7,plot8],('Carbon +','Carbon -'),'upper right',numpoints=1)
 plt.savefig('Composite_Spectra.png')
 plt.show()
 """
+"""
 
 #labeling plot1 carbon +
 top = fig.add_subplot(2,1,1)
@@ -440,4 +475,4 @@ plt.ylabel('Residual RMS')
 plt.legend([plot7,plot8],('Carbon +','Carbon -'),'upper right',numpoints=1)
 
 plt.show()
-
+"""

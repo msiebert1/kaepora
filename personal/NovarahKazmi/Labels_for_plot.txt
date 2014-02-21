@@ -4,13 +4,13 @@ Carbon_Results.txt
 ### Name of plot   ### name[1]
 Carbon_Test.png
 ### title for plot ### name[2]
-Test Plot 
+Test Plot
 ### x axis label   ### name[3]
-Wavelength ($\AA$)
+$\mathtt{Wavelength}$ ($\AA$)
 ### y axis label   ### name[4]
 Scaled Flux
 ### legend label   ### name[5], name[6], name[7]
-Red and Unscaled 
+Red and Unscaled
 Error +
 Error -
 
