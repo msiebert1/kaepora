@@ -29,6 +29,7 @@ for row in v_data[0:100]:
     SN_Array.append(SN)
 print len(v_data), "velocities found"
 
+#read in data structure
 """connect to the database"""
 con = sq3.connect('../MichaelSchubert/SNe.db')
 cur = con.cursor()

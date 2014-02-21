@@ -51,14 +51,14 @@ names = []
 for row in cur.execute('SELECT Filename, SN, Redshift, MinWave, MaxWave FROM Supernovae'):
     SN = supernova()
     if row[2] != None:
-		SN.filename = row[0]
-		SN.name = row[1]
-		SN.redshift = row[2]
-		SN.minwave = row[3]
-		SN.maxwave = row[4]
-		SN.age = sn_ages
-		SN_Array.append(SN)
-		names.append(SN.name)
+        SN.filename = row[0]
+        SN.name = row[1]
+        SN.redshift = row[2]
+        SN.minwave = row[3]
+        SN.maxwave = row[4]
+        SN.age = sn_ages #this appends the entire list of ages to each supernova which is totally wrong
+        SN_Array.append(SN)
+        names.append(SN.name)
 
 print len(SN_Array), "items found"
 print len(sn_ages)
@@ -85,6 +85,7 @@ for SN in SN_Array[0:10]:
             SN.flux = data[:,1]
             SN.redshifts = np.zeros(len(data[:,1]))
             SN.redshifts.fill(SN.redshift)
+            #somewhere here is where the ages should be assigned
             error = data[:,2]
             if not all(x == 0.0 for x in error):
                 SN.error = error
@@ -110,6 +111,8 @@ def average(compare_spectrum,SN):
 	avg_red = compare_spectrum.redshifts
 	mean_flux = compare_spectrum.flux
 	redshifts = compare_spectrum.redshifts
+        ages = compare_spectrum.age
+        avg_ages = compare_spectrum.age
 	lowindex = find_nearest(compare_spectrum.wavelength,np.min(SN.wavelength))
 	highindex = find_nearest(compare_spectrum.wavelength,np.max(SN.wavelength))
 #should be np.where(compare_spectrum.wavelength == np.min(SN.wavelength) if data aligned)
@@ -120,10 +123,12 @@ def average(compare_spectrum,SN):
 				fluxes = np.array([compare_spectrum.flux[i],SN.flux[i]])
 				weights = np.array([1./compare_spectrum.error[i], 1./SN.error[i]])
 				redshifts = np.array([compare_spectrum.redshifts[i],SN.redshifts[i]])
-				mean_flux[i] = np.average(fluxes, weights=weights)
+				ages = np.array([compare_spectrum.age[i],SN.age[i]])
+                                mean_flux[i] = np.average(fluxes, weights=weights)
 				avg_flux[i] = np.average(fluxes,weights=weights)
 				avg_red[i] = np.average(redshifts, weights = weights) 
 				compare_spectrum.redshifts[i] = np.average(redshifts, weights=weights)
+                                avg_ages[i] = np.average(ages, weights=weights)
                 #compare_spectrum.error[i] = math.sqrt((compare_spectrum.flux[i]-avg_flux[i])**2 + (SN.flux[i]-avg_flux[i])**2)
 			else:
 				break
@@ -135,6 +140,7 @@ def average(compare_spectrum,SN):
 	compare_spectrum.flux = avg_flux
 	compare_spectrum.mean = mean_flux
 	compare_spectrum.redshifts = avg_red
+        compare_spectrum.ages = avg_ages
 # Add residual formula?
 	return compare_spectrum
 
@@ -175,17 +181,21 @@ for SN in SN_Array:
 print len(compare_spectrum.wavelength), len(compare_spectrum.redshifts)
 """composite"""
 plt.figure(1)
-plt.subplot(311)
+plt.subplot(411)
 plt.plot(compare_spectrum.wavelength, compare_spectrum.flux,label='Weighted Composite')
 plt.plot(compare_spectrum.wavelength, compare_spectrum.mean,label='Composite')
 plt.xlabel('Wavelength (A)')
 plt.ylabel('Scaled Flux')
-plt.subplot(312)
+plt.subplot(412)
 plt.plot(compare_spectrum.wavelength, compare_spectrum.error, label='Error')
 plt.ylabel('Error')
-plt.subplot(313)
+plt.subplot(413)
 plt.plot(compare_spectrum.wavelength, compare_spectrum.redshifts, label='Redshift')
-plt.subplot(311)
+plt.ylabel('Avg. Redshift')
+plt.subplot(414)
+plt.plot(compare_spectrum.wavelength, compare_spectrum.ages, label='Age')
+plt.ylabel('Age')
+plt.subplot(411)
 plt.legend(prop={'size':10})
 plt.savefig('Average.png')
 plt.show()
