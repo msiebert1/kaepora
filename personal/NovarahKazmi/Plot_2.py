@@ -13,21 +13,25 @@ from matplotlib.ticker import FuncFormatter
 ### Tasks
 [X] what figures to plot - atm just main light curve plot 
 [X] flexible data label 
-[X]  need to account for spaces in labels
-[]  Write using latex font or similar
-[] stacked data (different y axis) 
+[X] need to account for spaces in labels
+[X] pipe functions
+[] personalizing the plots from the data
 [] zoom
+
+[] Write using latex font or similar
+[] stacked data (different y axis) 
+
 """
 """
 #Testing out different font commands
 import tkFont
 helv36 = tkFont.Font(family="Helvetica",size=36,weight="bold")
 """
-
+def main():
 # open .txt file. Has the following: 
 # file location , title for plot, title for saved figure, x axis label, y axis label, legend label(s)
-name = np.loadtxt( 'Labels_for_plot.txt' , dtype = str , delimiter="\n" )
-test_data = np.loadtxt( name[0] ,dtype = str)
+	name = np.loadtxt( 'Labels_for_plot.txt' , dtype = str , delimiter="\n" )
+	test_data = np.loadtxt( name[0] ,dtype = str)
 
 # This version of python doesn't like using LaTex
 # 'usetex = True' causes the code to crash
@@ -36,24 +40,24 @@ test_data = np.loadtxt( name[0] ,dtype = str)
 #set_family(monospace)
 
 # re-name variables
-xaxis = test_data[:,0] 
-yaxis = test_data[:,1]
-err_p = test_data[:,2] 
-err_n = test_data[:,3]
+	xaxis = test_data[:,0] 
+	yaxis = test_data[:,1]
+	err_p = test_data[:,2] 
+	err_n = test_data[:,3]
 
 # Legend parameters, must come before plotting
-params = {'legend.fontsize': 15, 'legend.linewidth':2}
-plt.rcParams.update(params)
+	params = {'legend.fontsize': 15, 'legend.linewidth':2}
+	plt.rcParams.update(params)
 
 # Create the plot
-ax1 = subplot(1,1,1)
+	ax1 = subplot(1,1,1)
 
 # Read legend labels from files
 # (X_comp, Y_comp, 'color', curve name)
-ax1.plot(xaxis[:],yaxis[:],'k',label = name[5] )
+	ax1.plot(xaxis[:],yaxis[:],'k',label = name[5] )
 
 # Error surrounds data
-plt.fill_between(xaxis[:],err_p[:],err_n[:],alpha=1.5, edgecolor='#000080', facecolor='#5F9EA0')
+	plt.fill_between(xaxis[:],err_p[:],err_n[:],alpha=1.5, edgecolor='#000080', facecolor='#5F9EA0')
 
 # Not sure how to standardize curve labeling when all cuves will be different and have coordinates
 #ax1.text(6000, 1000000, r"Plot_1", fontsize=20, color="k")
@@ -62,9 +66,9 @@ plt.fill_between(xaxis[:],err_p[:],err_n[:],alpha=1.5, edgecolor='#000080', face
 #ax1.grid(color='b', alpha=0.5, linestyle='dashed', linewidth=0.5)
 
 # Remove legend box frame 
-l = legend()
-l.draw_frame(False)
-draw()
+	l = legend()
+	l.draw_frame(False)
+	draw()
 
 #plt.xticks( xaxis )
 #plt.xticks(ticks)
@@ -73,20 +77,20 @@ draw()
 #plt.xticks(xaxis[:], 100, rotation='vertical')
 
 #Set the visual range. Automatic range is ugly. 
-xmin = int(float(xaxis[0]))
-xmax = int(float(xaxis[-1]))
-plt.xlim((xmin,xmax))
+	xmin = int(float(xaxis[0]))
+	xmax = int(float(xaxis[-1]))
+	plt.xlim((xmin,xmax))
 
 #Label the figure
-plt.title( name[2] )
-plt.xlabel( name[3] )
-plt.ylabel( name[4] )
+	plt.title( name[2] )
+	plt.xlabel( name[3] )
+	plt.ylabel( name[4] )
 
 # Label the saved plot
-plt.savefig( name[1] )
+	plt.savefig( name[1] )
 
-plt.show()
-
+	plt.show()
+	
 ### Only plotting a single figure
 ### Subplots can be introduced at any point
 """
