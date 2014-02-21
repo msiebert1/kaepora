@@ -12,7 +12,7 @@ sn_files=[]
 bad_files=[]
 
 #reads the SN folders and excludes the other files
-for i in range(30):	#len(spectra_folders)
+for i in range(len(spectra_folders)):	
 	if '.dat' in spectra_folders[i]:
 		bad_files.append(spectra_folders[i])
 	elif 'snf' in spectra_folders[i]:

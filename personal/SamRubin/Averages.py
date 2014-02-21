@@ -28,6 +28,17 @@ file_list = []
 file_list = glob.glob("../../data/cfa/*/*.flm")
 max_light = []
 max_light = np.loadtxt("../SamRubin/MaxSpectra.dat", dtype = 'str')
+
+delta_t = Table.read('../AaronBeaudoin/week5/SpectraTime.dat',format='ascii')
+file_name = delta_t["File"]
+ages = delta_t["delta_t"]
+sn_ages=[]
+for i in range(len(max_light)):
+	age=0
+	for j in range(len(file_name)):
+		if max_light[i] in file_name[j]:
+			age = ages[j]
+	sn_ages.append(age)	
 #selected correct ones for averaging
 # for i in range(len(files)):
 # 	file=files[i]
@@ -40,15 +51,17 @@ names = []
 for row in cur.execute('SELECT Filename, SN, Redshift, MinWave, MaxWave FROM Supernovae'):
     SN = supernova()
     if row[2] != None:
-        SN.filename = row[0]
-        SN.name = row[1]
-        SN.redshift = row[2]
-        SN.minwave = row[3]
-        SN.maxwave = row[4]
-        SN_Array.append(SN)
-        names.append(SN.name)
+		SN.filename = row[0]
+		SN.name = row[1]
+		SN.redshift = row[2]
+		SN.minwave = row[3]
+		SN.maxwave = row[4]
+		SN.age = sn_ages
+		SN_Array.append(SN)
+		names.append(SN.name)
 
 print len(SN_Array), "items found"
+print len(sn_ages)
 
 names,temp = np.unique(names,return_index=True)
 SN_Array =  [SN_Array[i] for i in temp]
