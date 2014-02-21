@@ -2,9 +2,12 @@ from __future__ import division
 import numpy as np
 import os
 import sqlite3 as sq3
+import msgpack as msg
+import msgpack_numpy as mn
 import time
-#makes msgpack aware of numpy addons
-#mn.patch()
+
+#make msgpack aware of msgpack_numpy
+mn.patch()
 
 tstart = time.clock()
 
@@ -48,18 +51,21 @@ con = sq3.connect('SNe.db')
 
 #make sure no prior table in db to avoid doubling/multiple copies of same data
 con.execute("""DROP TABLE IF EXISTS Supernovae""")
-con.execute("""CREATE TABLE IF NOT EXISTS Supernovae (Filename TEXT PRIMARY KEY,
-                    SN Text, Redshift REAL, Phase REAL, MinWave REAL, MaxWave REAL,
-                    RedMin REAL, RedMax REAL, Dm15 REAL, M_B REAL, B_mMinusV_m REAL)""")
+con.execute("""CREATE TABLE IF NOT EXISTS Supernovae (Filename 
+                    TEXT PRIMARY KEY, SN Text, Redshift REAL, Phase REAL,
+                    MinWave REAL, MaxWave REAL, RedMin REAL, RedMax REAL,
+                    Dm15 REAL, M_B REAL, B_mMinusV_m REAL, Spectra BLOB)""")
 
-root = '../../data/'
+root = '../../data/cfa'
 spectra = {}
 bad_files = []
+filenames = []
 
 #traverse folder containing spectra and load
 print "Adding information to table"
 for path, subdirs, files in os.walk(root):
     for name in files:
+        filenames.append(name)
         f = os.path.join(path, name)
         if f.endswith('.flm'):
             #ignore spectra that produce loaderrors
@@ -107,10 +113,14 @@ for path, subdirs, files in os.walk(root):
             else:
                 red_min = None
                 red_max = None
-            con.execute("""INSERT INTO Supernovae(Filename, SN, Redshift, Phase,
-                                MinWave, MaxWave, RedMin, RedMax, Dm15, M_B, B_mMinusV_m)
-                                VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", (name, key, redshift, phase,
-                                min_wave, max_wave, red_min, red_max, dm15, m_b, bm_vm))
+
+            spec = msg.packb(data)
+            con.execute("""INSERT INTO Supernovae(Filename, SN, Redshift,
+                                Phase, MinWave, MaxWave, RedMin, RedMax, Dm15, 
+                                M_B, B_mMinusV_m, Spectra) 
+                                VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", (name, key, 
+                                redshift, phase, min_wave, max_wave, red_min, 
+                                red_max, dm15, m_b, bm_vm, buffer(spec)))
         else:
             continue
 con.commit()
