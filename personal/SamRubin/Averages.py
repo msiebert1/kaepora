@@ -16,6 +16,7 @@ class supernova(object):
     """Attributes can be added"""
 
 SN_Array = []
+compare_spectrum = []
 
 #names = np.loadtxt("", usecols = (0)) #"need to grab all the other data too"
 #for row in names:
@@ -24,24 +25,33 @@ SN_Array = []
 #    SN_Array.append(SN)
 #print len(names), #"supernovae found"
 file_list = []
-files = Table.read('../AaronBeaudoin/week4/MaxSpectra.dat',format='ascii')
+file_list = glob.glob("../../data/cfa/*/*.flm")
+max_light = []
+max_light = np.loadtxt("../SamRubin/MaxSpectra.dat", dtype = 'str')
 
-for i in range(len(files)):
-	file=files[i]
-	file_list.append(file["col2"])
+# for i in range(len(files)):
+# 	file=files[i]
+# 	file_list.append(file["col2"])
 
 con = sq3.connect('../MichaelSchubert/SNe.db')
 cur = con.cursor()
 print "Reading supernovae from database..."
+names = []
 for row in cur.execute('SELECT Filename, SN, Redshift, MinWave, MaxWave FROM Supernovae'):
     SN = supernova()
     if row[2] != None:
+        SN.filename = row[0]
         SN.name = row[1]
         SN.minwave = row[3]
         SN.maxwave = row[4]
-        SN_Array.append(SN) 
+        SN_Array.append(SN)
+        names.append(SN.name)
+
 print len(SN_Array), "items found"
-        
+
+names,temp = np.unique(names,return_index=True)
+SN_Array =  [SN_Array[i] for i in temp]
+print len(SN_Array), "unique spectra found"
 # rand = np.random.randint(0,len(SN_Array),10)
 # all_array = SN_Array
 # SN_Array=[]
@@ -51,10 +61,11 @@ print len(SN_Array), "items found"
 #"""Adds flux to the stuff"""
 print "Matching flux data..."
 j = 1
-for SN in SN_Array[0:50]:
+
+for SN in SN_Array[2:20]:
     k = 1
-    for filename in file_list:   
-        if SN.name in filename:
+    for filename in max_light:   
+        if SN.filename in filename:
             data = np.loadtxt(filename)
             SN.wavelength = data[:,0]
             SN.flux = data[:,1]
@@ -70,30 +81,43 @@ SN_Array = [SN for SN in SN_Array if hasattr(SN, 'error')]
 print "Done checking. ", len(SN_Array), "items remain"       
 
 
+def find_nearest(array,value):
+    idx = (np.abs(array-value)).argmin()
+    return idx
+
+bad_range_Array = []
 def average(compare_spectrum,SN):
+    residual = compare_spectrum.error
     avg_flux = compare_spectrum.flux
-    lowindex = np.where(compare_spectrum.wavelength == np.min(SN.wavelength))
-    lowindex = lowindex[0]
-    highindex = np.where(compare_spectrum.wavelength == np.max(SN.wavelength))
-    highindex = highindex[0]
-
-    if len(lowindex) == 0 or len(highindex) == 0: #temperary test
-        return compare_spectrum
-
-    for i in lowindex+range(highindex-lowindex):
+    lowindex = find_nearest(compare_spectrum.wavelength,np.min(SN.wavelength))
+    highindex = find_nearest(compare_spectrum.wavelength,np.max(SN.wavelength))
+#should be np.where(compare_spectrum.wavelength == np.min(SN.wavelength) if data aligned)
+    for i in lowindex+np.arange(highindex-lowindex):
 #        avg_flux[i] = np.sum(SN.flux[i]/SN.error[i]**2 for SN in SN_Array if SN.error[i] != 0)/np.sum(1/SN.error[i]**2 for SN in SN_Array if SN.error[i] != 0 and SN.error[i] != None)
-        fluxes = np.array([compare_spectrum.flux[i],SN.flux[i]])
-        weights = np.array([1./compare_spectrum.error[i], 1./SN.error[i]])
-        avg_flux[i] = np.average(fluxes,weights=weights)
-
-    return avg_flux
+        try:
+            if SN.error[i] != 0:
+                fluxes = np.array([compare_spectrum.flux[i],SN.flux[i]])
+                weights = np.array([1./compare_spectrum.error[i], 1./SN.error[i]])    
+                avg_flux[i] = np.average(fluxes,weights=weights)
+                compare_spectrum.error[i] = math.sqrt((compare_spectrum.flux[i]-avg_flux[i])**2 + (SN.flux[i]-avg_flux[i])**2)
+            else:
+                break
+        except IndexError:
+            print "No flux data?"
+            i += 1
+            break
+            
+    compare_spectrum.flux = avg_flux
+# Add residual
+    return compare_spectrum
 
 """scale"""
 print "Scaling.."
 q = 1
+compare_spectrum = SN_Array[3]
 for SN in SN_Array:
-    low_wave = 3500
-    high_wave = 4000
+    low_wave = 3000
+    high_wave = 7000
 #     plt.plot(SN.wavelength, SN.flux,label=SN.name)
     if np.min(SN.wavelength)>= low_wave:
         low_wave = np.min(SN.wavelength)
@@ -105,28 +129,30 @@ for SN in SN_Array:
     highindex = np.where(temp == np.min(temp))
     lowindex = lowindex[0]
     highindex = highindex[0]
-    print lowindex, "low", highindex, "high"
     low = SN.wavelength[lowindex]
     high = SN.wavelength[highindex]
     SN.flux /= np.median(SN.flux)
-    plt.plot(SN.wavelength, SN.flux,label=SN.name)
-
-    if SN == SN_Array[0]:
-        compare_spectrum = SN
-        continue
+#    plt.plot(SN.wavelength, SN.flux,label=SN.name)
+    print lowindex, "low index", highindex, "high index"
     factors = compare_spectrum.flux[lowindex:highindex] / SN.flux[lowindex:highindex]
     scale_factor = np.mean(factors) #"""Maybe make this a weighted average"""
     SN.flux[lowindex:highindex] *= scale_factor
     SN.error[lowindex:highindex] *= scale_factor
     print q, "items scaled"
-    compare_spectrum.flux = average(compare_spectrum,SN)
+    
+    compare_spectrum = average(compare_spectrum,SN)
         
     q += 1
 """composite"""
-
-
-q = 0
-
-# plt.plot(compare_spectrum.wavelength, compare_spectrum.flux,'--',label='Composite')
+plt.figure(1)
+plt.subplot(211)
+plt.plot(compare_spectrum.wavelength, compare_spectrum.flux,label='Composite')
+plt.xlabel('Wavelength (A)')
+plt.ylabel('Scaled Flux')
+plt.subplot(212)
+plt.plot(compare_spectrum.wavelength, compare_spectrum.error, label='Error')
+plt.ylabel('Error')
+plt.subplot(211)
 plt.legend(prop={'size':10})
+plt.savefig('Average.png')
 plt.show()

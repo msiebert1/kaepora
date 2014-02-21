@@ -53,8 +53,9 @@ def get_data(flm_file,pathname,data,sn_file_count,i,ages,age):
 		pathname.append(flm_file[14:-4])	#adds SN path name into array
 		sn_file_count[i] += 1			#number of spectra for particular SN
 		age.append(ages)			#adds files and their ages to an array
+
 	except ValueError:
-		junk.append(flm_file)				#adds faulty files into array
+		junk.append(flm_file)			#adds faulty files into array
 
 
 
@@ -94,7 +95,7 @@ def chop_data(data,path,age):
 	delete = []	#temporary variable to track which indices to remove
 
 	for i in range(len(data)):
-		if data[i][0][0] > wave_min or data[i][-1][0] < wave_max or age[i][1] > 10 or age[i][1] < -10:
+		if data[i][0][0] > wave_min or data[i][-1][0] < wave_max or age[i][1] > 5 or age[i][1] < -5:
 			delete.append(i)
 			#print "\nwaves #",i,":",data_pos[i][:,0]
 			#print "from path:",path_pos[i],"does not make the cut"
@@ -181,7 +182,7 @@ fit_flux_pos = []		#new fitted/scaled flux (following interpolation)
 fit_flux_neg = []
 
 wave_min = 3800
-wave_max = 6500
+wave_max = 7500
 
 
 ###########################
@@ -218,8 +219,8 @@ print "found",len(data_pos),"CP files to read"
 print "found",len(data_neg),"CN files to read"
 print "found",len(junk),"corrupt files"
 print "===================="
-print "file breakdown"
-print "===================="
+#print "file breakdown"
+#print "===================="
 """
 for i in range(len(carbon_pos)):
 	print "CP sn",carbon_pos[i],"has",count_pos[i],"files"
@@ -228,8 +229,6 @@ for i in range(len(carbon_neg)):
 	print "CN sn",carbon_neg[i],"has",count_neg[i],"files"
 print "total of",sum(count_neg),"CN files found"
 """
-
-
 
 #find the corresponding redshift and max light times
 print "\nsearching for relevant SNe statistics..."
