@@ -8,25 +8,27 @@ import matplotlib.font_manager
 from matplotlib.font_manager import FontProperties
 from matplotlib.ticker import FuncFormatter
 
-"""
-### Tasks
-[X] what figures to plot - atm just main light curve plot 
-[X] flexible data label 
-[X] need to account for spaces in labels
-[X] pipe functions
-[X] personalizing the plots from the data
-[] zoom
-
-[] Write using latex font or similar
-[] stacked data (different y axis) 
-
-"""
+###########################################
+#             HOW TO USE
+## At the top of YOUR code write the following
+# import ../../src/Plotting
+# 
+## Place after you have calculated your data and fill in information
+# 
+# plot_data    = [wavelengths, avg_flux, plus, minus]       # Expects [X, Y, Pos_Y Err, Neg_Y Err]
+# title        = "Super Cool"                               # Within the quotes place plot title
+# image_title  = "WHOA.png"                                 # Name the image
+# xlabel       = "Wavelength ($\AA$)"                       # Label the X axis
+# ylabel       = "COOLLLLLL"				    # Label the Y axis
+# legend1      = "AVG Spectrum"                             # Name the title you wish to see in the legend
+# 
+## The following line will plot the data
+#
+# Plotting.main(plot_data,title, image_title , xlabel, ylabel, legend1)
+#
+#
+###########################################
 def main(plot_data, title, image_title, xlabel, ylabel, legend1):
-#def main(xaxis, yaxis,err_p, err_n, title, image_title, xlabel, ylabel, legend1):
-# open .txt file. Has the following: 
-# file location , title for plot, title for saved figure, x axis label, y axis label, legend label(s)
-#	name = np.loadtxt( 'Labels_for_plot.txt' , dtype = str , delimiter="\n" )
-#	test_data = np.loadtxt( name[0] ,dtype = str)
 
 # re-name variables
 	xaxis = plot_data[0] 
@@ -68,36 +70,4 @@ def main(plot_data, title, image_title, xlabel, ylabel, legend1):
 
 	plt.show()
 	
-	
-### Only plotting a single figure
-### Subplots can be introduced at any point
-"""
-# axes rect in relative 0,1 coords left, bottom, width, height.  Turn
-# off xtick labels on all but the lower plot
-
-f = figure()
-subplots_adjust(hspace=0.001)
-
-ax1 = subplot(3,1,1)
-ax1.plot(t,s1)
-ax1.text(1.1, 0.2, r"Plot_1", fontsize=20, color="b")
-yticks(arange(-0.9, 1.0, 0.4))
-ylim(-1,1)
-
-ax2 = subplot(3,1,2, sharex=ax1)
-ax2.plot(t,s2)
-ax2.text(1.1, 0.2, r"Plot_2", fontsize=20, color="k")
-yticks(arange(0.1, 1.0,  0.2))
-ylim(0,1)
-
-ax3 = subplot(3,1,3, sharex=ax1)
-ax3.plot(t,s3)
-ax3.text(1.1, 0.2, r"Plot_3", fontsize=20, color="b")
-yticks(arange(-0.9, 1.0, 0.4))
-ylim(-1,1)
-
-
-xticklabels = ax1.get_xticklabels()+ax2.get_xticklabels()
-setp(xticklabels, visible=False)
-"""
 
