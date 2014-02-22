@@ -11,8 +11,11 @@ import scipy
 
 sn = "1994m"
 ext = IrsaDust.get_extinction_table("SN%s"%sn)
-for e in ext:
-	print e
+for i in range(len(ext)):
+	if "B" in ext[i][0]:
+		print ext[i][3]
+	if "V" in ext[i][0]:
+		print ext[i][3]
 
 ascii.write(ext,"extinction.dat")
 
