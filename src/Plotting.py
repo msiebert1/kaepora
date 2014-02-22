@@ -17,7 +17,7 @@ from matplotlib.ticker import FuncFormatter
 # 
 # plot_data    = [wavelengths, avg_flux, plus, minus]       # Expects [X, Y, Pos_Y Err, Neg_Y Err]
 # title        = "Super Cool"                               # Within the quotes place plot title
-# image_title  = "WHOA.png"                                 # Name the image
+# image_title  = "../personal/YOUR_REP/WHOA.png"            # Name the image
 # xlabel       = "Wavelength ($\AA$)"                       # Label the X axis
 # ylabel       = "COOLLLLLL"				    # Label the Y axis
 # legend1      = "AVG Spectrum"                             # Name the title you wish to see in the legend
