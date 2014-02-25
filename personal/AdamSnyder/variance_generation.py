@@ -8,8 +8,8 @@ SN = np.loadtxt("../../data/bsnip/sn2002cc-20020420-ui.flm")
 
 wavelength = SN[:, 0]
 flux = SN[:, 1]
-varflux = np.zeros(len(wavelength))+ 1.0E-14
-vexp = 0.0005
+varflux = np.zeros(len(wavelength))+1.0
+vexp = 0.01
 new_flux = np.zeros(len(wavelength), float)
 
 outflux = np.array([])
@@ -32,7 +32,7 @@ for i in range(len(wavelength)):
 
 error = flux - new_flux
 
-error = np.sqrt(abs(error))
+error = abs(error)
 new_error = np.zeros(len(error))
 
 for i in range(len(wavelength)):
@@ -49,5 +49,5 @@ for i in range(len(wavelength)):
 
     new_error[i] = W1/W0
 
-plt.plot(wavelength, new_error, 'b', wavelength, new_flux, 'r')
+plt.plot(wavelength, flux, 'b', wavelength, new_flux, 'r', wavelength, new_error, 'g')
 plt.show()
