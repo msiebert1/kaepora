@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 
 #Read in data file and put wavelength, flux and error into separate arrays.  Should make this to read in a list of spectra paths, then do the smoothing for that list.
-SN=np.genfromtxt('sn1990m-19900717-oi.flm')
+SN=np.genfromtxt('sn2001l-20010201-ui.flm')
 
 wavelength = SN[:,0]
 flux = SN[:,1]
@@ -72,9 +72,14 @@ def smooth(x,window_len=25,window='hanning'):
 
 new_flux=smooth(flux)
 
-print len(new_flux)
-print len(wavelength)
+ratio = flux/new_flux
 
-plt.plot(wavelength, flux, 'k')
-plt.plot(wavelength, new_flux,'y')
+for i in range(len(ratio)):
+    if ratio[i] > 1.05:
+        flux[i] = new_flux[i]
+    if ratio[i] < 0.95:
+        flux[i] = new_flux[i]
+
+plt.plot(wavelength,flux)
+#plt.plot(wavelength,new_flux)
 plt.show()
