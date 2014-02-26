@@ -5,9 +5,10 @@ import matplotlib.pyplot as plt
 import scipy.interpolate as intp
 import math
 
-#'#'#'#'#
-import Plot_2
-#'#'#'#'#
+#####'#'#'#'#####
+#import Plot_2
+import Plotting
+#####'#'#'#'#####
 
 
 #authors @nkazmi2, @nishimo1 
@@ -373,17 +374,17 @@ print "===================="
 ############################
 
 
-#'#'#'#'#
-title    = "Gram Test"
-x_axis   = "Wavelength ($\AA$)"
-y_axis   = "Scaled Flux"
-legend1  = "Red and Unscaled"
-legend2  = "Error +"
-legend3  = "Error -"
-x_range  = wavelengths
-y_range  = avg_flux_p
-Plot_2.main(x_range, y_range ,title, x_axis, y_axis, legend1, legend2, legend3)
-#'#'#'#'#
+#####'#'#'#'#####
+#[ X_AXIS (Wavelength) , Y_AXIS (Composite) , Positive_Error , Negative_Error]
+plot_data    = [wavelengths, avg_flux_p, plus_p, minus_p]
+title        = "Super Cool"
+image_title  = "WHOA.png"
+xlabel       = "Wavelength ($\AA$)"
+ylabel       = "COOLLLLLL"
+legend1      = "Curvy"
+Plotting.main(plot_data,title, image_title , xlabel, ylabel, legend1)
+#Plot_2.main(plot_data,title, image_title , xlabel, ylabel, legend1)
+#####'#'#'#'#####
 """
 ### file location  ### name[0], Data File: X_range , Y_range , Error_Plus , Error_minus
 Carbon_Results.txt

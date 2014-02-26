@@ -6,11 +6,6 @@ import numpy as np
 import sqlite3 as sq3
 import os
 
-"""
-#Declares path to root directory
-root = "/Users/Rebecca/astr596/data"
-"""
-
 #Connect to the database
 path = "/Users/Rebecca/astr596/personal/MichaelSchubert/SNe.db"
 con = sq3.connect(path)
@@ -117,6 +112,7 @@ ax2 = fig.add_subplot(212)
 ax2.plot(integer_wave, (RMS/composite_flux)*100, color="m", label = "Residual RMS")
 ax2.set_xlim(min(integer_wave), max(integer_wave))
 ax2.set_ylabel("Residual RMS")
+ax2.legend(loc = "best")
 fig.set_tight_layout(True)
 plt.savefig("composite_spectra.pdf", format="PDF")
 plt.show()
