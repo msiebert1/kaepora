@@ -219,7 +219,7 @@ file_path = []
 junk_data = []
 
 #number of spectra to modify
-num = 2
+num = 20
 
 #get data, pathnames
 for i in range(num):
@@ -257,27 +257,28 @@ for i in range(num):#go through selected spectra data
 		if sn[j] in file_path[i]:#SN with parameter matches the path
 			print "looking at SN",sn[j]
 			ext = IrsaDust.get_extinction_table("SN%s"%sn[j])
-			print ext
-			b = 0
-			v = 0
-			for k in range(len(ext)):
+			print ext[1][0],ext[1][3]
+			print ext[2][0],ext[2][3]
+			b = ext[1][3]
+			v = ext[2][3]
+			"""for k in range(len(ext)):
 				print "looking at",ext[k][0]
 				if "B" in ext[k][0]:
 					print "found b:",ext[k][3]
 					b = ext[k][3]
 				if "V" in ext[k][0]:
 					print "found v:",ext[k][3]
-					v = ext[k][3]
+					v = ext[k][3]"""
 				
-			print "\n",sn[j]			
-			print "starting flux:\n",spectra_data[i][:,1]
-			print "b-v value:",b,v
+			#print "\n",sn[j]			
+			#print "starting flux:\n",spectra_data[i][:,1]
+			#print "b-v value:",b,v
 			spectra_data[i][:,1] = fm_unred(spectra_data[i][:,0],spectra_data[i][:,1],b-v,R_V=3.1)
-			print "de-reddened flux:\n",spectra_data[i][:,1]
-			print "starting wavelength:\n",spectra_data[i][:,0]
+			#print "de-reddened flux:\n",spectra_data[i][:,1]
+			#print "starting wavelength:\n",spectra_data[i][:,0]
 			spectra_data[i][:,0] /= (1+z[j])
-			print "z:",z[j]
-			print "de-red-shifted wavelength:\n",spectra_data[i][:,0]	
+			#print "z:",z[j]
+			#print "de-red-shifted wavelength:\n",spectra_data[i][:,0]	
 
 
 # data interpolation
