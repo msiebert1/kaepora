@@ -49,7 +49,11 @@ for i in range(tries):
     file[i] = np.loadtxt('random/' + str(i) + '.dat', unpack = True)
     spect[i] = file[i][1]
 
+
+
 composite = np.mean(spect, axis = 0)    ### Composite spectrum (just taking mean)
+median = np.median(spect, axis = 0)     ### Median of the spectrum (for scaling)
+scaled_comp = np.divide(composite, median)  ### Scaled spectrum
 
 
 ### 16th and 84th percentile of the spectrum (for scatter plot)
@@ -64,8 +68,8 @@ low_ind = np.round(tries * low_pc).astype(int)
 up_ind = np.round(tries * up_pc).astype(int)
 
 ### Sort the fluxes in each wavelength, and put the 16th and 84th percentile fluxes into two arrays
-low_arr = np.sort(spect, axis = 0)[low_ind - 1]
-up_arr = np.sort(spect, axis = 0)[up_ind - 1]
+low_arr = np.divide(np.sort(spect, axis = 0)[low_ind - 1], median)
+up_arr = np.divide(np.sort(spect, axis = 0)[up_ind - 1], median)
 
 
 ### Write the wavelength and scatter in a file.
@@ -73,15 +77,18 @@ outfile = open('scatter.dat', 'w')
 
 ### Writing the wavelength, composite, 16th and 84th percentile to a file.
 for i in range(len(low_arr)):
-    outfile.write(str(file[0][0][i]) + '\t' + str(composite[i]) + '\t' + str(low_arr[i]) + '\t' + str(up_arr[i]) + '\n')
+    outfile.write(str(file[0][0][i]) + '\t' + str(scaled_comp[i]) + '\t' + str(low_arr[i]) + '\t' + str(up_arr[i]) + '\n')
 
+outfile.close()
+
+"""
 plt.plot(file[0][0], low_arr, color = 'r')
-plt.plot(file[0][0], composite, color = 'b')
+plt.plot(file[0][0], scaled_comp, color = 'b')
 plt.plot(file[0][0], up_arr, color = 'k')
 plt.legend(['16th', 'comp', '84th'])
 plt.title('# of spectra = ' + str(tries))
-plt.ylim((0, 1.4))
+#plt.ylim((0, 1.4))
 plt.plot()
 plt.show()
 
-outfile.close()
+"""
