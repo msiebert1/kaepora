@@ -21,7 +21,7 @@ from matplotlib.ticker import FuncFormatter
 [] stacked data (different y axis) 
 
 """
-def main(plot_data_1,plot_data_2,title,image_title,xlabel,ylabel,legend_1,legend_2):
+def main(plot_data_1,plot_data_2,title,image_title,xlabel,ylabel_1,ylabel_2,legend_1,legend_2):
 #def main(num_of_plots,plot_data_1,plot_data_2,title,image_title,xlabel,ylabel,legend_1,legend_2):
 # re-name variables
 	xaxis_1 = plot_data_1[0] 
@@ -40,32 +40,23 @@ def main(plot_data_1,plot_data_2,title,image_title,xlabel,ylabel,legend_1,legend
 	f = figure()
 	subplots_adjust(hspace=0.001)
 
+# Plotting details for figure 1
 	ax1 = subplot(2,1,1)
 	ax1.plot(xaxis_1,yaxis_1,'b',label = legend_1 )
-#	ax1.text(1.1, 0.2, r"Plot_1", fontsize=20, color="b")
-#	yticks(arange(-0.9, 1.0, 0.4))
+	plt.ylabel( ylabel_1 )
+	# Below fills the error around the plot
 	plt.fill_between(xaxis_1,err_p_1,err_n_1,alpha=1.5, edgecolor='#000080', facecolor='#AFEEEE')
-	
 
+# Plotting details for figure 2
 	ax2 = subplot(2,1,2, sharex=ax1)
 	ax2.plot(xaxis_2,yaxis_2,'b',label = legend_2 )
-#	ax2.text(1.1, 0.2, r"Plot_2", fontsize=20, color="k")
-#	yticks(arange(0.1, 1.0,  0.2))
+	plt.ylabel( ylabel_2 )
+	# Below adds the error around the plot
 	plt.fill_between(xaxis_2,err_p_2,err_n_2,alpha=1.5, edgecolor='#006400', facecolor='#98FB98')
 
-	
-	xticklabels = ax1.get_xticklabels()+ax2.get_xticklabels()
-	setp(xticklabels, visible=False)
-	
-	#ax1 = subplot(2,1,1) # Create the plot
-	#ax2 = subplot(2,1,2) # Create the plot
-	#ax1.plot(xaxis_1,yaxis_1,'b',label = legend_1 ) # Read legend labels from files
-	#ax2.plot(xaxis_2,yaxis_2,'g',label = legend_2 )
-
-# Error surrounds data
-	#plt.fill_between(xaxis_1,err_p_1,err_n_1,alpha=1.5, edgecolor='#000080', facecolor='#AFEEEE')
-	#plt.fill_between(xaxis_2,err_p_2,err_n_2,alpha=1.5, edgecolor='#006400', facecolor='#98FB98')
-
+	# Removes x-axis labels. May need later. 	
+	#xticklabels = ax1.get_xticklabels()+ax2.get_xticklabels()
+	#setp(xticklabels, visible=False)
 
 # Remove legend box frame 
 	l = legend()
@@ -80,7 +71,6 @@ def main(plot_data_1,plot_data_2,title,image_title,xlabel,ylabel,legend_1,legend
 #Label the figure and show
 	plt.title( title )
 	plt.xlabel( xlabel )
-	plt.ylabel( ylabel )
 	plt.savefig( image_title )
 
 	plt.show()
