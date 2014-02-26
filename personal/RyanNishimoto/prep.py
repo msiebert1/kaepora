@@ -2,8 +2,9 @@ import os
 import glob
 import specutils
 from astropy.table import Table
+from astropy.io import ascii
 import astroquery
-from astroquery.ned import Ned
+from astroquery.irsa_dust import IrsaDust
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.interpolate as inter
@@ -218,12 +219,11 @@ file_path = []
 junk_data = []
 
 #number of spectra to modify
-num = 5
+num = 2
 
 #get data, pathnames
 for i in range(num):
 	try:
-		print i
         	spectra_data.append(np.loadtxt(spectra_files[i]))
         	file_path.append(spectra_files[i][14:-4])
 		#print file_path
@@ -255,16 +255,29 @@ Use NED
 for i in range(num):#go through selected spectra data
 	for j in range(len(sn)):#go through list of SN parameters
 		if sn[j] in file_path[i]:#SN with parameter matches the path
-			Ned.get_table(sn[j])
-			#print "\n",sn[j]			
-			#print "starting flux:\n",spectra_data[i][:,1]
-			#print "b-v value:",bv_i[j]
-			spectra_data[i][:,1] = fm_unred(spectra_data[i][:,0],spectra_data[i][:,1],bv_o[j]-bv_i[j],R_V=3.1)
-			#print "de-reddened flux:\n",spectra_data[i][:,1]
-			#print "starting wavelength:\n",spectra_data[i][:,0]
+			print "looking at SN",sn[j]
+			ext = IrsaDust.get_extinction_table("SN%s"%sn[j])
+			print ext
+			b = 0
+			v = 0
+			for k in range(len(ext)):
+				print "looking at",ext[k][0]
+				if "B" in ext[k][0]:
+					print "found b:",ext[k][3]
+					b = ext[k][3]
+				if "V" in ext[k][0]:
+					print "found v:",ext[k][3]
+					v = ext[k][3]
+				
+			print "\n",sn[j]			
+			print "starting flux:\n",spectra_data[i][:,1]
+			print "b-v value:",b,v
+			spectra_data[i][:,1] = fm_unred(spectra_data[i][:,0],spectra_data[i][:,1],b-v,R_V=3.1)
+			print "de-reddened flux:\n",spectra_data[i][:,1]
+			print "starting wavelength:\n",spectra_data[i][:,0]
 			spectra_data[i][:,0] /= (1+z[j])
-			#print "z:",z[j]
-			#print "de-red-shifted wavelength:\n",spectra_data[i][:,0]	
+			print "z:",z[j]
+			print "de-red-shifted wavelength:\n",spectra_data[i][:,0]	
 
 
 # data interpolation
@@ -301,8 +314,8 @@ for i in range(num):
     
      # plot spectra (just for testing, no need to implement)
 
-    plt.plot(wavelength,fitted_flux)
+    #plt.plot(wavelength,fitted_flux)
     
-plt.xlim(3000,7000)
-plt.show()
-plt.savefig('test.png')
+#plt.xlim(3000,7000)
+#plt.show()
+#plt.savefig('test.png')
