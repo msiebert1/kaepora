@@ -34,9 +34,10 @@ cur = con.cursor()
 print "Reading max light spectra from files..."
 names = []
 j = 1
-for line in max_light[0:290]:
+for line in max_light[0:50]:
         SN = supernova()
 	SN.address = line[1]
+	SN.name = line[0]
 	data = np.loadtxt(SN.address)
 	SN.wavelength = data[:,0]
         SN.flux = data[:,1]
@@ -55,7 +56,6 @@ for SN in SN_Array:
     for row in cur.execute('SELECT Filename, SN, Redshift, MinWave, MaxWave FROM Supernovae'):
 	if row[0] == SN.address:
 	    SN.filename = row[0]
-	    SN.name = row[1]
 	    SN.redshifts = row[2]
             SN.minwave = row[3]
 	    SN.maxwave = row[4]
@@ -63,7 +63,7 @@ for SN in SN_Array:
 	    print j
 	    j += 1
 	else:
-	    SN_Array.remove(SN)
+	    continue
 
 #SN_Array = SN_Array[0:20]
 print len(SN_Array), "items found"
@@ -142,7 +142,6 @@ for SN in SN_Array:
     low = SN.wavelength[lowindex]
     high = SN.wavelength[highindex]
     SN.flux /= np.median(SN.flux)
-#    plt.plot(SN.wavelength, SN.flux,label=SN.name)
     print lowindex, "low index", highindex, "high index"
     factors = compare_spectrum.flux[lowindex:highindex] / SN.flux[lowindex:highindex]
     scale_factor = np.mean(factors)
@@ -150,15 +149,16 @@ for SN in SN_Array:
     SN.error[lowindex:highindex] *= scale_factor
     #plt.subplot(311)
     #plt.plot(SN.wavelength, SN.flux)
-    print q, "items scaled at factor", scale_factor
+    print "Spectrum", q, "scaled at factor", scale_factor
     compare_spectrum = average(compare_spectrum,SN)
     q += 1
-print compare_spectrum.error
+print compare_spectrum.flux, "Composite Spectrum Scaled Flux"
+print compare_spectrum.error, "Composite Spectrum Error"
     	
         
 print len(compare_spectrum.wavelength)
 """composite"""
-composite_file = Table([compare_spectrum.wavelength, compare_spectrum.flux, compare_spectrum.error], names = ('Wavelength', 'Scaled Flux', 'Error'))
+composite_file = Table([compare_spectrum.wavelength, compare_spectrum.flux, compare_spectrum.error], names = ('Wavelength', 'Scaled_Flux', 'Error'))
 composite_file.write('CompositeSpectrum.dat', format='ascii')
 plt.figure(1)
 plt.subplot(211)
@@ -180,5 +180,5 @@ plt.xlim(4000,7000)
 #plt.ylabel('Age')
 plt.subplot(211)
 plt.legend(prop={'size':10})
-plt.savefig('Average.png')
+plt.savefig('Composite.png')
 plt.show()
