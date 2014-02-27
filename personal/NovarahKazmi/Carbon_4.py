@@ -375,20 +375,15 @@ print "===================="
 
 
 #####'#'#'#'#####
-#[ X_AXIS (Wavelength) , Y_AXIS (Composite) , Positive_Error , Negative_Error]
-plot_data_1  = [wavelengths, avg_flux_p, plus_p, minus_p]
-plot_data_2  = [wavelengths, avg_flux_n, plus_n, minus_n]
+
+plot_data_1  = [wavelengths, avg_flux_p, plus_p, minus_p] #[ X_AXIS (Wavelength) , Y_AXIS (Composite) , Positive_Error , Negative_Error]
+plot_data_2  = [wavelengths, avg_flux_n, plus_n, minus_n] #[ X_AXIS (Wavelength) , Y_AXIS (Composite) , Positive_Error , Negative_Error]
+plot_data_3  = [wavelengths, scatter_p, scatter_n,]       #[ X_AXIS (Wavelength) , First Y_value      , Second Y_value ]
 num_of_plots = 2
-title        = "Super Cool"
-image_title  = "Compare.png"
-xlabel       = "Wavelength ($\AA$)"
-ylabel_1     = "COOLLLLLL"
-ylabel_2     = "More Stuff"
-legend_1     = "First"
-legend_2     = "Second"
-#Plotting.main(plot_data,title, image_title , xlabel, ylabel, legend_1,legend_2)
-#Plot_2.main(num_of_plots,plot_data,title, image_title , xlabel, ylabel, legend_1,legend_2)
-Plot_2.main(plot_data_1,plot_data_2,title, image_title , xlabel, ylabel_1,ylabel_2, legend_1,legend_2)
+image_title  = "Compare.png"				  # You can specify the location between " " as well 
+plot_labels  = ["Clever Title","Wavelength ($\AA$)","AVG Spectrum","Scatter"] #[ Figure Title, X title, Y-top Title, Y-bottom Title]
+legend       = ["First","Second","Third","Fouth"]
+Plot_2.main(plot_data_1 , plot_data_2 , plot_data_3 , image_title , plot_labels , legend)
 #####'#'#'#'#####
 """
 ### file location  ### name[0], Data File: X_range , Y_range , Error_Plus , Error_minus
