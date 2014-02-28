@@ -22,7 +22,7 @@ file_path = []
 junk_data = []
 
 #number of spectra to modify
-num = 20
+num = 200
 
 #get data, pathnames
 for i in range(num):
@@ -81,9 +81,9 @@ NOTE:Currently only has SN_name, B, and V values for purposes of Dereddening due
 for i in range(num):#go through selected spectra data
 	for j in range(len(sn)):#go through list of SN parameters
 		if sn[j] in file_path[i]:#SN with parameter matches the path
-			print "\n###############################\nlooking at",sne[j+1],"matched with",sn[j]
-			b = sne[j+1][1].astype(float)
-			v = sne[j+1][2].astype(float)
+			print "\n###############################\nlooking at",sne[j],"matched with",sn[j]
+			b = sne[j][1].astype(float)
+			v = sne[j][2].astype(float)
 			bv = b-v
 			print "B-V=",bv
 			print "starting flux:\n",spectra_data[i][:,1]
