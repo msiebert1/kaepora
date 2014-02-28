@@ -4,9 +4,6 @@ from matplotlib import rc
 import matplotlib.pyplot as plt
 import math
 from pylab import *
-import matplotlib.font_manager
-from matplotlib.font_manager import FontProperties
-from matplotlib.ticker import FuncFormatter
 
 ###########################################
 #             HOW TO USE
@@ -63,6 +60,21 @@ def main(fig_type,plot_data_1,plot_data_2,plot_data_3,image_title,plot_labels,le
 
 	f = figure()
 	subplots_adjust(hspace=0.001)
+
+# Changing font parameters. 
+	params = {'legend.fontsize': 8,  
+          'legend.linewidth': 2,
+          'legend.font': 'serif',
+          'xtick.labelsize': 12, 
+          'ytick.labelsize': 12} # changes font size in the plot legend
+
+	plt.rcParams.update(params) # reset the plot parameters
+
+	font = {'family' : 'serif',   # Font Parameters
+        'color'  : 'black',
+        'weight' : 'bold',
+        'size'   : 8,
+        }
 
 # Data should be read in and then plotted, make it so the user doens't have to choose the figure to plot
 	if fig_type == 2.3: # Plotting details for two figures with a total of three sets of data
