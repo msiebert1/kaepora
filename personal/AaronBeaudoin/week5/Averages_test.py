@@ -15,27 +15,21 @@ from astropy.table import Table
 class supernova(object):
     """Attributes can be added"""
 
+
+#initializes things and grabs the file lists
+print "Reading max light spectra from files..."
 SN_Array = []
 compare_spectrum = []
-
-#names = np.loadtxt("", usecols = (0)) #"need to grab all the other data too"
-#for row in names:
-#    SN = supernova()
-#    SN.input = row[0]
-#    SN_Array.append(SN)
-#print len(names), #"supernovae found"
 file_list = []
 file_list = glob.glob("../../data/cfa/*/*.flm")
 max_light = []
 max_light = np.loadtxt("../week4/MaxSpectra.dat", dtype = 'str', delimiter = " ", skiprows = 1)
-
+#connect to the database, may be changed later
 con = sq3.connect('../../MichaelSchubert/SNe.db')
 cur = con.cursor()
-print "Reading max light spectra from files..."
 names = []
 j = 1
-#for line in max_light[0:290]:
-#SN = supernova()
+#Reads the data of max light spectra so only one per supernova is used
 for line in max_light[0:50]:
 	SN = supernova()
 	SN.address = line[1]
@@ -52,6 +46,7 @@ for line in max_light[0:50]:
 	print j
 	j += 1
 print j, 'supernovae fluxed'
+#Reads from database, may be changed later
 print "Reading properties from database..."
 j = 0
 for SN in SN_Array:
@@ -59,7 +54,7 @@ for SN in SN_Array:
 	if row[0] == SN.address:
 	    SN.filename = row[0]
 	    SN.redshifts = row[2]
-		SN.minwave = row[3]
+	    SN.minwave = row[3]
 	    SN.maxwave = row[4]
 	    names.append(SN.name)
 	    print j
@@ -69,6 +64,8 @@ for SN in SN_Array:
 
 #SN_Array = SN_Array[0:20]
 print len(SN_Array), "items found"
+#Anything with blank error columns gets removed, since we can't make a weighted average with it.
+#This can be changed to just put them in a separate array and then do a non-weighted average...if that's something we want
 SN_Array = [SN for SN in SN_Array if hasattr(SN, 'error')]
 print "Done checking. ", len(SN_Array), "items remain"       
 
@@ -85,6 +82,7 @@ def average(compare_spectrum,SN):
 		compare_spectrum == SN
 		return compare_spectrum
 	avg_flux = compare_spectrum.flux
+	#redshift stuff wasn't working so we aren't dealing with it right now
 	#avg_red = compare_spectrum.redshifts
 	mean_flux = compare_spectrum.flux
 	#redshifts = compare_spectrum.redshifts
@@ -92,7 +90,6 @@ def average(compare_spectrum,SN):
 	highindex = find_nearest(compare_spectrum.wavelength,np.max(SN.wavelength))
 #should be np.where(compare_spectrum.wavelength == np.min(SN.wavelength) if data aligned)
 	for i in lowindex+np.arange(highindex-lowindex):
-#        avg_flux[i] = np.sum(SN.flux[i]/SN.error[i]**2 for SN in SN_Array if SN.error[i] != 0)/np.sum(1/SN.error[i]**2 for SN in SN_Array if SN.error[i] != 0 and SN.error[i] != None)
 		try:
 			if ((SN.error[i] != 0) & (compare_spectrum.error[i] != 0)):
 				fluxes = np.array([compare_spectrum.flux[i],SN.flux[i]])
@@ -105,6 +102,7 @@ def average(compare_spectrum,SN):
 				#compare_spectrum.redshifts[i] = np.average(redshifts, weights=weights)
 				#avg_ages[i] = np.average(ages, weights=weights)
 				compare_spectrum.error[i] = math.sqrt((weights[0]**2)*(compare_spectrum.error[i])**2 + (weights[1]**2)*(SN.error[i])**2)
+				#somehow...this doesn't work. Error gets stuck at a constant
 			else:
 				break
 		except IndexError:
@@ -115,18 +113,9 @@ def average(compare_spectrum,SN):
 	compare_spectrum.flux = avg_flux
 	#compare_spectrum.redshifts = avg_red
         #compare_spectrum.ages = avg_ages
-# Add residual formula?
+	# Add residual formula?
 	return compare_spectrum
-
-"""scale"""
-print "Scaling.."
-
-#compare_spectrum = SN_Array[0]
-#scales, averages, weighted average
-#plt.figure(1)
-#out_of_range_low = []
-#out_of_range_high = []
-
+#Here's the function that scales spectra based on the most recent composite. It gets run multiple times if there are non-overlapping spectra.
 def splice(compare_spectrum,SN_Array,l_wave,h_wave):
 	q = 1
 	new_array=[]
@@ -138,9 +127,9 @@ def splice(compare_spectrum,SN_Array,l_wave,h_wave):
 			low_wave = np.min(SN.wavelength)
 		if np.max(SN.wavelength) <= high_wave:
 			high_wave = np.max(SN.wavelength)
-		if (min(SN.wavelength) > high_wave) | (max(SN.wavelength) < low_wave):
+		if (np.min(SN.wavelength) >= high_wave) | (np.max(SN.wavelength) <= low_wave):
 			new_array.append(SN)
-		#check the number of scaled versus the number before scaling, if != then expand range and run again
+		#checks to see if there is any overlap, then creates a separate array to be dealt with later
 		temp = np.abs(SN.wavelength-low_wave)
 		lowindex = np.where(temp == np.min(temp))
 		temp = np.abs(SN.wavelength-high_wave)
@@ -163,6 +152,10 @@ def splice(compare_spectrum,SN_Array,l_wave,h_wave):
 		q += 1
 	return compare_spectrum, new_array
 
+"""scale"""
+print "Scaling.."
+
+#checks for any non-overlapping spectra, then expands range if necessary
 i=0
 spectrum=SN_Array[0]
 array=SN_Array
@@ -181,7 +174,7 @@ compare_spectrum=spectrum
 print compare_spectrum.flux, "Composite Spectrum Scaled Flux"
 print compare_spectrum.error, "Composite Spectrum Error"
     	
-        
+#This makes plots and saves the composite
 print len(compare_spectrum.wavelength)
 """composite"""
 composite_file = Table([compare_spectrum.wavelength, compare_spectrum.flux, compare_spectrum.error], names = ('Wavelength', 'Scaled_Flux', 'Error'))
@@ -196,7 +189,7 @@ plt.xlim(4000,7000)
 plt.subplot(212)
 plt.plot(compare_spectrum.wavelength, compare_spectrum.error, label='Error')
 plt.ylabel('Error')
-plt.plot(compare_spectrum.wavelength, compare_spectrum.residual, label='Residual')
+#plt.plot(compare_spectrum.wavelength, compare_spectrum.residual, label='Residual')
 plt.xlim(4000,7000)
 #plt.subplot(313)
 #plt.plot(compare_spectrum.wavelength, compare_spectrum.redshifts, label='Redshift')
