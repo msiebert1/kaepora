@@ -4,9 +4,10 @@ from matplotlib import rc
 import matplotlib.pyplot as plt
 import math
 from pylab import *
-import matplotlib.font_manager
-from matplotlib.font_manager import FontProperties
-from matplotlib.ticker import FuncFormatter
+#import matplotlib.font_manage
+#import matplotlib.gridspec as gridspec # Doesn't exist on EWS Linux
+#from matplotlib.font_manager import FontProperties
+#from matplotlib.ticker import FuncFormatter
 
 """
 ### Tasks
@@ -48,15 +49,70 @@ def main(fig_type,plot_data_1,plot_data_2,plot_data_3,image_title,plot_labels,le
 	legend_2  = legend_names[1]
 	legend_3  = legend_names[2]
 	legend_4  = legend_names[3]
-	
+"""
+# Scale the flux. Temporary method, will try other methods. 
+#for i in range(plot_data_1):
+	yaxis_1   /= np.median(plot_data_1[:][1])
+	yaxis_2   /= np.median(plot_data_2[:][1])
+	yaxis_3_1 /= np.median(plot_data_3[:][1])
+	yaxis_3_2 /= np.median(plot_data_3[:][2])
+#	new_spectra.append([wavelength, yaxis])
+	print yaxis_3_2
+"""	
 # Legend parameters, must come before plotting
 	params = {'legend.fontsize': 15, 'legend.linewidth':2}
 	plt.rcParams.update(params)
-
+	
 	f = figure()
 	subplots_adjust(hspace=0.001)
 
+# Changing font parameters. 
+	params = {'legend.fontsize': 8,  
+          'legend.linewidth': 2,
+          'legend.font': 'serif',
+          'xtick.labelsize': 8, 
+          'ytick.labelsize': 8} # changes font size in the plot legend
 
+	plt.rcParams.update(params) # reset the plot parameters
+
+	font = {'family' : 'serif',   # Font Parameters
+        'color'  : 'black',
+        'weight' : 'bold',
+        'size'   : 8,
+        }
+
+
+	# There is a group interpolating and de-reddening the data
+	#Interpolating
+	#interpolate(data_pos, fit_flux_pos)
+	#interpolate(data_neg, fit_flux_neg)
+	
+	#avg_flux_p = sum(fit_flux_pos)/len(data_pos)
+	#avg_flux_n = sum(fit_flux_neg)/len(data_neg)
+
+
+	#residual and RMS 
+	res_flux_p = []
+	res_flux_n = []
+
+	for i in range(len(data_pos)):
+		res_flux_p.append(fit_flux_pos[i]-avg_flux_p)
+
+	rms_p     = np.sqrt(np.mean(np.square(res_flux_p),axis = 0))
+	plus_p    = avg_flux_p + rms_p
+	minus_p   = avg_flux_p - rms_p
+	scatter_p = np.divide(rms_p,avg_flux_p)
+
+
+	for i in range(len(data_neg)):
+		res_flux_n.append(fit_flux_neg[i]-avg_flux_n)
+
+	rms_n     = np.sqrt(np.mean(np.square(res_flux_n),axis = 0))
+	plus_n    = avg_flux_n + rms_n
+	minus_n   = avg_flux_n - rms_n
+	scatter_n = np.divide(rms_n,avg_flux_n)
+
+# Types of plots. This will be changed so that the options can be automated. 
 	if fig_type == 2.3: # Plotting details for two figures with a total of three sets of data
 		ax1 = subplot(2,1,1)
 		plt.title( title )  # Placement of figure title in code is important
@@ -74,7 +130,7 @@ def main(fig_type,plot_data_1,plot_data_2,plot_data_3,image_title,plot_labels,le
 		ax2.plot(xaxis_3,yaxis_3_1,'b',label = legend_3 )
 		ax2.plot(xaxis_3,yaxis_3_2,'g',label = legend_4 )
 		
-#Removes x-axis labels for ax1. May need later. 	
+# Removes x-axis labels for ax1. May need later. 	
 	# 	Commented code is to remove labels for both figures
 	#	xticklabels = ax1.get_xticklabels() + ax2.get_xticklabels()
 	#	setp(xticklabels, visible=False)
@@ -98,7 +154,6 @@ def main(fig_type,plot_data_1,plot_data_2,plot_data_3,image_title,plot_labels,le
 		ax1.plot(xaxis_1,yaxis_1,'k',label = legend_1 )
 		plt.fill_between(xaxis_1,err_p_1,err_n_2,alpha=1.5, edgecolor='#000080', facecolor='#5F9EA0')
 
-
 # Remove legend box frame 
 	l = legend()
 	l.draw_frame(False)
@@ -111,7 +166,7 @@ def main(fig_type,plot_data_1,plot_data_2,plot_data_3,image_title,plot_labels,le
 	plt.xlim((xmin,xmax))
 
 #Label the figure and show
-	plt.xlabel( xlabel )
+	plt.xlabel( xlabel, fontdict = font )
 	plt.savefig( image_title )
 	plt.show()
 
