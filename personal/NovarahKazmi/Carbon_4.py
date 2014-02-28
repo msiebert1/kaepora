@@ -229,11 +229,11 @@ print "total of",sum(count_neg),"CN files found"
 chop_data(data_pos,path_pos)
 #print "copped data/path of length",len(data_pos),"/",len(path_pos)
 
-print "\nChopping C + complete."
+#print "\nChopping C + complete."
 
 #print "\noriginal data/path of length",len(data_neg),"/",len(path_neg)
 chop_data(data_neg,path_neg)
-print "\nChopping C - complete."
+#print "\nChopping C - complete."
 
 
 #removes sn names we don't want to look at
@@ -385,24 +385,6 @@ plot_labels  = ["Clever Title","Wavelength ($\AA$)","AVG Spectrum","Scatter"] #[
 legend       = ["First","Second","Third","Fouth"]
 Plot_2.main(fig_type, plot_data_1 , plot_data_2 , plot_data_3 , image_title , plot_labels , legend)
 #####'#'#'#'#####
-"""
-### file location  ### name[0], Data File: X_range , Y_range , Error_Plus , Error_minus
-Carbon_Results.txt
-#../../data/cfa/sn2006E/sn2006E-20060126.53-fast.flm
-### Name of plot   ### name[1]
-Carbon_Test.png
-### title for plot ### name[2]
-Test Plot
-### x axis label   ### name[3]
-$\mathtt{Wavelength}$ ($\AA$)
-### y axis label   ### name[4]
-Scaled Flux
-### legend label   ### name[5], name[6], name[7]
-Red and Unscaled
-Error +
-Error -
-
-"""
 
 #fig = plt.figure()
 """

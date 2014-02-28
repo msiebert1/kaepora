@@ -1,6 +1,6 @@
 import os
 import glob
-import specutils
+from specutils import extinction as ex
 from astropy.table import Table
 from astropy.io import ascii
 import astroquery
@@ -9,6 +9,50 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.interpolate as inter
 
+
+#list of files
+spectra_files = glob.glob ('../../data/cfa/*/*.flm')
+
+#holds spectra data (wavelength,flux,weight)
+spectra_data = []
+#holds file pathname
+file_path = []
+
+junk_data = []
+
+#number of spectra to modify
+num = 1
+
+#get data, pathnames
+for i in range(num):
+	try:
+        	spectra_data.append(np.loadtxt(spectra_files[i]))
+        	file_path.append(spectra_files[i][14:-4])
+		#print file_path
+             
+	except ValueError:
+		junk_data.append(spectra_files)
+
+#update num to number of good spectra files
+num = len(spectra_data)
+
+#table containing sn names, redshifts, etc.
+sn_parameters = np.genfromtxt('../../data/cfa/cfasnIa_param.dat',dtype = None)
+
+#holds sn name
+sn = []
+#holds redshift value
+z = []
+
+#get relevent parameters needed for calculations
+for i in range(len(sn_parameters)):
+	sn.append(sn_parameters[i][0])
+	z.append(sn_parameters[i][1])
+
+"""
+NOTE:
+Use NED
+"""
 
 """
 Note:
@@ -216,50 +260,6 @@ def fm_unred(wave, flux, ebv, *args, **kwargs):
         return flux, ExtCurve
 
 
-
-#list of files
-spectra_files = glob.glob ('../../data/cfa/*/*.flm')
-
-#holds spectra data (wavelength,flux,weight)
-spectra_data = []
-#holds file pathname
-file_path = []
-
-junk_data = []
-
-#number of spectra to modify
-num = 20
-
-#get data, pathnames
-for i in range(num):
-	try:
-        	spectra_data.append(np.loadtxt(spectra_files[i]))
-        	file_path.append(spectra_files[i][14:-4])
-		#print file_path
-             
-	except ValueError:
-		junk_data.append(spectra_files)
-
-#update num to number of good spectra files
-num = len(spectra_data)
-
-#table containing sn names, redshifts, etc.
-sn_parameters = np.genfromtxt('../../data/cfa/cfasnIa_param.dat',dtype = None)
-
-#holds sn name
-sn = []
-#holds redshift value
-z = []
-
-#get relevent parameters needed for calculations
-for i in range(len(sn_parameters)):
-	sn.append(sn_parameters[i][0])
-	z.append(sn_parameters[i][1])
-
-"""
-NOTE:
-Use NED
-"""
 #deredden and deredshift the spectra
 for i in range(num):#go through selected spectra data
 	for j in range(len(sn)):#go through list of SN parameters
@@ -270,62 +270,13 @@ for i in range(num):#go through selected spectra data
 			print ext[2][0],ext[2][3]
 			b = ext[1][3]
 			v = ext[2][3]
-			"""for k in range(len(ext)):
-				print "looking at",ext[k][0]
-				if "B" in ext[k][0]:
-					print "found b:",ext[k][3]
-					b = ext[k][3]
-				if "V" in ext[k][0]:
-					print "found v:",ext[k][3]
-					v = ext[k][3]"""
-				
-			#print "\n",sn[j]			
-			#print "starting flux:\n",spectra_data[i][:,1]
-			#print "b-v value:",b,v
+							
+			print "starting flux:\n",spectra_data[i][:,1]
+			print "de-reddened with specutils",spectra_data[i][:,1]*ex.reddening(spectra_data[i][:,0],ebv=b-v,r_v=3.1,model='fm07')
 			spectra_data[i][:,1] = fm_unred(spectra_data[i][:,0],spectra_data[i][:,1],b-v,R_V=3.1)
-			#print "de-reddened flux:\n",spectra_data[i][:,1]
+			print "de-reddened flux with fm_unred:\n",spectra_data[i][:,1]
 			#print "starting wavelength:\n",spectra_data[i][:,0]
 			spectra_data[i][:,0] /= (1+z[j])
 			#print "z:",z[j]
 			#print "de-red-shifted wavelength:\n",spectra_data[i][:,0]	
 
-
-# data interpolation
-# pixel size: every 10 As (subject to change)
-
-# still working on putting into one big data structure
-wave_min = 1000
-wave_max = 20000
-wavelength = np.linspace(wave_min,wave_max,(wave_max-wave_min)/10+1)  #creates N equally spaced wavelength values
-fitted_flux = []
-new = []
-#new = Table()
-#new['col0'] = Column(wavelength,name = 'wavelength')
-for i in range(num):
-    new_spectrum=spectra_data[i]	#declares new spectrum from list
-    new_wave=new_spectrum[:,0]	#wavelengths
-    new_flux=new_spectrum[:,1]	#fluxes
-    lower = new_wave[0] # Find the area where interpolation is valid
-    upper = new_wave[len(new_wave)-1]
-    lines = np.where((new_wave>lower) & (new_wave<upper))	#creates an array of wavelength values between minimum and maximum wavelengths from new spectrum
-    indata=inter.splrep(new_wave[lines],new_flux[lines])	#creates b-spline from new spectrum
-    fitted_flux=inter.splev(wavelength,indata)	#fits b-spline over wavelength range
-    badlines = np.where((wavelength<lower) | (wavelength>upper))
-    fitted_flux[badlines] = 0  # set the bad values to ZERO !!! 
-    new = Table([wavelength,fitted_flux],names=('Wavelength','Flux')) # put the interpolated data into the new table
-    #newcol = Column(fitted_flux,name = 'Flux')  
-    #new.add_column(newcol,index = None)
-    
-    
-
-    # output data into a file (just for testing, no need to implement)
-#    output = 'testdata/modified-%s.dat'%(spectra_files[i][27:-4])
-#    ascii.write(new, output)
-    
-     # plot spectra (just for testing, no need to implement)
-
-    #plt.plot(wavelength,fitted_flux)
-    
-#plt.xlim(3000,7000)
-#plt.show()
-#plt.savefig('test.png')
