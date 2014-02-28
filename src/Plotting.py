@@ -16,6 +16,7 @@ from pylab import *
 # plot_data_1  = [wavelength_1, Spectra_1, plus, minus]     # Expects [X, Y, Pos_Y Err, Neg_Y Err]
 # plot_data_2  = [wavelength_2, Spectra_2, plus, minus]     # Expects [X, Y, Pos_Y Err, Neg_Y Err]
 # plot_data_3  = [wavelengths, scatter_p, scatter_n,]       # [ X , First Y_value, Second Y_value]
+# Show_Data   = [plot_data_1, plot_data_2, plot_data_3]
 # image_title  = "../personal/YOUR_REP/WHOA.png"            # Name the image (with location)
 # plot_labels  = ["Clever Title","Wavelength ($\AA$)","AVG Spectrum","Scatter"]    #[ Figure Title, X title, Y-top Title, Y-bottom Title] 
 # legend       = ["First","Second","Third","Fouth"]         # Names for the legend
@@ -24,25 +25,25 @@ from pylab import *
 #
 ## The following line will plot the data
 #
-# Plotting.main(fig_type,plot_data_1,plot_data_2,plot_data_3,image_title,plot_labels,legend)
+# Plotting.main(Show_Data , image_title , plot_labels , legend)
 #
 #
 ###########################################
-def main(fig_type,plot_data_1,plot_data_2,plot_data_3,image_title,plot_labels,legend_names):
+def main(Show_Data,image_title,plot_labels,legend_names):
 # re-name variables
-	xaxis_1   = plot_data_1[0] 
-	yaxis_1   = plot_data_1[1]
-	err_p_1   = plot_data_1[2] 
-	err_n_1   = plot_data_1[3]
+	xaxis_1   = Show_Data[:][0][0] 
+	yaxis_1   = Show_Data[:][0][1]
+	err_p_1   = Show_Data[:][0][2] 
+	err_n_1   = Show_Data[:][0][3]
 
-	xaxis_2   = plot_data_2[0] 
-	yaxis_2   = plot_data_2[1]
-	err_p_2   = plot_data_2[2] 
-	err_n_2   = plot_data_2[3]
+	xaxis_2   = Show_Data[:][1][0]
+	yaxis_2   = Show_Data[:][1][1]
+	err_p_2   = Show_Data[:][1][2]
+	err_n_2   = Show_Data[:][1][3]
 
-	xaxis_3   = plot_data_3[0] 
-	yaxis_3_1 = plot_data_3[1]
-	yaxis_3_2 = plot_data_3[2] 
+	xaxis_3   = Show_Data[:][2][0]
+	yaxis_3_1 = Show_Data[:][2][1]
+	yaxis_3_2 = Show_Data[:][2][2]
 
 	title     = plot_labels[0]
 	xlabel    = plot_labels[1]

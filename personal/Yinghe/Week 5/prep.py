@@ -217,17 +217,21 @@ def Interpo(spectra) :
     #wavelength = np.linspace(wave_min,wave_max,(wave_max-wave_min)/pix+1)  #creates N equally spaced wavelength values
     wavelength = np.arange(ceil(wave_min), floor(wave_max), dtype=int, step=pix)
     fitted_flux = []
+    fitted_error = []
     new = []
     #new = Table()
     #new['col0'] = Column(wavelength,name = 'wavelength')
     new_spectrum=spectra	#declares new spectrum from list
     new_wave=new_spectrum[:,0]	#wavelengths
     new_flux=new_spectrum[:,1]	#fluxes
+    new_error=new_spectrum[:,2]   #errors
     lower = new_wave[0] # Find the area where interpolation is valid
     upper = new_wave[len(new_wave)-1]
     lines = np.where((new_wave>lower) & (new_wave<upper))	#creates an array of wavelength values between minimum and maximum wavelengths from new spectrum
     indata=inter.splrep(new_wave[lines],new_flux[lines])	#creates b-spline from new spectrum
+    inerror=inter.splrep(new_wave[lines],new_error[lines]) # doing the same with the errors
     fitted_flux=inter.splev(wavelength,indata)	#fits b-spline over wavelength range
+    fitted_error=inter.splev(wavelength,inerror)   # doing the same with errors
     badlines = np.where((wavelength<lower) | (wavelength>upper))
     fitted_flux[badlines] = 0  # set the bad values to ZERO !!! 
     new = Table([wavelength,fitted_flux],names=('col1','col2')) # put the interpolated data into the new table    
@@ -235,46 +239,100 @@ def Interpo(spectra) :
     #new.add_column(newcol,index = None)
     return new
 
+# new : reading the database
 
+#Connect to the database
+path = "../../MichaelSchubert/SNe.db"
+con = sq3.connect(path)
+
+#Creates a cursor object to execute commands
+cur = con.cursor()
+
+#Returns the 10 SNe with the highest redshifts
+cur.execute("SELECT * FROM Supernovae ORDER BY Redshift DESC LIMIT 40")
+
+root = "../../../data/cfa/"
+
+SN_data = {} #Creates empty dictionary for SN data
+
+#Keeps track of how many spectra load, how many don't
+good = 0 #Initializes total spectra count to zero
+bad = 0 #Initializes bad spectra count to zero
+bad_files = []
+
+#min_waves = [] #Creates empty array for minimum deredshifted wavelength from each file
+#max_waves = [] #Creates empty array for maximum deredshifted wavelength from each file
+
+#Puts filenames in list
+for row in cur:
+    file_name = row[0]
+    sn = "sn" + row[1]
+    file_path = os.path.join(root, sn, file_name)
+    z = row[2]
+    try: #Makes sure data loads, deredshifting and minmax functions work properly
+        wave, flux = np.loadtxt(file_path, usecols=(0,1), unpack=True)
+        SN_data[file_name] = [z, wave, flux]
+        min_waves.append(min(deredshifted_wave))
+        max_waves.append(max(deredshifted_wave))
+        good += 1 #Counts number of files for which everything executed properly
+    except: #Stores number and names of files that didn't load correctly
+        bad +=1
+        bad_files.append(file_name)
+
+if bad == 0:
+    print "All files loaded successfully." #Returns this message if all files loaded correctly
+else:
+    print str(good) + " files read successfully." #Says how many files loaded correctly (if not all)
+    print "The following " + str(bad) + " file path(s) produced load errors:" #Says how many files produced load errors
+    for item in bad_files:
+        print item #Prints of names of files which produced load errors
+
+min_wave = min(min_waves) #Finds overall min deredshifted wavelength
+max_wave = max(max_waves) #Finds overall max deredshifted wavelength
+
+
+for key in SN_data.keys():
+    wave = SN_data[key][1]
+    flux = SN_data[key][2]
 #list of files
-spectra_files = glob.glob ('../../../data/cfa/*/*.flm')
+#spectra_files = glob.glob ('../../../data/cfa/*/*.flm')
 
 #holds spectra data (wavelength,flux,weight)
-spectra_data = []
+#spectra_data = []
 #holds file pathname
-file_path = []
-junk_data = []
+#file_path = []
+#junk_data = []
 
 #number of spectra to modify
 num = 2
 
 #get data, pathnames
-for i in range(num):
-	try:
-        	spectra_data.append(np.loadtxt(spectra_files[i]))
-        	file_path.append(spectra_files[i][14:-4])
+#for i in range(num):
+#	try:
+#        	spectra_data.append(np.loadtxt(spectra_files[i]))
+#        	file_path.append(spectra_files[i][14:-4])
 		#print file_path
              
-	except ValueError:
-		junk_data.append(spectra_files)
+#	except ValueError:
+#		junk_data.append(spectra_files)
 
 #update num to number of good spectra files
-num = len(spectra_data)
+#num = len(spectra_data)
 
 #table containing sn names, redshifts, etc.
-sn_parameters = np.genfromtxt('../../../data/cfa/cfasnIa_param.dat',dtype = None)
+#sn_parameters = np.genfromtxt('../../../data/cfa/cfasnIa_param.dat',dtype = None)
 
 #holds sn name
-sn = []
+#sn = []
 #holds redshift value
-z = []
+#z = []
 
-overall = []
+#overall = []
 
 #get relevent parameters needed for calculations
-for i in range(len(sn_parameters)):
-	sn.append(sn_parameters[i][0])
-	z.append(sn_parameters[i][1])
+#for i in range(len(sn_parameters)):
+#	sn.append(sn_parameters[i][0])
+#	z.append(sn_parameters[i][1])
 
 """
 NOTE:
