@@ -35,16 +35,16 @@ print "Reading max light spectra from files..."
 names = []
 j = 1
 for line in max_light[0:290]:
-        SN = supernova()
+	SN = supernova()
 	SN.address = line[1]
 	data = np.loadtxt(SN.address)
 	SN.wavelength = data[:,0]
-        SN.flux = data[:,1]
-        SN.residual = np.zeros(len(data[:,1]))   
-        SN.age = line[2]
-        error = data[:,2]
-        if not all(x == 0.0 for x in error):
-            SN.error = error
+	SN.flux = data[:,1]
+	SN.residual = np.zeros(len(data[:,1]))   
+	SN.age = line[2]
+	error = data[:,2]
+	if not all(x == 0.0 for x in error):
+		SN.error = error
 	SN_Array.append(SN)
 	print j
 	j += 1
@@ -118,41 +118,64 @@ def average(compare_spectrum,SN):
 
 """scale"""
 print "Scaling.."
-q = 1
-compare_spectrum = SN_Array[0]
+
+#compare_spectrum = SN_Array[0]
 #scales, averages, weighted average
-plt.figure(1)
-out_of_range_low = []
-out_of_range_high = []
-for SN in SN_Array:
-    low_wave = 3000
-    high_wave = 7000
-#     plt.plot(SN.wavelength, SN.flux,label=SN.name)
-    if np.min(SN.wavelength)>= low_wave:
-        low_wave = np.min(SN.wavelength)
-    if np.max(SN.wavelength) <= high_wave:
-        high_wave = np.max(SN.wavelength)
-    #check the number of scaled versus the number before scaling, if != then expand range and run again
-    temp = np.abs(SN.wavelength-low_wave)
-    lowindex = np.where(temp == np.min(temp))
-    temp = np.abs(SN.wavelength-high_wave)
-    highindex = np.where(temp == np.min(temp))
-    lowindex = lowindex[0]
-    highindex = highindex[0]
-    low = SN.wavelength[lowindex]
-    high = SN.wavelength[highindex]
-    SN.flux /= np.median(SN.flux)
-#    plt.plot(SN.wavelength, SN.flux,label=SN.name)
-    print lowindex, "low index", highindex, "high index"
-    factors = compare_spectrum.flux[lowindex:highindex] / SN.flux[lowindex:highindex]
-    scale_factor = np.mean(factors)
-    SN.flux[lowindex:highindex] *= scale_factor
-    SN.error[lowindex:highindex] *= scale_factor
-    #plt.subplot(311)
-    #plt.plot(SN.wavelength, SN.flux)
-    print q, "items scaled at factor", scale_factor
-    compare_spectrum = average(compare_spectrum,SN)
-    q += 1
+#plt.figure(1)
+#out_of_range_low = []
+#out_of_range_high = []
+
+def splice(compare_spectrum,SN_Array,l_wave,h_wave):
+	q = 1
+	new_array=[]
+	for SN in SN_Array:
+		low_wave = l_wave
+		high_wave = h_wave
+	#     plt.plot(SN.wavelength, SN.flux,label=SN.name)
+		if np.min(SN.wavelength)>= low_wave:
+			low_wave = np.min(SN.wavelength)
+		if np.max(SN.wavelength) <= high_wave:
+			high_wave = np.max(SN.wavelength)
+		if (min(SN.wavelength) > high_wave) | (max(SN.wavelength) < low_wave):
+			new_array.append(SN)
+		#check the number of scaled versus the number before scaling, if != then expand range and run again
+		temp = np.abs(SN.wavelength-low_wave)
+		lowindex = np.where(temp == np.min(temp))
+		temp = np.abs(SN.wavelength-high_wave)
+		highindex = np.where(temp == np.min(temp))
+		lowindex = lowindex[0]
+		highindex = highindex[0]
+		low = SN.wavelength[lowindex]
+		high = SN.wavelength[highindex]
+		SN.flux /= np.median(SN.flux)
+	#    plt.plot(SN.wavelength, SN.flux,label=SN.name)
+		print lowindex, "low index", highindex, "high index"
+		factors = compare_spectrum.flux[lowindex:highindex] / SN.flux[lowindex:highindex]
+		scale_factor = np.mean(factors)
+		SN.flux[lowindex:highindex] *= scale_factor
+		SN.error[lowindex:highindex] *= scale_factor
+		#plt.subplot(311)
+		#plt.plot(SN.wavelength, SN.flux)
+		print q, "items scaled at factor", scale_factor
+		compare_spectrum = average(compare_spectrum,SN)
+		q += 1
+	return compare_spectrum, new_array
+
+i=0
+spectrum=SN_Array[0]
+array=SN_Array
+min=3000
+max=7000
+while (i==0):
+	spectrum,array=splice(spectrum,array,min,max)
+	if (len(array) == 0):
+		i+=1
+	else:
+		min=min-100
+		max+=100
+		
+compare_spectrum=spectrum
+	
 print compare_spectrum.error
     	
         
