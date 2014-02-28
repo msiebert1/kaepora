@@ -1,17 +1,18 @@
-#This code uses a median filter to smooth out single-pixel deviations. Then, using sigma-clipping to remove large variations between the actual and smoothed image, we produce a cosmic ray cleaned image.
+#This code uses a median filter to smooth out single-pixel deviations. Then, using sigma-clipping to remove large variations between the actual and smoothed image, we produce a smoothed image.  To change the amount of smoothing, change the window_len parameter.  This is similar to a polynomial smoother i.e. The spectrum becomes more smooth as we increase the window_len. Once the original data is smoothed, we clip any data that is different from the smoothed data by 5%.
 
+import pyfits
 import numpy as np
 import matplotlib.pyplot as plt
 
 
 #Read in data file and put wavelength, flux and error into separate arrays.  Should make this to read in a list of spectra paths, then do the smoothing for that list.
-SN=np.genfromtxt('sn2001l-20010201-ui.flm')
+SN=np.genfromtxt('sn2008z-20080229-ir.flm')
 
 wavelength = SN[:,0]
 flux = SN[:,1]
 #error = SN[:,2]
 
-def smooth(x,window_len=25,window='hanning'):
+def smooth(x,window_len=21,window='hanning'):
     """smooth the data using a window with requested size.
         
         This method is based on the convolution of a scaled window with the signal.
@@ -71,15 +72,44 @@ def smooth(x,window_len=25,window='hanning'):
 
 
 new_flux=smooth(flux)
+flux_update=flux
 
 ratio = flux/new_flux
+
+#Clip any bad data and replace it with the smoothed value
 
 for i in range(len(ratio)):
     if ratio[i] > 1.05:
         flux[i] = new_flux[i]
+        #print wavelength[i] #Uncomment to print clipped wavelengths
     if ratio[i] < 0.95:
-        flux[i] = new_flux[i]
+        flux_update[i] = new_flux[i]
+        #print wavelength[i] #Uncomment to print clipped wavelengths
 
-plt.plot(wavelength,flux)
-#plt.plot(wavelength,new_flux)
+#Plot old and new flux arrays vs wavelength to visually see changes
+
+plt.plot(wavelength,flux,'k')
+plt.plot(wavelength,flux_update,'r')
+plt.show()
+
+#Generate the variance based on the smoothed flux and original flux.  Subtract the two to get the noise value and smooth again to get the variance.
+
+sky=pyfits.open('../../personal/malloryconlon/data_fidelity/kecksky.fits')
+
+
+sky_flux=sky[0].data[0]
+
+#print sky_flux
+
+wavelength = SN[:,0]
+flux = SN[:,1]
+#error = SN[:,2]
+
+
+noise=flux-new_flux
+smooth_noise = smooth(noise)
+#print noise
+
+plt.plot(smooth_noise)
+plt.plot(sky_flux)
 plt.show()
