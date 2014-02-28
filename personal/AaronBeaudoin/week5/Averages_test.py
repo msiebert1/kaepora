@@ -61,8 +61,6 @@ for SN in SN_Array:
 	    j += 1
 	else:
 	    continue
-
-#SN_Array = SN_Array[0:20]
 print len(SN_Array), "items found"
 #Anything with blank error columns gets removed, since we can't make a weighted average with it.
 #This can be changed to just put them in a separate array and then do a non-weighted average...if that's something we want
@@ -77,39 +75,29 @@ def find_nearest(array,value):
 bad_range_Array = []
 
 #averages with weights based on the given errors in .flm files
-def average(compare_spectrum,SN):
-	if SN == SN_Array[0]:
-		compare_spectrum == SN
-		return compare_spectrum
-	avg_flux = compare_spectrum.flux
+def average(SN_Array):
 	#redshift stuff wasn't working so we aren't dealing with it right now
 	#avg_red = compare_spectrum.redshifts
-	mean_flux = compare_spectrum.flux
 	#redshifts = compare_spectrum.redshifts
-	lowindex = find_nearest(compare_spectrum.wavelength,np.min(SN.wavelength))
-	highindex = find_nearest(compare_spectrum.wavelength,np.max(SN.wavelength))
-#should be np.where(compare_spectrum.wavelength == np.min(SN.wavelength) if data aligned)
-	for i in lowindex+np.arange(highindex-lowindex):
-		try:
-			if ((SN.error[i] != 0) & (compare_spectrum.error[i] != 0)):
-				fluxes = np.array([compare_spectrum.flux[i],SN.flux[i]])
-				weights = np.array([1./compare_spectrum.error[i], 1./SN.error[i]])
-				#redshifts = np.array([compare_spectrum.redshifts,SN.redshifts])
-				#ages = np.array([compare_spectrum.age[i],SN.age[i]])
-				avg_flux[i] = np.average(fluxes,weights=weights)
-				#avg_red[i] = np.average(redshifts, weights = weights) 
-				#compare_spectrum.error[i] = math.sqrt((compare_spectrum.flux[i]-avg_flux[i])**2 + (SN.flux[i]-avg_flux[i])**2)
-				#compare_spectrum.redshifts[i] = np.average(redshifts, weights=weights)
-				#avg_ages[i] = np.average(ages, weights=weights)
-				compare_spectrum.error[i] = math.sqrt((weights[0]**2)*(compare_spectrum.error[i])**2 + (weights[1]**2)*(SN.error[i])**2)
-				#somehow...this doesn't work. Error gets stuck at a constant
-			else:
-				break
-		except IndexError:
-			print "No flux data?"
-			bad_range_Array.append(SN)
-			break
-            
+	lowindex = 0
+	highindex = 2000
+	fluxes = []
+	errors = []
+	flux = []
+	error = []
+	for SN in SN_Array:
+	    #doesn't need to be truncated if data is interpolated and aligned
+	    flux = SN.flux[0:2000]
+	    error = SN.error[0:2000]
+	    wavelength = SN.wavelength[0:2000]
+	    if len(fluxes) == 0:
+		fluxes = np.array([flux])
+		errors = np.array([error])
+	    else:
+		fluxes = np.append(fluxes, np.array([flux]),axis=0)
+		errors = np.append(errors, np.array([error]), axis=0)
+	avg_flux = np.average(fluxes, weights = 1.0/errors, axis=0)
+        compare_spectrum = SN_Array[0]
 	compare_spectrum.flux = avg_flux
 	#compare_spectrum.redshifts = avg_red
         #compare_spectrum.ages = avg_ages
@@ -147,9 +135,10 @@ def splice(compare_spectrum,SN_Array,l_wave,h_wave):
 		SN.error[lowindex:highindex] *= scale_factor
 		#plt.subplot(311)
 		#plt.plot(SN.wavelength, SN.flux)
-		print q, "items scaled at factor", scale_factor
-		compare_spectrum = average(compare_spectrum,SN)
+		print SN.address
+		print "Spectrum", q, "scaled at factor", scale_factor
 		q += 1
+	compare_spectrum = average(SN_Array)
 	return compare_spectrum, new_array
 
 """scale"""
@@ -175,19 +164,19 @@ print compare_spectrum.flux, "Composite Spectrum Scaled Flux"
 print compare_spectrum.error, "Composite Spectrum Error"
     	
 #This makes plots and saves the composite
-print len(compare_spectrum.wavelength)
+print len(compare_spectrum.wavelength), len(compare_spectrum.flux)
 """composite"""
-composite_file = Table([compare_spectrum.wavelength, compare_spectrum.flux, compare_spectrum.error], names = ('Wavelength', 'Scaled_Flux', 'Error'))
+composite_file = Table([compare_spectrum.wavelength[0:2000], compare_spectrum.flux[0:2000], compare_spectrum.error[0:2000]], names = ('Wavelength', 'Scaled_Flux', 'Error'))
 composite_file.write('CompositeSpectrum.dat', format='ascii')
 plt.figure(1)
 plt.subplot(211)
-plt.plot(compare_spectrum.wavelength, compare_spectrum.flux,label='Weighted Composite')
+plt.plot(compare_spectrum.wavelength[0:2000], compare_spectrum.flux[0:2000],label='Weighted Composite')
 plt.xlabel('Wavelength (A)')
 plt.ylabel('Scaled Flux')
 plt.xlim(4000,7000)
 #plt.ylim(0,2.8)
 plt.subplot(212)
-plt.plot(compare_spectrum.wavelength, compare_spectrum.error, label='Error')
+plt.plot(compare_spectrum.wavelength[0:2000], compare_spectrum.error[0:2000], label='Error')
 plt.ylabel('Error')
 #plt.plot(compare_spectrum.wavelength, compare_spectrum.residual, label='Residual')
 plt.xlim(4000,7000)
