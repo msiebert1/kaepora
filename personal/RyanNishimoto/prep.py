@@ -10,7 +10,16 @@ import matplotlib.pyplot as plt
 import scipy.interpolate as inter
 
 
-
+"""
+Note:
+create separate code that pulls all the data and creates a "parameter" table much like the one used in past,
+but it pulls all relevant data via astroquery and writes it in a table.  
+must do that following:
+-read in all files we want to prep
+-truncate file name to format "SNyear"(this is how astroquery searches for SN)
+-get relevent data into table, following a format like:
+SN name		Host Galaxy		Redshift	B	V	De-redden factor	CarbonPos/Neg
+"""
 def fm_unred(wave, flux, ebv, *args, **kwargs):
     
     '''

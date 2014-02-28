@@ -23,13 +23,15 @@ from matplotlib.ticker import FuncFormatter
 # plot_labels  = ["Clever Title","Wavelength ($\AA$)","AVG Spectrum","Scatter"]    #[ Figure Title, X title, Y-top Title, Y-bottom Title] 
 # legend       = ["First","Second","Third","Fouth"]         # Names for the legend
 #
+# fig_type     = 1.1 or 1.2 or 2.3       # The types will change, this is only to give differnt plot options
+#
 ## The following line will plot the data
 #
-# Plotting.main(plot_data_1,plot_data_2,plot_data_3,image_title,plot_labels,legend)
+# Plotting.main(fig_type,plot_data_1,plot_data_2,plot_data_3,image_title,plot_labels,legend)
 #
 #
 ###########################################
-def main(plot_data_1,plot_data_2,plot_data_3,image_title,plot_labels,legend_names):
+def main(fig_type,plot_data_1,plot_data_2,plot_data_3,image_title,plot_labels,legend_names):
 # re-name variables
 	xaxis_1   = plot_data_1[0] 
 	yaxis_1   = plot_data_1[1]
@@ -62,28 +64,48 @@ def main(plot_data_1,plot_data_2,plot_data_3,image_title,plot_labels,legend_name
 	f = figure()
 	subplots_adjust(hspace=0.001)
 
-# Plotting details for figure 1
-	ax1 = subplot(2,1,1)
-	plt.title( title )  # Placement of figure title in code is important
-	plt.ylabel( ylabel_1 )
-	ax1.plot(xaxis_1,yaxis_1,'b',label = legend_1 )
-	ax1.plot(xaxis_2,yaxis_2,'g',label = legend_2 )
+# Data should be read in and then plotted, make it so the user doens't have to choose the figure to plot
+	if fig_type == 2.3: # Plotting details for two figures with a total of three sets of data
+		ax1 = subplot(2,1,1)
+		plt.title( title )  # Placement of figure title in code is important
+		plt.ylabel( ylabel_1 )
+		ax1.plot(xaxis_1,yaxis_1,'b',label = legend_1 )
+		ax1.plot(xaxis_2,yaxis_2,'g',label = legend_2 )
 
-# Below fills the error around the plot
-	plt.fill_between(xaxis_1,err_p_1,err_n_1,alpha=1.5, edgecolor='#000080', facecolor='#AFEEEE')
-	plt.fill_between(xaxis_2,err_p_2,err_n_2,alpha=1.5, edgecolor='#006400', facecolor='#98FB98')
+		# Below fills the error around the plot
+		plt.fill_between(xaxis_1,err_p_1,err_n_1,alpha=1.5, edgecolor='#000080', facecolor='#AFEEEE')
+		plt.fill_between(xaxis_2,err_p_2,err_n_2,alpha=1.5, edgecolor='#006400', facecolor='#98FB98')
 
-# Plotting details for figure 2
-	ax2 = subplot(2,1,2, sharex=ax1)
-	plt.ylabel( ylabel_2 )
-	ax2.plot(xaxis_3,yaxis_3_1,'r',label = legend_3 )
-	ax2.plot(xaxis_3,yaxis_3_2,'g',label = legend_4 )
+		# Plotting details for two figures with one set of data
+		ax2 = subplot(2,1,2, sharex=ax1)
+		plt.ylabel( ylabel_2 )
+		ax2.plot(xaxis_3,yaxis_3_1,'b',label = legend_3 )
+		ax2.plot(xaxis_3,yaxis_3_2,'g',label = legend_4 )
 		
 #Removes x-axis labels for ax1. May need later. 	
-# 	Commented code is to remove labels for both figures
-#	xticklabels = ax1.get_xticklabels() + ax2.get_xticklabels()
-#	setp(xticklabels, visible=False)
-	setp(ax1.get_xticklabels(), visible = False)
+	# 	Commented code is to remove labels for both figures
+	#	xticklabels = ax1.get_xticklabels() + ax2.get_xticklabels()
+	#	setp(xticklabels, visible=False)
+		setp(ax1.get_xticklabels(), visible = False)
+	
+	elif fig_type == 1.2: # Plotting details for single figure with two sets of data
+		ax1 = subplot(1,1,1)
+		plt.title( title )  # Placement of figure title in code is important
+		plt.ylabel( ylabel_1 )
+		ax1.plot(xaxis_1,yaxis_1,'b',label = legend_1 )
+		ax1.plot(xaxis_2,yaxis_2,'g',label = legend_2 )
+
+		# Below fills the error around the plot
+		plt.fill_between(xaxis_1,err_p_1,err_n_1,alpha=1.5, edgecolor='#000080', facecolor='#AFEEEE')
+		plt.fill_between(xaxis_2,err_p_2,err_n_2,alpha=1.5, edgecolor='#006400', facecolor='#98FB98')
+
+	else : # Plotting single plot with single set of data
+		ax1 = subplot(1,1,1)
+		plt.title( title )  # Placement of figure title in code is important
+		plt.ylabel( ylabel_1 )
+		ax1.plot(xaxis_1,yaxis_1,'k',label = legend_1 )
+		plt.fill_between(xaxis_1,err_p_1,err_n_2,alpha=1.5, edgecolor='#000080', facecolor='#5F9EA0')
+
 
 # Remove legend box frame 
 	l = legend()
