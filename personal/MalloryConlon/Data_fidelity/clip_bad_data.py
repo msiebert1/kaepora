@@ -72,28 +72,36 @@ def smooth(x,window_len=11,window='hanning'):
 
 
 new_flux = smooth(flux)
-flux_update = flux
+flux_update = []
+clipped = []
 
-ratio = new_flux/flux
+ratio = flux/new_flux
 
-plt.plot(wavelength,flux,'k')
-plt.plot(wavelength,new_flux,'r')
-plt.show()
+#plt.plot(ratio)
+#plt.show()
 
-#Clip any bad data and replace it with the smoothed value
+#Clip any bad data and replace it with the smoothed value.  Fine tune the ratio limits to cut more (ratio closer to one) or less (ratio farther from one) data
 
 for i in range(len(ratio)):
-    if ratio[i] > 3:
-        flux_update[i] = new_flux[i]
-        #print wavelength[i] #Uncomment to print clipped wavelengths
-    if ratio[i] < 0.001:
-        flux_update[i] = new_flux[i]
+    if ratio[i] > 1.3:
+        flux_update.append(new_flux[i])
+        clipped.append(i)
+    elif ratio[i] < 0.7:
+        flux_update.append(new_flux[i])
+        clipped.append(i)
+    else:
+        flux_update.append(flux[i])
+
+
         #print wavelength[i] #Uncomment to print clipped wavelengths
 
 #Plot old and new flux arrays vs wavelength to visually see changes
 
+residual = flux_update-flux
+
 plt.plot(wavelength,flux,'k')
-plt.plot(wavelength,new_flux,'r')
+plt.plot(wavelength,flux_update,'r')
+#plt.plot(wavelength,residual)
 plt.show()
 
 #Generate the variance based on the smoothed flux and original flux.  Subtract the two to get the noise value and smooth again to get the variance.
@@ -114,6 +122,6 @@ noise=flux-new_flux
 smooth_noise = smooth(noise)
 #print noise
 
-plt.plot(smooth_noise)
-plt.plot(sky_flux)
-plt.show()
+#plt.plot(smooth_noise)
+#plt.plot(sky_flux)
+#plt.show()
