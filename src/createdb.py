@@ -4,6 +4,7 @@ import os
 import sqlite3 as sq3
 import msgpack as msg
 import msgpack_numpy as mn
+import targeted
 import time
 
 #make msgpack aware of msgpack_numpy
@@ -51,16 +52,18 @@ con = sq3.connect('SNe.db')
 
 #make sure no prior table in db to avoid doubling/multiple copies of same data
 con.execute("""DROP TABLE IF EXISTS Supernovae""")
-con.execute("""CREATE TABLE IF NOT EXISTS Supernovae (Filename 
+con.execute("""CREATE TABLE IF NOT EXISTS Supernovae (Filename
                     TEXT PRIMARY KEY, SN Text, Redshift REAL, Phase REAL,
                     MinWave REAL, MaxWave REAL, RedMin REAL, RedMax REAL,
-                    Dm15 REAL, M_B REAL, B_mMinusV_m REAL, Spectra BLOB)""")
+                    Dm15 REAL, M_B REAL, B_mMinusV_m REAL, Targeted INTEGER, Spectra BLOB)""")
 
 root = '../../data/cfa'
 spectra = {}
 bad_files = []
 filenames = []
 
+targlist, untarglist , unknowntarglist= targeted.targ_lists()
+print len(targlist)
 #traverse folder containing spectra and load
 print "Adding information to table"
 for path, subdirs, files in os.walk(root):
@@ -77,6 +80,13 @@ for path, subdirs, files in os.walk(root):
 
             #find the key to access param list dictionary
             key = find_key(name)
+
+            if key in targlist:
+                targeted = 1
+            elif key in untarglist:
+                targeted = 0
+            else:
+                targeted = None
             #corner case for the redshiftless/dataless sn2011 files, no data = array of -1's
             if 'sn2011' not in name:
                 vals = sndict[key]
@@ -116,11 +126,11 @@ for path, subdirs, files in os.walk(root):
 
             spec = msg.packb(data)
             con.execute("""INSERT INTO Supernovae(Filename, SN, Redshift,
-                                Phase, MinWave, MaxWave, RedMin, RedMax, Dm15, 
-                                M_B, B_mMinusV_m, Spectra) 
-                                VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", (name, key, 
-                                redshift, phase, min_wave, max_wave, red_min, 
-                                red_max, dm15, m_b, bm_vm, buffer(spec)))
+                                Phase, MinWave, MaxWave, RedMin, RedMax, Dm15,
+                                M_B, B_mMinusV_m, Targeted, Spectra)
+                                VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", (name, key,
+                                redshift, phase, min_wave, max_wave, red_min,
+                                red_max, dm15, m_b, bm_vm, targeted, buffer(spec)))
         else:
             continue
 con.commit()
