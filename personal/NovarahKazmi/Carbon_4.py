@@ -5,9 +5,10 @@ import matplotlib.pyplot as plt
 import scipy.interpolate as intp
 import math
 
-#'#'#'#'#
+#####'#'#'#'#####
 import Plot_2
-#'#'#'#'#
+#import Plotting
+#####'#'#'#'#####
 
 
 #authors @nkazmi2, @nishimo1 
@@ -333,15 +334,15 @@ plus_n    = avg_flux_n + rms_n
 minus_n   = avg_flux_n - rms_n
 scatter_n = np.divide(rms_n,avg_flux_n)
 
-print scatter_p
-
+#print scatter_p
+"""
 #Write data to file
 datafile = open('Carbon_Results.txt','w')
 for i in range(len(data_pos)):
 	row = str(wavelengths[i]) + '\t' + str(avg_flux_p[i]) + '\t' + str(plus_p[i]) + '\t' + str(minus_n[i]) + '\n'
 	datafile.write(row)
 datafile.close()
-
+"""
 
 """
 #RMS function needs lots of debugging.
@@ -373,17 +374,17 @@ print "===================="
 ############################
 
 
-#'#'#'#'#
-title    = "Gram Test"
-x_axis   = "Wavelength ($\AA$)"
-y_axis   = "Scaled Flux"
-legend1  = "Red and Unscaled"
-legend2  = "Error +"
-legend3  = "Error -"
-x_range  = wavelengths
-y_range  = avg_flux_p
-Plot_2.main(x_range, y_range ,title, x_axis, y_axis, legend1, legend2, legend3)
-#'#'#'#'#
+#####'#'#'#'#####
+
+plot_data_1  = [wavelengths, avg_flux_p, plus_p, minus_p] #[ X_AXIS (Wavelength) , Y_AXIS (Composite) , Positive_Error , Negative_Error]
+plot_data_2  = [wavelengths, avg_flux_n, plus_n, minus_n] #[ X_AXIS (Wavelength) , Y_AXIS (Composite) , Positive_Error , Negative_Error]
+plot_data_3  = [wavelengths, scatter_p, scatter_n,]       #[ X_AXIS (Wavelength) , First Y_value      , Second Y_value ]
+fig_type     = 2.3
+image_title  = "Compare.png"				  # You can specify the location between " " as well 
+plot_labels  = ["Clever Title","Wavelength ($\AA$)","AVG Spectrum","Scatter"] #[ Figure Title, X title, Y-top Title, Y-bottom Title]
+legend       = ["First","Second","Third","Fouth"]
+Plot_2.main(fig_type, plot_data_1 , plot_data_2 , plot_data_3 , image_title , plot_labels , legend)
+#####'#'#'#'#####
 """
 ### file location  ### name[0], Data File: X_range , Y_range , Error_Plus , Error_minus
 Carbon_Results.txt

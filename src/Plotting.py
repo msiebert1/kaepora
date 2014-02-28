@@ -8,21 +8,29 @@ import matplotlib.font_manager
 from matplotlib.font_manager import FontProperties
 from matplotlib.ticker import FuncFormatter
 
-"""
-### Tasks
-[X] what figures to plot 
-[X] atm just main light curve plot 
-[X] flexible data label 
-[X] need to account for spaces in labels
-[X] pipe functions
-[X] personalizing the plots from the data
-[] histogram
-[] zoom
-
-[] Write using latex font or similar
-[] stacked data (different y axis) 
-
-"""
+###########################################
+#             HOW TO USE
+## At the top of YOUR code write the following
+# import Plotting
+# 
+## Place the following after you have calculated your data 
+## fill in information
+# 
+# plot_data_1  = [wavelength_1, Spectra_1, plus, minus]     # Expects [X, Y, Pos_Y Err, Neg_Y Err]
+# plot_data_2  = [wavelength_2, Spectra_2, plus, minus]     # Expects [X, Y, Pos_Y Err, Neg_Y Err]
+# plot_data_3  = [wavelengths, scatter_p, scatter_n,]       # [ X , First Y_value, Second Y_value]
+# image_title  = "../personal/YOUR_REP/WHOA.png"            # Name the image (with location)
+# plot_labels  = ["Clever Title","Wavelength ($\AA$)","AVG Spectrum","Scatter"]    #[ Figure Title, X title, Y-top Title, Y-bottom Title] 
+# legend       = ["First","Second","Third","Fouth"]         # Names for the legend
+#
+# fig_type     = 1.1 or 1.2 or 2.3       # The types will change, this is only to give differnt plot options
+#
+## The following line will plot the data
+#
+# Plotting.main(fig_type,plot_data_1,plot_data_2,plot_data_3,image_title,plot_labels,legend)
+#
+#
+###########################################
 def main(fig_type,plot_data_1,plot_data_2,plot_data_3,image_title,plot_labels,legend_names):
 # re-name variables
 	xaxis_1   = plot_data_1[0] 
@@ -48,7 +56,7 @@ def main(fig_type,plot_data_1,plot_data_2,plot_data_3,image_title,plot_labels,le
 	legend_2  = legend_names[1]
 	legend_3  = legend_names[2]
 	legend_4  = legend_names[3]
-	
+
 # Legend parameters, must come before plotting
 	params = {'legend.fontsize': 15, 'legend.linewidth':2}
 	plt.rcParams.update(params)
@@ -56,7 +64,7 @@ def main(fig_type,plot_data_1,plot_data_2,plot_data_3,image_title,plot_labels,le
 	f = figure()
 	subplots_adjust(hspace=0.001)
 
-
+# Data should be read in and then plotted, make it so the user doens't have to choose the figure to plot
 	if fig_type == 2.3: # Plotting details for two figures with a total of three sets of data
 		ax1 = subplot(2,1,1)
 		plt.title( title )  # Placement of figure title in code is important
@@ -104,7 +112,6 @@ def main(fig_type,plot_data_1,plot_data_2,plot_data_3,image_title,plot_labels,le
 	l.draw_frame(False)
 	draw()
 
-# Should change this so that its not always the first set of data -> only works for Carbon data
 #Set the visual range. Automatic range is ugly. 
 	xmin = int(float(xaxis_1[0]))
 	xmax = int(float(xaxis_2[-1]))
@@ -114,17 +121,4 @@ def main(fig_type,plot_data_1,plot_data_2,plot_data_3,image_title,plot_labels,le
 	plt.xlabel( xlabel )
 	plt.savefig( image_title )
 	plt.show()
-
-
-"""	if num_of_plots == 1:
-		ax1 = subplot(1,1,1) # Create the plot
-
-		ax1.plot(xaxis_1,yaxis_1,'b',label = legend_1 ) # Read legend labels from files
-		ax1.plot(xaxis_2,yaxis_2,'g',label = legend_2 )
-
-# Error surrounds data
-		plt.fill_between(xaxis_1,err_p_1,err_n_1,alpha=1.5, edgecolor='#000080', facecolor='#AFEEEE')
-		plt.fill_between(xaxis_2,err_p_2,err_n_2,alpha=1.5, edgecolor='#006400', facecolor='#98FB98')
-"""
-#	if num_of_plots == 2:
 
