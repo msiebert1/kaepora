@@ -34,13 +34,10 @@ cur = con.cursor()
 print "Reading max light spectra from files..."
 names = []
 j = 1
-<<<<<<< HEAD
-for line in max_light[0:290]:
-	SN = supernova()
-=======
+#for line in max_light[0:290]:
+#SN = supernova()
 for line in max_light[0:50]:
-        SN = supernova()
->>>>>>> 9169c6c8ebf1d973c67a835a6b451c027039aeec
+	SN = supernova()
 	SN.address = line[1]
 	SN.name = line[0]
 	data = np.loadtxt(SN.address)
@@ -62,7 +59,7 @@ for SN in SN_Array:
 	if row[0] == SN.address:
 	    SN.filename = row[0]
 	    SN.redshifts = row[2]
-            SN.minwave = row[3]
+		SN.minwave = row[3]
 	    SN.maxwave = row[4]
 	    names.append(SN.name)
 	    print j
@@ -126,7 +123,6 @@ print "Scaling.."
 
 #compare_spectrum = SN_Array[0]
 #scales, averages, weighted average
-<<<<<<< HEAD
 #plt.figure(1)
 #out_of_range_low = []
 #out_of_range_high = []
@@ -181,43 +177,9 @@ while (i==0):
 		max+=100
 		
 compare_spectrum=spectrum
-	
-print compare_spectrum.error
-=======
-plt.figure(1)
-out_of_range_low = []
-out_of_range_high = []
-for SN in SN_Array:
-    low_wave = 3000
-    high_wave = 7000
-#     plt.plot(SN.wavelength, SN.flux,label=SN.name)
-    if np.min(SN.wavelength)>= low_wave:
-        low_wave = np.min(SN.wavelength)
-    if np.max(SN.wavelength) <= high_wave:
-        high_wave = np.max(SN.wavelength)
-    #check the number of scaled versus the number before scaling, if != then expand range and run again
-    temp = np.abs(SN.wavelength-low_wave)
-    lowindex = np.where(temp == np.min(temp))
-    temp = np.abs(SN.wavelength-high_wave)
-    highindex = np.where(temp == np.min(temp))
-    lowindex = lowindex[0]
-    highindex = highindex[0]
-    low = SN.wavelength[lowindex]
-    high = SN.wavelength[highindex]
-    SN.flux /= np.median(SN.flux)
-    print lowindex, "low index", highindex, "high index"
-    factors = compare_spectrum.flux[lowindex:highindex] / SN.flux[lowindex:highindex]
-    scale_factor = np.mean(factors)
-    SN.flux[lowindex:highindex] *= scale_factor
-    SN.error[lowindex:highindex] *= scale_factor
-    #plt.subplot(311)
-    #plt.plot(SN.wavelength, SN.flux)
-    print "Spectrum", q, "scaled at factor", scale_factor
-    compare_spectrum = average(compare_spectrum,SN)
-    q += 1
+
 print compare_spectrum.flux, "Composite Spectrum Scaled Flux"
 print compare_spectrum.error, "Composite Spectrum Error"
->>>>>>> 9169c6c8ebf1d973c67a835a6b451c027039aeec
     	
         
 print len(compare_spectrum.wavelength)
