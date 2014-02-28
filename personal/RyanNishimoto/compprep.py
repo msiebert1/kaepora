@@ -21,7 +21,7 @@ file_path = []
 junk_data = []
 
 #number of spectra to modify
-num = len(spectra_files)
+num = 100
 
 #get data, pathnames
 for i in range(num):
@@ -39,18 +39,9 @@ num = len(spectra_data)
 #table containing sn names, redshifts, etc.
 sn_parameters = np.genfromtxt('../../data/cfa/cfasnIa_param.dat',dtype = None)
 #table containing B and V values for determining extinction -> dereddening due to milky way
-sn_ext = np.genfromtxt('extinction.dat', dtype = None)
+sne= np.genfromtxt('extinction.dat', dtype = None)
 
-#all this does is remove the first row of the extinction.dat file...
-sn2 = []
-print len(sn_ext)
-for i in range(len(sn_ext)):
-	if i == 0:
-		i = 1
-	sn2.append(sn_ext[i])
-print len(sn2)
-#this holds the extinction values without the first row of labels
-print sn2
+
 
 
 #holds sn name
@@ -85,28 +76,24 @@ NOTE:Currently only has SN_name, B, and V values for purposes of Dereddening due
 """
 
 #deredden spectra due to milky way
-for i in range(num):
-	for j in range(len(sn2)):
-		if sn2[j][0] in file_path[i]:
-			print "\nlooking at",sn2[j]
-		
-			b = sn2[j][1].astype(float)
-			v = sn2[j][2].astype(float)
+#deredshift the spectra
+for i in range(num):#go through selected spectra data
+	for j in range(len(sn)):#go through list of SN parameters
+		if sn[j] in file_path[i]:#SN with parameter matches the path
+			print "\n###############################\nlooking at",sne[j+1],"matched with",sn[j]
+			b = sne[j+1][1].astype(float)
+			v = sne[j+1][2].astype(float)
 			bv = b-v
 			print "B-V=",bv
 			print "starting flux:\n",spectra_data[i][:,1]
 			#or use fm07 model
 			spectra_data[i][:,1] = spectra_data[i][:,1]*ex.reddening(spectra_data[i][:,0],ebv=bv,r_v=3.1,model='f99')
 			print "de-reddened with specutils f99 model:\n",spectra_data[i][:,1]
-
-print "done Dereddening"
-
-#deredshift the spectra
-for i in range(num):#go through selected spectra data
-	for j in range(len(sn)):#go through list of SN parameters
-		if sn[j] in file_path[i]:#SN with parameter matches the path
-		#	print "starting wavelength:\n",spectra_data[i][:,0]
+			print "starting wavelength:\n",spectra_data[i][:,0]
 			spectra_data[i][:,0] /= (1+z[j])
-		#	print "z:",z[j]
-		#	print "de-red-shifted wavelength:\n",spectra_data[i][:,0]	
+			print "z:",z[j]
+			print "de-red-shifted wavelength:\n",spectra_data[i][:,0]
+print "\n##########\n##########\ndone de-reddening and de-redshifting"
+
+
 
