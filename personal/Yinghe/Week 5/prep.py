@@ -1,11 +1,15 @@
 import os
 import glob
-#import astropy
-import numpy as np
-import scipy.interpolate as inter
+import specutils
 from astropy.table import Table
-import matplotlib.pyplot as plt
 from astropy.io import ascii
+import astroquery
+from astroquery.irsa_dust import IrsaDust
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy.interpolate as inter
+from math import floor, ceil
+import sqlite3 as sq3
 
 
 def fm_unred(wave, flux, ebv, *args, **kwargs):
@@ -96,8 +100,7 @@ def fm_unred(wave, flux, ebv, *args, **kwargs):
        Added ExtCurve keyword, J. Wm. Parker   August 2000
        Assume since V5.4 use COMPLEMENT to WHERE  W. Landsman April 2006
        Ported to Python, C. Theissen August 2012
-    '''
-    
+    '''    
     # Import needed modules
     from scipy.interpolate import InterpolatedUnivariateSpline as spline
     import numpy as n
@@ -203,74 +206,6 @@ def fm_unred(wave, flux, ebv, *args, **kwargs):
         ExtCurve = curve - R_V
         return flux, ExtCurve
 
-
-
-#list of files
-spectra_files = glob.glob ('../../../data/cfa/*/*.flm')
-
-#holds spectra data (wavelength,flux,weight)
-spectra_data = []
-#holds file pathname
-file_path = []
-junk_data = []
-
-#number of spectra to modify
-num = 200
-
-#get data, pathnames
-for i in range(num):
-	try:
-         spectra_data.append(np.loadtxt(spectra_files[i]))
-         file_path.append(spectra_files[i][14:-4])
-#         print file_path
-             
-	except ValueError:
-		junk_data.append(spectra_files)
-
-#update num to number of good spectra files
-num = len(spectra_data)
-
-#table containing sn names, redshifts, etc.
-sn_parameters = np.genfromtxt('../../../data/cfa/cfasnIa_param.dat',dtype = None)
-
-#holds sn name
-sn = []
-#holds redshift value
-z = []
-#holds B-V (intrinsic)
-bv_i = []
-#B-V (observed)
-bv_o = []
-#get relevent parameters needed for calculations
-for i in range(len(sn_parameters)):
-	sn.append(sn_parameters[i][0])
-	z.append(sn_parameters[i][1])
-	bv_i.append(sn_parameters[i][10])
-	bv_o.append(0)
-
-"""
-NOTE:
-Require E(B-V) = (B-V)_observed - (B-V)_intrinsic to use function
-
-Only have B-V_intrinsic in database
-"""
-#deredden and deredshift the spectra
-for i in range(num):#go through selected spectra data
-	for j in range(len(sn)):#go through list of SN parameters
-		if sn[j] in file_path[i]:#SN with parameter matches the path
-			if bv_i[j] != -9.99:
-				#print "\n",sn[j]			
-				#print "starting flux:\n",spectra_data[i][:,1]
-				#print "b-v value:",bv_i[j]
-				spectra_data[i][:,1] = fm_unred(spectra_data[i][:,0],spectra_data[i][:,1],bv_o[j]-bv_i[j],R_V=3.1)
-				#print "de-reddened flux:\n",spectra_data[i][:,1]
-				#print "starting wavelength:\n",spectra_data[i][:,0]
-				spectra_data[i][:,0] /= (1+z[j])
-				#print "z:",z[j]
-				#print "de-red-shifted wavelength:\n",spectra_data[i][:,0]	
-			else:
-				print "no estimate for b-v"
-
 # data interpolation
 # pixel size: every 2 As (subject to change)
 
@@ -280,35 +215,163 @@ def Interpo(spectra) :
     wave_max = 20000
     pix = 2
     #wavelength = np.linspace(wave_min,wave_max,(wave_max-wave_min)/pix+1)  #creates N equally spaced wavelength values
-    wavelength = np.arange(ceil(wave_min), floor(wave_max), dtype=int, step=2)
+    wavelength = np.arange(ceil(wave_min), floor(wave_max), dtype=int, step=pix)
     fitted_flux = []
+    fitted_error = []
     new = []
     #new = Table()
     #new['col0'] = Column(wavelength,name = 'wavelength')
     new_spectrum=spectra	#declares new spectrum from list
     new_wave=new_spectrum[:,0]	#wavelengths
     new_flux=new_spectrum[:,1]	#fluxes
+    new_error=new_spectrum[:,2]   #errors
     lower = new_wave[0] # Find the area where interpolation is valid
     upper = new_wave[len(new_wave)-1]
     lines = np.where((new_wave>lower) & (new_wave<upper))	#creates an array of wavelength values between minimum and maximum wavelengths from new spectrum
     indata=inter.splrep(new_wave[lines],new_flux[lines])	#creates b-spline from new spectrum
+    inerror=inter.splrep(new_wave[lines],new_error[lines]) # doing the same with the errors
     fitted_flux=inter.splev(wavelength,indata)	#fits b-spline over wavelength range
+    fitted_error=inter.splev(wavelength,inerror)   # doing the same with errors
     badlines = np.where((wavelength<lower) | (wavelength>upper))
     fitted_flux[badlines] = 0  # set the bad values to ZERO !!! 
     new = Table([wavelength,fitted_flux],names=('col1','col2')) # put the interpolated data into the new table    
     #newcol = Column(fitted_flux,name = 'Flux')  
     #new.add_column(newcol,index = None)
     return new
-    
-overall = []
-for i in range(num):
-    newdata = Interpo(spectra_data[i])
+
+# new : reading the database
+
+#Connect to the database
+path = "../../MichaelSchubert/SNe.db"
+con = sq3.connect(path)
+
+#Creates a cursor object to execute commands
+cur = con.cursor()
+
+#Returns the 10 SNe with the highest redshifts
+cur.execute("SELECT * FROM Supernovae ORDER BY Redshift DESC LIMIT 40")
+
+root = "../../../data/cfa/"
+
+SN_data = {} #Creates empty dictionary for SN data
+
+#Keeps track of how many spectra load, how many don't
+good = 0 #Initializes total spectra count to zero
+bad = 0 #Initializes bad spectra count to zero
+bad_files = []
+
+#min_waves = [] #Creates empty array for minimum deredshifted wavelength from each file
+#max_waves = [] #Creates empty array for maximum deredshifted wavelength from each file
+
+#Puts filenames in list
+for row in cur:
+    file_name = row[0]
+    sn = "sn" + row[1]
+    file_path = os.path.join(root, sn, file_name)
+    z = row[2]
+    try: #Makes sure data loads, deredshifting and minmax functions work properly
+        wave, flux = np.loadtxt(file_path, usecols=(0,1), unpack=True)
+        SN_data[file_name] = [z, wave, flux]
+        min_waves.append(min(deredshifted_wave))
+        max_waves.append(max(deredshifted_wave))
+        good += 1 #Counts number of files for which everything executed properly
+    except: #Stores number and names of files that didn't load correctly
+        bad +=1
+        bad_files.append(file_name)
+
+if bad == 0:
+    print "All files loaded successfully." #Returns this message if all files loaded correctly
+else:
+    print str(good) + " files read successfully." #Says how many files loaded correctly (if not all)
+    print "The following " + str(bad) + " file path(s) produced load errors:" #Says how many files produced load errors
+    for item in bad_files:
+        print item #Prints of names of files which produced load errors
+
+min_wave = min(min_waves) #Finds overall min deredshifted wavelength
+max_wave = max(max_waves) #Finds overall max deredshifted wavelength
+
+
+for key in SN_data.keys():
+    wave = SN_data[key][1]
+    flux = SN_data[key][2]
+#list of files
+#spectra_files = glob.glob ('../../../data/cfa/*/*.flm')
+
+#holds spectra data (wavelength,flux,weight)
+#spectra_data = []
+#holds file pathname
+#file_path = []
+#junk_data = []
+
+#number of spectra to modify
+num = 2
+
+#get data, pathnames
+#for i in range(num):
+#	try:
+#        	spectra_data.append(np.loadtxt(spectra_files[i]))
+#        	file_path.append(spectra_files[i][14:-4])
+		#print file_path
+             
+#	except ValueError:
+#		junk_data.append(spectra_files)
+
+#update num to number of good spectra files
+#num = len(spectra_data)
+
+#table containing sn names, redshifts, etc.
+#sn_parameters = np.genfromtxt('../../../data/cfa/cfasnIa_param.dat',dtype = None)
+
+#holds sn name
+#sn = []
+#holds redshift value
+#z = []
+
+#overall = []
+
+#get relevent parameters needed for calculations
+#for i in range(len(sn_parameters)):
+#	sn.append(sn_parameters[i][0])
+#	z.append(sn_parameters[i][1])
+
+"""
+NOTE:
+Use NED
+"""
+#deredden and deredshift the spectra
+#Using the Fitzpatrick 2007 Model.
+for i in range(num):#go through selected spectra data
+	for j in range(len(sn)):#go through list of SN parameters
+		if sn[j] in file_path[i]:#SN with parameter matches the path
+			print "looking at SN",sn[j]
+			ext = IrsaDust.get_extinction_table("SN%s"%sn[j])
+#			print ext
+			b = 0
+			v = 0
+			for k in range(len(ext)):
+				print "looking at",ext[k][0]
+				if "B" in ext[k][0]:
+					print "found b:",ext[k][3]
+					b = ext[k][3]
+				if "V" in ext[k][0]:
+					print "found v:",ext[k][3]
+					v = ext[k][3]
+				
+			print "\n",sn[j]			
+			print "starting flux:\n",spectra_data[i][:,1]
+			print "b-v value:",b,v
+			spectra_data[i][:,1] = fm_unred(spectra_data[i][:,0],spectra_data[i][:,1],b-v,R_V=3.1)
+			print "de-reddened flux:\n",spectra_data[i][:,1]
+			print "starting wavelength:\n",spectra_data[i][:,0]
+			spectra_data[i][:,0] /= (1+z[j]) # deredshift
+			print "z:",z[j]
+			print "de-red-shifted wavelength:\n",spectra_data[i][:,0]	
+
+for i in range(num) :   
+    newdata = Interpo(spectra_data[i]) # Do the interpolation
     overall.append(newdata)
 #    print newdata
-    
-
-    
-    """ For the upcoming people's reference, use table 'new'. """
+        
 
     # output data into a file (just for testing, no need to implement)
 #    output = 'testdata/modified-%s.dat'%(spectra_files[i][27:-4])

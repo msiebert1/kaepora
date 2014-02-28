@@ -29,8 +29,8 @@ file_list = glob.glob("../../data/cfa/*/*.flm")
 max_light = []
 max_light = np.loadtxt("../AaronBeaudoin/week4/MaxSpectra.dat", dtype = 'str')
 
-<<<<<<< HEAD
-=======
+#<<<<<<< HEAD
+#=======
 delta_t = Table.read('../AaronBeaudoin/week5/SpectraTime.dat',format='ascii')
 file_name = delta_t["File"]
 ages = delta_t["delta_t"]

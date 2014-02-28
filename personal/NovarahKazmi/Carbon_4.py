@@ -6,8 +6,8 @@ import scipy.interpolate as intp
 import math
 
 #####'#'#'#'#####
-#import Plot_2
-import Plotting
+import Plot_2
+#import Plotting
 #####'#'#'#'#####
 
 
@@ -229,11 +229,11 @@ print "total of",sum(count_neg),"CN files found"
 chop_data(data_pos,path_pos)
 #print "copped data/path of length",len(data_pos),"/",len(path_pos)
 
-print "\nChopping C + complete."
+#print "\nChopping C + complete."
 
 #print "\noriginal data/path of length",len(data_neg),"/",len(path_neg)
 chop_data(data_neg,path_neg)
-print "\nChopping C - complete."
+#print "\nChopping C - complete."
 
 
 #removes sn names we don't want to look at
@@ -334,15 +334,15 @@ plus_n    = avg_flux_n + rms_n
 minus_n   = avg_flux_n - rms_n
 scatter_n = np.divide(rms_n,avg_flux_n)
 
-print scatter_p
-
+#print scatter_p
+"""
 #Write data to file
 datafile = open('Carbon_Results.txt','w')
 for i in range(len(data_pos)):
 	row = str(wavelengths[i]) + '\t' + str(avg_flux_p[i]) + '\t' + str(plus_p[i]) + '\t' + str(minus_n[i]) + '\n'
 	datafile.write(row)
 datafile.close()
-
+"""
 
 """
 #RMS function needs lots of debugging.
@@ -375,34 +375,23 @@ print "===================="
 
 
 #####'#'#'#'#####
-#[ X_AXIS (Wavelength) , Y_AXIS (Composite) , Positive_Error , Negative_Error]
-plot_data    = [wavelengths, avg_flux_p, plus_p, minus_p]
-title        = "Super Cool"
-image_title  = "WHOA.png"
-xlabel       = "Wavelength ($\AA$)"
-ylabel       = "COOLLLLLL"
-legend1      = "Curvy"
-Plotting.main(plot_data,title, image_title , xlabel, ylabel, legend1)
-#Plot_2.main(plot_data,title, image_title , xlabel, ylabel, legend1)
-#####'#'#'#'#####
-"""
-### file location  ### name[0], Data File: X_range , Y_range , Error_Plus , Error_minus
-Carbon_Results.txt
-#../../data/cfa/sn2006E/sn2006E-20060126.53-fast.flm
-### Name of plot   ### name[1]
-Carbon_Test.png
-### title for plot ### name[2]
-Test Plot
-### x axis label   ### name[3]
-$\mathtt{Wavelength}$ ($\AA$)
-### y axis label   ### name[4]
-Scaled Flux
-### legend label   ### name[5], name[6], name[7]
-Red and Unscaled
-Error +
-Error -
+# Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift
+#                   0              1          2            3    4      5
+height       =     [8,             2,         3,           2,   2,     2]
 
-"""
+fig_plots    = [0,1,2,3,4,5] # Plots to generate
+
+plot_data_1  = [wavelengths, avg_flux_p, plus_p, minus_p] #[ X_AXIS (Wavelength) , Y_AXIS (Composite) , Positive_Error , Negative_Error]
+plot_data_2  = [wavelengths, avg_flux_n, plus_n, minus_n] #[ X_AXIS (Wavelength) , Y_AXIS (Composite) , Positive_Error , Negative_Error]
+plot_data_3  = [wavelengths, scatter_p, scatter_n,]       #[ X_AXIS (Wavelength) , First Y_value      , Second Y_value ]
+Show_Data   = [plot_data_1, plot_data_2, plot_data_3]
+fig_type     = 2.3
+image_title  = "Compare.png"				  # You can specify the location between " " as well 
+plot_labels  = ["Clever Title","Wavelength ($\AA$)","AVG Spectrum","Scatter"] #[ Figure Title, X title, Y-top Title, Y-bottom Title]
+legend       = ["First","Second","Third","Fouth"]
+#Plot_2.main(fig_type,height, plot_data_1 , plot_data_2 , plot_data_3 , image_title , plot_labels , legend)
+Plot_2.main(fig_type, height , Show_Data , image_title , plot_labels , legend)
+#####'#'#'#'#####
 
 #fig = plt.figure()
 """
