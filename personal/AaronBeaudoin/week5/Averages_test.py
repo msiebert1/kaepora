@@ -43,7 +43,7 @@ for line in max_light[0:50]:
 	if not all(x == 0.0 for x in error):
 		SN.error = error
 	SN_Array.append(SN)
-	print j
+	#print j
 	j += 1
 print j, 'supernovae fluxed'
 #Reads from database, may be changed later
@@ -57,13 +57,14 @@ for SN in SN_Array:
 	    SN.minwave = row[3]
 	    SN.maxwave = row[4]
 	    names.append(SN.name)
-	    print j
+	    #print j
 	    j += 1
 	else:
 	    continue
 print len(SN_Array), "items found"
 #Anything with blank error columns gets removed, since we can't make a weighted average with it.
 #This can be changed to just put them in a separate array and then do a non-weighted average...if that's something we want
+print "Checking for blank error columns..."
 SN_Array = [SN for SN in SN_Array if hasattr(SN, 'error')]
 print "Done checking. ", len(SN_Array), "items remain"       
 
@@ -82,11 +83,12 @@ def select(x):
 	#split_by_red(SN_Array):3
 	#no_split(SN_Array):4 #doesn't do anything, just takes the input and spits it right back out
     }.get(x,4)#4 is the default if we don't want a split
+print "Do you want to split the data for comparison?"
 print "1. Split by Silicon Line Velocity"
 print "2. Split by Host Galaxy Type"
 print "3. Split by Redshift"
 print "4. No Split"
-choice = raw_input('Choose a split profle... ')
+choice = raw_input('Choose a split profle --> ')
 array1, array2 = select(choice)
 
 def split_by_v(SN_Array):
@@ -99,9 +101,9 @@ def split_by_v(SN_Array):
     return array1, array2
 
 def split_by_host(SN_Array):
-    host_type = raw_input('Input a host type...')
+    host_type = raw_input('Input a host type --->')
     for SN in SN_Array:
-	if #something:
+	if true:
 	    array1.append(SN)
 	else:
 	    array2.append(SN)
