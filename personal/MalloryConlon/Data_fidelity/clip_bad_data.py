@@ -1,4 +1,4 @@
-#This code uses a median filter to smooth out single-pixel deviations. Then, using sigma-clipping to remove large variations between the actual and smoothed image, we produce a smoothed image.  To change the amount of smoothing, change the window_len parameter.  This is similar to a polynomial smoother i.e. The spectrum becomes more smooth as we increase the window_len. Once the original data is smoothed, we clip any data that is different from the smoothed data by 5%.
+#This code uses a median filter to smooth out single-pixel deviations. Then, using sigma-clipping to remove large variations between the actual and smoothed image, we produce a smoothed image.  To change the amount of smoothing, change the window_len parameter.  This is similar to a polynomial smoother i.e., the spectrum becomes more smooth as we increase the window_len. Once the original data is smoothed, we clip any data that is different from the smoothed data by given factors that can be changed depending on desired smoothness.
 
 import pyfits
 import numpy as np
@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 
 #Read in data file and put wavelength, flux and error into separate arrays.  Should make this to read in a list of spectra paths, then do the smoothing for that list.
-SN=np.genfromtxt('sn2002cc-20020420-ui.flm')
+SN=np.genfromtxt('SN05el_051018_g01_NTT_EM.dat')
 
 wavelength = SN[:,0]
 flux = SN[:,1]
