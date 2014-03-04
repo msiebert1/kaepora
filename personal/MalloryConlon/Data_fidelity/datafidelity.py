@@ -21,34 +21,34 @@ from math import *
 ## Syntax: new_y_array = gsmooth(x_array, y_array, var_y, vexp = 0.01, nsig = 5.0)
 
 def gsmooth(x_array, y_array, var_y, vexp = 0.005, nsig = 5.0):
-
+    
     # Check for non-zero variance points, and set to 1E-20
     for i in range(len(var_y)):
         if var_y[i] == 0:
             var_y[i] = 1E-20
-
+    
     # Output y-array
     new_y = np.zeros(len(x_array), float)
-
+    
     # Loop over y-array elements
     for i in range(len(x_array)):
-
+        
         # Construct a Gaussian of sigma = vexp*x_array[i]
         gaussian = np.zeros(len(x_array), float)
         sigma = vexp*x_array[i]
-
+        
         # Restrict range to +/- nsig sigma
         sigrange = np.nonzero(abs(x_array-x_array[i]) <= nsig*sigma)
         gaussian[sigrange] = (1/(sigma*sqrt(2*pi)))*np.exp(-0.5*((x_array[sigrange]-x_array[i])/sigma)**2)
-
+        
         # Multiply Gaussian by 1 / variance
         W_lambda = gaussian / var_y
-
+        
         # Perform a weighted sum to give smoothed y value at x_array[i]
         W0 = np.sum(W_lambda)
         W1 = np.sum(W_lambda*y_array)
         new_y[i] = W1/W0
-
+    
     # Return smoothed y-array
     return new_y
 
@@ -127,19 +127,19 @@ def wsmooth(x,window_len=11,window='hanning'):
 #
 
 def genvar(wavelength, flux, vexp = 0.005, nsig = 5.0):
-
+    
     # Create variance from sky spectrum (Will add additional code here)
     varflux = np.zeros(len(wavelength))+1.0 # Place holder
-
+    
     # Smooth original flux
     new_flux = gsmooth(wavelength, flux, varflux, vexp, nsig)
-
+    
     # Generate absolute value of the noise from original flux
     error = abs(flux - new_flux)
-
+    
     # Smooth noise to find the variance
     variance = gsmooth(wavelength, error, varflux, vexp, nsig)
-
+    
     # Return generated variance
     return variance
 
@@ -151,15 +151,15 @@ def genvar(wavelength, flux, vexp = 0.005, nsig = 5.0):
 # Syntax is clip(flux_array, upper = 1.7, lower = 0.5)
 
 def clip(flux, upper = 1.1, lower = 0.9):
-
+    
     #Clip any bad data and replace it with the smoothed value.  Fine tune the ratio limits to cut more (ratio closer to one) or less (ratio farther from one) data
-
+    
     new_flux = np.zeros(len(flux))
     clipped_points = []
     
     smooth_flux = wsmooth(flux)
     ratio = flux/smooth_flux
-
+    
     for i in range(len(ratio)):
         if ratio[i] > upper:
             new_flux[i] = smooth_flux[i]
@@ -169,7 +169,7 @@ def clip(flux, upper = 1.1, lower = 0.9):
             clipped_points.append(i)
         else:
             new_flux[i] = flux[i]
-
+    
     return new_flux, clipped_points
 
 
@@ -193,7 +193,7 @@ def telluric_flag(wavelength, flux, limit=0.9)
     ratio = flux/new_flux
     telluric_clip = []
 
-    #Look at the flux/smoothed flux ratios for a given telluric absorption range as defined by the min and max arrays. If the ratio is less than the given condition, clip and replace with the smoothed flux value.
+#Look at the flux/smoothed flux ratios for a given telluric absorption range as defined by the min and max arrays. If the ratio is less than the given condition, clip and replace with the smoothed flux value.
 
     for i in range(len(wavelength)):
         for j in range(len(min)):
@@ -202,7 +202,7 @@ def telluric_flag(wavelength, flux, limit=0.9)
                     if ratio[i] < limit:
                         telluric_clip.append(i)
 
-    #Return the indices of telluric absorption
+#Return the indices of telluric absorption
     return telluric_clip
 
 
