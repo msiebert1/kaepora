@@ -1,4 +1,4 @@
-#This code uses a median filter to smooth out single-pixel deviations. Then, using sigma-clipping to remove large variations between the actual and smoothed image, we produce a smoothed image.  To change the amount of smoothing, change the window_len parameter.  This is similar to a polynomial smoother i.e. The spectrum becomes more smooth as we increase the window_len. Once the original data is smoothed, we clip any data that is different from the smoothed data by 5%.
+#This code uses a median filter to smooth out single-pixel deviations. Then, using sigma-clipping to remove large variations between the actual and smoothed image, we produce a smoothed image.  To change the amount of smoothing, change the window_len parameter.  This is similar to a polynomial smoother i.e., the spectrum becomes more smooth as we increase the window_len. Once the original data is smoothed, we clip any data that is different from the smoothed data by given factors that can be changed depending on desired smoothness.
 
 import pyfits
 import numpy as np
@@ -6,13 +6,12 @@ import matplotlib.pyplot as plt
 
 
 #Read in data file and put wavelength, flux and error into separate arrays.  Should make this to read in a list of spectra paths, then do the smoothing for that list.
-SN=np.genfromtxt('sn2002cc-20020420-ui.flm')
+SN=np.genfromtxt('sn1998bp-19980921-ui.flm')
 
 wavelength = SN[:,0]
 flux = SN[:,1]
-#error = SN[:,2]
 
-def smooth(x,window_len=11,window='hanning'):
+def smooth(x,window_len=9,window='hamming'):
     """smooth the data using a window with requested size.
         
         This method is based on the convolution of a scaled window with the signal.
@@ -77,51 +76,27 @@ clipped = []
 
 ratio = flux/new_flux
 
-#plt.plot(ratio)
-#plt.show()
-
-#Clip any bad data and replace it with the smoothed value.  Fine tune the ratio limits to cut more (ratio closer to one) or less (ratio farther from one) data
+#Clip any bad data and replace it with the smoothed value.  Fine tune the ratio limits to cut more (ratios closer to one) or less (ratios farther from one) data
 
 for i in range(len(ratio)):
-    if ratio[i] > 1.3:
+    if ratio[i] > 1.1:
         flux_update.append(new_flux[i])
         clipped.append(i)
-    elif ratio[i] < 0.7:
+    elif ratio[i] < 0.9:
         flux_update.append(new_flux[i])
         clipped.append(i)
     else:
         flux_update.append(flux[i])
 
 
-        #print wavelength[i] #Uncomment to print clipped wavelengths
+#print clipped[i] #Uncomment to print clipped indices.  This can be used to fix the variance values after they are generated
 
 #Plot old and new flux arrays vs wavelength to visually see changes
 
-residual = flux_update-flux
-
 plt.plot(wavelength,flux,'k')
 plt.plot(wavelength,flux_update,'r')
-#plt.plot(wavelength,residual)
 plt.show()
 
-#Generate the variance based on the smoothed flux and original flux.  Subtract the two to get the noise value and smooth again to get the variance.
-
-sky=pyfits.open('../../personal/malloryconlon/data_fidelity/kecksky.fits')
 
 
-sky_flux=sky[0].data[0]
 
-#print sky_flux
-
-wavelength = SN[:,0]
-flux = SN[:,1]
-#error = SN[:,2]
-
-
-noise=flux-new_flux
-smooth_noise = smooth(noise)
-#print noise
-
-#plt.plot(smooth_noise)
-#plt.plot(sky_flux)
-#plt.show()
