@@ -52,6 +52,12 @@ def gsmooth(x_array, y_array, var_y, vexp = 0.005, nsig = 5.0):
     # Return smoothed y-array
     return new_y
 
+############################################################################
+#
+## Function wsmooth() smooths data by convolving input data with a window of specified size
+## Optional inputs are window length (window_len) and window type (window)
+## Syntax: new_flux_array = wsmooth(flux_array, window_len=17, window='hanning')
+
 def wsmooth(x,window_len=11,window='hanning'):
     """smooth the data using a window with requested size.
         
@@ -139,7 +145,7 @@ def genvar(wavelength, flux, vexp = 0.005, nsig = 5.0):
 
 ############################################################################
 #
-# Function to scan data and clip any bad points
+# Function clip() scans data and clips any bad points
 
 def clip(flux, upper = 1.1, lower = 0.9):
 

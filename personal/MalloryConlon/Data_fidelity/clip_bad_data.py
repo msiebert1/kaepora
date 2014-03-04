@@ -11,7 +11,7 @@ SN=np.genfromtxt('sn1998bp-19980921-ui.flm')
 wavelength = SN[:,0]
 flux = SN[:,1]
 
-def smooth(x,window_len=17,window='hanning'):
+def smooth(x,window_len=9,window='hamming'):
     """smooth the data using a window with requested size.
         
         This method is based on the convolution of a scaled window with the signal.
@@ -93,10 +93,9 @@ for i in range(len(ratio)):
 
 #Plot old and new flux arrays vs wavelength to visually see changes
 
-#plt.plot(wavelength,flux,'k')
-#plt.plot(wavelength,flux_update,'r')
-#plt.plot(wavelength,residual)
-#plt.show()
+plt.plot(wavelength,flux,'k')
+plt.plot(wavelength,flux_update,'r')
+plt.show()
 
 
 
