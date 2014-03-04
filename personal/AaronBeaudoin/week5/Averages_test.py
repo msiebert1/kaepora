@@ -30,7 +30,7 @@ cur = con.cursor()
 names = []
 j = 1
 #Reads the data of max light spectra so only one per supernova is used
-for line in max_light[0:50]:
+for line in max_light[0:100]:
 	SN = supernova()
 	SN.address = line[1]
 	SN.name = line[0]
@@ -51,17 +51,31 @@ print "Reading properties from database..."
 j = 0
 for SN in SN_Array:
     for row in cur.execute('SELECT Filename, SN, Redshift, MinWave, MaxWave FROM Supernovae'):
-	if row[0] == SN.address:
+	if row[0] in SN.address:
 	    SN.filename = row[0]
 	    SN.redshifts = row[2]
 	    SN.minwave = row[3]
 	    SN.maxwave = row[4]
 	    names.append(SN.name)
 	    #print j
+	    print SN.redshifts
 	    j += 1
 	else:
 	    continue
 print len(SN_Array), "items found"
+
+"""open the velocity file, make it useable, add the needed data to the array"""
+print "Reading velocities..."
+v_data = np.loadtxt('../../SamRubin/foley_master_data', dtype={'names': ('name', 'redshift', 'v', 'dv'), 'formats': ('S8', 'f8', 'f8', 'f8')}, skiprows = 1, usecols = (0,1,2,3))
+for SN in SN_Array:
+    for row in v_data:
+	if row[0] == SN.name:
+	    if row[2] != -99.0:
+		SN.v_si = row[2]
+		SN.dv_si = row[3]
+SN_Array = [SN for SN in SN_Array if hasattr(SN, 'v_si')]
+print len(SN_Array), "velocities found"
+
 #Anything with blank error columns gets removed, since we can't make a weighted average with it.
 #This can be changed to just put them in a separate array and then do a non-weighted average...if that's something we want
 print "Checking for blank error columns..."
@@ -76,34 +90,21 @@ print "Done checking. ", len(SN_Array), "items remain"
 #Then those two arrays get run through the compositer individually.
 array1 = []
 array2 = []
-def select(x):
-    return{
-	split_by_v(SN_Array):1,
-	split_by_host(SN_Array):2
-	#split_by_red(SN_Array):3
-	#no_split(SN_Array):4 #doesn't do anything, just takes the input and spits it right back out
-    }.get(x,4)#4 is the default if we don't want a split
-print "Do you want to split the data for comparison?"
-print "1. Split by Silicon Line Velocity"
-print "2. Split by Host Galaxy Type"
-print "3. Split by Redshift"
-print "4. No Split"
-choice = raw_input('Choose a split profle --> ')
-array1, array2 = select(choice)
 
 def split_by_v(SN_Array):
     high_v = raw_input('Velocity Boundary = ')
+    high_v = float(high_v)
     for SN in SN_Array:
-	if SN.v_si >= high_v:
+	if SN.v_si > high_v:
 	    array1.append(SN)
 	else:
 	    array2.append(SN)
     return array1, array2
 
 def split_by_host(SN_Array):
-    host_type = raw_input('Input a host type --->')
+    host_type = np.float(raw_input('Input a host type --->'))
     for SN in SN_Array:
-	if true:
+	if 1 == 1: #dummy statement until i figure out what to put there
 	    array1.append(SN)
 	else:
 	    array2.append(SN)
@@ -111,8 +112,9 @@ def split_by_host(SN_Array):
 
 def split_by_red(SN_Array):
     high_red = raw_input('Redshift Boundary = ')
+    high_red = float(high_red)
     for SN in SN_Array:
-	if SN.redshift >= high_red:
+	if SN.redshifts > high_red:
 	    array1.append(SN)
 	else:
 	    array2.append(SN)
@@ -122,6 +124,22 @@ def no_split(SN_Array):
     array1 = SN_Array
     array2 = []
     return array1, array2
+
+#here's the switch
+select = {"1" : split_by_v,
+	  "2" : split_by_host, #doesn't work yet
+	  "3" : split_by_red,
+	  "4" : no_split, #doesn't do anything, just takes the input and spits it right back out
+	  }
+print "Do you want to split the data for comparison?"
+print "1. Split by Silicon Line Velocity"
+print "2. Split by Host Galaxy Type"
+print "3. Split by Redshift"
+print "4. No Split"
+choice = raw_input('Choose a split profle --> ')
+array1, array2 = select[choice](SN_Array)
+print array1[0].flux
+print array2[0].flux
 
 #after this we go back into the normal composite stuff
 #gets as close as possible to matching the compare spectrum wavelength values
@@ -186,7 +204,7 @@ def splice(compare_spectrum,SN_Array,l_wave,h_wave):
 		SN.flux /= np.median(SN.flux)
 	#    plt.plot(SN.wavelength, SN.flux,label=SN.name)
 		print lowindex, "low index", highindex, "high index"
-		factors = compare_spectrum.flux[lowindex:highindex] / SN.flux[lowindex:highindex]
+		factors = compare_spectrum.flux[0:2000] / SN.flux[0:2000]
 		scale_factor = np.mean(factors)
 		SN.flux[lowindex:highindex] *= scale_factor
 		SN.error[lowindex:highindex] *= scale_factor
@@ -204,36 +222,46 @@ print "Scaling.."
 #checks for any non-overlapping spectra, then expands range if necessary
 i=0
 spectrum=SN_Array[0]
-array=SN_Array
 min=3000
 max=7000
 while (i==0):
-	spectrum,array=splice(spectrum,array,min,max)
+	compare_spectrum,array=splice(spectrum,SN_Array,min,max)
+	spectrum1_new,array1_new=splice(spectrum,array1,min,max)
+	spectrum2_new,array2_new=splice(spectrum,array2,min,max)
+	
 	if (len(array) == 0):
 		i+=1
 	else:
 		min=min-100
 		max+=100
 		
-compare_spectrum=spectrum
+composite1 = spectrum1_new
+composite2 = spectrum2_new
 
-print compare_spectrum.flux, "Composite Spectrum Scaled Flux"
-print compare_spectrum.error, "Composite Spectrum Error"
+#print compare_spectrum.flux, "Composite Spectrum Scaled Flux"
+#print compare_spectrum.error, "Composite Spectrum Error"
     	
 #This makes plots and saves the composite
-print len(compare_spectrum.wavelength), len(compare_spectrum.flux)
+print len(composite1.wavelength), len(composite2.flux)
 """composite"""
 composite_file = Table([compare_spectrum.wavelength[0:2000], compare_spectrum.flux[0:2000], compare_spectrum.error[0:2000]], names = ('Wavelength', 'Scaled_Flux', 'Error'))
 composite_file.write('CompositeSpectrum.dat', format='ascii')
+composite_file1 = Table([composite1.wavelength[0:2000], composite1.flux[0:2000], composite1.error[0:2000]], names = ('Wavelength', 'Scaled_Flux', 'Error'))
+composite_file1.write('CompositeSpectrum1.dat', format='ascii')
+composite_file2 = Table([composite2.wavelength[0:2000], composite2.flux[0:2000], composite2.error[0:2000]], names = ('Wavelength', 'Scaled_Flux', 'Error'))
+composite_file2.write('CompositeSpectrum2.dat', format='ascii')
 plt.figure(1)
 plt.subplot(211)
-plt.plot(compare_spectrum.wavelength[0:2000], compare_spectrum.flux[0:2000],label='Weighted Composite')
+plt.plot(compare_spectrum.wavelength[0:2000], compare_spectrum.flux[0:2000], label='Weighted Composite')
+plt.plot(composite1.wavelength[0:2000], composite1.flux[0:2000],label='Weighted Composite 1')
+plt.plot(composite2.wavelength[0:2000], composite2.flux[0:2000],label='Weighted Composite 2')
 plt.xlabel('Wavelength (A)')
 plt.ylabel('Scaled Flux')
 plt.xlim(4000,7000)
 #plt.ylim(0,2.8)
 plt.subplot(212)
-plt.plot(compare_spectrum.wavelength[0:2000], compare_spectrum.error[0:2000], label='Error')
+plt.plot(composite1.wavelength[0:2000], composite1.error[0:2000], label='Error 1')
+plt.plot(composite2.wavelength[0:2000], composite2.error[0:2000], label='Error 2')
 plt.ylabel('Error')
 #plt.plot(compare_spectrum.wavelength, compare_spectrum.residual, label='Residual')
 plt.xlim(4000,7000)
