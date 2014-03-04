@@ -67,6 +67,61 @@ print len(SN_Array), "items found"
 SN_Array = [SN for SN in SN_Array if hasattr(SN, 'error')]
 print "Done checking. ", len(SN_Array), "items remain"       
 
+#Here is some new code that might not work at all.
+#The goal is to create a system which will run different comparisons between spectra based on user input
+#Current separation conditions are V_SiII, host galaxy, redshift
+#Takes input, runs through the python equivalent of a switch
+#runs a different separation subroutine and returns two arrays, each containing a bunch of spectra that meet the criteria
+#Then those two arrays get run through the compositer individually.
+array1 = []
+array2 = []
+def select(x):
+    return{
+	split_by_v(SN_Array):1,
+	split_by_host(SN_Array):2
+	#split_by_red(SN_Array):3
+	#no_split(SN_Array):4 #doesn't do anything, just takes the input and spits it right back out
+    }.get(x,4)#4 is the default if we don't want a split
+print "1. Split by Silicon Line Velocity"
+print "2. Split by Host Galaxy Type"
+print "3. Split by Redshift"
+print "4. No Split"
+choice = raw_input('Choose a split profle... ')
+array1, array2 = select(choice)
+
+def split_by_v(SN_Array):
+    high_v = raw_input('Velocity Boundary = ')
+    for SN in SN_Array:
+	if SN.v_si >= high_v:
+	    array1.append(SN)
+	else:
+	    array2.append(SN)
+    return array1, array2
+
+def split_by_host(SN_Array):
+    host_type = raw_input('Input a host type...')
+    for SN in SN_Array:
+	if #something:
+	    array1.append(SN)
+	else:
+	    array2.append(SN)
+    return array1, array2
+
+def split_by_red(SN_Array):
+    high_red = raw_input('Redshift Boundary = ')
+    for SN in SN_Array:
+	if SN.redshift >= high_red:
+	    array1.append(SN)
+	else:
+	    array2.append(SN)
+    return array1, array2
+
+def no_split(SN_Array):
+    array1 = SN_Array
+    array2 = []
+    return array1, array2
+
+#after this we go back into the normal composite stuff
 #gets as close as possible to matching the compare spectrum wavelength values
 def find_nearest(array,value):
     idx = (np.abs(array-value)).argmin()
