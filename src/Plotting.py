@@ -15,15 +15,16 @@ import matplotlib.gridspec as gridspec
 ## Place the following after you have calculated your data 
 ## fill in information
 # 
-# plot_data_1  = [wavelength_1, Spectra_1, plus, minus]     # Expects [X, Y, Pos_Y Err, Neg_Y Err]
-# plot_data_2  = [wavelength_2, Spectra_2, plus, minus]     # Expects [X, Y, Pos_Y Err, Neg_Y Err]
-# plot_data_3  = [wavelengths, scatter_p, scatter_n,]       # [ X , First Y_value, Second Y_value]
-# Show_Data    = [plot_data_1, plot_data_2, plot_data_3]
-# image_title  = "../personal/YOUR_REP/WHOA.png"            # Name the image (with location)
-# plot_labels  = ["Clever Title","Wavelength ($\AA$)","AVG Spectrum","Scatter"]    #[ Figure Title, X title, Y-top Title, Y-bottom Title] 
+#Relative_Flux = [wavelengths, avg_flux_p, wavelengths, avg_flux_n]  # Want to plot 2 spectra on the same figure
+#Residuals     = [wavelengths, scatter_p , wavelengths, scatter_n]
+#Spectra_Bin   = []
+#Age           = []
+#Delta         = []
+#Redshift      = [] 
+# image_title  = "WHOA.png"            # Name the image (with location)
+# title        = "Image is called this" 
 # legend       = ["First","Second","Third","Fouth"]         # Names for the legend
 #
-# fig_type     = 1.1 or 1.2 or 2.3       # The types will change, this is only to give differnt plot options
 #
 ## The following line will plot the data
 #
@@ -31,14 +32,13 @@ import matplotlib.gridspec as gridspec
 #
 #
 ###########################################
-
-def main(Show_Data,Plots,image_title,title,legend_names):
+def main(Show_Data , Plots , image_title , title , legend_names):
 
     # Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift
     #                   0              1          2            3    4      5
     Height =           [8,             2,         3,           2,   2,     2]
 
-    #Plots = [0,1] # Plots to generate
+    #Plots = [0,1] # Plots to generate # Remove me
 
     h = []
 
@@ -46,20 +46,13 @@ def main(Show_Data,Plots,image_title,title,legend_names):
         h.append(Height[m])
         
 # re-name variables
-    xaxis_1   = Show_Data[:][0] 
-    yaxis_1   = Show_Data[:][1]
-    err_p_1   = Show_Data[:][2] 
-    err_n_1   = Show_Data[:][3]
+    if len(Show_Data[:][0]) > 0 :
+	xaxis_1   = Show_Data[:][0][0] 
+	yaxis_1   = Show_Data[:][0][1]
+	err_p_1   = Show_Data[:][0][2] # Maybe change this to second x and y array
+	err_n_1   = Show_Data[:][0][3] 
 
-#	xaxis_2   = Show_Data[:][1][0]
-#	yaxis_2   = Show_Data[:][1][1]
-	#err_p_2   = Show_Data[:][1][2]
-	#err_n_2   = Show_Data[:][1][3]
-
-	#xaxis_3   = Show_Data[:][2][0]
-	#yaxis_3_1 = Show_Data[:][2][1]
-	#yaxis_3_2 = Show_Data[:][2][2]
-
+	# will work on the legend next
     legend_1  = legend_names[0]
     legend_2  = legend_names[1]
     legend_3  = legend_names[2]
@@ -89,6 +82,8 @@ def main(Show_Data,Plots,image_title,title,legend_names):
     gs = gridspec.GridSpec(len(Plots), 1, height_ratios = h, hspace = 0.001)
     p = 0
 
+	
+
     if 0 in Plots:
         Rel_flux = plt.subplot(gs[p])
         #plt.title("".join(["$^{26}$Al / $^{27}$Al, t$_{res}$ = ", str(t_width_Al), " kyr", ", U$_{Al}$ = ", str(uptake_Al[0])]), fontdict = font)
@@ -98,9 +93,21 @@ def main(Show_Data,Plots,image_title,title,legend_names):
         plt.minorticks_on()
         #plt.xticks(np.arange(Start_Al, End_Al+0.05, x_tik))
         #plt.yticks(np.arange(0, 41, 5))
-        plt.plot(xaxis_1, yaxis_1, label = "generic data", ls = '-')
+        #plt.plot(xaxis_1, yaxis_1, label = "generic data", ls = '-')  # The next three lines have been commented out - nk
+        #plt.legend(prop = {'family' : 'serif'})
+        #plt.fill_between(xaxis_1,err_p_1,err_n_1,alpha=1.5, edgecolor='#000080', facecolor='#AFEEEE')
+###############################################
+	#if this works then we can add similar formmating to the rest of the code 
+        plt.plot(Show_Data[:][0][0], Show_Data[:][0][1], label = "generic data", ls = '-')
+	
         plt.legend(prop = {'family' : 'serif'})
-        plt.fill_between(xaxis_1,err_p_1,err_n_1,alpha=1.5, edgecolor='#000080', facecolor='#AFEEEE')
+        plt.fill_between(Show_Data[:][0][0],Show_Data[:][0][2],Show_Data[:][0][3],alpha=1.5, edgecolor='#000080', facecolor='#AFEEEE')
+	# Error corrections will be used after we calculate it
+	if len(Show_Data[:][0]) > 2:
+		for i in range(len(Show_Data[:][0])):
+			plt.plot(Show_Data[:][0][i+1],Show_Data[:][0][i+1],'g',label = legend_2 )
+			plt.fill_between(Show_Data[:][0][i+1],err_p_2,err_n_2,alpha=1.5, edgecolor='#006400', facecolor='#98FB98')
+###############################################
         p = p+1
         
         

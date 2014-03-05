@@ -14,7 +14,7 @@ from pylab import *
 # Show_Data = [Light_curve, Residual, Age, Spectra_Bin, Age, Delta, Redshift] 
 
 #def main(fig_type,height,plot_data_1,plot_data_2,plot_data_3,image_title,plot_labels,legend_names):
-def main(fig_type,Plots,num_of_data,Show_Data,image_title,plot_labels,legend_names):
+def main(fig_type, Show_Data, Plots, num_data_set, image_title , plot_labels , legend)):
 # Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift
 	#                    0              1          2            3    4      5
 	#Height =           [8,             2,         3,           2,   2,     2]
@@ -44,9 +44,9 @@ def main(fig_type,Plots,num_of_data,Show_Data,image_title,plot_labels,legend_nam
 		err_n_2   = Show_Data[:][1][3]
 	if len(Show_Data[:][2]) > 0:
 		xaxis_3   = Show_Data[:][2][0] 
-		yaxis_3_1 = Show_Data[:][2][1]
-		xaxis_3_2 = Show_Data[:][2][2] # Will change this to accept potential second x-axis
-		yaxis_3_2 = Show_Data[:][2][3]
+		yaxis_3   = Show_Data[:][2][1]
+		xaxis_3   = Show_Data[:][2][2] # Will change this to accept potential second x-axis
+		yaxis_3   = Show_Data[:][2][3]
 	if len(Show_Data[:][3) > 0 :
 		xaxis_4   = Show_Data[:][3][0]
 		yaxis_4   = Show_Data[:][3][1]
@@ -66,7 +66,7 @@ def main(fig_type,Plots,num_of_data,Show_Data,image_title,plot_labels,legend_nam
 # What should I do with legend
 
 	title     = plot_labels[0]	
-	xlabel    = plot_labels[1]
+	xlabel    = plot_labels[1] # Dont need to label x and y
 	ylabel_1  = plot_labels[2]
 	ylabel_2  = plot_labels[3]
 
@@ -110,7 +110,8 @@ def main(fig_type,Plots,num_of_data,Show_Data,image_title,plot_labels,legend_nam
 		# Below fills the error around the plot
 		plt.fill_between(xaxis_1,err_p_1,err_n_1,alpha=1.5, edgecolor='#000080', facecolor='#AFEEEE')
 		#plt.fill_between(xaxis_2,err_p_2,err_n_2,alpha=1.5, edgecolor='#006400', facecolor='#98FB98')
-		################################################################################	
+
+		################## Dont need ###################################################
 		if num_of_data[0] == 2:
 			ax1.plot(xaxis_2,yaxis_2,'g',label = legend_2 )
 			plt.fill_between(xaxis_2,err_p_2,err_n_2,alpha=1.5, edgecolor='#006400', facecolor='#98FB98')

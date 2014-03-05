@@ -388,7 +388,7 @@ fig_type     = 2.3
 
 legend       = ["First","Second","Third","Fouth"]
 
-Relative_Flux   = [wavelengths, avg_flux_p, plus_p,      minus_p]
+Relative_Flux   = [wavelengths, avg_flux_p, wavelengths, avg_flux_n]
 Relative_Flux_2 = [wavelengths, avg_flux_n, plus_n,      minus_n]   
 Residuals       = [wavelengths, scatter_p , wavelengths, scatter_n]
 Spectra_Bin   = []
@@ -397,13 +397,13 @@ Delta         = []
 Redshift      = [] 
 
 #Relative_Flux_2= [wavelengths, avg_flux_n, plus_n, minus_n]   
-Show_Data    = [Relative_Flux , Relative_Flux_2, Residuals ,Age , Delta , Redshift]
+Show_Data    = [Relative_Flux, Residuals , Spectra_Bin, Age , Delta , Redshift]
 #Show_Data    = [Relative_Flux , Residuals , Spectra_Bin , Age , Delta , Redshift]
 Plots        = [0,1] # Plots to generate
-num_data_set = [2,1,0,0,0,0]
+#num_data_set = [2,1,0,0,0,0]
 image_title  = "Compare.png"				  # You can specify the location between " " as well 
 
-Plot_2.main(fig_type, Plots, num_data_set, Show_Data , image_title , plot_labels , legend)
+Plot_2.main(fig_type, Show_Data, Plots, num_data_set, image_title , plot_labels , legend)
 #####'#'#'#'#####
 
 #fig = plt.figure()
