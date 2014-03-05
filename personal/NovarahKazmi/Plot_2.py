@@ -11,8 +11,10 @@ from pylab import *
 #from matplotlib.font_manager import FontProperties
 #from matplotlib.ticker import FuncFormatter
 
+# Show_Data = [Light_curve, Residual, Age, Spectra_Bin, Age, Delta, Redshift] 
+
 #def main(fig_type,height,plot_data_1,plot_data_2,plot_data_3,image_title,plot_labels,legend_names):
-def main(fig_type,height,Show_Data,image_title,plot_labels,legend_names):
+def main(fig_type,height,num_data_set,Show_Data,image_title,plot_labels,legend_names):
 # Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift
 	#                    0              1          2            3    4      5
 	#Height =           [8,             2,         3,           2,   2,     2]
@@ -25,6 +27,10 @@ def main(fig_type,height,Show_Data,image_title,plot_labels,legend_names):
 	#    h.append(Height[m])
 
 # re-name variables
+
+#	for i in range(num_data_set):
+#		xaxis[] = Show_Data[:][0][0] 
+
 	xaxis_1   = Show_Data[:][0][0] 
 	yaxis_1   = Show_Data[:][0][1]
 	err_p_1   = Show_Data[:][0][2] 
@@ -38,6 +44,11 @@ def main(fig_type,height,Show_Data,image_title,plot_labels,legend_names):
 	xaxis_3   = Show_Data[:][2][0]
 	yaxis_3_1 = Show_Data[:][2][1]
 	yaxis_3_2 = Show_Data[:][2][2]
+	
+	#xaxis_2   = Show_Data[:][1][0]
+	#yaxis_2   = Show_Data[:][1][1]
+	#err_p_2   = Show_Data[:][1][2]
+	#err_n_2   = Show_Data[:][1][3]
 
 	title     = plot_labels[0]
 	xlabel    = plot_labels[1]
@@ -60,18 +71,18 @@ def main(fig_type,height,Show_Data,image_title,plot_labels,legend_names):
 
 # Changing font parameters. 
 	params = {'legend.fontsize': 8,  
-          'legend.linewidth': 2,
-          'legend.font': 'serif',
-          'xtick.labelsize': 8, 
-          'ytick.labelsize': 8} # changes font size in the plot legend
+		  'legend.linewidth': 2,
+	          'legend.font': 'serif',
+	          'xtick.labelsize': 8, 
+	          'ytick.labelsize': 8} # changes font size in the plot legend
 
 	plt.rcParams.update(params) # reset the plot parameters
 
 	font = {'family' : 'serif',   # Font Parameters
-        'color'  : 'black',
-        'weight' : 'bold',
-        'size'   : 8,
-        }
+		'color'  : 'black',
+	        'weight' : 'bold',
+	        'size'   : 8,
+	        }
 
 # Types of plots. This will be changed so that the options can be automated. 
 	if fig_type == 2.3: # Plotting details for two figures with a total of three sets of data
@@ -128,9 +139,9 @@ def main(fig_type,height,Show_Data,image_title,plot_labels,legend_names):
 #		wave_min.append(max(yaxis_1[m][1]))
 #		wave_max.append(min(yaxis_1[m][1]))
 	
-	xmin = min(wave_min)
-	xmax = max(wave_max)
-	print xmin, xmax
+	#xmin = min(wave_min)
+	#xmax = max(wave_max)
+	#print xmin, xmax
 
 	xmin = int(float(xaxis_1[0]))
 	xmax = int(float(xaxis_1[-1]))
@@ -141,7 +152,20 @@ def main(fig_type,height,Show_Data,image_title,plot_labels,legend_names):
 	plt.savefig( image_title )
 	plt.show()
 
+"""	xaxis_1   = Show_Data[:][0][0] 
+	yaxis_1   = Show_Data[:][0][1]
+	err_p_1   = Show_Data[:][0][2] 
+	err_n_1   = Show_Data[:][0][3]
 
+	xaxis_2   = Show_Data[:][1][0]
+	yaxis_2   = Show_Data[:][1][1]
+	err_p_2   = Show_Data[:][1][2]
+	err_n_2   = Show_Data[:][1][3]
+
+	xaxis_3   = Show_Data[:][2][0]
+	yaxis_3_1 = Show_Data[:][2][1]
+	yaxis_3_2 = Show_Data[:][2][2]
+"""
 """	if num_of_plots == 1:
 		ax1 = subplot(1,1,1) # Create the plot
 
@@ -192,6 +216,28 @@ def main(fig_type,height,Show_Data,image_title,plot_labels,legend_names):
 	minus_n   = avg_flux_n - rms_n
 	scatter_n = np.divide(rms_n,avg_flux_n)
 
+"""
+"""
+Light_cur_x = [] 
+	Light_cur_x = []
+
+	xaxis_2   = [] 
+	yaxis_2   = []
+
+	xaxis_3   = [] 
+	yaxis_3   = []
+
+	xaxis_4   = [] 
+	yaxis_4   = []
+
+	xaxis_5   = [] 
+	yaxis_5   = []
+
+	for i in range(3):
+		xaxis_i = Show_Data[:][i][0]
+		yaxis_i = Show_Data[:][i][1]
+
+		print xaxis_2
 """
 """
 # Removes the xaxis labels
