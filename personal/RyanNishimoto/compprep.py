@@ -22,7 +22,7 @@ file_path = []
 junk_data = []
 
 #number of spectra to modify
-num = 200
+num = len(spectra_files)
 
 #get data, pathnames
 for i in range(num):
@@ -35,7 +35,7 @@ for i in range(num):
 		junk_data.append(spectra_files)
 
 #update num to number of good spectra files
-num = len(spectra_data)
+num = 50
 
 #table containing sn names, redshifts, etc.
 sn_parameters = np.genfromtxt('../../data/cfa/cfasnIa_param.dat',dtype = None)
@@ -94,7 +94,7 @@ for i in range(num):#go through selected spectra data
 			spectra_data[i][:,0] /= (1+z[j])
 			print "z:",z[j]
 			print "de-red-shifted wavelength:\n",spectra_data[i][:,0]
-print "\n##########\n##########\ndone de-reddening and de-redshifting"
+print "\n###################\ndone de-reddening and de-redshifting"
 ##############################################################################################################################################
 ##############################################################################################################################################
 def Interpo(spectra) :
