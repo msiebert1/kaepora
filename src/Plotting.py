@@ -39,7 +39,7 @@ import scipy.optimize as optimize
 #
 ###########################################
 
-def main(Show_Data , Plots , image_title , title , legend_names):
+def main(Show_Data , Plots , image_title , title):
 
     # Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift, Multiple Spectrum, Stacked Spectrum
     #                   0              1          2            3    4      5         6,                 7
