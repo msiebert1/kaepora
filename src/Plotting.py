@@ -27,7 +27,6 @@ import scipy.optimize as optimize
 #Show_Data     = [Relative_Flux,Residuals]
 #image_title  = "WHOA.png"            # Name the image (with location)
 #title        = "Image is called this" 
-#legend       = ["First","Second","Third","Fouth"]         # Names for the legend
 #
 ## Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift, Multiple Spectrum, Stacked Spectrum
 ##                   0              1          2            3    4      5         6,                 7
@@ -35,7 +34,7 @@ import scipy.optimize as optimize
 #
 ## The following line will plot the data
 #
-#Plotting.main(Show_Data , Plots, image_title , title , legend)
+#Plotting.main(Show_Data , Plots, image_title , title)
 #
 #
 ###########################################
@@ -264,98 +263,6 @@ def main(Show_Data , Plots , image_title , title , legend_names):
     plt.show()
 
 
-"""
-# Data should be read in and then plotted, make it so the user doens't have to choose the figure to plot
-	if fig_type == 2.3: # Plotting details for two figures with a total of three sets of data
-		ax1 = subplot(2,1,1)
-		plt.title( title )  # Placement of figure title in code is important
-		plt.ylabel( ylabel_1 )
-		ax1.plot(xaxis_1,yaxis_1,'b',label = legend_1 )
-		ax1.plot(xaxis_2,yaxis_2,'g',label = legend_2 )
-
-		# Below fills the error around the plot
-		plt.fill_between(xaxis_1,err_p_1,err_n_1,alpha=1.5, edgecolor='#000080', facecolor='#AFEEEE')
-		plt.fill_between(xaxis_2,err_p_2,err_n_2,alpha=1.5, edgecolor='#006400', facecolor='#98FB98')
-
-		# Plotting details for two figures with one set of data
-		ax2 = subplot(2,1,2, sharex=ax1)
-		plt.ylabel( ylabel_2 )
-		ax2.plot(xaxis_3,yaxis_3_1,'b',label = legend_3 )
-		ax2.plot(xaxis_3,yaxis_3_2,'g',label = legend_4 )
-		
-#Removes x-axis labels for ax1. May need later. 	
-	# 	Commented code is to remove labels for both figures
-	#	xticklabels = ax1.get_xticklabels() + ax2.get_xticklabels()
-	#	setp(xticklabels, visible=False)
-		setp(ax1.get_xticklabels(), visible = False)
-	
-	elif fig_type == 1.2: # Plotting details for single figure with two sets of data
-		ax1 = subplot(1,1,1)
-		plt.title( title )  # Placement of figure title in code is important
-		plt.ylabel( ylabel_1 )
-		ax1.plot(xaxis_1,yaxis_1,'b',label = legend_1 )
-		ax1.plot(xaxis_2,yaxis_2,'g',label = legend_2 )
-
-		# Below fills the error around the plot
-		plt.fill_between(xaxis_1,err_p_1,err_n_1,alpha=1.5, edgecolor='#000080', facecolor='#AFEEEE')
-		plt.fill_between(xaxis_2,err_p_2,err_n_2,alpha=1.5, edgecolor='#006400', facecolor='#98FB98')
-
-	else : # Plotting single plot with single set of data
-		ax1 = subplot(1,1,1)
-		plt.title( title )  # Placement of figure title in code is important
-		plt.ylabel( ylabel_1 )
-		ax1.plot(xaxis_1,yaxis_1,'k',label = legend_1 )
-		plt.fill_between(xaxis_1,err_p_1,err_n_2,alpha=1.5, edgecolor='#000080', facecolor='#5F9EA0')
-
-"""
-"""
-
-# Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift
-#                   0              1          2            3    4      5
-Height =           [8,             2,         3,           2,   2,     2]
-
-Plots = [0,1] # Plots to generate
-
-h = []
-
-for m in Plots:
-    h.append(Height[m])
-
-params = {'legend.fontsize': 8, 
-          'legend.linewidth': 2,
-          'legend.font': 'serif',
-          'xtick.labelsize': 8, 
-          'ytick.labelsize': 8} # changes font size in the plot legend
-
-plt.rcParams.update(params) # reset the plot parameters
-
-font = {'family' : 'serif',
-        'color'  : 'black',
-        'weight' : 'bold',
-        'size'   : 8,
-        }
-
-xaxis_1 = np.linspace(2000, 8000, 12001)
-
-plt.figure(num = 2, dpi = 100, figsize = [8, np.sum(h)], facecolor = 'w')
-gs = gridspec.GridSpec(len(Plots), 1, height_ratios = h, hspace = 0.001)
-p = 0
-
-if 0 in Plots:
-    Rel_flux = plt.subplot(gs[p])
-    #plt.title("".join(["$^{26}$Al / $^{27}$Al, t$_{res}$ = ", str(t_width_Al), " kyr", ", U$_{Al}$ = ", str(uptake_Al[0])]), fontdict = font)
-    #plt.xlabel('Age [Myr]', fontdict = font)
-    plt.ylabel('Relative f$_{\lambda}$', fontdict = font)
-    #plt.axis([Start_Al-0.05, End_Al+0.05, 0, 40])
-    plt.minorticks_on()
-    #plt.xticks(np.arange(Start_Al, End_Al+0.05, x_tik))
-    #plt.yticks(np.arange(0, 41, 5))
-    plt.plot(xaxis_1, xaxis_1**2.0, label = "generic data", ls = '-')
-    plt.legend(prop = {'family' : 'serif'})
-    p = p+1
-
-if 1 in Plots:
-    Resid = plt.subplot(gs[p], sharex = Rel_flux)
     #plt.title("".join(["$^{53}$Mn / $^{55}$Mn, t$_{res}$ = ", str(t_width_Mn), " kyr", ", U$_{Mn}$ = ", str(uptake_Mn[0])]), fontdict = font)
     #plt.xlabel('Age [Myr]', fontdict = font)
     plt.ylabel('Residuals', fontdict = font)
