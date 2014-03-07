@@ -1,4 +1,5 @@
 from numarray import *
+import numpy as np
 
 def womply(a, i, x):
 #
@@ -25,18 +26,6 @@ def womply(a, i, x):
       womply = x * womply + a(j - 1)
    return womply
    
-
-def womrebin_tform(rx, x, arctwo, darcone, in21, acc, rslope, in11, in12, arcone):
-#
-# COPYRIGHT 1982 M. ASHLEY. See comments with SUBROUTINE REBIN.
-#
-# Version 1.2     23 Apr 1982    - More arguments put into COMMON.
-# Version 1.1     29 Mar 1982    - First working version
-#
-
-   n_params = 10
-   def _ret():  return (rx, x, arctwo, darcone, in21, acc, rslope, in11, in12, arcone)
-
 """
 ##########################################
 ##########################################
@@ -74,21 +63,31 @@ I think what they were trying to do was a loop until one of the if statement con
 were met, so i removed the GOTO line so that it would convert the whole code, and added
 a while loop that wraps where the GOTO statement would go
 """
-   n = 1
-   
+
+def womrebin_tform(rx, x, arctwo, darcone, in21, acc, rslope, in11, in12, arcone):
+#
+# COPYRIGHT 1982 M. ASHLEY. See comments with SUBROUTINE REBIN.
+#
+# Version 1.2     23 Apr 1982    - More arguments put into COMMON.
+# Version 1.1     29 Mar 1982    - First working version
+#
+
+   n_params = 10
+   def _ret():  return (rx, x, arctwo, darcone, in21, acc, rslope, in11, in12, arcone)
+   n = 1          
    rl = womply(arctwo, in21, rx)
    #print, rl
    # jump1:
-while(true):
+   while(true):
 	l = womply(arcone, in11, x)
 	#       print, 'l ', l
 	dx = (rl - l) * rslope
 	x = x + dx
 	#      print, 'x ', x
 	if (abs(dx) < acc):   
-	return _ret()
+         return _ret()
 	if (n > 100):   
-	return _ret()
+         return _ret()
 	n = n + 1
 	rslope = 1 / womply(darcone, in12, x)
 
@@ -255,10 +254,12 @@ def womashrebin(wave, flux, nwave, nflux):
    n_params = 4
    def _ret():  return (wave, flux, nwave, nflux)
    
-   wdata = array(flux, copy=0).astype(Float64)
-   npix = (size(wave))[1]
-   #print, npix
-   nrbin = (size(nwave))[1]
+   wdata = array(flux, copy=0).astype(float64)
+#   npix = (size(wave))[1]
+   npix = len(wave)
+   print npix
+#   nrbin = (size(nwave))[1]
+   nrbin = len(nwave)
    rbin = dblarr(nrbin)
    arc1 = dblarr(2)
    arcone = dblarr(2)
@@ -268,7 +269,7 @@ def womashrebin(wave, flux, nwave, nflux):
    #print, double(wave[0])
    #print, double(wave[npix-1])
    #print, double(wave[npix-2])
-   arc1(0) = array(wave[0], copy=0).astype(Float64) - (array(wave[npix - 1], copy=0).astype(Float64) - array(wave[0], copy=0).astype(Float64)) / (npix - 1)
+   arc1(0) = array(wave[0], copy=0).astype(float64) - (array(wave[npix - 1], copy=0).astype(float64) - array(wave[0], copy=0).astype(float64)) / (npix - 1)
    arc1(1) = ((array(wave[npix - 1], copy=0).astype(Float64) - array(wave[0], copy=0).astype(Float64)) * npix) / (npix - 1)
    arc2 = dblarr(2)
    arc2(0) = array(nwave[0], copy=0).astype(Float64) - (array(nwave[nrbin - 1], copy=0).astype(Float64) - array(nwave[0], copy=0).astype(Float64)) / (nrbin - 1)
