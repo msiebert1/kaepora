@@ -37,8 +37,12 @@ for line in max_light[0:100]:
 	data = np.loadtxt(SN.address)
 	SN.wavelength = data[:,0]
 	SN.flux = data[:,1]
-	SN.residual = np.zeros(len(data[:,1]))   
+	SN.residual = np.zeros(len(data[:,1])) 
+        SN.redshifts = np.zeros(len(data[:,1]))
+        SN.redshifts.fill(SN.redshift)  
 	SN.age = line[2]
+        SN.ages = np.zeros(len(data[:,1]))
+        SN.ages.fill(SN.age)
 	error = data[:,2]
 	if not all(x == 0.0 for x in error):
 		SN.error = error
@@ -53,12 +57,12 @@ for SN in SN_Array:
     for row in cur.execute('SELECT Filename, SN, Redshift, MinWave, MaxWave FROM Supernovae'):
 	if row[0] in SN.address:
 	    SN.filename = row[0]
-	    SN.redshifts = row[2]
+	    SN.redshift = row[2]
 	    SN.minwave = row[3]
 	    SN.maxwave = row[4]
 	    names.append(SN.name)
 	    #print j
-	    print SN.redshifts
+	    print SN.redshift
 	    j += 1
 	else:
 	    continue
@@ -114,7 +118,7 @@ def split_by_red(SN_Array):
     high_red = raw_input('Redshift Boundary = ')
     high_red = float(high_red)
     for SN in SN_Array:
-	if SN.redshifts > high_red:
+	if SN.redshift > high_red:
 	    array1.append(SN)
 	else:
 	    array2.append(SN)
@@ -165,17 +169,25 @@ def average(SN_Array):
 	    flux = SN.flux[0:2000]
 	    error = SN.error[0:2000]
 	    wavelength = SN.wavelength[0:2000]
+            red = SN.redshifts[0:2000]
+            age = SN.ages[0:2000]
 	    if len(fluxes) == 0:
 		fluxes = np.array([flux])
 		errors = np.array([error])
+                reds = np.array([red])
+                ages = np.array([age])
 	    else:
 		fluxes = np.append(fluxes, np.array([flux]),axis=0)
 		errors = np.append(errors, np.array([error]), axis=0)
+                reds =  np.append(reds, np.array([red]), axis=0)
+                ages =  np.append(ages, np.array([age]), axis=0)
 	avg_flux = np.average(fluxes, weights = 1.0/errors, axis=0)
+        avg_red = np.average(reds, weights = 1.0/errors, axis=0)
+        avg_age = np.average(ages, weights = 1.0/errors, axis=0)
         compare_spectrum = SN_Array[0]
 	compare_spectrum.flux = avg_flux
-	#compare_spectrum.redshifts = avg_red
-        #compare_spectrum.ages = avg_ages
+	compare_spectrum.redshifts = avg_red
+        compare_spectrum.ages = avg_age
 	# Add residual formula?
 	return compare_spectrum
 #Here's the function that scales spectra based on the most recent composite. It gets run multiple times if there are non-overlapping spectra.
