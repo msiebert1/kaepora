@@ -181,9 +181,9 @@ def clip(flux, upper = 1.1, lower = 0.9):
 # Optional input is the limit for flagging
 # Syntax is telluric_flag(wavelength_array,flux_array, limit = 0.99)
 
-def telluric_flag(wavelength, flux, limit=0.9)
+def telluric_flag(wavelength, flux, limit=0.9):
 
-    telluric_lines = np.loadtxt('../../personal/malloryconlon/Data_fidelity/telluric_lines.txt')
+    telluric_lines = np.loadtxt('telluric_lines.txt')
 
     min = telluric_lines[:,0]
     max = telluric_lines[:,1]
@@ -191,7 +191,7 @@ def telluric_flag(wavelength, flux, limit=0.9)
     new_flux = wsmooth(flux,window_len=35)
 
     ratio = flux/new_flux
-    telluric_clip = []
+    telluric_clip = np.zeros(len(flux))
 
 #Look at the flux/smoothed flux ratios for a given telluric absorption range as defined by the min and max arrays. If the ratio is less than the given condition, clip and replace with the smoothed flux value.
 
@@ -204,5 +204,30 @@ def telluric_flag(wavelength, flux, limit=0.9)
 
 #Return the indices of telluric absorption
     return telluric_clip
+
+############################################################################
+#
+# Function update_variance() uses the returns from the telluric_flag and clip
+# functions to update the inverse variance spectrum
+# Required inputs are an array of wavelengths, an array of fluxes, and the
+# inverse variance array
+# Syntax is update_variance(wavelength_array,flux_array, variance_array)
+
+def update_variance(wavelength, flux, variance):
+
+#Determine the clipped indices
+    telluric_clip=telluric_flag(wavelength, flux)
+    clipped_points=clip(flux)
+
+    for i in range(len(clipped_points)):
+            variance[clipped_points[i]] = 0
+
+
+    for j in range(len(telluric_clip)):
+        variance[telluric_clip[i]] = 0
+
+
+    #Return the updated inverse variance spectrum
+    return variance
 
 
