@@ -52,5 +52,5 @@ for i in range(len(cfa)):
 	v.append(ext[2][3])
 
 param = Table([cfa,b,v],names=('sn','B','V'))
-ascii.write(param,'extinction.dat')
+#ascii.write(param,'extinction.dat')
 	
