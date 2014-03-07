@@ -19,8 +19,10 @@ file_path = []
 
 junk_data = []
 
+new_spectra = []
+
 #number of spectra to modify
-num = 20
+num = 2
 
 #get data, pathnames
 for i in range(num):
@@ -33,9 +35,9 @@ for i in range(num):
 		junk_data.append(spectra_files)
 
 #update num to number of good spectra files
-num = 1
+num = len(spectra_data)
 
-import rebinning
+#import rebinning
 from rebinning import *
 
 for i in range(num) :  
@@ -44,10 +46,12 @@ for i in range(num) :
     wave_min = 1000
     wave_max = 20000
     pix = 2
-    nwave = np.arange(ceil(wave_min), floor(wave_max), dtype=int, step=pix) #creates N equally spaced wavelength values
-    nflux = []
-    womashrebin(wave, flux, nwave, nflux)
-    print nflux
+#    nwave = np.arange(ceil(wave_min), floor(wave_max), dtype=int, step=pix) #creates N equally spaced wavelength values
+    nwave = spectra_data[i+1][:,0]
+    nflux = spectra_data[i+1][:,1]
+#    print nwave,nflux
+    new_spectra.append(womashrebin(wave, flux, nwave, nflux))
+    print new_spectra
     
     
     

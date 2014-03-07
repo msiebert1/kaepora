@@ -107,8 +107,8 @@ for i in range(num):#go through selected spectra data
 			print "z:",z[j]
 			print "de-red-shifted wavelength:\n",spectra_data[i][:,0]
 			
-			print "de-reddened by host galaxy\n",spectra_data[i][:,1]*ex.reddening(spectra_data[i][:,0],ebv = 0, r_v = r, model='f99')
-			host *= ex.reddening(spectra_data[i][:,0],ebv = bv, r_v = r, model='f99')
+			#print "de-reddened by host galaxy\n",spectra_data[i][:,1]*ex.reddening(spectra_data[i][:,0],ebv = 0, r_v = r, model='f99')
+			#host *= ex.reddening(spectra_data[i][:,0],ebv = bv, r_v = r, model='f99')
 
 print "##############################################################\ndone de-reddening and de-redshifting"
 ##############################################################################################################################################

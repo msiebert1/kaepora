@@ -10,10 +10,10 @@ def womply(a, i, x):
 #  I IS THUS THE ORDER OF THE POLY, WHICH HAS I+1 COEFFICIENTS,
 #  AND A(I+1) IS THE CONSTANT TERM.
 #
-   n_params = 3
+#   n_params = 3
    
    if (i < 0):   
-      womply = 0.e0
+      womply = 0.0e0
       print '*** VALUE OF I OUT OF BOUNDS IN WOMPLY ***'
       return womply
    
@@ -70,24 +70,26 @@ def womrebin_tform(rx, x, arctwo, darcone, in21, acc, rslope, in11, in12, arcone
 # Version 1.1     29 Mar 1982    - First working version
 #
 
-   n_params = 10
+#   n_params = 10
    def _ret():  return (rx, x, arctwo, darcone, in21, acc, rslope, in11, in12, arcone)
    n = 1          
    rl = womply(arctwo, in21, rx)
-   #print, rl
+#   print rl
    # jump1:
-   while(True):
-	l = womply(arcone, in11, x)
-	#       print, 'l ', l
-	dx = (rl - l) * rslope
-	x = x + dx
-	#      print, 'x ', x
-	if (abs(dx) < acc):   
+   while(x>0):
+       l = womply(arcone, in11, x)
+       print 'l ', l
+       dx = (rl - l) * rslope
+       x = x + dx
+       print 'x ', x
+       if (abs(dx) < acc):   
+           return _ret()
+       if (n > 100):   
          return _ret()
-	if (n > 100):   
-         return _ret()
-	n = n + 1
-	rslope = 1 / womply(darcone, in12, x)
+         exit
+       else:
+           n = n + 1
+           rslope = 1 / womply(darcone, in12, x)
 
 
 def womashrebin(wave, flux, nwave, nflux):
@@ -249,7 +251,7 @@ def womashrebin(wave, flux, nwave, nflux):
 #
 #
 #print, size(nwave)
-   n_params = 4
+#   n_params = 4
    def _ret():  return (wave, flux, nwave, nflux)
    
    wdata = np.array(flux, copy=0,dtype = float)
@@ -278,6 +280,7 @@ def womashrebin(wave, flux, nwave, nflux):
    arc2 = []
    arc2.append(np.array(nwave[0], copy=0).astype(float) - (np.array(nwave[nrbin - 1], copy=0).astype(float) - np.array(nwave[0], copy=0).astype(float)) / (nrbin - 1))
    arc2.append(((np.array(nwave[nrbin - 1], copy=0).astype(float) - np.array(nwave[0], copy=0).astype(float)) * nrbin) / (nrbin - 1))
+   
    # Declaration of parameters.
    maxcoeff = 11
    accbin = 0.0001e0
@@ -297,24 +300,25 @@ def womashrebin(wave, flux, nwave, nflux):
    in21 = inarc2 - 1
    lstart = 0
    acc = accbin / npix * 1.0e0
-   #print, npix
+   print 'npix', npix
    rnpix = 1.0e0 / npix
-   #print, npix
+   #print, rnpix
    rnrbin = 1.0e0 / nrbin
    
    rx2 = 0.5e0 * rnrbin
-   #print, 'inarc1', inarc1
+#   print 'inarc1', inarc1
    for i in np.arange(0, (inarc1 - 1)+(1)):
       arcone[inarc1 - 1 - i] = arc1[i]
       darcone[inarc1 - 1 - i] = (i) * arc1[i]
    for i in np.arange(0, (inarc2 - 1)+(1)):
       arctwo[inarc2 - 1 - i] = arc2[i]
-   #print, 'darcone ', darcone, in12
+#   print 'darcone ', darcone, in12
+#   print 'arctwo',arctwo   
    rslope = 1 / womply(darcone, in12, 0.2e0)
-   #   print, 'rslope ', rslope
+#   print 'rslope ', rslope
    x1 = 0.2
    rx2, x1, arctwo, darcone, in21, acc, rslope, in11, in12, arcone = womrebin_tform(rx2, x1, arctwo, darcone, in21, acc, rslope, in11, in12, arcone)
-   print x1
+   print 'x1', x1
    x1 = x1 * npix
 #   print x1
    dx = 0
@@ -324,7 +328,7 @@ def womashrebin(wave, flux, nwave, nflux):
    nstop = nrbin
    
    j1 = round(x1) - 1
-#   print j1
+   print 'j1' , j1
    for k in np.arange(0, (nstop - 1)+(1)):
    
       rx2 = rx2 + rnrbin
@@ -332,7 +336,7 @@ def womashrebin(wave, flux, nwave, nflux):
       rx2, x2, arctwo, darcone, in21, acc, rslope, in11, in12, arcone = womrebin_tform(rx2, x2, arctwo, darcone, in21, acc, rslope, in11, in12, arcone)
       x2 = x2 * npix
       #print, 'x2 ', x2
-      print npix
+#      print 'npix' , npix
       dx = x2 - x1
       #       print, 'dx ', dx
       j2 = round(x2) - 1
