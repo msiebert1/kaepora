@@ -375,22 +375,35 @@ print "===================="
 
 
 #####'#'#'#'#####
+"""
+	[X] check if y-0 if y-1 is null before plotting it. 
+	but its already expecting it into the code
+	what if light_curve = []
+"""
 # Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift
 #                   0              1          2            3    4      5
-height       =     [8,             2,         3,           2,   2,     2]
 
-fig_plots    = [0,1,2,3,4,5] # Plots to generate
-
-plot_data_1  = [wavelengths, avg_flux_p, plus_p, minus_p] #[ X_AXIS (Wavelength) , Y_AXIS (Composite) , Positive_Error , Negative_Error]
-plot_data_2  = [wavelengths, avg_flux_n, plus_n, minus_n] #[ X_AXIS (Wavelength) , Y_AXIS (Composite) , Positive_Error , Negative_Error]
-plot_data_3  = [wavelengths, scatter_p, scatter_n,]       #[ X_AXIS (Wavelength) , First Y_value      , Second Y_value ]
-Show_Data    = [plot_data_1, plot_data_2, plot_data_3]
-fig_type     = 2.3
-image_title  = "Compare.png"				  # You can specify the location between " " as well 
 plot_labels  = ["Clever Title","Wavelength ($\AA$)","AVG Spectrum","Scatter"] #[ Figure Title, X title, Y-top Title, Y-bottom Title]
+fig_type     = 2.3
+
 legend       = ["First","Second","Third","Fouth"]
-#Plot_2.main(fig_type,height, plot_data_1 , plot_data_2 , plot_data_3 , image_title , plot_labels , legend)
-Plot_2.main(fig_type, height , Show_Data , image_title , plot_labels , legend)
+
+Relative_Flux   = [wavelengths, avg_flux_p, wavelengths, avg_flux_n]
+Relative_Flux_2 = [wavelengths, avg_flux_n, plus_n,      minus_n]   
+Residuals       = [wavelengths, scatter_p , wavelengths, scatter_n]
+Spectra_Bin   = []
+Age           = []
+Delta         = []
+Redshift      = [] 
+
+#Relative_Flux_2= [wavelengths, avg_flux_n, plus_n, minus_n]   
+Show_Data    = [Relative_Flux, Residuals , Spectra_Bin, Age , Delta , Redshift]
+#Show_Data    = [Relative_Flux , Residuals , Spectra_Bin , Age , Delta , Redshift]
+Plots        = [0,1] # Plots to generate
+num_data_set = [2,1,0,0,0,0]
+image_title  = "Compare.png"				  # You can specify the location between " " as well 
+
+Plot_2.main(fig_type, Plots, num_data_set, Show_Data , image_title , plot_labels , legend)
 #####'#'#'#'#####
 
 #fig = plt.figure()
