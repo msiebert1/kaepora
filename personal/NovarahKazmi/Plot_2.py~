@@ -14,7 +14,7 @@ from pylab import *
 # Show_Data = [Light_curve, Residual, Age, Spectra_Bin, Age, Delta, Redshift] 
 
 #def main(fig_type,height,plot_data_1,plot_data_2,plot_data_3,image_title,plot_labels,legend_names):
-def main(fig_type,height,Show_Data,image_title,plot_labels,legend_names):
+def main(fig_type, Show_Data, Plots, num_data_set, image_title , plot_labels , legend)):
 # Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift
 	#                    0              1          2            3    4      5
 	#Height =           [8,             2,         3,           2,   2,     2]
@@ -27,26 +27,45 @@ def main(fig_type,height,Show_Data,image_title,plot_labels,legend_names):
 	#    h.append(Height[m])
 
 # re-name variables
-	xaxis_1   = Show_Data[:][0][0] 
-	yaxis_1   = Show_Data[:][0][1]
-	err_p_1   = Show_Data[:][0][2] 
-	err_n_1   = Show_Data[:][0][3]
 
-	xaxis_2   = Show_Data[:][1][0]
-	yaxis_2   = Show_Data[:][1][1]
-	err_p_2   = Show_Data[:][1][2]
-	err_n_2   = Show_Data[:][1][3]
+#	for i in range(len(Plots)):
+#		xaxis[] = Show_Data[:][0][0] 
 
-	xaxis_3   = Show_Data[:][2][0]
-	yaxis_3_1 = Show_Data[:][2][1]
-	yaxis_3_2 = Show_Data[:][2][2]
 	
-	#xaxis_2   = Show_Data[:][1][0]
-	#yaxis_2   = Show_Data[:][1][1]
-	#err_p_2   = Show_Data[:][1][2]
-	#err_n_2   = Show_Data[:][1][3]
+	if len(Show_Data[:][0]) > 0 :
+		xaxis_1   = Show_Data[:][0][0] 
+		yaxis_1   = Show_Data[:][0][1]
+		err_p_1   = Show_Data[:][0][2] # Maybe change this to second x and y array
+		err_n_1   = Show_Data[:][0][3] 
+	if len(Show_Data[:][1]) > 0 :
+		xaxis_2   = Show_Data[:][1][0]
+		yaxis_2   = Show_Data[:][1][1]
+		err_p_2   = Show_Data[:][1][2]
+		err_n_2   = Show_Data[:][1][3]
+	if len(Show_Data[:][2]) > 0:
+		xaxis_3   = Show_Data[:][2][0] 
+		yaxis_3   = Show_Data[:][2][1]
+		xaxis_3   = Show_Data[:][2][2] # Will change this to accept potential second x-axis
+		yaxis_3   = Show_Data[:][2][3]
+	if len(Show_Data[:][3) > 0 :
+		xaxis_4   = Show_Data[:][3][0]
+		yaxis_4   = Show_Data[:][3][1]
+		err_p_4   = Show_Data[:][3][2]
+		err_n_4   = Show_Data[:][3][3]
+	if len(Show_Data[:][4]) > 0 :
+		xaxis_5   = Show_Data[:][4][0]
+		yaxis_5   = Show_Data[:][4][1]
+		err_p_5   = Show_Data[:][4][2]
+		err_n_5   = Show_Data[:][4][3]
+	if len(Show_Data[:][5]) > 0 :
+		xaxis_6   = Show_Data[:][5][0]
+		yaxis_6   = Show_Data[:][5][1]
+		err_p_6   = Show_Data[:][5][2]
+		err_n_6   = Show_Data[:][5][3]
 
-	title     = plot_labels[0]
+# What should I do with legend
+
+	title     = plot_labels[0]	
 	xlabel    = plot_labels[1]
 	ylabel_1  = plot_labels[2]
 	ylabel_2  = plot_labels[3]
@@ -86,34 +105,33 @@ def main(fig_type,height,Show_Data,image_title,plot_labels,legend_names):
 		plt.title( title )  # Placement of figure title in code is important
 		plt.ylabel( ylabel_1 )
 		ax1.plot(xaxis_1,yaxis_1,'b',label = legend_1 )
-		ax1.plot(xaxis_2,yaxis_2,'g',label = legend_2 )
+		#ax1.plot(xaxis_2,yaxis_2,'g',label = legend_2 )
 
 		# Below fills the error around the plot
 		plt.fill_between(xaxis_1,err_p_1,err_n_1,alpha=1.5, edgecolor='#000080', facecolor='#AFEEEE')
-		plt.fill_between(xaxis_2,err_p_2,err_n_2,alpha=1.5, edgecolor='#006400', facecolor='#98FB98')
+		#plt.fill_between(xaxis_2,err_p_2,err_n_2,alpha=1.5, edgecolor='#006400', facecolor='#98FB98')
 
+		################## Dont need ###################################################
+		if num_of_data[0] == 2:
+			ax1.plot(xaxis_2,yaxis_2,'g',label = legend_2 )
+			plt.fill_between(xaxis_2,err_p_2,err_n_2,alpha=1.5, edgecolor='#006400', facecolor='#98FB98')
+		################################################################################
 		# Plotting details for two figures with one set of data
 		ax2 = subplot(2,1,2, sharex=ax1)
 		plt.ylabel( ylabel_2 )
 		ax2.plot(xaxis_3,yaxis_3_1,'b',label = legend_3 )
-		ax2.plot(xaxis_3,yaxis_3_2,'g',label = legend_4 )
-		
-# Removes x-axis labels for ax1. May need later. 	
-	# 	Commented code is to remove labels for both figures
-	#	xticklabels = ax1.get_xticklabels() + ax2.get_xticklabels()
-	#	setp(xticklabels, visible=False)
-		setp(ax1.get_xticklabels(), visible = False)
-	
+		ax2.plot(xaxis_3_2,yaxis_3_2,'g',label = legend_4 )
+
 	elif fig_type == 1.2: # Plotting details for single figure with two sets of data
 		ax1 = subplot(1,1,1)
 		plt.title( title )  # Placement of figure title in code is important
 		plt.ylabel( ylabel_1 )
 		ax1.plot(xaxis_1,yaxis_1,'b',label = legend_1 )
-		ax1.plot(xaxis_2,yaxis_2,'g',label = legend_2 )
+		#ax1.plot(xaxis_2,yaxis_2,'g',label = legend_2 )
 
 		# Below fills the error around the plot
 		plt.fill_between(xaxis_1,err_p_1,err_n_1,alpha=1.5, edgecolor='#000080', facecolor='#AFEEEE')
-		plt.fill_between(xaxis_2,err_p_2,err_n_2,alpha=1.5, edgecolor='#006400', facecolor='#98FB98')
+		#plt.fill_between(xaxis_2,err_p_2,err_n_2,alpha=1.5, edgecolor='#006400', facecolor='#98FB98')
 
 	else : # Plotting single plot with single set of data
 		ax1 = subplot(1,1,1)
@@ -121,6 +139,9 @@ def main(fig_type,height,Show_Data,image_title,plot_labels,legend_names):
 		plt.ylabel( ylabel_1 )
 		ax1.plot(xaxis_1,yaxis_1,'k',label = legend_1 )
 		plt.fill_between(xaxis_1,err_p_1,err_n_2,alpha=1.5, edgecolor='#000080', facecolor='#5F9EA0')
+		
+
+	
 
 # Remove legend box frame 
 	l = legend()
@@ -145,8 +166,24 @@ def main(fig_type,height,Show_Data,image_title,plot_labels,legend_names):
 
 #Label the figure and show
 	plt.xlabel( xlabel, fontdict = font )
-	plt.savefig( image_title )
+	#plt.savefig( image_title )
 	plt.show()
+
+"""	
+
+	if num_of_data[1] == 2:
+		ax1.plot(xaxis_2,yaxis_2,'g',label = legend_2 )
+		plt.fill_between(xaxis_2,err_p_2,err_n_2,alpha=1.5, edgecolor='#006400', facecolor='#98FB98')
+	if num_of_data[2] == 2:
+		ax1.plot(xaxis_2,yaxis_2,'g',label = legend_2 )
+		plt.fill_between(xaxis_2,err_p_2,err_n_2,alpha=1.5, edgecolor='#006400', facecolor='#98FB98')
+	if num_of_data[3] == 2:
+		ax1.plot(xaxis_2,yaxis_2,'g',label = legend_2 )
+		plt.fill_between(xaxis_2,err_p_2,err_n_2,alpha=1.5, edgecolor='#006400', facecolor='#98FB98')
+	if num_of_data[4] == 2:
+		ax1.plot(xaxis_2,yaxis_2,'g',label = legend_2 )
+		plt.fill_between(xaxis_2,err_p_2,err_n_2,alpha=1.5, edgecolor='#006400', facecolor='#98FB98')
+"""	
 
 """	xaxis_1   = Show_Data[:][0][0] 
 	yaxis_1   = Show_Data[:][0][1]
@@ -211,6 +248,14 @@ def main(fig_type,height,Show_Data,image_title,plot_labels,legend_names):
 	plus_n    = avg_flux_n + rms_n
 	minus_n   = avg_flux_n - rms_n
 	scatter_n = np.divide(rms_n,avg_flux_n)
+
+		
+# Removes x-axis labels for ax1. May need later. 	
+	# 	Commented code is to remove labels for both figures
+	#	xticklabels = ax1.get_xticklabels() + ax2.get_xticklabels()
+	#	setp(xticklabels, visible=False)
+		setp(ax1.get_xticklabels(), visible = False)
+	
 
 """
 """
