@@ -11,6 +11,11 @@ import sqlite3 as sq3
 from scipy import interpolate as intp
 import math
 from astropy.table import Table
+import msgpack as msg
+import msgpack_numpy as mn
+import lmfit
+
+mn.patch()
 
 class supernova(object):
     """Attributes can be added"""
@@ -25,7 +30,7 @@ file_list = glob.glob("../../data/cfa/*/*.flm")
 max_light = []
 max_light = np.loadtxt("../week4/MaxSpectra.dat", dtype = 'str', delimiter = " ", skiprows = 1)
 #connect to the database, may be changed later
-con = sq3.connect('../../MichaelSchubert/SNe.db')
+con = sq3.connect('../../../../../SNe.db')
 cur = con.cursor()
 names = []
 j = 1
@@ -37,12 +42,10 @@ for line in max_light[0:100]:
 	data = np.loadtxt(SN.address)
 	SN.wavelength = data[:,0]
 	SN.flux = data[:,1]
-	SN.residual = np.zeros(len(data[:,1])) 
-        SN.redshifts = np.zeros(len(data[:,1]))
-        SN.redshifts.fill(SN.redshift)  
+	SN.residual = np.zeros(len(data[:,1]))
 	SN.age = line[2]
-        SN.ages = np.zeros(len(data[:,1]))
-        SN.ages.fill(SN.age)
+	SN.ages = np.zeros(len(data[:,1]))
+	SN.ages.fill(SN.age)
 	error = data[:,2]
 	if not all(x == 0.0 for x in error):
 		SN.error = error
@@ -54,15 +57,20 @@ print j, 'supernovae fluxed'
 print "Reading properties from database..."
 j = 0
 for SN in SN_Array:
-    for row in cur.execute('SELECT Filename, SN, Redshift, MinWave, MaxWave FROM Supernovae'):
+    for row in cur.execute('SELECT Filename, SN, Redshift, MinWave, MaxWave, Spectra FROM Supernovae'):
 	if row[0] in SN.address:
 	    SN.filename = row[0]
 	    SN.redshift = row[2]
+	    SN.redshifts = np.zeros(len(SN.ages))
+	    SN.redshifts.fill(SN.redshift)
 	    SN.minwave = row[3]
 	    SN.maxwave = row[4]
+	    spectra = msg.unpackb(row[5])
+            SN.spectrum = spectra
+	    print SN.spectrum, len(SN.spectrum)
 	    names.append(SN.name)
 	    #print j
-	    print SN.redshift
+	    #print SN.redshifts
 	    j += 1
 	else:
 	    continue
@@ -85,7 +93,7 @@ print len(SN_Array), "velocities found"
 print "Checking for blank error columns..."
 SN_Array = [SN for SN in SN_Array if hasattr(SN, 'error')]
 print "Done checking. ", len(SN_Array), "items remain"       
-
+"""
 #Here is some new code that might not work at all.
 #The goal is to create a system which will run different comparisons between spectra based on user input
 #Current separation conditions are V_SiII, host galaxy, redshift
@@ -106,7 +114,7 @@ def split_by_v(SN_Array):
     return array1, array2
 
 def split_by_host(SN_Array):
-    host_type = np.float(raw_input('Input a host type --->'))
+    host_type = float(raw_input('Input a host type --->'))
     for SN in SN_Array:
 	if 1 == 1: #dummy statement until i figure out what to put there
 	    array1.append(SN)
@@ -144,7 +152,7 @@ choice = raw_input('Choose a split profle --> ')
 array1, array2 = select[choice](SN_Array)
 print array1[0].flux
 print array2[0].flux
-
+"""
 #after this we go back into the normal composite stuff
 #gets as close as possible to matching the compare spectrum wavelength values
 def find_nearest(array,value):
@@ -169,25 +177,25 @@ def average(SN_Array):
 	    flux = SN.flux[0:2000]
 	    error = SN.error[0:2000]
 	    wavelength = SN.wavelength[0:2000]
-            red = SN.redshifts[0:2000]
-            age = SN.ages[0:2000]
+	    red = SN.redshifts[0:2000]
+	    age = SN.ages[0:2000]
 	    if len(fluxes) == 0:
 		fluxes = np.array([flux])
 		errors = np.array([error])
-                reds = np.array([red])
-                ages = np.array([age])
+		reds = np.array([red])
+		ages = np.array([age])
 	    else:
 		fluxes = np.append(fluxes, np.array([flux]),axis=0)
 		errors = np.append(errors, np.array([error]), axis=0)
-                reds =  np.append(reds, np.array([red]), axis=0)
-                ages =  np.append(ages, np.array([age]), axis=0)
+		reds = np.append(reds, np.array([red]), axis = 0)
+		ages = np.append(ages, np.array([age]), axis = 0)
 	avg_flux = np.average(fluxes, weights = 1.0/errors, axis=0)
-        avg_red = np.average(reds, weights = 1.0/errors, axis=0)
-        avg_age = np.average(ages, weights = 1.0/errors, axis=0)
+	avg_red = np.average(reds, weights = 1.0/errors, axis = 0)
+	avg_age = np.average(ages, weights = 1.0/errors, axis = 0)
         compare_spectrum = SN_Array[0]
 	compare_spectrum.flux = avg_flux
 	compare_spectrum.redshifts = avg_red
-        compare_spectrum.ages = avg_age
+        compare_spectrum.ages = avg_ages
 	# Add residual formula?
 	return compare_spectrum
 #Here's the function that scales spectra based on the most recent composite. It gets run multiple times if there are non-overlapping spectra.
@@ -203,7 +211,7 @@ def splice(compare_spectrum,SN_Array,l_wave,h_wave):
 		if np.max(SN.wavelength) <= high_wave:
 			high_wave = np.max(SN.wavelength)
 		if (np.min(SN.wavelength) >= high_wave) | (np.max(SN.wavelength) <= low_wave):
-			new_array.append(SN)
+			SN.error.fill(0)
 		#checks to see if there is any overlap, then creates a separate array to be dealt with later
 		temp = np.abs(SN.wavelength-low_wave)
 		lowindex = np.where(temp == np.min(temp))
@@ -217,6 +225,7 @@ def splice(compare_spectrum,SN_Array,l_wave,h_wave):
 	#    plt.plot(SN.wavelength, SN.flux,label=SN.name)
 		print lowindex, "low index", highindex, "high index"
 		factors = compare_spectrum.flux[0:2000] / SN.flux[0:2000]
+		#factors = lmfit.minimize("p*x", )
 		scale_factor = np.mean(factors)
 		SN.flux[lowindex:highindex] *= scale_factor
 		SN.error[lowindex:highindex] *= scale_factor
@@ -237,9 +246,9 @@ spectrum=SN_Array[0]
 min=3000
 max=7000
 while (i==0):
-	compare_spectrum,array=splice(spectrum,SN_Array,min,max)
-	spectrum1_new,array1_new=splice(spectrum,array1,min,max)
-	spectrum2_new,array2_new=splice(spectrum,array2,min,max)
+	spectrum,array=splice(spectrum,SN_Array,min,max)
+	#spectrum1_new,array1_new=splice(spectrum,array1,min,max)
+	#spectrum2_new,array2_new=splice(spectrum,array2,min,max)
 	
 	if (len(array) == 0):
 		i+=1
@@ -247,33 +256,35 @@ while (i==0):
 		min=min-100
 		max+=100
 		
-composite1 = spectrum1_new
-composite2 = spectrum2_new
+#composite1 = spectrum1_new
+#composite2 = spectrum2_new
+compare_spectrum = spectrum
 
 #print compare_spectrum.flux, "Composite Spectrum Scaled Flux"
 #print compare_spectrum.error, "Composite Spectrum Error"
     	
 #This makes plots and saves the composite
-print len(composite1.wavelength), len(composite2.flux)
+#print len(composite1.wavelength), len(composite2.flux)
 """composite"""
 composite_file = Table([compare_spectrum.wavelength[0:2000], compare_spectrum.flux[0:2000], compare_spectrum.error[0:2000]], names = ('Wavelength', 'Scaled_Flux', 'Error'))
 composite_file.write('CompositeSpectrum.dat', format='ascii')
-composite_file1 = Table([composite1.wavelength[0:2000], composite1.flux[0:2000], composite1.error[0:2000]], names = ('Wavelength', 'Scaled_Flux', 'Error'))
-composite_file1.write('CompositeSpectrum1.dat', format='ascii')
-composite_file2 = Table([composite2.wavelength[0:2000], composite2.flux[0:2000], composite2.error[0:2000]], names = ('Wavelength', 'Scaled_Flux', 'Error'))
-composite_file2.write('CompositeSpectrum2.dat', format='ascii')
+#composite_file1 = Table([composite1.wavelength[0:2000], composite1.flux[0:2000], composite1.error[0:2000]], names = ('Wavelength', 'Scaled_Flux', 'Error'))
+#composite_file1.write('CompositeSpectrum1.dat', format='ascii')
+#composite_file2 = Table([composite2.wavelength[0:2000], composite2.flux[0:2000], composite2.error[0:2000]], names = ('Wavelength', 'Scaled_Flux', 'Error'))
+#composite_file2.write('CompositeSpectrum2.dat', format='ascii')
 plt.figure(1)
 plt.subplot(211)
 plt.plot(compare_spectrum.wavelength[0:2000], compare_spectrum.flux[0:2000], label='Weighted Composite')
-plt.plot(composite1.wavelength[0:2000], composite1.flux[0:2000],label='Weighted Composite 1')
-plt.plot(composite2.wavelength[0:2000], composite2.flux[0:2000],label='Weighted Composite 2')
+#plt.plot(composite1.wavelength[0:2000], composite1.flux[0:2000],label='Weighted Composite 1')
+#plt.plot(composite2.wavelength[0:2000], composite2.flux[0:2000],label='Weighted Composite 2')
 plt.xlabel('Wavelength (A)')
 plt.ylabel('Scaled Flux')
 plt.xlim(4000,7000)
 #plt.ylim(0,2.8)
 plt.subplot(212)
-plt.plot(composite1.wavelength[0:2000], composite1.error[0:2000], label='Error 1')
-plt.plot(composite2.wavelength[0:2000], composite2.error[0:2000], label='Error 2')
+plt.plot(compare_spectrum.wavelength[0:2000], compare_spectrum.error[0:2000], label='Error')
+#plt.plot(composite1.wavelength[0:2000], composite1.error[0:2000], label='Error 1')
+#plt.plot(composite2.wavelength[0:2000], composite2.error[0:2000], label='Error 2')
 plt.ylabel('Error')
 #plt.plot(compare_spectrum.wavelength, compare_spectrum.residual, label='Residual')
 plt.xlim(4000,7000)
