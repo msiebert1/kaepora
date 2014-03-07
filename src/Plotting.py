@@ -59,12 +59,6 @@ def main(Show_Data , Plots , image_title , title):
 	names_1   = Show_Data[:][0][2]
 	#err_n_1   = Show_Data[:][0][3] 
 
-	# will work on the legend next
-    legend_1  = legend_names[0]
-    legend_2  = legend_names[1]
-    legend_3  = legend_names[2]
-    legend_4  = legend_names[3]
-
     #f = figure()
     #subplots_adjust(hspace=0.001)
 
