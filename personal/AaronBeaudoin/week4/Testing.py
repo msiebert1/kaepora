@@ -2,7 +2,11 @@ import sqlite3 as sq3
 import matplotlib as plt
 import numpy as np
 import msgpack as msg
+import msgpack_numpy as mn
 from io import BytesIO
+
+mn.patch()
+
 
 class supernova(object):
     """Attributes can be added"""
@@ -43,12 +47,11 @@ for SN in SN_Array[0:10]:
 	    SN.redshifts = row[2]
 	    SN.minwave = row[3]
 	    SN.maxwave = row[4]
-	    spectra = msg.unpackb(row[5])
-            SN.spectrum = spectra
+
             print SN.spectrum
 	    names.append(SN.name)
 	    #print j
-	    print SN.redshifts
+	    #print SN.redshifts
 	    j += 1
 	else:
 	    continue
