@@ -7,6 +7,7 @@ Created on Thu Mar 06 23:14:23 2014
 
 import glob
 import numpy as np
+from math import floor,ceil
 
 #list of files
 spectra_files = glob.glob ('../../../data/cfa/*/*.flm')
@@ -40,8 +41,13 @@ from rebinning import *
 for i in range(num) :  
     wave = spectra_data[i][:,0]	#wavelengths
     flux = spectra_data[i][:,1]	#fluxes
+    wave_min = 1000
+    wave_max = 20000
+    pix = 2
+    nwave = np.arange(ceil(wave_min), floor(wave_max), dtype=int, step=pix) #creates N equally spaced wavelength values
+    nflux = []
     womashrebin(wave, flux, nwave, nflux)
-    print wave
+    print nflux
     
     
     
