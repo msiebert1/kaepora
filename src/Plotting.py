@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import math
 from pylab import *
 import matplotlib.gridspec as gridspec
+import scipy.optimize as optimize
 
 
 ###########################################
@@ -15,24 +16,30 @@ import matplotlib.gridspec as gridspec
 ## Place the following after you have calculated your data 
 ## fill in information
 # 
-#Relative_Flux = [wavelengths, avg_flux_p, names of samples]  # Want to plot 2 spectra on the same figure
+#import Plotting
+#
+#Relative_Flux = [wavelengths, avg_flux_p, names of samples]  # Want to plot a composite of multiple spectrum
 #Residuals     = []
 #Spectra_Bin   = []
 #Age           = []
 #Delta         = []
 #Redshift      = [] 
 #Show_Data     = [Relative_Flux,Residuals]
-# image_title  = "WHOA.png"            # Name the image (with location)
-# title        = "Image is called this" 
-# legend       = ["First","Second","Third","Fouth"]         # Names for the legend
+#image_title  = "WHOA.png"            # Name the image (with location)
+#title        = "Image is called this" 
+#legend       = ["First","Second","Third","Fouth"]         # Names for the legend
 #
+## Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift, Multiple Spectrum, Stacked Spectrum
+##                   0              1          2            3    4      5         6,                 7
+#Plots = [] # the plots you want to create
 #
 ## The following line will plot the data
 #
-# Plotting.main(Show_Data , image_title , plot_labels , legend)
+#Plotting.main(Show_Data , Plots, image_title , title , legend)
 #
 #
 ###########################################
+
 def main(Show_Data , Plots , image_title , title , legend_names):
 
     # Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift, Multiple Spectrum, Stacked Spectrum
@@ -77,17 +84,17 @@ def main(Show_Data , Plots , image_title , title , legend_names):
             'weight' : 'bold',
             'size'   : 10,
             }
-        
+
+#    if 0 or 1 or 2 or 3 or 4 or 5 in Plots:
+    
     plt.figure(num = 1, dpi = 100, figsize = [8, np.sum(h)], facecolor = 'w')
     plt.title(title)
     gs = gridspec.GridSpec(len(Plots), 1, height_ratios = h, hspace = 0.001)
     p = 0
-
-    import scipy.optimize as optimize        
         
     def residual(comp, data):
         return comp - data
-
+    
     source = (np.array(yaxis_1)).T
     guess = yaxis_1[0]
     comp_data = []
@@ -97,15 +104,14 @@ def main(Show_Data , Plots , image_title , title , legend_names):
         comp, cov = optimize.leastsq(residual, guess[m], args = (source[m]), full_output = False)
         comp_data.append(comp[0])
         sbins.append(len(source[m]))
-
+        
     delta_data = []     # difference from the mean value
-
+    
     for m in range(len(yaxis_1)):   # finds difference between composite data and interpolated data sets
         delta_data.append(comp_data-yaxis_1[m]) 
+        rms_data = np.sqrt(np.mean(np.square(delta_data), axis = 0))    # finds root-mean-square of differences at each wavelength within overlap
 
-    rms_data = np.sqrt(np.mean(np.square(delta_data), axis = 0))    # finds root-mean-square of differences at each wavelength within overlap
-
-    if 0 in Plots:
+    if 0 in Plots: # will always plot a composite spectrum if any 1-5 are selected
         Rel_flux = plt.subplot(gs[p])
         #plt.title("".join(["$^{26}$Al / $^{27}$Al, t$_{res}$ = ", str(t_width_Al), " kyr", ", U$_{Al}$ = ", str(uptake_Al[0])]), fontdict = font)
         #plt.xlabel('Age [Myr]', fontdict = font)
@@ -126,7 +132,7 @@ def main(Show_Data , Plots , image_title , title , legend_names):
         else:
             plt.setp(RFxticklabels, visible=True)
         p = p+1
-
+                
     if 1 in Plots:
         Resid = plt.subplot(gs[p], sharex = Rel_flux)
         #plt.title("".join(["$^{53}$Mn / $^{55}$Mn, t$_{res}$ = ", str(t_width_Mn), " kyr", ", U$_{Mn}$ = ", str(uptake_Mn[0])]), fontdict = font)
@@ -144,7 +150,7 @@ def main(Show_Data , Plots , image_title , title , legend_names):
         else:
             plt.setp(RSxticklabels, visible=True)
         p = p+1
-
+        
     if 2 in Plots:
         SpecBin = plt.subplot(gs[p], sharex = Rel_flux)
         #plt.title("".join(["$^{60}$Fe / $^{56}$Fe, t$_{res}$ = ", str(t_width_Fe), " kyr", ", U$_{Fe}$ = ", str(uptake_Fe[0])]), fontdict = font)
@@ -162,7 +168,7 @@ def main(Show_Data , Plots , image_title , title , legend_names):
         else:
             plt.setp(SBxticklabels, visible=True)
         p = p+1
-
+        
     if 3 in Plots:
         Age = plt.subplot(gs[p], sharex = Rel_flux)
         #plt.title('Decay corrected $^{26}$Al / $^{27}$Al', fontdict = font)
@@ -216,7 +222,7 @@ def main(Show_Data , Plots , image_title , title , legend_names):
         else:
             plt.setp(Zxticklabels, visible=True)
         p = p+1
-    
+
     plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
 
     if 6 in Plots:
@@ -229,17 +235,18 @@ def main(Show_Data , Plots , image_title , title , legend_names):
         plt.legend(prop = {'family' : 'serif'})        
 
     if 7 in Plots:
-        plt.figure(num = 3, dpi = 100, figsize = [8, 2*len(yaxis_1)], facecolor = 'w')
+        plt.figure(num = 3, dpi = 100, figsize = [8, 4*len(yaxis_1)], facecolor = 'w')
         plt.plot(xaxis_1, yaxis_1[0])
-        plt.annotate(str(names_1[0]), xy = (max(xaxis_1), 0), xytext = (-20, 20), textcoords = 'offset points', fontsize = 8, family  = 'serif', weight = 'bold', ha = 'right')
+        plt.annotate(str(names_1[0]), xy = (max(xaxis_1), max(yaxis_1[0])), xytext = (-10, 0), textcoords = 'offset points', fontsize = 8, family  = 'serif', weight = 'bold', ha = 'right')
         ymax = max(yaxis_1[0])
         for m in range(len(yaxis_1)-1):
-            plt.plot(xaxis_1, yaxis_1[m+1]+ymax+max(yaxis_1[m+1])-min(yaxis_1[m+1]))
-            plt.annotate(str(names_1[m+1]), xy = (max(xaxis_1), ymax+max(yaxis_1[m+1])-min(yaxis_1[m+1])), xytext = (-20, 20), textcoords = 'offset points', fontsize = 8, family  = 'serif', weight = 'bold', ha = 'right')
-            ymax = max(yaxis_1[m+1]+ymax+max(yaxis_1[m+1])-min(yaxis_1[m+1]))
+            plt.plot(xaxis_1, yaxis_1[m+1]+ymax+max(yaxis_1[m])-min(yaxis_1[m]))
+            plt.annotate(str(names_1[m+1]), xy = (max(xaxis_1), max(yaxis_1[m+1])+ymax+max(yaxis_1[m])-min(yaxis_1[m])), xytext = (-10, 0), textcoords = 'offset points', fontsize = 8, family  = 'serif', weight = 'bold', ha = 'right')
+            ymax = max(yaxis_1[m+1])+ymax+max(yaxis_1[m])-min(yaxis_1[m])
         plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
         plt.ylabel('Relative, f$_{\lambda}$', fontdict = font)
         plt.minorticks_on()
+        plt.savefig('stacked plot.png', dpi = 100, facecolor='w', edgecolor='w', pad_inches = 0.1)
 
 # Remove legend box frame 
     #l = legend()
