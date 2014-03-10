@@ -13,52 +13,21 @@ from math import floor,ceil
 #import sqlite3 as sq3
 #import msgpack
 
-#con = sq3.connect('SNe.db')
-#cur = con.cursor()
+"""
+README:
 
-#list of files
-spectra_files = glob.glob ('../../../data/cfa/*/*.flm')
+This part of code is written for composite spectra preparation.
+It does deredding, deredshifting, and interpolation.
+Using the function prep:
+INPUT : 
+SPECTRA_DATA : table containing the original wavelength and flux
+FILE_PATH : path of file of supernova
+NUM : specific number of spectra to analyze
+      
+OUTPUT:
+NEW_DATA: table containing the processed wavelength, flux and variance
 
-#holds spectra data (wavelength,flux,weight)
-spectra_data = []
-#holds file pathname
-file_path = []
-#holds file name
-file_name = []
-
-junk_data = []
-
-#number of spectra to modify
-num = 200
-
-#get data, pathnames
-for i in range(num):
-	try:
-         spectra_data.append(np.loadtxt(spectra_files[i]))
-         file_path.append(spectra_files[i][14:-4])
-         file_name.append(spectra_files[i][27:-4])
-		#print file_path
-             
-	except ValueError:
-		junk_data.append(spectra_files)
-
-#update num to number of good spectra files
-num = len(spectra_data)
-
-#table containing sn names, redshifts, etc.
-sn_parameters = np.genfromtxt('../../../data/cfa/cfasnIa_param.dat',dtype = None)
-#table containing B and V values for determining extinction -> dereddening due to milky way
-sne= np.genfromtxt('extinction.dat', dtype = None)
-
-#holds sn name
-sn = []
-#holds redshift value
-z = []
-
-#get relevent parameters needed for calculations
-for i in range(len(sn_parameters)):
-	sn.append(sn_parameters[i][0])
-	z.append(sn_parameters[i][1])
+"""
 
 
 """
@@ -84,34 +53,38 @@ NOTE:Currently only has SN_name, B, and V values for purposes of Dereddening due
 #deredden spectra to milky way
 #deredshift the spectra
 #deredden to host galaxy
-for i in range(num):#go through selected spectra data
-	for j in range(len(sn)):#go through list of SN parameters
-		if sn[j] in file_path[i]:#SN with parameter matches the path
-			print "\n##############################################################\nlooking at",sne[j],"matched with",sn[j]
-			b = sne[j][1].astype(float)
-			v = sne[j][2].astype(float)
-			bv = b-v
-			r = v/bv
-			print "B(%s)-V(%s)=%s"%(b,v,bv)
-			print "R(v) =",r
-			print "starting flux:\n",spectra_data[i][:,1]
-			#or use fm07 model
-			#test1 = spectra_data[i][:,1] * ex.reddening(spectra_data[i][:,0],ebv = bv, model='ccm89')
-			#test2 = spectra_data[i][:,1] * ex.reddening(spectra_data[i][:,0],ebv = bv, model='od94')
-			spectra_data[i][:,1] *= ex.reddening(spectra_data[i][:,0],ebv = bv, r_v = 3.1, model='f99')
-			print "de-reddened with specutils f99 model:\n",spectra_data[i][:,1]
-			#print "de-reddened with specutils ccm89 model:\n",test1
-			#print "de-reddened with specutils od94 model:\n",test2
 
-			print "starting wavelength:\n",spectra_data[i][:,0]
-			spectra_data[i][:,0] /= (1+z[j])
-			print "z:",z[j]
-			print "de-red-shifted wavelength:\n",spectra_data[i][:,0]
+def dered(sn_param,sne,filename,wave,flux):
+    for j in range(len(sn_param)):#go through list of SN parameters
+        sn = sn_param[j][0] #get relevent parameters needed for calculations
+        z = sn_param[j][1]  # redshift value  
+        if sn in filename:#SN with parameter matches the path
+		print "\n##############################################################\nlooking at",sne[j],"matched with",sn
+		b = sne[j][1].astype(float)
+		v = sne[j][2].astype(float)
+		bv = b-v
+		r = v/bv
+		print "B(%s)-V(%s)=%s"%(b,v,bv)
+		print "R(v) =",r
+		print "starting flux:\n",flux
+		#or use fm07 model
+		#test1 = spectra_data[i][:,1] * ex.reddening(spectra_data[i][:,0],ebv = bv, model='ccm89')
+		#test2 = spectra_data[i][:,1] * ex.reddening(spectra_data[i][:,0],ebv = bv, model='od94')
+		flux *= ex.reddening(wave,ebv = bv, r_v = 3.1, model='f99')
+		print "de-reddened with specutils f99 model:\n",flux
+		#print "de-reddened with specutils ccm89 model:\n",test1
+		#print "de-reddened with specutils od94 model:\n",test2
+		print "z:",z
+		print "starting wavelength:\n",wave
+		wave /= (1+z)
+		print "de-red-shifted wavelength:\n",wave
 			
-			#print "de-reddened by host galaxy\n",spectra_data[i][:,1]*ex.reddening(spectra_data[i][:,0],ebv = 0, r_v = r, model='f99')
-			#host *= ex.reddening(spectra_data[i][:,0],ebv = bv, r_v = r, model='f99')
+		#print "de-reddened by host galaxy\n",flux*ex.reddening(wave,ebv = 0, r_v = r, model='f99')
+		#host *= ex.reddening(wave,ebv = bv, r_v = r, model='f99')
 
-print "##############################################################\ndone de-reddening and de-redshifting"
+    return [wave,flux]
+
+	
 ##############################################################################################################################################
 ##############################################################################################################################################
 
@@ -127,7 +100,7 @@ we output the outside values as NAN
 """
 
 
-def Interpo(wave,flux,variance) :
+def Interpo (wave,flux,variance) :
     wave_min = 1000
     wave_max = 20000
     pix = 2
@@ -146,62 +119,45 @@ def Interpo(wave,flux,variance) :
     badlines = np.where((wavelength<lower) | (wavelength>upper))
     fitted_flux[badlines] = float('NaN')  # set the bad values to NaN !!! 
     fitted_var[badlines] = float('NaN') 
-    new = Table([wavelength,fitted_flux,fitted_var],names=('col1','col2','col3')) # put the interpolated data into the new table    
+    new = Table([wavelength,fitted_flux,fitted_var],names=('col1','col2','col3')) # put the interpolated data into the new table
+#    print 'new',new    
     return new # return new table
 
+    # Get the Noise for each spectra
 
-# Interpolation, noise and all the stuff
+def getnoise(flux,variance) :
+
+    noise = flux/variance**2.0
+    navg = np.median(noise)
+    return navg
 
 from datafidelity import *  # Get variance from the datafidelity outcome
 
-navg = [] # average noise for each spectra
-
-for i in range(num) : 
-    new_spectrum=spectra_data[i]	#declares new spectrum from list
-    new_wave=new_spectrum[:,0]	#wavelengths
-    new_flux=new_spectrum[:,1]	#fluxes
-    var = genvar(new_wave, new_flux) #variance
-#    var = new_flux*0+1
-    newdata = Interpo(new_wave,new_flux,var) # Do the interpolation
-
+def compprep(spectra_data,file_name,num):
+    #Read in : table containing sn names, redshifts, etc.
+    sn_parameter = np.genfromtxt('../../../data/cfa/cfasnIa_param.dat',dtype = None)
+    #table containing B and V values for determining extinction -> dereddening due to milky way
+    sne = np.genfromtxt('extinction.dat', dtype = None)
+ 
+    navglist = [] # average noise for each spectra
+    newdata = []
+    for i in range(num) : #go through selected spectra data
+        spectrum = spectra_data[i]	#declares new spectrum from list
+        old_wave = spectrum[:,0]	    #wavelengths
+        old_flux = spectrum[:,1] 	#fluxes
+        new_spectrum = dered(sn_parameter,sne,file_name[i],old_wave,old_flux)
+        new_wave = new_spectrum[0]
+        new_flux = new_spectrum[1]
+        print "##############################################################\ndone de-reddening and de-redshifting"    
+        var = genvar(new_wave, new_flux) #variance
+        #    var = new_flux*0+1
+        newdata.append(Interpo(new_wave,new_flux,var)) # Do the interpolation
+#        print 'new spectra',newdata
+        print "##############################################################\ndone interpolation"
+        navglist.append(getnoise(new_flux,var))
     
-    # Get the Noise for each spectra
-    noise = new_flux/var**2.0
-    navg.append(np.median(noise))
-
-#######################################################################################################################
-################### The rest is just for output testing################################################################
-################### No need to implement this part to the database code ###############################################
+    return newdata
+    
 
 
-# output data into a file 
-
-#    output = 'testdata/modified-%s.dat'%(file_name[i])
-#    ascii.write(newdata, output)
-   
-    # plot spectra 
-    x = newdata['col1']
-    y = newdata['col2']
-    z = newdata['col3']
-#    print z
-    plt.subplot(1,2,1)
-    plt.plot(x,y)
-    plt.xlim(3000,7000)
-    plt.subplot(1,2,2)
-    plt.plot(x,z)
-    plt.xlim(3000,7000)
-
-plt.show()
-plt.savefig('test_host.png')
-
-
-################## Finishline of output testing #######################################################################
-#######################################################################################################################
-
-
-# Output of noise
-
-#print navg
-ntable = Table([file_name,navg],names=('spectra','noise'))   
-ascii.write(ntable,'noise.dat')
 
