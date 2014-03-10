@@ -114,13 +114,46 @@ def split_by_v(SN_Array):
     return array1, array2
 
 def split_by_host(SN_Array):
-    host_type = float(raw_input('Input a host type --->'))
-    for SN in SN_Array:
-	if 1 == 1: #dummy statement until i figure out what to put there
-	    array1.append(SN)
-	else:
-	    array2.append(SN)
-    return array1, array2
+	host_info=Table.read('../../MalloryConlon/Galaxy/host_info.dat',format='ascii')
+	sn_name=host_info["col1"]
+	host_type=host_info["col2"]
+	elliptical=[]
+	S0=[]
+	spiral=[]
+	irregular=[]
+	anon=[]
+	for j in range(len(host_info)):
+	if host_type[j]==1 or host_type[j]==2:
+		elliptical.append(sn_name[j])
+	if host_type[j]==3 or host_type[j]==4:
+		S0.append(sn_name[j])
+	if host_type[j]==5 or host_type[j]==6 or host_type[j]==7 or host_type[j]==8 or host_type[j]==9 or host_type[j]==10:
+		spiral.append(sn_name[j])
+	if host_type[j]==11:
+		irregular.append(sn_name[j])
+	if host_type[j]==0:
+		anon.append(sn_name[j])
+	for SN in SN_Array:
+		for j in range(len(elliptical)):
+			if SN.name in elliptical[j]:
+				SN.type='elliptical'
+		for j in range(len(S0)):
+			if SN.name in S0[j]:
+				SN.type='S0'
+		for j in range(len(spiral)):
+			if SN.name in sprial[j]:
+				SN.type='spiral'
+		for j in range(len(irregular)):
+			if SN.name in irregular[j]:
+				SN.type='irregular'
+				
+				
+			for SN in SN_Array:
+			if 1 == 1: #dummy statement until i figure out what to put there
+				array1.append(SN)
+			else:
+				array2.append(SN)
+			return array1, array2
 
 def split_by_red(SN_Array):
     high_red = raw_input('Redshift Boundary = ')
