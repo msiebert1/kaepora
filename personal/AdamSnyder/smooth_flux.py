@@ -9,18 +9,18 @@ wavelength = SN[:,0]
 flux = SN[:,1]
 
 try:
-    error = SN[:,2]
+    variance = SN[:,2]
 except IndexError:
-    error = df.genvar(wavelength, flux)
+    variance = df.genvar(wavelength, flux)
 
 # Clip flux file
 new_flux1, clipped = df.clip(flux)
 
-for point in clipped:
-    error[point] = 0
-
 # Smooth curve
 new_flux2 = df.gsmooth(wavelength, flux, error, vexp = 0.004)
 
+variance = df.update_variance(wavelength, new_flux1, variance)
+
 plt.plot(wavelength, new_flux2, 'b')
+plt.plot(wavelength, variance)
 plt.show()

@@ -11,6 +11,7 @@
 # Import necessary python modules
 import numpy as np
 from math import *
+import matplotlib.pyplot as plt
 
 ############################################################################
 #
@@ -202,7 +203,37 @@ def telluric_flag(wavelength, flux, limit=0.9):
                     if ratio[i] < limit:
                         telluric_clip.append(i)
 
+    plt.plot(wavelength, flux)
+    plt.plot(wavelength[telluric_clip], flux[telluric_clip], 'rD')
+    plt.show()
+
     #Return the indices of telluric absorption
     return telluric_clip
+
+############################################################################
+#
+# Function update_variance() uses the returns from the telluric_flag and clip
+# functions to update the inverse variance spectrum
+# Required inputs are an array of wavelengths, an array of fluxes, and the
+# inverse variance array
+# Syntax is update_variance(wavelength_array,flux_array, variance_array)
+
+def update_variance(wavelength, flux, variance):
+
+#Determine the clipped indices
+    telluric_clip=telluric_flag(wavelength, flux)
+    fl, clipped_points=clip(flux)
+
+    for i in range(len(clipped_points)):
+            index=clipped_points[i]
+            variance[index] = 0
+
+
+    for j in range(len(telluric_clip)):
+        index=telluric_clip[j]
+        variance[index] = 0
+
+    #Return the updated inverse variance spectrum
+    return variance
 
 
