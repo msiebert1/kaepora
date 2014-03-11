@@ -150,8 +150,8 @@ def genvar(wavelength, flux, vexp = 0.005, nsig = 5.0):
 # Optional inputs are the upper and lower limits for the ratio
 # Syntax is clip(flux_array, upper = 1.7, lower = 0.5)
 
-def clip(flux, upper = 1.9, lower = 0.1):
-    
+def clip(wavelength, flux, upper = 1.9, lower = 0.1):
+    import matplotlib.pyplot as plt
     #Clip any bad data and replace it with the smoothed value.  Fine tune the ratio limits to cut more (ratio closer to one) or less (ratio farther from one) data
     
     new_flux = np.zeros(len(flux))
@@ -169,7 +169,10 @@ def clip(flux, upper = 1.9, lower = 0.1):
             clipped_points.append(i)
         else:
             new_flux[i] = flux[i]
-    
+
+    plt.plot(wavelength,flux)
+    plt.plot(wavelength, new_flux)
+    plt.show()
     return new_flux, clipped_points
 
 
@@ -183,7 +186,7 @@ def clip(flux, upper = 1.9, lower = 0.1):
 # Syntax is telluric_flag(wavelength_array,flux_array, limit = 0.9)
 
 def telluric_flag(wavelength, flux, limit=0.9):
-
+    import matplotlib.pyplot as plt
     telluric_lines = np.loadtxt('../../../personal/malloryconlon/Data_fidelity/telluric_lines.txt')
 
     mi = telluric_lines[:,0]
@@ -203,6 +206,10 @@ def telluric_flag(wavelength, flux, limit=0.9):
                     if ratio[i] < limit:
                         telluric_clip.append(i)
 
+    plt.plot(wavelength,flux)
+    plt.plot(wavelength[telluric_clip],flux[telluric_clip],'rD')
+    plt.show()
+
 #Return the indices of telluric absorption
     return telluric_clip
 
@@ -219,8 +226,9 @@ def update_variance(wavelength, flux, variance):
     import matplotlib.pyplot as plt
     
 #Determine the clipped indices
+
     telluric_clip=telluric_flag(wavelength, flux)
-    fl, clipped_points=clip(flux)
+    fl, clipped_points=clip(wavelength,flux)
     
 
     for i in range(len(clipped_points)):
