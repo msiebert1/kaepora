@@ -16,6 +16,9 @@ except IndexError:
 # Clip flux file
 new_flux1, clipped = df.clip(flux)
 
+for point in clipped:
+    error[point] = 0
+
 # Smooth curve
 new_flux2 = df.gsmooth(wavelength, flux, error, vexp = 0.004)
 

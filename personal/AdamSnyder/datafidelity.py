@@ -181,12 +181,12 @@ def clip(flux, upper = 1.1, lower = 0.9):
 # Optional input is the limit for flagging
 # Syntax is telluric_flag(wavelength_array,flux_array, limit = 0.99)
 
-def telluric_flag(wavelength, flux, limit=0.9)
+def telluric_flag(wavelength, flux, limit=0.9):
 
     telluric_lines = np.loadtxt('../../personal/malloryconlon/Data_fidelity/telluric_lines.txt')
 
-    min = telluric_lines[:,0]
-    max = telluric_lines[:,1]
+    mi = telluric_lines[:,0]
+    ma = telluric_lines[:,1]
 
     new_flux = wsmooth(flux,window_len=35)
 
@@ -196,9 +196,9 @@ def telluric_flag(wavelength, flux, limit=0.9)
     #Look at the flux/smoothed flux ratios for a given telluric absorption range as defined by the min and max arrays. If the ratio is less than the given condition, clip and replace with the smoothed flux value.
 
     for i in range(len(wavelength)):
-        for j in range(len(min)):
-            if wavelength[i] > min[j]:
-                if wavelength[i] < max[j]:
+        for j in range(len(mi)):
+            if wavelength[i] > mi[j]:
+                if wavelength[i] < ma[j]:
                     if ratio[i] < limit:
                         telluric_clip.append(i)
 
