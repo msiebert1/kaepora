@@ -6,12 +6,12 @@ import matplotlib.pyplot as plt
 
 
 #Read in data file and put wavelength, flux and error into separate arrays.  Should make this to read in a list of spectra paths, then do the smoothing for that list.
-SN=np.genfromtxt('sn1998bp-19980921-ui.flm')
+SN=np.genfromtxt('../../../data/bsnip/sn1998bp-19980921-ui.flm')
 
 wavelength = SN[:,0]
 flux = SN[:,1]
 
-def smooth(x,window_len=9,window='hamming'):
+def smooth(x,window_len=55,window='hamming'):
     """smooth the data using a window with requested size.
         
         This method is based on the convolution of a scaled window with the signal.
@@ -79,10 +79,10 @@ ratio = flux/new_flux
 #Clip any bad data and replace it with the smoothed value.  Fine tune the ratio limits to cut more (ratios closer to one) or less (ratios farther from one) data
 
 for i in range(len(ratio)):
-    if ratio[i] > 1.1:
+    if ratio[i] > 1.95:
         flux_update.append(new_flux[i])
         clipped.append(i)
-    elif ratio[i] < 0.9:
+    elif ratio[i] < 0.05:
         flux_update.append(new_flux[i])
         clipped.append(i)
     else:
