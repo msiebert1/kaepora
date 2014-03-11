@@ -216,9 +216,12 @@ def telluric_flag(wavelength, flux, limit=0.9):
 
 def update_variance(wavelength, flux, variance):
 
+    import matplotlib.pyplot as plt
+    
 #Determine the clipped indices
     telluric_clip=telluric_flag(wavelength, flux)
-    clipped_points=clip(flux)
+    fl, clipped_points=clip(flux)
+    
 
     for i in range(len(clipped_points)):
             index=clipped_points[i]
@@ -226,9 +229,12 @@ def update_variance(wavelength, flux, variance):
 
 
     for j in range(len(telluric_clip)):
-        index=telluric_clip[i]
+        index=telluric_clip[j]
         variance[index] = 0
 
+    plt.plot(wavelength,flux)
+    plt.plot(wavelength, variance)
+    plt.show()
 
     #Return the updated inverse variance spectrum
     return variance
