@@ -218,7 +218,7 @@ def update_variance(wavelength, flux, variance):
 
 #Determine the clipped indices
     telluric_clip=telluric_flag(wavelength, flux)
-    clipped_points=clip(flux)
+    fl, clipped_points=clip(flux)
 
     for i in range(len(clipped_points)):
             index=clipped_points[i]
@@ -226,7 +226,7 @@ def update_variance(wavelength, flux, variance):
 
 
     for j in range(len(telluric_clip)):
-        index=telluric_clip[i]
+        index=telluric_clip[j]
         variance[index] = 0
 
 
