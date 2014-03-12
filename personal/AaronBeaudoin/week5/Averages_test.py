@@ -35,7 +35,7 @@ cur = con.cursor()
 names = []
 j = 1
 #Reads the data of max light spectra so only one per supernova is used
-for line in max_light[0:100]:
+for line in max_light[0:50]:
 	SN = supernova()
 	SN.address = line[1]
 	SN.name = line[0]
@@ -55,7 +55,7 @@ for line in max_light[0:100]:
 print j, 'supernovae fluxed'
 #Reads from database, may be changed later
 print "Reading properties from database..."
-j = 0
+j = 1
 for SN in SN_Array:
     for row in cur.execute('SELECT Filename, SN, Redshift, MinWave, MaxWave, Spectra FROM Supernovae'):
 	if row[0] in SN.address:
@@ -67,7 +67,7 @@ for SN in SN_Array:
 	    SN.maxwave = row[4]
 	    spectra = msg.unpackb(row[5])
             SN.spectrum = spectra
-	    print SN.spectrum, len(SN.spectrum)
+	    #print SN.spectrum, len(SN.spectrum)
 	    names.append(SN.name)
 	    #print j
 	    #print SN.redshifts
@@ -75,6 +75,26 @@ for SN in SN_Array:
 	else:
 	    continue
 print len(SN_Array), "items found"
+
+"""wavelength linspace"""
+wave_min = math.floor(max(SN.minwave for SN in SN_Array))
+wave_max = math.floor(min(SN.maxwave for SN in SN_Array))
+waverange = np.linspace(wave_min, wave_max, (wave_max-wave_min)*10)
+waverange = np.array(waverange)
+print "Interpolating..."
+for SN in SN_Array:
+    SN.wavelength = np.divide(SN.wavelength, 1 + SN.redshift)
+    try:
+        spline1 = intp.splrep(SN.spectrum[:,0], SN.spectrum[:,1])
+        spline2 = intp.splrep(SN.spectrum[:,0], SN.spectrum[:,2])
+    except ValueError:
+        print "Invalid data found"
+    new_flux = intp.splev(waverange, spline1)
+    new_flux /= np.median(new_flux)
+    new_error = intp.splev(waverange, spline2)
+    SN.wavelength = waverange
+    SN.flux = new_flux
+    SN.error = new_error
 
 """open the velocity file, make it useable, add the needed data to the array"""
 print "Reading velocities..."
@@ -146,14 +166,14 @@ def split_by_host(SN_Array):
 		for j in range(len(irregular)):
 			if SN.name in irregular[j]:
 				SN.type='irregular'
+		for j in range(len(anon)):
+			if SN.name in anon[j]:
+			    SN.Type='anonymous' 
 				
-				
-			for SN in SN_Array:
-			if 1 == 1: #dummy statement until i figure out what to put there
-				array1.append(SN)
-			else:
-				array2.append(SN)
-			return array1, array2
+	print "Galaxy types available: elliptical, spiral,"
+	print "S0, irregular, anonymous"
+	type_input = raw_input('Select a galaxy type ---> ')
+	array1 = [SN for SN in SN_Array if type_input == SN.type]
 
 def split_by_red(SN_Array):
     high_red = raw_input('Redshift Boundary = ')
@@ -190,7 +210,7 @@ print array2[0].flux
 #gets as close as possible to matching the compare spectrum wavelength values
 def find_nearest(array,value):
     idx = (np.abs(array-value)).argmin()
-    return idx
+    return array[idx]
 
 bad_range_Array = []
 
@@ -199,19 +219,24 @@ def average(SN_Array):
 	#redshift stuff wasn't working so we aren't dealing with it right now
 	#avg_red = compare_spectrum.redshifts
 	#redshifts = compare_spectrum.redshifts
-	lowindex = 0
-	highindex = 2000
 	fluxes = []
 	errors = []
 	flux = []
 	error = []
 	for SN in SN_Array:
+	    for i in range(len(SN.flux)):
+		if SN.flux[i] == find_nearest(SN.flux, 3000):
+		    lowindex = i
+	    for i in range(len(SN.flux)):
+		if SN.flux[i] == find_nearest(SN.flux, 7000):
+		    highindex = i
+	    print lowindex, highindex
 	    #doesn't need to be truncated if data is interpolated and aligned
-	    flux = SN.flux[0:2000]
-	    error = SN.error[0:2000]
-	    wavelength = SN.wavelength[0:2000]
-	    red = SN.redshifts[0:2000]
-	    age = SN.ages[0:2000]
+	    flux = SN.flux[lowindex:highindex]
+	    error = SN.error[lowindex:highindex]
+	    wavelength = SN.wavelength[lowindex:highindex]
+	    red = SN.redshifts[lowindex:highindex]
+	    age = SN.ages[lowindex:highindex]
 	    if len(fluxes) == 0:
 		fluxes = np.array([flux])
 		errors = np.array([error])
@@ -246,18 +271,18 @@ def splice(compare_spectrum,SN_Array,l_wave,h_wave):
 		if (np.min(SN.wavelength) >= high_wave) | (np.max(SN.wavelength) <= low_wave):
 			SN.error.fill(0)
 		#checks to see if there is any overlap, then creates a separate array to be dealt with later
-		temp = np.abs(SN.wavelength-low_wave)
-		lowindex = np.where(temp == np.min(temp))
-		temp = np.abs(SN.wavelength-high_wave)
-		highindex = np.where(temp == np.min(temp))
-		lowindex = lowindex[0]
-		highindex = highindex[0]
+		for i in range(len(SN.flux)):
+		    if SN.flux[i] == find_nearest(SN.flux, 3000):
+			lowindex = i
+		for i in range(len(SN.flux)):
+		    if SN.flux[i] == find_nearest(SN.flux, 7000):
+			highindex = i
 		low = SN.wavelength[lowindex]
 		high = SN.wavelength[highindex]
 		SN.flux /= np.median(SN.flux)
 	#    plt.plot(SN.wavelength, SN.flux,label=SN.name)
 		print lowindex, "low index", highindex, "high index"
-		factors = compare_spectrum.flux[0:2000] / SN.flux[0:2000]
+		factors = compare_spectrum.flux / SN.flux
 		#factors = lmfit.minimize("p*x", )
 		scale_factor = np.mean(factors)
 		SN.flux[lowindex:highindex] *= scale_factor
