@@ -229,7 +229,12 @@ def update_variance(wavelength, flux, variance):
 
     telluric_clip=telluric_flag(wavelength, flux)
 <<<<<<< HEAD
+<<<<<<< HEAD
     fl, clipped_points=clip(flux)
+=======
+    fl, clipped_points=clip(wavelength,flux)
+    
+>>>>>>> 3fbf66b79eff772f1a4d4ce8932181cd5509a323
 =======
     fl, clipped_points=clip(wavelength,flux)
     
