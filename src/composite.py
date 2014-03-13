@@ -140,7 +140,7 @@ def scale(compare, SN):
     factors = []
     for i in xrange(len(compare.wavelength)):
         try:
-            if compare.wavelength[i] == SN.wavelength[i]:
+            if round(compare.wavelength[i]) == round(SN.wavelength[i]):
                 try:
                     factors.append(compare.flux[i] / SN.flux[i])
                 except IndexError:
@@ -162,23 +162,31 @@ def average(composite, SN_Array):
 	errors = []
 	flux = []
 	error = []
-	for SN in SN_Array:
+	average_array = []
+	waverange = []
+	j=2
+	for SN in SN_Array[1:]:
 	    #doesn't need to be truncated if data is interpolated and aligned
 	    flux = SN.flux
 	    error = SN.variance
 	    wavelength = SN.wavelength
 	    red = SN.redshifts
 	    age = SN.ages
-	    if len(fluxes) == 0:
-		fluxes = np.array([flux])
-		errors = np.array([error])
-		#reds = np.array([red])
-		#ages = np.array([age])
-	    else:
-		fluxes = np.append(fluxes, np.array([flux]),axis=0)
-		errors = np.append(errors, np.array([error]), axis=0)
-		#reds = np.append(reds, np.array([red]), axis = 0)
-		#ages = np.append(ages, np.array([age]), axis = 0)
+	    for i in xrange(len(composite.wavelength)):
+		composite.wavelength[i] = round(composite.wavelength[i])
+	    fluxes = np.array([composite.wavelength])
+	    fluxes = np.append(fluxes, np.array([composite.flux]), axis=0)
+	    print fluxes
+	    for i in xrange(len(wavelength)):
+		wavelength[i] = round(wavelength[i])
+		if composite.wavelength[i] == wavelength[i]:
+		    fluxes[i] = np.append(fluxes[i], np.array([flux[i]]), axis = 1)
+		    #errors = np.append(errors, np.array([error]), axis=0)
+		    #reds = np.append(reds, np.array([red]), axis = 0)
+		    #ages = np.append(ages, np.array([age]), axis = 0)
+		else:
+		    fluxes[i] = np.append(fluxes[i], np.array([0]), axis = 1)
+	    j+=1
 	avg_flux = np.average(fluxes, weights = 1.0/errors, axis=0)
 	#avg_red = np.average(reds, weights = 1.0/errors, axis = 0)
 	#avg_age = np.average(ages, weights = 1.0/errors, axis = 0)
