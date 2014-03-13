@@ -257,6 +257,13 @@ def average(SN_Array):
 	# Add residual formula?
 	return compare_spectrum
 #Here's the function that scales spectra based on the most recent composite. It gets run multiple times if there are non-overlapping spectra.
+def scfunc(x,a):
+    return a*x
+
+def fluxscale(compare_spectrum,SN,lowindex,highindex):
+    scale = curve_fit(scfunc,SN.flux[lowindex:highindex],compare_spectrum.flux[lowindex:highindex],sigma=1./SN.error[lowindex:highindex])
+    return scale[0]
+
 def splice(compare_spectrum,SN_Array,l_wave,h_wave):
 	q = 1
 	new_array=[]
@@ -284,7 +291,7 @@ def splice(compare_spectrum,SN_Array,l_wave,h_wave):
 		print lowindex, "low index", highindex, "high index"
 		factors = compare_spectrum.flux / SN.flux
 		#factors = lmfit.minimize("p*x", )
-		scale_factor = np.mean(factors)
+		scale_factor = fluxscale(compare_spectrum,SN,lowindex,highindex)
 		SN.flux[lowindex:highindex] *= scale_factor
 		SN.error[lowindex:highindex] *= scale_factor
 		#plt.subplot(311)
