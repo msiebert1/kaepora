@@ -196,7 +196,30 @@ def average(composite, SN_Array):
         #compare_spectrum.ages = avg_ages
 	# Add residual formula?
 	return compare_spectrum  
-    
+
+
+"""	
+def splice(SN):
+	ivar=SN.variance
+	wmin = 4000
+	wmax=6000
+	wave=SN.wavelength
+	good = np.where((SN.SNR>.8*max(SN.SNR)) & (len(np.where(wave>wmin) & (wave<wmax) & (ivar>0))>50))
+	template=SN.flux[good[0]]
+	nscale=1
+	nscale0=0
+	while(nscale!=nscale0):
+		temp=SN
+		nscale0=nscale
+		for i in range(len()):
+			scale=scale(template,SN)
+			temp.flux[i]=temp.flux[i]*scale[i]
+			temp.variance=temp.variance*scale[i]**(-2)
+		nscale=len(np.where(scale!=0))
+		composite=average(
+		template=composite
+"""
+	
 #finds the longest SN we have for comparison
 lengths = []
 for SN in SN_Array:
