@@ -50,17 +50,22 @@ for i in range(num):
 		junk_data.append(spectra_files)
 
 #update num to number of good spectra files
-num = len(spectra_data)
-
+#num = len(spectra_data)
+num = 20
 
 #############################################################################################################
 ######################### Now processing ! ##################################################################
 
 from prep import *
+ 
+    
+for i in range(num) :  #go through selected spectra data
+    spectrum = spectra_data[i]	#declares new spectrum from list
+    data = compprep(spectrum,file_name[i])
 
-data = compprep(spectra_data,file_name,num)
+    print data
 
-print data
+
 
 #######################################################################################################################
 ################### The rest is just for output testing################################################################
@@ -73,18 +78,18 @@ print data
 #    ascii.write(newdata, output)
    
     # plot spectra 
-#    x = newdata['col1']
-#    y = newdata['col2']
-#   z = newdata['col3']
+    x = data['col1']
+    y = data['col2']
+    z = data['col3']
 #    print z
-#    plt.subplot(1,2,1)
-#    plt.plot(x,y)
-#    plt.xlim(3000,7000)
-#    plt.subplot(1,2,2)
-#    plt.plot(x,z)
-#    plt.xlim(3000,7000)
+    plt.subplot(1,2,1)
+    plt.plot(x,y)
+    plt.xlim(3000,7000)
+    plt.subplot(1,2,2)
+    plt.plot(x,z)
+    plt.xlim(3000,7000)
 
-#plt.show()
+plt.show()
 #plt.savefig('test_host.png')
 
 

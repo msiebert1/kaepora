@@ -20,9 +20,9 @@ This part of code is written for composite spectra preparation.
 It does deredding, deredshifting, and interpolation.
 Using the function prep:
 INPUT : 
-SPECTRA_DATA : table containing the original wavelength and flux
-FILE_PATH : path of file of supernova
-NUM : specific number of spectra to analyze
+SPECTRUM : table containing the original wavelength and flux
+FILE_NAME : containing name of supernova
+
       
 OUTPUT:
 NEW_DATA: table containing the processed wavelength, flux and variance
@@ -117,7 +117,7 @@ def Interpo (wave,flux,variance) :
     fitted_flux=inter.splev(wavelength,indata)	#fits b-spline over wavelength range
     fitted_var=inter.splev(wavelength,inerror)   # doing the same with errors
     badlines = np.where((wavelength<lower) | (wavelength>upper))
-    fitted_flux[badlines] = float('NaN')  # set the bad values to NaN !!! 
+    fitted_flux[badlines] = 0  # set the bad values to NaN !!! 
     fitted_var[badlines] = float('NaN') 
     new = Table([wavelength,fitted_flux,fitted_var],names=('col1','col2','col3')) # put the interpolated data into the new table
 #    print 'new',new    
@@ -133,28 +133,27 @@ def getnoise(flux,variance) :
 
 from datafidelity import *  # Get variance from the datafidelity outcome
 
-def compprep(spectra_data,file_name,num):
-    #Read in : table containing sn names, redshifts, etc.
-    sn_parameter = np.genfromtxt('../../../data/cfa/cfasnIa_param.dat',dtype = None)
-    #table containing B and V values for determining extinction -> dereddening due to milky way
-    sne = np.genfromtxt('extinction.dat', dtype = None)
- 
-    navglist = [] # average noise for each spectra
+#Read in : table containing sn names, redshifts, etc.
+sn_parameter = np.genfromtxt('../../../data/cfa/cfasnIa_param.dat',dtype = None)
+#table containing B and V values for determining extinction -> dereddening due to milky way
+sne = np.genfromtxt('extinction.dat', dtype = None)
+navglist = [] # average noise for each spectra
+
+
+def compprep(spectrum,file_name):    
     newdata = []
-    for i in range(num) : #go through selected spectra data
-        spectrum = spectra_data[i]	#declares new spectrum from list
-        old_wave = spectrum[:,0]	    #wavelengths
-        old_flux = spectrum[:,1] 	#fluxes
-        new_spectrum = dered(sn_parameter,sne,file_name[i],old_wave,old_flux)
-        new_wave = new_spectrum[0]
-        new_flux = new_spectrum[1]
-        print "##############################################################\ndone de-reddening and de-redshifting"    
-        var = genvar(new_wave, new_flux) #variance
-        #    var = new_flux*0+1
-        newdata.append(Interpo(new_wave,new_flux,var)) # Do the interpolation
+    old_wave = spectrum[:,0]	    #wavelengths
+    old_flux = spectrum[:,1] 	#fluxes
+    new_spectrum = dered(sn_parameter,sne,file_name,old_wave,old_flux)
+    new_wave = new_spectrum[0]
+    new_flux = new_spectrum[1]
+    print "##############################################################\ndone de-reddening and de-redshifting"    
+    var = genvar(new_wave, new_flux) #variance
+      #    var = new_flux*0+1
+    newdata = Interpo(new_wave,new_flux,var) # Do the interpolation
 #        print 'new spectra',newdata
-        print "##############################################################\ndone interpolation"
-        navglist.append(getnoise(new_flux,var))
+    print "##############################################################\ndone interpolation"
+    navglist.append(getnoise(new_flux,var))
     
     return newdata
     
