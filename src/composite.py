@@ -135,9 +135,10 @@ def overlap(compare, SN_Array):
             SN_Array.remove(SN)
     return low_overlap, SN_Array
     
-def scale(compare, SN):
+def scale(compare, SN,SN_Array):
     #scale to that one initialy, then scale to the current composite
     factors = []
+	low_overlap, SN_Array = overlap(composite, SN_Array)
     for i in xrange(len(compare.wavelength)):
         try:
             if round(compare.wavelength[i]) == round(SN.wavelength[i]):
@@ -149,11 +150,11 @@ def scale(compare, SN):
             continue
     scale_factor = np.mean(factors)
     SN.flux *= scale_factor
-    SN.variance *= scale_factor
+    SN.variance *= scale_factor**-2
     #plt.subplot(311)
     #plt.plot(SN.wavelength, SN.flux)
     print "Spectrum", SN.name, "scaled at factor", scale_factor
-    return SN
+    return SN,scale_factor,SN_Array
     
     
     
@@ -196,29 +197,6 @@ def average(composite, SN_Array):
         #compare_spectrum.ages = avg_ages
 	# Add residual formula?
 	return compare_spectrum  
-
-
-"""	
-def splice(SN):
-	ivar=SN.variance
-	wmin = 4000
-	wmax=6000
-	wave=SN.wavelength
-	good = np.where((SN.SNR>.8*max(SN.SNR)) & (len(np.where(wave>wmin) & (wave<wmax) & (ivar>0))>50))
-	template=SN.flux[good[0]]
-	nscale=1
-	nscale0=0
-	while(nscale!=nscale0):
-		temp=SN
-		nscale0=nscale
-		for i in range(len()):
-			scale=scale(template,SN)
-			temp.flux[i]=temp.flux[i]*scale[i]
-			temp.variance=temp.variance*scale[i]**(-2)
-		nscale=len(np.where(scale!=0))
-		composite=average(
-		template=composite
-"""
 	
 #finds the longest SN we have for comparison
 lengths = []
@@ -228,20 +206,38 @@ temp = [SN for SN in SN_Array if len(SN.wavelength) == max(lengths)]
 composite = temp[0]
 print composite.flux
 
-i = 0
-min_wave = 3000
-max_wave = 7000
-#Splice loop
-#need to make wavelength range expand after each iteration?
-while (i==0):
+#scales data, makes a composite, and splices in non-overlapping data
+wmin = 4000
+wmax = 6000
+wavemin=composite.minwave
+wavemax=composite.maxwave
+good = np.where(len(np.where((wavemin>wmin) & (wavemax<wmax))>50)) #& (SN.SNR>.8*max(SN.SNR)))
+template=composite.flux[good]
+zeros=1
+tempzeros=0
+
+while (zeros!=tempzeros):
     for SN in SN_Array:
         SN, min_wave, max_wave, lowindex, highindex = cut(composite, SN, SN_Array, min_wave, max_wave)
-    low_overlap, SN_Array = overlap(composite, SN_Array)
-    for SN in SN_Array:
-        SN = scale(composite, SN)
-    composite = average(composite, SN_Array)
-    if len(low_overlap) == 0:
-        i += 1
-    else:
-        min_wave -= 100
-        max_wave += 100
+    scales=[]
+	for SN in SN_Array:
+        SN,scale_factor,SN_Array = scale(template,SN,SN_Array)
+		scales.append(scale_factor)
+    template = average(template, SN_Array)
+	tempzeros=0
+	for i in range(len(scales)):
+		if scales[i]==0:
+			tempzeros+=1
+	composite=template
+	zeros=tempzeros
+        #min_wave -= 100
+        #max_wave += 100
+
+#Either writes data to file, or returns it to user
+table=Table([composite.wavelength,composite.flux,composite.variance],names=('Wavelength','Flux','Variance'))
+c_file=raw_input("Create a file for data? (y/n)")
+if (c_file='y'):
+	f_name=raw_input("Input file name: ")
+	table.write(f_name,format='ascii')
+else:
+	return table
