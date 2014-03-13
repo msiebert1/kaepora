@@ -115,8 +115,8 @@ we output the outside values as NAN
 
 
 def Interpo (wave,flux,variance) :
-    wave_min = 1000
-    wave_max = 20000
+    wave_min = 1500
+    wave_max = 12000
     pix = 2
     #wavelength = np.linspace(wave_min,wave_max,(wave_max-wave_min)/pix+1)  
     wavelength = np.arange(ceil(wave_min), floor(wave_max), dtype=int, step=pix) #creates N equally spaced wavelength values
@@ -133,7 +133,7 @@ def Interpo (wave,flux,variance) :
     badlines = np.where((wavelength<lower) | (wavelength>upper))
     fitted_flux[badlines] = float('NaN')  # set the bad values to NaN !!! 
     fitted_var[badlines] = float('NaN') 
-    new = [wavelength,fitted_flux,fitted_var] # put the interpolated data into the new table
+    new = np.array([wavelength,fitted_flux,fitted_var]) # put the interpolated data into the new table
 #    print 'new table',new    
     return new # return new table
 
