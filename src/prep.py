@@ -1,9 +1,9 @@
 import os
 import glob
-from specutils import extinction as ex
-import astroquery
-from astroquery.ned import Ned
-from astroquery.irsa_dust import IrsaDust
+#from specutils import extinction as ex
+#import astroquery
+#from astroquery.ned import Ned
+#from astroquery.irsa_dust import IrsaDust
 from astropy.table import Table
 from astropy.io import ascii
 import numpy as np
