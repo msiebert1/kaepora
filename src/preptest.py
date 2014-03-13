@@ -24,7 +24,7 @@ from math import floor,ceil
 #cur = con.cursor()
 
 #list of files
-spectra_files = glob.glob ('../../../data/cfa/*/*.flm')
+spectra_files = glob.glob ('../data/cfa/*/*.flm')
 
 #holds spectra data (wavelength,flux,weight)
 spectra_data = []
@@ -50,17 +50,27 @@ for i in range(num):
 		junk_data.append(spectra_files)
 
 #update num to number of good spectra files
-num = len(spectra_data)
-
+#num = len(spectra_data)
+num = 20
 
 #############################################################################################################
 ######################### Now processing ! ##################################################################
 
 from prep import *
 
-data = compprep(spectra_data,file_name,num)
+navglist = [] 
+    
+for i in range(num) :  #go through selected spectra data
+    spectrum = spectra_data[i]	#declares new spectrum from list
+    data = compprep(spectrum,file_name[i])
+    wave = data[0]
+    print wave.dtype
+    flux = data[1]
+    var = data[2]
+    navglist.append(getnoise(flux,var))
+    print data
 
-print data
+
 
 #######################################################################################################################
 ################### The rest is just for output testing################################################################
@@ -73,18 +83,15 @@ print data
 #    ascii.write(newdata, output)
    
     # plot spectra 
-#    x = newdata['col1']
-#    y = newdata['col2']
-#   z = newdata['col3']
-#    print z
-#    plt.subplot(1,2,1)
-#    plt.plot(x,y)
-#    plt.xlim(3000,7000)
-#    plt.subplot(1,2,2)
-#    plt.plot(x,z)
-#    plt.xlim(3000,7000)
 
-#plt.show()
+    plt.subplot(1,2,1)
+    plt.plot(wave,flux)
+    plt.xlim(3000,7000)
+    plt.subplot(1,2,2)
+    plt.plot(wave,var)
+    plt.xlim(3000,7000)
+
+plt.show()
 #plt.savefig('test_host.png')
 
 
