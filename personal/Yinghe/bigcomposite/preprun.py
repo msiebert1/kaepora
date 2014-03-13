@@ -57,12 +57,16 @@ num = 20
 ######################### Now processing ! ##################################################################
 
 from prep import *
- 
+
+navglist = [] 
     
 for i in range(num) :  #go through selected spectra data
     spectrum = spectra_data[i]	#declares new spectrum from list
     data = compprep(spectrum,file_name[i])
-
+    wave = data['col1']
+    flux = data['col2']
+    var = data['col3']
+    navglist.append(getnoise(flux,var))
     print data
 
 
@@ -78,15 +82,12 @@ for i in range(num) :  #go through selected spectra data
 #    ascii.write(newdata, output)
    
     # plot spectra 
-    x = data['col1']
-    y = data['col2']
-    z = data['col3']
-#    print z
+
     plt.subplot(1,2,1)
-    plt.plot(x,y)
+    plt.plot(wave,flux)
     plt.xlim(3000,7000)
     plt.subplot(1,2,2)
-    plt.plot(x,z)
+    plt.plot(wave,var)
     plt.xlim(3000,7000)
 
 plt.show()

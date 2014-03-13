@@ -29,6 +29,20 @@ NEW_DATA: table containing the processed wavelength, flux and variance
 
 """
 
+def ReadParam():
+    #Read in : table containing sn names, redshifts, etc.
+    sn_parameter = np.genfromtxt('../../../data/cfa/cfasnIa_param.dat',dtype = None)
+    
+    return sn_parameter
+    
+def ReadExtin():
+    #table containing B and V values for determining extinction -> dereddening due to milky way
+    sne = np.genfromtxt('../../../src/extinction.dat', dtype = None)
+
+    return sne        
+
+
+
 
 """
 NOTE:
@@ -133,14 +147,11 @@ def getnoise(flux,variance) :
 
 from datafidelity import *  # Get variance from the datafidelity outcome
 
-#Read in : table containing sn names, redshifts, etc.
-sn_parameter = np.genfromtxt('../../../data/cfa/cfasnIa_param.dat',dtype = None)
-#table containing B and V values for determining extinction -> dereddening due to milky way
-sne = np.genfromtxt('extinction.dat', dtype = None)
-navglist = [] # average noise for each spectra
 
 
-def compprep(spectrum,file_name):    
+def compprep(spectrum,file_name):
+    sn_parameter = ReadParam()
+    sne = ReadExtin()    
     newdata = []
     old_wave = spectrum[:,0]	    #wavelengths
     old_flux = spectrum[:,1] 	#fluxes
@@ -153,8 +164,8 @@ def compprep(spectrum,file_name):
     newdata = Interpo(new_wave,new_flux,var) # Do the interpolation
 #        print 'new spectra',newdata
     print "##############################################################\ndone interpolation"
-    navglist.append(getnoise(new_flux,var))
-    
+    navg = getnoise(new_flux,var)
+    print "S/N ratio",navg
     return newdata
     
 
