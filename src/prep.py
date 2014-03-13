@@ -37,7 +37,7 @@ def ReadParam():
     
 def ReadExtin():
     #table containing B and V values for determining extinction -> dereddening due to milky way
-    sne = np.genfromtxt('../extinction.dat', dtype = None)
+    sne = np.genfromtxt('extinction.dat', dtype = None)
 
     return sne        
 
@@ -126,15 +126,15 @@ def Interpo (wave,flux,variance) :
     lower = wave[0] # Find the area where interpolation is valid
     upper = wave[len(wave)-1]
     lines = np.where((wave>lower) & (wave<upper))	#creates an array of wavelength values between minimum and maximum wavelengths from new spectrum
-    indata=inter.splrep(wave[lines],flux[lines])	#creates b-spline from new spectrum
-    inerror=inter.splrep(wave[lines],variance[lines]) # doing the same with the errors
-    fitted_flux=inter.splev(wavelength,indata)	#fits b-spline over wavelength range
-    fitted_var=inter.splev(wavelength,inerror)   # doing the same with errors
+    indata = inter.splrep(wave[lines],flux[lines])	#creates b-spline from new spectrum
+    inerror = inter.splrep(wave[lines],variance[lines]) # doing the same with the errors
+    fitted_flux = inter.splev(wavelength,indata)	#fits b-spline over wavelength range
+    fitted_var = inter.splev(wavelength,inerror)   # doing the same with errors
     badlines = np.where((wavelength<lower) | (wavelength>upper))
-    fitted_flux[badlines] = 0  # set the bad values to NaN !!! 
+    fitted_flux[badlines] = float('NaN')  # set the bad values to NaN !!! 
     fitted_var[badlines] = float('NaN') 
-    new = Table([wavelength,fitted_flux,fitted_var],names=('col1','col2','col3')) # put the interpolated data into the new table
-#    print 'new',new    
+    new = [wavelength,fitted_flux,fitted_var] # put the interpolated data into the new table
+#    print 'new table',new    
     return new # return new table
 
     # Get the Noise for each spectra
