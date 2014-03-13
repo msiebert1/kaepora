@@ -237,7 +237,7 @@ while (zeros!=tempzeros):
 table=Table([composite.wavelength,composite.flux,composite.variance],names=('Wavelength','Flux','Variance'))
 c_file=raw_input("Create a file for data? (y/n)")
 if (c_file='y'):
-	f_name=raw_input("Input file name: ")
+	f_name='composite,-3,+3,...-averages,--#of spectra'
 	table.write(f_name,format='ascii')
 else:
 	return table
