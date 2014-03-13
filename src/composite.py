@@ -13,9 +13,10 @@ from astropy.table import Table
 import msgpack as msg
 import msgpack_numpy as mn
 import lmfit
+from scipy.optimize import curve_fit
 
 mn.patch()
-
+np.set_printoptions(threshold=np.nan)
 #Sets up some lists for later
 SN_Array = []
 full_array = []
@@ -56,11 +57,62 @@ for row in cur:
         SN.variance = SN.spectrum[:,2]
         SN.redshifts = np.zeros(len(SN.wavelength))
 	SN.redshifts.fill(SN.redshift)
+	SN_Array.append(SN)
         #print SN.spectrum
+	#print SN.variance
     else:
         print "Invalid query"
 print len(full_array)
+#cut the array down to be more manageable
+SN_Array = SN_Array[0:50]
+SN_Array = [SN for SN in SN_Array if hasattr(SN, 'wavelength')]
+SN_Array = [SN for SN in SN_Array if hasattr(SN, 'variance')]
+
 #Only keeps one per supernova at max light. Condition can be changed later.
+#gets as close as possible to matching the compare spectrum wavelength values
+def find_nearest(array,value):
+    idx = (np.abs(array-value)).argmin()
+    return array[idx]
+
+def makearray(SN_Array):
+    	fluxes = []
+	errors = []
+	flux = []
+	error = []
+	for SN in SN_Array:
+	    for i in range(len(SN.wavelength)):
+		if SN.wavelength[i] == find_nearest(SN.wavelength, 3000):
+		    lowindex = i
+	    for i in range(len(SN.wavelength)):
+		if SN.wavelength[i] == find_nearest(SN.wavelength, 7000):
+		    highindex = i
+	    print lowindex, highindex
+	    #doesn't need to be truncated if data is interpolated and aligned
+	    flux = SN.flux[lowindex:highindex]
+	    error = SN.variance[lowindex:highindex]
+	    wavelength = SN.wavelength[lowindex:highindex]
+	    red = SN.redshifts[lowindex:highindex]
+	    #age = SN.ages[lowindex:highindex]
+	    if len(fluxes) == 0:
+		fluxes = np.array([flux])
+		errors = np.array([error])
+		reds = np.array([red])
+		#ages = np.array([age])
+	    else:
+		try:
+		    fluxes = np.append(fluxes, np.array([flux]),axis=1)
+		    errors = np.append(errors, np.array([error]), axis=1)
+		    reds = np.append(reds, np.array([red]), axis = 1)
+		    #ages = np.append(ages, np.array([age]), axis = 0)
+		except ValueError:
+		    continue
+	return fluxes, errors
+
+    
+fluxes, errors = makearray(SN_Array)
+print fluxes[0,:], errors[0,:]
+
+"""
 for SN in full_array:
     for row in max_light:
         if SN.filename in row[1]:
@@ -70,11 +122,7 @@ for SN in full_array:
             SN.ages.fill(SN.age)
             #print SN.age
 print len(SN_Array)
-
-#cut the array down to be more manageable
-SN_Array = SN_Array[0:50]
-SN_Array = [SN for SN in SN_Array if hasattr(SN, 'wavelength')]
-SN_Array = [SN for SN in SN_Array if hasattr(SN, 'variance')]
+"""
 
 """
 #create a linspace for the wavelengths
@@ -99,10 +147,7 @@ for SN in SN_Array:
     SN.variance = new_error
     print SN.flux
 """ 
-#gets as close as possible to matching the compare spectrum wavelength values
-def find_nearest(array,value):
-    idx = (np.abs(array-value)).argmin()
-    return array[idx]
+
 
 
 def cut(compare, SN, SN_Array, min_wave, max_wave):
@@ -115,14 +160,7 @@ def cut(compare, SN, SN_Array, min_wave, max_wave):
 	    highindex = i
     if highindex == 0:
         SN_Array.remove(SN)
-    else:    
-        print lowindex, "to", highindex
-    SN.wavelength = SN.wavelength[lowindex:highindex]
-    SN.flux = SN.flux[lowindex:highindex]
-    SN.variance = SN.variance[lowindex:highindex]
-    SN.redshifts = SN.redshifts[lowindex:highindex]
-    SN.spectrum = np.array([SN.wavelength, SN.flux, SN.variance])
-    return SN, min_wave, max_wave, lowindex, highindex
+    return SN, min_wave, max_wave
 
 low_overlap = []
 def overlap(compare, SN_Array):
@@ -135,7 +173,15 @@ def overlap(compare, SN_Array):
             SN_Array.remove(SN)
     return low_overlap, SN_Array
     
-def scale(compare, SN):
+#Here's the function that scales spectra based on the most recent composite. It gets run multiple times if there are non-overlapping spectra.
+def scfunc(x,a):
+    return a*x
+
+def fluxscale(compare_spectrum,SN, lowindex, highindex):
+    scale = curve_fit(scfunc,SN.flux[lowindex:highindex],compare_spectrum.flux[lowindex:highindex],sigma=1./SN.variance[lowindex:highindex])
+    return scale
+    
+def scale(compare, SN, lowindex, highindex):
     #scale to that one initialy, then scale to the current composite
     factors = []
     for i in xrange(len(compare.wavelength)):
@@ -147,9 +193,12 @@ def scale(compare, SN):
                     continue
         except IndexError:
             continue
-    scale_factor = np.mean(factors)
+    scale_factor = fluxscale(compare,SN, lowindex, highindex)
+    #SN.flux[lowindex:highindex] *= scale_factor
+    #SN.error[lowindex:highindex] *= scale_factor
+    #scale_factor = np.mean(factors)
     SN.flux *= scale_factor
-    SN.variance *= scale_factor
+    SN.variance *= scale_factor**-2
     #plt.subplot(311)
     #plt.plot(SN.wavelength, SN.flux)
     print "Spectrum", SN.name, "scaled at factor", scale_factor
@@ -165,28 +214,6 @@ def average(composite, SN_Array):
 	average_array = []
 	waverange = []
 	j=2
-	for SN in SN_Array[1:]:
-	    #doesn't need to be truncated if data is interpolated and aligned
-	    flux = SN.flux
-	    error = SN.variance
-	    wavelength = SN.wavelength
-	    red = SN.redshifts
-	    age = SN.ages
-	    for i in xrange(len(composite.wavelength)):
-		composite.wavelength[i] = round(composite.wavelength[i])
-	    fluxes = np.array([composite.wavelength])
-	    fluxes = np.append(fluxes, np.array([composite.flux]), axis=0)
-	    print fluxes
-	    for i in xrange(len(wavelength)):
-		wavelength[i] = round(wavelength[i])
-		if composite.wavelength[i] == wavelength[i]:
-		    fluxes[i] = np.append(fluxes[i], np.array([flux[i]]), axis = 1)
-		    #errors = np.append(errors, np.array([error]), axis=0)
-		    #reds = np.append(reds, np.array([red]), axis = 0)
-		    #ages = np.append(ages, np.array([age]), axis = 0)
-		else:
-		    fluxes[i] = np.append(fluxes[i], np.array([0]), axis = 1)
-	    j+=1
 	avg_flux = np.average(fluxes, weights = 1.0/errors, axis=0)
 	#avg_red = np.average(reds, weights = 1.0/errors, axis = 0)
 	#avg_age = np.average(ages, weights = 1.0/errors, axis = 0)
@@ -204,14 +231,14 @@ def splice(SN):
 	wmin = 4000
 	wmax=6000
 	wave=SN.wavelength
-	good = np.where((SN.SNR>.8*max(SN.SNR)) & (len(np.where(wave>wmin) & (wave<wmax) & (ivar>0))>50))
-	template=SN.flux[good[0]]
+	good = np.where((SN.SNR>.8*max(SN.SNR)) & (len(np.where((wave>wmin) & (wave<wmax) & (ivar>0))>50))
+	template=SN.flux[good]
 	nscale=1
 	nscale0=0
 	while(nscale!=nscale0):
 		temp=SN
 		nscale0=nscale
-		for i in range(len()):
+		for i in range(len(good)):
 			scale=scale(template,SN)
 			temp.flux[i]=temp.flux[i]*scale[i]
 			temp.variance=temp.variance*scale[i]**(-2)
@@ -234,14 +261,17 @@ max_wave = 7000
 #Splice loop
 #need to make wavelength range expand after each iteration?
 while (i==0):
+    low_overlap = []
     for SN in SN_Array:
-        SN, min_wave, max_wave, lowindex, highindex = cut(composite, SN, SN_Array, min_wave, max_wave)
-    low_overlap, SN_Array = overlap(composite, SN_Array)
+        SN, min_wave, max_wave= cut(composite, SN, SN_Array, min_wave, max_wave)
+    #low_overlap, SN_Array = overlap(composite, SN_Array)
     for SN in SN_Array:
-        SN = scale(composite, SN)
-    composite = average(composite, SN_Array)
+        SN = scale(composite, SN, lowindex, highindex)
+    #composite = average(composite, SN_Array)
     if len(low_overlap) == 0:
         i += 1
     else:
         min_wave -= 100
         max_wave += 100
+	
+#put the plotting stuff here
