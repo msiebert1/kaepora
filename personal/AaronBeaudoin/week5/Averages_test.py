@@ -14,6 +14,7 @@ from astropy.table import Table
 import msgpack as msg
 import msgpack_numpy as mn
 import lmfit
+from scipy.optimize import curve_fit
 
 mn.patch()
 
