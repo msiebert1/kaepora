@@ -66,7 +66,7 @@ def main(fig_type, Show_Data, Plots, num_data_set, image_title , plot_labels , l
 # What should I do with legend
 
 	title     = plot_labels[0]	
-	xlabel    = plot_labels[1] # Dont need to label x and y
+	xlabel    = plot_labels[1]
 	ylabel_1  = plot_labels[2]
 	ylabel_2  = plot_labels[3]
 
