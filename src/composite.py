@@ -173,8 +173,13 @@ def overlap(compare, SN_Array):
 def scfunc(x,a):
     return a*x
 
-def fluxscale(compare_spectrum,SN, lowindex, highindex):
-    scale = curve_fit(scfunc,SN.flux[lowindex:highindex],compare_spectrum.flux[lowindex:highindex],sigma=1./SN.variance[lowindex:highindex])
+def fluxscale(tempflux, flux, error, lowindex, highindex):
+# Parameters:
+#     tempflux = template flux array
+#     flux     = spectrum array needs to be scaled
+#     error    = error of the spectrum needs to be scaed, use the inverse as the weighting.
+#     lowindex, highindex = wavelength range to be used to get the scale factor
+    scale = curve_fit(scfunc,flux[lowindex:highindex],tempflux[lowindex:highindex],sigma=1./error[lowindex:highindex])
     return scale
     
 def scale(compare, SN, lowindex, highindex):
@@ -203,48 +208,12 @@ def scale(compare, SN, lowindex, highindex):
     
     
 #averages with weights based on the given errors in .flm files
-def average(SN_Array):
+def average(fluxes, errors):
 	#redshift stuff wasn't working so we aren't dealing with it right now
 	#avg_red = compare_spectrum.redshifts
 	#redshifts = compare_spectrum.redshifts
-	fluxes = []
-	errors = []
-	flux = []
-	error = []
-	for SN in SN_Array:
-	    for i in range(len(SN.flux)):
-		if SN.flux[i] == find_nearest(SN.flux, 3000):
-		    lowindex = i
-	    for i in range(len(SN.flux)):
-		if SN.flux[i] == find_nearest(SN.flux, 7000):
-		    highindex = i
-	    print lowindex, highindex
-	    #doesn't need to be truncated if data is interpolated and aligned
-	    flux = SN.flux
-	    error = SN.error
-	    wavelength = SN.wavelength
-	    red = SN.redshifts
-	    age = SN.ages
-	    if len(fluxes) == 0:
-		fluxes = np.array([flux])
-		errors = np.array([error])
-		reds = np.array([red])
-		ages = np.array([age])
-	    else:
-		fluxes = np.append(fluxes, np.array([flux]),axis=0)
-		errors = np.append(errors, np.array([error]), axis=0)
-		reds = np.append(reds, np.array([red]), axis = 0)
-		ages = np.append(ages, np.array([age]), axis = 0)
 	avg_flux = np.average(fluxes, weights = 1.0/errors, axis=0)
-	avg_red = np.average(reds, weights = 1.0/errors, axis = 0)
-	avg_age = np.average(ages, weights = 1.0/errors, axis = 0)
-        compare_spectrum = SN_Array[0]
-	compare_spectrum.flux = avg_flux
-	compare_spectrum.redshifts = avg_red
-        compare_spectrum.ages = avg_ages
-	# Add residual formula?
-	return compare_spectrum
-	
+	return avg_flux
 """	
 def splice(SN):
 	ivar=SN.variance
