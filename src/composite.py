@@ -29,6 +29,7 @@ class supernova(object):
     """Attributes can be added"""
 
 #Connect to database
+#change this address to whereever you locally stored the SNe.db
 con = sq3.connect('../../../SNe.db')
 cur = con.cursor()
 def grab(sql_input, Full_query):
