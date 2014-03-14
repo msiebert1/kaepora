@@ -90,6 +90,8 @@ sndict, date_dict= read_cfa_info('../data/cfa/cfasnIa_param.dat',
 ts = time.clock()
 con = sq3.connect('SNe.db')
 
+#make sure no prior table in db to avoid doubling/multiple copies of same data
+con.execute("""DROP TABLE IF EXISTS Supernovae""")
 con.execute("""CREATE TABLE IF NOT EXISTS Supernovae (Filename
                     TEXT PRIMARY KEY, SN Text, Redshift REAL, Phase REAL,
                     MinWave REAL, MaxWave REAL, Dm15 REAL, M_B REAL,
@@ -99,6 +101,7 @@ con.execute("""CREATE TABLE IF NOT EXISTS Supernovae (Filename
 #change this depending on where script is
 root = '../data'
 bad_files = []
+bad_interp = []
 print "Adding information to table"
 for path, subdirs, files in os.walk(root):
     for name in files:
@@ -165,12 +168,18 @@ for path, subdirs, files in os.walk(root):
                 bm_vm = None
 
 
-            interp_spec, sig_noise = prep.compprep(spectra, sn_name)
-
             waves = spectra[:, 0]
             min_wave = waves[0]
             max_wave = waves[len(spectra) - 1]
             spec = msg.packb(spectra)
+
+            try:
+                interp_spec, sig_noise = prep.compprep(spectra, sn_name)
+            except:
+                print "Interp failed"
+                bad_interp.append(name)
+                interp_spec, sig_noise = None, None
+
             interped  = msg.packb(interp_spec)
             con.execute("""INSERT INTO Supernovae(Filename, SN, Redshift, Phase,
                                 MinWave, MaxWave, Dm15, M_B, B_mMinusV_m, Signal_Noise, Spectra, Interpolated_Spectra)
@@ -178,4 +187,5 @@ for path, subdirs, files in os.walk(root):
                                 phase, min_wave, max_wave, Dm15, m_b, bm_vm, sig_noise, buffer(spec), buffer(interped)))
 con.commit()
 te = time.clock()
+print bad_interp
 print te - ts
