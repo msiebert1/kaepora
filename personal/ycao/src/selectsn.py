@@ -32,8 +32,8 @@ def selectsn(sndb,sqlstr):
           names.append(SN.name)
 
      names, indices = np.unique(names, return_index=True)
+     SN_Array =  [SN_Array[i] for i in indices]
      print indices, names
-     SN_Array = SN_Array[indices]
      return SN_Array
 
 # Calling example:
