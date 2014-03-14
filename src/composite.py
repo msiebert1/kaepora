@@ -31,41 +31,37 @@ class supernova(object):
 #Connect to database
 con = sq3.connect('../../../SNe.db')
 cur = con.cursor()
-
-#Accept SQL query as input and then grab what we need
-print "Query format: SELECT [items] FROM Supernovae"
-print "Optional at the end: ORDER BY [attribute] DESC"
-Full_query = "SELECT Filename, SN, Redshift, MinWave, MaxWave, Spectra FROM Supernovae"
-print "Full Query:", Full_query
-sql_input = str(raw_input("Enter a SQL Query---> "))
-cur.execute(sql_input)
-#at some point this should be more modular but for now I'm only going to accept the full query
-for row in cur:
-    if sql_input == Full_query:
-        SN = supernova()
-        SN.filename = row[0]
-        SN.name = row[1]
-        SN.redshift = row[2]
-        SN.minwave = row[3]
-        SN.maxwave = row[4]
-        spectra = msg.unpackb(row[5])
-        SN.spectrum = spectra
-        full_array.append(SN)
-        SN.wavelength = SN.spectrum[:,0]
-        SN.flux = SN.spectrum[:,1]
-        SN.variance = SN.spectrum[:,2]
-        SN.redshifts = np.zeros(len(SN.wavelength))
-	SN.redshifts.fill(SN.redshift)
-	SN_Array.append(SN)
-        #print SN.spectrum
-    else:
-        print "Invalid query"
-print len(full_array)
-
-#cut the array down to be more manageable
-SN_Array = SN_Array[0:50]
-SN_Array = [SN for SN in SN_Array if hasattr(SN, 'wavelength')]
-SN_Array = [SN for SN in SN_Array if hasattr(SN, 'variance')]
+def grab(sql_input, Full_query):
+    SN_Array = []
+    cur.execute(sql_input)
+    #at some point this should be more modular but for now I'm only going to accept the full query
+    for row in cur:
+        if sql_input == Full_query:
+            SN = supernova()
+            SN.filename = row[0]
+            SN.name = row[1]
+            SN.redshift = row[2]
+            SN.minwave = row[3]
+            SN.maxwave = row[4]
+            spectra = msg.unpackb(row[5])
+            SN.spectrum = spectra
+            full_array.append(SN)
+            SN.wavelength = SN.spectrum[:,0]
+            SN.flux = SN.spectrum[:,1]
+            SN.variance = SN.spectrum[:,2]
+            SN.redshifts = np.zeros(len(SN.wavelength))
+            SN.redshifts.fill(SN.redshift)
+            SN_Array.append(SN)
+            print SN.spectrum
+	else:
+	    print "Invalid query"
+    print len(full_array)
+    #cut the array down to be more manageable
+    SN_Array = SN_Array[0:50]
+    SN_Array = [SN for SN in SN_Array if hasattr(SN, 'wavelength')]
+    SN_Array = [SN for SN in SN_Array if hasattr(SN, 'variance')]
+    return SN_Array
+    
 """
 #Only keeps one per supernova at max light. Condition can be changed later.
 for SN in full_array:
@@ -144,8 +140,8 @@ def makearray(SN_Array):
 	return fluxes, errors
 
     
-fluxes, errors = makearray(SN_Array)
-print fluxes[0,:], errors[0,:]
+#fluxes, errors = makearray(SN_Array)
+#print fluxes[0,:], errors[0,:]
 
 def cut(compare, SN, SN_Array, min_wave, max_wave):
     #determine good wavelength range, trim spectra
@@ -205,45 +201,48 @@ def scale(compare, SN, lowindex, highindex):
     
     
     
-def average(composite, SN_Array):
+#averages with weights based on the given errors in .flm files
+def average(SN_Array):
+	#redshift stuff wasn't working so we aren't dealing with it right now
+	#avg_red = compare_spectrum.redshifts
+	#redshifts = compare_spectrum.redshifts
 	fluxes = []
 	errors = []
 	flux = []
 	error = []
-	average_array = []
-	waverange = []
-	j=2
-	for SN in SN_Array[1:]:
+	for SN in SN_Array:
+	    for i in range(len(SN.flux)):
+		if SN.flux[i] == find_nearest(SN.flux, 3000):
+		    lowindex = i
+	    for i in range(len(SN.flux)):
+		if SN.flux[i] == find_nearest(SN.flux, 7000):
+		    highindex = i
+	    print lowindex, highindex
 	    #doesn't need to be truncated if data is interpolated and aligned
 	    flux = SN.flux
-	    error = SN.variance
+	    error = SN.error
 	    wavelength = SN.wavelength
 	    red = SN.redshifts
 	    age = SN.ages
-	    for i in xrange(len(composite.wavelength)):
-		composite.wavelength[i] = round(composite.wavelength[i])
-	    fluxes = np.array([composite.wavelength])
-	    fluxes = np.append(fluxes, np.array([composite.flux]), axis=0)
-	    print fluxes
-	    for i in xrange(len(wavelength)):
-		wavelength[i] = round(wavelength[i])
-		if composite.wavelength[i] == wavelength[i]:
-		    fluxes[i] = np.append(fluxes[i], np.array([flux[i]]), axis = 1)
-		    #errors = np.append(errors, np.array([error]), axis=0)
-		    #reds = np.append(reds, np.array([red]), axis = 0)
-		    #ages = np.append(ages, np.array([age]), axis = 0)
-		else:
-		    fluxes[i] = np.append(fluxes[i], np.array([0]), axis = 1)
-	    j+=1
+	    if len(fluxes) == 0:
+		fluxes = np.array([flux])
+		errors = np.array([error])
+		reds = np.array([red])
+		ages = np.array([age])
+	    else:
+		fluxes = np.append(fluxes, np.array([flux]),axis=0)
+		errors = np.append(errors, np.array([error]), axis=0)
+		reds = np.append(reds, np.array([red]), axis = 0)
+		ages = np.append(ages, np.array([age]), axis = 0)
 	avg_flux = np.average(fluxes, weights = 1.0/errors, axis=0)
-	#avg_red = np.average(reds, weights = 1.0/errors, axis = 0)
-	#avg_age = np.average(ages, weights = 1.0/errors, axis = 0)
-        composite.flux = avg_flux
-        
-	#compare_spectrum.redshifts = avg_red
-        #compare_spectrum.ages = avg_ages
+	avg_red = np.average(reds, weights = 1.0/errors, axis = 0)
+	avg_age = np.average(ages, weights = 1.0/errors, axis = 0)
+        compare_spectrum = SN_Array[0]
+	compare_spectrum.flux = avg_flux
+	compare_spectrum.redshifts = avg_red
+        compare_spectrum.ages = avg_ages
 	# Add residual formula?
-	return compare_spectrum  
+	return compare_spectrum
 	
 """	
 def splice(SN):
@@ -267,46 +266,53 @@ def splice(SN):
 		template=composite
 """    
        
-#finds the longest SN we have for comparison
-lengths = []
-for SN in SN_Array:
-    lengths.append(len(SN.wavelength))
-temp = [SN for SN in SN_Array if len(SN.wavelength) == max(lengths)]
-composite = temp[0]
-print composite.flux
-
-#scales data, makes a composite, and splices in non-overlapping data
-wmin = 4000
-wmax = 6000
-wavemin=composite.minwave
-wavemax=composite.maxwave
-good = np.where(len(np.where((wavemin>wmin) & (wavemax<wmax))>50)) #& (SN.SNR>.8*max(SN.SNR)))
-template=composite.flux[good]
-zeros=1
-tempzeros=0
-
-while (zeros!=tempzeros):
+def main():
+    SN_Array = []
+    #Accept SQL query as input and then grab what we need
+    print "Query format: SELECT [items] FROM Supernovae"
+    print "Optional at the end: ORDER BY [attribute] DESC"
+    Full_query = "SELECT Filename, SN, Redshift, MinWave, MaxWave, Spectra FROM Supernovae"
+    print "Full Query:", Full_query
+    sql_input = str(raw_input("Enter a SQL Query---> "))
+    SN_Array = grab(sql_input, Full_query)
+    #finds the longest SN we have for comparison
+    lengths = []
     for SN in SN_Array:
-        SN, min_wave, max_wave, lowindex, highindex = cut(composite, SN, SN_Array, min_wave, max_wave)
-    scales=[]
-	for SN in SN_Array:
-        SN,scale_factor,SN_Array = scale(template,SN,SN_Array)
-		scales.append(scale_factor)
-    template = average(template, SN_Array)
-	tempzeros=0
-	for i in range(len(scales)):
-		if scales[i]==0:
-			tempzeros+=1
-	composite=template
-	zeros=tempzeros
-        #min_wave -= 100
-        #max_wave += 100
+        lengths.append(len(SN.wavelength))
+    temp = [SN for SN in SN_Array if len(SN.wavelength) == max(lengths)]
+    composite = temp[0]
+    print composite.flux
 
-#Either writes data to file, or returns it to user
-table=Table([composite.wavelength,composite.flux,composite.variance],names=('Wavelength','Flux','Variance'))
-c_file=raw_input("Create a file for data? (y/n)")
-if (c_file='y'):
-	f_name='composite,-3,+3,...-averages,--#of spectra'
-	table.write(f_name,format='ascii')
-else:
+    #scales data, makes a composite, and splices in non-overlapping data
+    wmin = 4000
+    wmax = 6000
+    wavemin=composite.minwave
+    wavemax=composite.maxwave
+    good = np.where(len(np.where((wavemin>wmin) & (wavemax<wmax))>50)) #& (SN.SNR>.8*max(SN.SNR)))
+    template=composite.flux[good]
+    zeros=1
+    tempzeros=0
+    while (zeros!=tempzeros):
+        for SN in SN_Array:
+            SN, min_wave, max_wave, lowindex, highindex = cut(composite, SN, SN_Array, min_wave, max_wave)
+        scales=[]
+        for SN in SN_Array:
+            SN,scale_factor,SN_Array = scale(template,SN,SN_Array)
+            scales.append(scale_factor)
+            template = average(template, SN_Array)
+            tempzeros=0
+            for i in range(len(scales)):
+        	if scales[i]==0:
+        	    tempzeros+=1
+            composite=template
+            zeros=tempzeros
+            #min_wave -= 100
+            #max_wave += 100
+
+    #Either writes data to file, or returns it to user
+    table=Table([composite.wavelength,composite.flux,composite.variance],names=('Wavelength','Flux','Variance'))
+    c_file=str(raw_input("Create a file for data? (y/n)"))
+    if c_file=='y':
+        f_name='composite,-3,+3,...-averages,--#of spectra'
+    else:
 	return table
