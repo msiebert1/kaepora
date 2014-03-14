@@ -11,6 +11,7 @@
 # Import necessary python modules
 import numpy as np
 from math import *
+import matplotlib.pyplot as plt
 
 ############################################################################
 #
@@ -48,7 +49,7 @@ def gsmooth(x_array, y_array, var_y, vexp = 0.005, nsig = 5.0):
         W0 = np.sum(W_lambda)
         W1 = np.sum(W_lambda*y_array)
         new_y[i] = W1/W0
-    
+
     # Return smoothed y-array
     return new_y
 
@@ -58,7 +59,7 @@ def gsmooth(x_array, y_array, var_y, vexp = 0.005, nsig = 5.0):
 ## Optional inputs are window length (window_len) and window type (window)
 ## Syntax: new_flux_array = wsmooth(flux_array, window_len=17, window='hanning')
 
-def wsmooth(x,window_len=55,window='hanning'):
+def wsmooth(x,window_len=75,window='hanning'):
     """smooth the data using a window with requested size.
         
         This method is based on the convolution of a scaled window with the signal.
@@ -126,7 +127,7 @@ def wsmooth(x,window_len=55,window='hanning'):
 ## genvar(wavelength, flux, float vexp = 0.005, float nsig = 5.0)
 #
 
-def genvar(wavelength, flux, vexp = 0.005, nsig = 5.0):
+def genvar(wavelength, flux, vexp = 0.0035, nsig = 3.0):
     
     # Create variance from sky spectrum (Will add additional code here)
     varflux = np.zeros(len(wavelength))+1.0 # Place holder
@@ -185,14 +186,14 @@ def clip(wavelength, flux, upper = 1.9, lower = 0.1):
 # amount of clipping increases.
 # Syntax is telluric_flag(wavelength_array,flux_array, limit = 0.9)
 
-def telluric_flag(wavelength, flux, limit=0.9):
+def telluric_flag(wavelength, flux, limit=0.5):
     import matplotlib.pyplot as plt
     telluric_lines = np.loadtxt('../../../personal/malloryconlon/Data_fidelity/telluric_lines.txt')
 
     mi = telluric_lines[:,0]
     ma = telluric_lines[:,1]
 
-    new_flux = wsmooth(flux,window_len=95)
+    new_flux = wsmooth(flux)
 
     ratio = flux/new_flux
     telluric_clip = []

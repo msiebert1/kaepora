@@ -1,42 +1,49 @@
 #This code looks for telluric lines in a given spectrum.  It clips those lines and changes the inverse variance to 0 because the flux value has been corrected.
 
 import numpy as np
-from datafidelity import wsmooth
+from scipy import *
+from datafidelity import *
 import matplotlib.pyplot as plt
+import pyfits
+import glob
+import os
 
-SN = SN=np.genfromtxt('../../../SN04dt_040914_b01_DUP_WF.dat')
-wavelength = SN[:,0]
-flux = SN[:,1]
-
-telluric_lines = np.loadtxt('../../personal/malloryconlon/Data_fidelity/telluric_lines.txt')
-
-mi = telluric_lines[:,0]
-ma = telluric_lines[:,1]
-
-new_flux = wsmooth(flux,window_len=35)
-flux1 = []
-
-ratio = flux/new_flux
-telluric_clip = []
+cor = []
 
 
-#Look at the flux/smoothed flux ratios for a given telluric absorption range as defined by the min and max arrays. If the ratio is less than the given condition, clip and replace with the smoothed flux value.
-
-for i in range(len(wavelength)):
-    for j in range(len(mi)):
-        if wavelength[i] > mi[j]:
-            if wavelength[i] < ma[j]:
-                if ratio[i] < 0.99:
-                    telluric_clip.append(i)
-
-for k in range(len(flux)):
-    flux1.append(flux[k])
-for l in range(len(telluric_clip)):
-    index=telluric_clip[l]
-    flux1[l]=new_flux[l]
+for dirs,subdirs,files in os.walk('../../data/cfa/'):
+    for subdir in subdirs:
+        list = glob.glob("*.flm")
 
 
+#for i in range(len(list)):
+#   SN = np.genfromtxt('../../../'+'list[i]')
+#    wavelength = SN[:,0]
+#   flux = SN[:,1]
+#    var = SN[:,2]
+#    var1 = genvar(wavelength,flux)
+#    plt.plot(wavelength,var)
+#    plt.plot(wavelength,var1)
+#    plt.show()
 
-plt.plot(wavelength,flux,'k')
-plt.plot(wavelength,flux1,'y')
-plt.show()
+#open = pyfits.open('bstarr.fits')
+#sky = open[0].data
+
+#cor = correlate(flux,sky)
+
+#for i in range(len(cor)):
+#   if cor[i]!=0:
+#       print cor[i]
+
+
+
+#plt.plot(sky_telluric)
+#plt.show()
+
+
+
+
+
+#plt.plot(wavelength,var)
+#plt.plot(wavelength,var1)
+#plt.show()
