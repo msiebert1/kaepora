@@ -76,8 +76,8 @@ def dered(sn_param,sne,filename,wave,flux):
             v = sne[j][2].astype(float)
             bv = b-v
             r = v/bv
-            print "B(%s)-V(%s)=%s"%(b,v,bv)
-            print "R(v) =",r
+#            print "B(%s)-V(%s)=%s"%(b,v,bv)
+#            print "R(v) =",r
             #or use fm07 model
             #test1 = spectra_data[i][:,1] * ex.reddening(spectra_data[i][:,0],ebv = bv, model='ccm89')
             #test2 = spectra_data[i][:,1] * ex.reddening(spectra_data[i][:,0],ebv = bv, model='od94')
@@ -114,8 +114,10 @@ def Interpo (wave,flux,variance) :
     fitted_flux = []
     fitted_var = []
     new = []
+#    print wave
     lower = wave[0] # Find the area where interpolation is valid
     upper = wave[len(wave)-1]
+#    print lower,upper
     lines = np.where((wave>lower) & (wave<upper))	#creates an array of wavelength values between minimum and maximum wavelengths from new spectrum
     indata = inter.splrep(wave[lines],flux[lines])	#creates b-spline from new spectrum
     inerror = inter.splrep(wave[lines],variance[lines]) # doing the same with the errors
@@ -130,11 +132,11 @@ def Interpo (wave,flux,variance) :
 
     # Get the Noise for each spectra
 
-def getnoise(flux,variance) :
+def getsnr(flux,variance) :
 
-    noise = flux/variance**2.0
-    navg = np.median(noise)
-    return navg
+    snr = flux/variance
+    snavg = np.median(snr)
+    return snavg
 
 from datafidelity import *  # Get variance from the datafidelity outcome
 
@@ -146,15 +148,16 @@ def compprep(spectrum,file_name):
     newdata = []
     old_wave = spectrum[:,0]	    #wavelengths
     old_flux = spectrum[:,1] 	#fluxes
+    old_var = genvar(old_wave, old_flux) #variance
+    navg = getsnr(old_flux,old_var)
+    print 'S/N ratio',file_name,navg
     new_spectrum = dered(sn_parameter,sne,file_name,old_wave,old_flux)
     new_wave = new_spectrum[0]
     new_flux = new_spectrum[1]
-    var = genvar(new_wave, new_flux) #variance
+    new_var = genvar(new_wave, new_flux) #variance
     #var = new_flux*0+1
-    newdata = Interpo(new_wave,new_flux,var) # Do the interpolation
-    #print 'new spectra',newdata
-    navg = getnoise(new_flux,var)
-
+    newdata = Interpo(new_wave,new_flux,new_var) # Do the interpolation
+#    print 'new spectra',newdata    
     return newdata, navg
 
 
