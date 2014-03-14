@@ -43,22 +43,22 @@ def grab(sql_input, Full_query):
             SN.filename = row[0]
             SN.name = row[1]
             SN.redshift = row[2]
-			SN.phase = row[3]
+	    SN.phase = row[3]
             SN.minwave = row[4]
             SN.maxwave = row[5]
-			SN.SNR = row[10]
+	    SN.SNR = row[10]
             #spectra = msg.unpackb(row[7])
             #SN.spectrum = spectra
-			interp = msg.unpackb(row[12])
-			SN.interp = interp
+	    interp = msg.unpackb(row[12])
+	    SN.interp = interp
             full_array.append(SN)
             SN.wavelength = SN.interp[:,0]
             SN.flux = SN.interp[:,1]
             SN.variance = SN.interp[:,2]
             SN_Array.append(SN)
             #print SN.interp
-		else:
-			print "Invalid query...more support will come"
+	else:
+	    print "Invalid query...more support will come"
     print len(SN_Array)
     #cut the array down to be more manageable
     SN_Array = SN_Array[0:50]
@@ -127,12 +127,12 @@ def cut(compare, SN, SN_Array, min_wave, max_wave):
         if SN.wavelength[i] == find_nearest(SN.wavelength, min_wave):
             lowindex = i
     for i in xrange(len(SN.wavelength)):
-		if SN.wavelength[i] == find_nearest(SN.wavelength, max_wave):
-			highindex = i
-	if highindex == 0:
-		SN_Array.remove(SN)
-	else:    
-		print lowindex, "to", highindex
+	if SN.wavelength[i] == find_nearest(SN.wavelength, max_wave):
+	    highindex = i
+    if highindex == 0:
+	SN_Array.remove(SN)
+    else:    
+	print lowindex, "to", highindex
     return SN, min_wave, max_wave, lowindex, highindex
 
 low_overlap = []
@@ -151,21 +151,12 @@ def scfunc(x,a):
     return a*x
 
 def fluxscale(tempflux, flux, error, lowindex, highindex):
-<<<<<<< HEAD
     # Parameters:
     #     tempflux = template flux array
     #     flux     = spectrum array needs to be scaled
     #     error    = error of the spectrum needs to be scaed, use the inverse as the weighting.
     #     lowindex, highindex = wavelength range to be used to get the scale factor
     scale = curve_fit(scfunc,flux[lowindex:highindex],tempflux[lowindex:highindex])
-=======
-# Parameters:
-#     tempflux = template flux array
-#     flux     = spectrum array needs to be scaled
-#     error    = error of the spectrum needs to be scaed, use the inverse as the weighting.
-#     lowindex, highindex = wavelength range to be used to get the scale factor
-    scale = curve_fit(scfunc,flux[lowindex:highindex],tempflux[lowindex:highindex],sigma=1./error[lowindex:highindex])
->>>>>>> a3fdcd3239a8fa1a3bdbe49a0ce3ab514fb841c9
     return scale
     
 def scale(fluxes, errors, compare, SN, lowindex, highindex):
@@ -200,7 +191,6 @@ def average(fluxes, errors):
 	#avg_red = compare_spectrum.redshifts
 	#redshifts = compare_spectrum.redshifts
 	avg_flux = np.average(fluxes, weights = 1.0/errors, axis=0)
-<<<<<<< HEAD
 	avg_red = np.average(reds, weights = 1.0/errors, axis = 0)
 	avg_age = np.average(ages, weights = 1.0/errors, axis = 0)
 	compare_spectrum = SN_Array[0]
@@ -210,32 +200,6 @@ def average(fluxes, errors):
 	# Add residual formula?
 	return compare_spectrum
 	return avg_flux
-
-=======
-	return avg_flux
-"""	
-def splice(SN):
-	ivar=SN.variance
-	wmin = 4000
-	wmax=6000
-	wave=SN.wavelength
-	good = np.where((SN.SNR>.8*max(SN.SNR)) & (len(np.where((wave>wmin) & (wave<wmax) & (ivar>0))>50))
-	template=SN.flux[good]
-	nscale=1
-	nscale0=0
-	while(nscale!=nscale0):
-		temp=SN
-		nscale0=nscale
-		for i in range(len(good)):
-			scale=scale(template,SN)
-			temp.flux[i]=temp.flux[i]*scale[i]
-			temp.variance=temp.variance*scale[i]**(-2)
-		nscale=len(np.where(scale!=0))
-		composite=average(
-		template=composite
-"""    
->>>>>>> a3fdcd3239a8fa1a3bdbe49a0ce3ab514fb841c9
-       
 def main():
     SN_Array = []
     #Accept SQL query as input and then grab what we need
@@ -269,16 +233,16 @@ def main():
         for SN in SN_Array:
             SN, wavemin, wavemax, lowindex, highindex = cut(composite, SN, SN_Array, wavemin, wavemax)
         scales=[]
-		fluxes, errors = makearray(SN_Array)
-		print fluxes[:,0], errors[:,0]
+	fluxes, errors = makearray(SN_Array)
+	print fluxes[:,0], errors[:,0]
         for SN ,i in zip(SN_Array, xrange(len(SN_Array))):
-			SN,scale_factor = scale(fluxes[i,:], errors[i,:], fluxes[0,:], SN, lowindex, highindex)
-			scales.append(scale_factor)
-            template = average(template, SN_Array)
-            tempzeros=0
-            for i in range(len(scales)):
-        	if scales[i]==0:
-        	    tempzeros+=1
+	    SN,scale_factor = scale(fluxes[i,:], errors[i,:], fluxes[0,:], SN, lowindex, highindex)
+	    scales.append(scale_factor)
+        template = average(template, SN_Array)
+        tempzeros=0
+        for i in range(len(scales)):
+            if scales[i]==0:
+        	tempzeros+=1
             composite=template
             zeros=tempzeros
             #min_wave -= 100
@@ -287,13 +251,9 @@ def main():
     #Either writes data to file, or returns it to user
     table=Table([composite.wavelength,composite.flux,composite.variance],names=('Wavelength','Flux','Variance'))
     c_file=str(raw_input("Create a file for data? (y/n)"))
-    if c_file=='y':
-		f_name='composite,'+min(composite.phases)+'.'+max(composite.phases)+'.'+min(composite.redshifts)+'.'max(composite.redshifts)+'...--'+np.average(composite.phases)+'.'+np.average(composite.redshifts)+len(SN_Array)+'SN'
-		#phase_min.phase_max.deltam15_min.deltam15_max. ... --avg_phase.avg_deltam15... --#SN
-		table.write(f_name,format='ascii')
-    else:
-<<<<<<< HEAD
-		return table
-=======
-	return table
->>>>>>> a3fdcd3239a8fa1a3bdbe49a0ce3ab514fb841c9
+    #if c_file=='y':
+	#	f_name='composite,'+min(composite.phases)+'.'+max(composite.phases)+'.'+min(composite.redshifts)+'.'max(composite.redshifts)+'...--'+np.average(composite.phases)+'.'+np.average(composite.redshifts)+len(SN_Array)+'SN'
+	#	#phase_min.phase_max.deltam15_min.deltam15_max. ... --avg_phase.avg_deltam15... --#SN
+	#	table.write(f_name,format='ascii')
+    #else:
+	#	return table
