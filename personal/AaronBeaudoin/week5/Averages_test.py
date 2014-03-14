@@ -262,7 +262,7 @@ def scfunc(x,a):
     return a*x
 
 def fluxscale(compare_spectrum,SN,lowindex,highindex):
-    scale = curve_fit(scfunc,SN.flux[lowindex:highindex],compare_spectrum.flux[lowindex:highindex],sigma=1./SN.error[lowindex:highindex])
+    scale = curve_fit(scfunc,SN.flux[lowindex:highindex],compare_spectrum.flux[lowindex:highindex],p0=None,sigma=1./SN.error[lowindex:highindex])
     return scale[0]
 
 def splice(compare_spectrum,SN_Array,l_wave,h_wave):
