@@ -51,10 +51,13 @@ def grab(sql_input, Full_query):
             #SN.spectrum = spectra
 	    interp = msg.unpackb(row[12])
 	    SN.interp = interp
-            full_array.append(SN)
-            SN.wavelength = SN.interp[:,0]
-            SN.flux = SN.interp[:,1]
-            SN.variance = SN.interp[:,2]
+	    try:
+		SN.wavelength = SN.interp[0,:]
+		SN.flux = SN.interp[1,:]
+		SN.variance = SN.interp[2,:]
+	    except TypeError:
+		continue
+	    full_array.append(SN)
             SN_Array.append(SN)
             #print SN.interp
 	else:
@@ -90,18 +93,11 @@ def makearray(SN_Array):
 	flux = []
 	error = []
 	for SN in SN_Array:
-	    for i in range(len(SN.wavelength)):
-			if SN.wavelength[i] == find_nearest(SN.wavelength, 3000):
-				lowindex = i
-	    for i in range(len(SN.wavelength)):
-			if SN.wavelength[i] == find_nearest(SN.wavelength, 7000):
-				highindex = i
-	    print lowindex, highindex
 	    #doesn't need to be truncated if data is interpolated and aligned
-	    flux = SN.flux[lowindex:highindex]
-	    error = SN.variance[lowindex:highindex]
-	    wavelength = SN.wavelength[lowindex:highindex]
-	    red = SN.redshifts[lowindex:highindex]
+	    flux = SN.flux
+	    error = SN.variance
+	    wavelength = SN.wavelength
+	    red = SN.redshift
 	    #age = SN.ages[lowindex:highindex]
 	    if len(fluxes) == 0:
 			fluxes = np.array([flux])
@@ -159,20 +155,20 @@ def fluxscale(tempflux, flux, error, lowindex, highindex):
     scale = curve_fit(scfunc,flux[lowindex:highindex],tempflux[lowindex:highindex])
     return scale
     
-def scale(fluxes, errors, compare, SN, lowindex, highindex):
+def scale(fluxes, errors, compare, wave, SN, lowindex, highindex):
     #scale to that one initialy, then scale to the current composite
     factors = []
-    for i in xrange(len(compare.wavelength)):
+    for i in xrange(len(wave)):
         try:
-            if round(compare.wavelength[i]) == round(SN.wavelength[i]):
+            if round(wave[i]) == round(SN.wavelength[i]):
                 try:
-                    factors.append(compare.flux[i] / SN.flux[i])
+                    factors.append(compare[i] / SN.flux[i])
                 except IndexError:
                     continue
         except IndexError:
             continue
     
-    scale_factor = fluxscale(compare.flux, fluxes, errors, lowindex, highindex)
+    scale_factor = fluxscale(compare, fluxes, errors, lowindex, highindex)
     #SN.flux[lowindex:highindex] *= scale_factor
     #SN.error[lowindex:highindex] *= scale_factor
     #scale_factor = np.mean(factors)
@@ -234,9 +230,9 @@ def main():
             SN, wavemin, wavemax, lowindex, highindex = cut(composite, SN, SN_Array, wavemin, wavemax)
         scales=[]
 	fluxes, errors = makearray(SN_Array)
-	print fluxes[:,0], errors[:,0]
+	print fluxes, errors
         for SN ,i in zip(SN_Array, xrange(len(SN_Array))):
-	    SN,scale_factor = scale(fluxes[i,:], errors[i,:], fluxes[0,:], SN, lowindex, highindex)
+	    SN,scale_factor = scale(fluxes[i,:], errors[i,:], fluxes[0,:], template.wavelength, SN, lowindex, highindex)
 	    scales.append(scale_factor)
         template = average(template, SN_Array)
         tempzeros=0
