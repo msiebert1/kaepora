@@ -32,7 +32,8 @@ class supernova(object):
 
 #Connect to database
 #change this address to whereever you locally stored the SNe.db
-con = sq3.connect('../../../SNe.db')
+#con = sq3.connect('../../../SNe.db')
+con = sq3.connect('../../temp/SNe.db')
 cur = con.cursor()
 def grab(sql_input, Full_query):
     SN_Array = []
@@ -104,13 +105,13 @@ def makearray(SN_Array):
 	    if len(fluxes) == 0:
 			fluxes = np.array([flux])
 			errors = np.array([error])
-			reds = np.array([red])
+# 			reds = np.array([red])
 			#ages = np.array([age])
 	    else:
 			try:
 				fluxes = np.append(fluxes, np.array([flux]),axis=0)
 				errors = np.append(errors, np.array([error]), axis=0)
-				reds = np.append(reds, np.array([red]), axis = 0)
+# 				reds = np.append(reds, np.array([red]), axis = 0)
 				#ages = np.append(ages, np.array([age]), axis = 0)
 			except ValueError:
 				continue
@@ -154,8 +155,8 @@ def fluxscale(tempflux, flux, error, lowindex, highindex):
     #     flux     = spectrum array needs to be scaled
     #     error    = error of the spectrum needs to be scaed, use the inverse as the weighting.
     #     lowindex, highindex = wavelength range to be used to get the scale factor
-    scale = curve_fit(scfunc,flux[lowindex:highindex],tempflux[lowindex:highindex])
-    return scale
+    scale = curve_fit(scfunc,flux[lowindex:highindex],tempflux[lowindex:highindex],sigma=1./error[lowindex:highindex])
+    return scale[0]
     
 def scale(fluxes, errors, compare, wave, SN, lowindex, highindex):
     #scale to that one initialy, then scale to the current composite
@@ -171,9 +172,14 @@ def scale(fluxes, errors, compare, wave, SN, lowindex, highindex):
             continue
     
     scale_factor = fluxscale(compare, fluxes, errors, lowindex, highindex)
+#     print fluxes[lowindex:lowindex+10],lowindex,highindex
+    #print compare[lowindex:lowindex+10],errors[lowindex:lowindex+10]
     #SN.flux[lowindex:highindex] *= scale_factor
     #SN.error[lowindex:highindex] *= scale_factor
     #scale_factor = np.mean(factors)
+    if scale_factor != 1. :
+        plt.plot(SN.wavelength[lowindex:highindex],scale_factor*fluxes[lowindex:highindex])
+  
     SN.flux *= scale_factor
     SN.variance *= scale_factor**-2
     #plt.subplot(311)
@@ -214,11 +220,11 @@ def main():
         lengths.append(len(SN.wavelength))
     temp = [SN for SN in SN_Array if len(SN.wavelength) == max(lengths)]
     composite = temp[0]
-    print composite.flux
+#     print composite.flux
 
     #scales data, makes a composite, and splices in non-overlapping data
-    wmin = 4000
-    wmax = 6000
+    wmin = 3000
+    wmax = 4000
     wavemin=composite.minwave
     wavemax=composite.maxwave
     good = np.where(len(np.where(((wavemin>wmin) & (wavemax<wmax))>50))) #& (SN.SNR>.8*max(SN.SNR)))
@@ -232,12 +238,15 @@ def main():
             SN, SN_Array, wavemin, wavemax, lowindex, highindex = cut(composite, SN, SN_Array, wavemin, wavemax)
         scales=[]
 	fluxes, errors = makearray(SN_Array)
-	print fluxes, errors
+# 	print fluxes, errors
 	#print xrange(SN_Array)
         for SN ,i in zip(SN_Array, range(len(SN_Array))):
-	    SN,scale_factor = scale(fluxes[i,:], errors[i,:], fluxes[0,:], template.wavelength, SN, lowindex, highindex)
+	    SN,scale_factor = scale(fluxes[i,:], errors[i,:], fluxes[0,:], template.wavelength, SN, 1000, 1500)
 	    scales.append(scale_factor)
-        template = average(template, SN_Array)
+        
+        plt.show()
+
+        template = average(fluxes, errors)
         tempzeros=0
         for i in range(len(scales)):
             if scales[i]==0:
@@ -256,3 +265,6 @@ def main():
 	#	table.write(f_name,format='ascii')
     #else:
 	#	return table
+
+if __name__ == "__main__":
+    main()
