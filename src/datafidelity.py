@@ -18,39 +18,45 @@ from math import *
 #
 ## Function gsmooth() is an inverse variance weighted Gaussian smoothing of spectra
 ## Optional imputs are smoothing velocity (vexp) and number of sigma (nsig)
-## Syntax: new_y_array = gsmooth(x_array, y_array, var_y, vexp = 0.01, nsig = 5.0)
+## Syntax: outflux = gsmooth(wavelength, flux, varflux, vexp = 0.01, nsig = 5.0)
 
-def gsmooth(x_array, y_array, var_y, vexp = 0.005, nsig = 5.0):
+def gsmooth(wavelength, flux, varflux, vexp = 0.005, nsig = 5.0):
     
     # Check for non-zero variance points, and set to 1E-20
-    for i in range(len(var_y)):
-        if var_y[i] == 0:
-            var_y[i] = 1E-20
+    meanflux = np.average(flux)
+    zeros = np.where(varflux <= 0)
+    varflux[zeros] = meanflux*0.05 #Gives S/N ~ 20
+
+    for i in range(len(varflux)):
+        if varflux[i] == 0:
+            varflux[i] = np.average(flux)*0.05 #Gives S/N ~ 20
     
-    # Output y-array
-    new_y = np.zeros(len(x_array), float)
-    
-    # Loop over y-array elements
-    for i in range(len(x_array)):
+    # Output flux
+#    outflux = np.zeros(len(wavelength), float)
+    outflux = []
+
+    # Loop over flux elements
+    for i in range(len(wavelength)):
         
-        # Construct a Gaussian of sigma = vexp*x_array[i]
-        gaussian = np.zeros(len(x_array), float)
-        sigma = vexp*x_array[i]
+        # Construct a Gaussian of sigma = vexp*wavelength[i]
+        gaussian = np.zeros(len(wavelength), float)
+        sigma = vexp*wavelength[i]
         
         # Restrict range to +/- nsig sigma
-        sigrange = np.nonzero(abs(x_array-x_array[i]) <= nsig*sigma)
-        gaussian[sigrange] = (1/(sigma*sqrt(2*pi)))*np.exp(-0.5*((x_array[sigrange]-x_array[i])/sigma)**2)
+#        sigrange = np.nonzero(abs(wavelength-wavelength[i]) <= nsig*sigma)
+        sigrange = np.where(abs(wavelength-wavelength[i]) <= nsig*sigma)
+        gaussian[sigrange] = (1/(sigma*sqrt(2*pi)))*np.exp(-0.5*((wavelength[sigrange]-wavelength[i])/sigma)**2)
         
         # Multiply Gaussian by 1 / variance
-        W_lambda = gaussian / var_y
+        W_lambda = gaussian / varflux
         
-        # Perform a weighted sum to give smoothed y value at x_array[i]
+        # Perform a weighted sum to give smoothed y value at wavelength[i]
         W0 = np.sum(W_lambda)
-        W1 = np.sum(W_lambda*y_array)
-        new_y[i] = W1/W0
+        W1 = np.sum(W_lambda*flux)
+        outflux[i] = W1/W0
     
     # Return smoothed y-array
-    return new_y
+    return outflux
 
 ############################################################################
 #
@@ -105,14 +111,14 @@ def wsmooth(x,window_len=11,window='hanning'):
         raise ValueError, "Window needs to be 'flat', 'hanning', 'hamming', 'bartlett', or 'blackman'"
     
     
-    s=np.r_[x[window_len-1:0:-1],x,x[-1:-window_len:-1]]
+    s = np.r_[x[window_len-1:0:-1], x, x[-1:-window_len:-1]]
     #print(len(s))
     if window == 'flat': #moving average
-        w=np.ones(window_len,'d')
+        w = np.ones(window_len, 'd')
     else:
-        w=eval('np.'+window+'(window_len)')
+        w = eval('np.'+window+'(window_len)')
     
-    y=np.convolve(w/w.sum(),s,mode='valid')
+    y = np.convolve(w/w.sum(), s, mode='valid')
     
     return y[(window_len/2):-(window_len/2)]
 
@@ -129,7 +135,7 @@ def wsmooth(x,window_len=11,window='hanning'):
 def genvar(wavelength, flux, vexp = 0.005, nsig = 5.0):
     
     # Create variance from sky spectrum (Will add additional code here)
-    varflux = np.zeros(len(wavelength))+1.0 # Place holder
+    varflux = np.ones(len(wavelength)) # Place holder
     
     # Smooth original flux
     new_flux = gsmooth(wavelength, flux, varflux, vexp, nsig)
@@ -138,10 +144,10 @@ def genvar(wavelength, flux, vexp = 0.005, nsig = 5.0):
     error = abs(flux - new_flux)
     
     # Smooth noise to find the variance
-    variance = gsmooth(wavelength, error, varflux, vexp, nsig)
+    sm_error = gsmooth(wavelength, error, varflux, vexp, nsig)
     
     # Return generated variance
-    return variance
+    return sm_error
 
 ############################################################################
 #
@@ -150,27 +156,46 @@ def genvar(wavelength, flux, vexp = 0.005, nsig = 5.0):
 # Optional inputs are the upper and lower limits for the ratio
 # Syntax is clip(flux_array, upper = 1.7, lower = 0.5)
 
-def clip(flux, upper = 1.1, lower = 0.9):
+#Let's try a very simple clipping; the output is different, but this should be better
+def clip(wavelength, flux, variance, sig = 3.0, vexp = 0.001, nsig = 5.0):
+
+    #First smooth the flux
+    sm_flux = gsmooth(wavelength, flux, variance, vexp = vexp, nsig = nsig)
+
+    #Select the indices that vary significantly from the smoothed flux
+    bad = np.where(abs(flux - sm_flux)/variance >= sig)
+
+    #Fix the spectrum
+    clean_flux = flux
+    clean_flux[bad] = sm_flux[bad]
     
-    #Clip any bad data and replace it with the smoothed value.  Fine tune the ratio limits to cut more (ratio closer to one) or less (ratio farther from one) data
+    clean_var = variance
+    clean_var[bad] = float('NaN')
+
+    return clean_flux, clean_var
+
     
-    new_flux = np.zeros(len(flux))
-    clipped_points = []
-    
-    smooth_flux = wsmooth(flux)
-    ratio = flux/smooth_flux
-    
-    for i in range(len(ratio)):
-        if ratio[i] > upper:
-            new_flux[i] = smooth_flux[i]
-            clipped_points.append(i)
-        elif ratio[i] < lower:
-            new_flux[i] = smooth_flux[i]
-            clipped_points.append(i)
-        else:
-            new_flux[i] = flux[i]
-    
-    return new_flux, clipped_points
+#def clip(flux, upper = 1.1, lower = 0.9):
+#
+#    #Clip any bad data and replace it with the smoothed value.  Fine tune the ratio limits to cut more (ratio closer to one) or less (ratio farther from one) data
+#    
+#    new_flux = np.zeros(len(flux))
+#    clipped_points = []
+#    
+#    smooth_flux = wsmooth(flux)
+#    ratio = flux/smooth_flux
+#    
+#    for i in range(len(ratio)):
+#        if ratio[i] > upper:
+#            new_flux[i] = smooth_flux[i]
+#            clipped_points.append(i)
+#        elif ratio[i] < lower:
+#            new_flux[i] = smooth_flux[i]
+#            clipped_points.append(i)
+#        else:
+#            new_flux[i] = flux[i]
+#    
+#    return new_flux, clipped_points
 
 
 ############################################################################
