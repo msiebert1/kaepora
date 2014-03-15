@@ -15,6 +15,7 @@ import msgpack_numpy as mn
 import lmfit
 from scipy.optimize import curve_fit
 
+np.set_printoptions(threshold=np.nan)
 mn.patch()
 
 #Sets up some lists for later
@@ -67,6 +68,7 @@ def grab(sql_input, Full_query):
     SN_Array = SN_Array[0:50]
     SN_Array = [SN for SN in SN_Array if hasattr(SN, 'wavelength')]
     SN_Array = [SN for SN in SN_Array if hasattr(SN, 'variance')]
+    print len(SN_Array)
     return SN_Array
     
 """
@@ -106,9 +108,9 @@ def makearray(SN_Array):
 			#ages = np.array([age])
 	    else:
 			try:
-				fluxes = np.append(fluxes, np.array([flux]),axis=1)
-				errors = np.append(errors, np.array([error]), axis=1)
-				reds = np.append(reds, np.array([red]), axis = 1)
+				fluxes = np.append(fluxes, np.array([flux]),axis=0)
+				errors = np.append(errors, np.array([error]), axis=0)
+				reds = np.append(reds, np.array([red]), axis = 0)
 				#ages = np.append(ages, np.array([age]), axis = 0)
 			except ValueError:
 				continue
@@ -129,7 +131,7 @@ def cut(compare, SN, SN_Array, min_wave, max_wave):
 	SN_Array.remove(SN)
     else:    
 	print lowindex, "to", highindex
-    return SN, min_wave, max_wave, lowindex, highindex
+    return SN, SN_Array, min_wave, max_wave, lowindex, highindex
 
 low_overlap = []
 def overlap(compare, SN_Array):
@@ -227,11 +229,12 @@ def main():
     tempzeros=0
     while (zeros!=tempzeros):
         for SN in SN_Array:
-            SN, wavemin, wavemax, lowindex, highindex = cut(composite, SN, SN_Array, wavemin, wavemax)
+            SN, SN_Array, wavemin, wavemax, lowindex, highindex = cut(composite, SN, SN_Array, wavemin, wavemax)
         scales=[]
 	fluxes, errors = makearray(SN_Array)
 	print fluxes, errors
-        for SN ,i in zip(SN_Array, xrange(len(SN_Array))):
+	#print xrange(SN_Array)
+        for SN ,i in zip(SN_Array, range(len(SN_Array))):
 	    SN,scale_factor = scale(fluxes[i,:], errors[i,:], fluxes[0,:], template.wavelength, SN, lowindex, highindex)
 	    scales.append(scale_factor)
         template = average(template, SN_Array)
