@@ -36,15 +36,15 @@ file_name = []
 junk_data = []
 
 #number of spectra to modify
-num = len(spectra_files)
-#num = 20
+#num = len(spectra_files)
+num = 20
 
 #get data, pathnames
 for i in range(num):
 	try:
          spectra_data.append(np.loadtxt(spectra_files[i]))         
          file_path.append(spectra_files[i][14:-4])
-         file_name.append(spectra_files[i][21:-4])    
+         file_name.append(spectra_files[i][20:-4])    
 #         print file_name
              
 	except ValueError:
@@ -56,7 +56,7 @@ num = len(spectra_data)
 #print num
 
 ############################# this is for testing typical files####################################
-def testtypical(spectra_data,file_name) :
+def testonesn(spectra_data,file_name) :
     for i in range(num) :
         if 'sn2008Z' in file_name[i] :
             return i
@@ -93,22 +93,28 @@ from prep import *
 navglist = [] 
       
 for i in range(num) :  #go through selected spectra data
-#    i = testtypical(spectra_data,file_name)
+#    i = testonesn(spectra_data,file_name)
 #    print i
     spectrum = spectra_data[i]	#declares new spectrum from list
-#sn =  '../data/cfa/sn2008Z/sn2008Z-20080209.31-fast.flm'   
+    
+#sn =  '../data/cfa/sn2001V/sn2001V-20010325.40-mmt.flm'   
 #data = ReadIn(sn)
 #spectrum = ImpArr(data)
 #print spectrum 
 #file_name=sn[27:-4]
 #print file_name
-    data = compprep(spectrum,file_name[i])
-#    print data
-    wave = data[0][0]
+    try :
+        data = compprep(spectrum,file_name[i])
+        navglist.append(data[1]) # the S/N ratio
+#        print data
+    except ValueError:
+        print "ignore",file_name[i]
+        navglist.append('NaN')
+#    wave = data[0][0]
 #    print wave
-    flux = data[0][1]
-    var = data[0][2]    
-    navglist.append(data[1]) # the S/N ratio
+#    flux = data[0][1]
+#    var = data[0][2]    
+    
 
 
 #######################################################################################################################
@@ -140,13 +146,15 @@ for i in range(num) :  #go through selected spectra data
 
 # Output of noise
 
-print navglist
-#    ntable = Table([file_name,navglist],names=('spectra','noise'))   
-#    ascii.write(ntable,'noise.dat')
+#print navglist
+ntable = Table([file_name,navglist],names=('spectra','S/N ratio'))
+#print ntable   
+ascii.write(ntable,'snr.dat')
 
 # Plotting of noise
 listi = range(num)
-plt.plot (listi,navglist)
+#print listi
+plt.plot(listi,navglist)
 plt.show()
 
 

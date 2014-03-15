@@ -116,6 +116,8 @@ def Interpo (wave,flux,variance) :
     new = []
 #    print wave
     lower = wave[0] # Find the area where interpolation is valid
+#    lower = min(wave)
+#    upper = max(wave)
     upper = wave[len(wave)-1]
 #    print lower,upper
     lines = np.where((wave>lower) & (wave<upper))	#creates an array of wavelength values between minimum and maximum wavelengths from new spectrum
@@ -148,7 +150,9 @@ def compprep(spectrum,file_name):
     newdata = []
     old_wave = spectrum[:,0]	    #wavelengths
     old_flux = spectrum[:,1] 	#fluxes
-    old_var = genvar(old_wave, old_flux) #variance
+#    print old_flux
+    old_var = spectrum[:,2]  #errors
+#    old_var = genvar(old_wave, old_flux) #variance
     navg = getsnr(old_flux,old_var)
     print 'S/N ratio',file_name,navg
     new_spectrum = dered(sn_parameter,sne,file_name,old_wave,old_flux)
