@@ -93,15 +93,17 @@ def find_nearest(array,value):
 def makearray(SN_Array):
 	fluxes = []
 	errors = []
-	flux = []
-	error = []
+	flux   = []
+	error  = []
+
 	for SN in SN_Array:
 	    #doesn't need to be truncated if data is interpolated and aligned
 	    flux = SN.flux
 	    error = SN.variance
 	    wavelength = SN.wavelength
-	    red = SN.redshift
+#	    red = SN.redshift
 	    #age = SN.ages[lowindex:highindex]
+
 	    if len(fluxes) == 0:
 			fluxes = np.array([flux])
 			errors = np.array([error])
@@ -109,7 +111,7 @@ def makearray(SN_Array):
 			#ages = np.array([age])
 	    else:
 			try:
-				fluxes = np.append(fluxes, np.array([flux]),axis=0)
+				fluxes = np.append(fluxes, np.array([flux]), axis=0)
 				errors = np.append(errors, np.array([error]), axis=0)
 # 				reds = np.append(reds, np.array([red]), axis = 0)
 				#ages = np.append(ages, np.array([age]), axis = 0)
@@ -213,39 +215,50 @@ def main():
     print "Full Query:", Full_query
     #sql_input = str(raw_input("Enter a SQL Query---> "))
     sql_input = Full_query
+
     SN_Array = grab(sql_input, Full_query)
+
     #finds the longest SN we have for comparison
     lengths = []
     for SN in SN_Array:
-        lengths.append(len(SN.wavelength))
+        lengths.append(len(SN.wavelength[np.where(SN.flux != 0)]))
     temp = [SN for SN in SN_Array if len(SN.wavelength) == max(lengths)]
     composite = temp[0]
 #     print composite.flux
 
     #scales data, makes a composite, and splices in non-overlapping data
-    wmin = 3000
-    wmax = 4000
-    wavemin=composite.minwave
-    wavemax=composite.maxwave
-    good = np.where(len(np.where(((wavemin>wmin) & (wavemax<wmax))>50))) #& (SN.SNR>.8*max(SN.SNR)))
-    template=supernova()
-    template.flux=np.array([composite.flux[good]])
-    template.wavelength=np.array([composite.wavelength[good]])
+    wmin = 4500
+    wmax = 6500
+    wavemin = composite.minwave
+    wavemax = composite.maxwave
+
+    good = np.where(len(np.where(((wavemin > wmin) & (wavemax < wmax)) > 100))) #& (SN.SNR>.8*max(SN.SNR)))
+    template = supernova()
+    template.wavelength = np.array([composite.wavelength[good]])
+    template.flux       = np.array([composite.flux[good]])
+
     zeros=1
     tempzeros=0
-    while (zeros!=tempzeros):
+    while (zeros != tempzeros):
         for SN in SN_Array:
+
+# Instead of trimming things, I think a better approach would be to make an array that is the minimum of the inverse variances of the template and comparison spectrum.  That will be zero where they don't overlap.  Then you just select the indices corresponding to non-zero values.  No for loops necessary.
             SN, SN_Array, wavemin, wavemax, lowindex, highindex = cut(composite, SN, SN_Array, wavemin, wavemax)
+
         scales=[]
 	fluxes, errors = makearray(SN_Array)
+
 # 	print fluxes, errors
 	#print xrange(SN_Array)
-        for SN ,i in zip(SN_Array, range(len(SN_Array))):
-	    SN,scale_factor = scale(fluxes[i,:], errors[i,:], fluxes[0,:], template.wavelength, SN, 1000, 1500)
+
+#I think that you can scale things in the makearray function.  That would make things a little more efficient and cleaner.
+        for SN, i in zip(SN_Array, range(len(SN_Array))):
+	    SN, scale_factor = scale(fluxes[i,:], errors[i,:], fluxes[0,:], template.wavelength, SN, 1000, 1500)
 	    scales.append(scale_factor)
         
         plt.show()
 
+#Below can be done cleaner and without a for loop.
         template = average(fluxes, errors)
         tempzeros=0
         for i in range(len(scales)):
@@ -257,8 +270,8 @@ def main():
             #max_wave += 100
 
     #Either writes data to file, or returns it to user
-    table=Table([composite.wavelength,composite.flux,composite.variance],names=('Wavelength','Flux','Variance'))
-    c_file=str(raw_input("Create a file for data? (y/n)"))
+    table = Table([composite.wavelength, composite.flux, composite.variance], names = ('Wavelength', 'Flux', 'Variance'))
+    c_file = str(raw_input("Create a file for data? (y/n)"))
     #if c_file=='y':
 	#	f_name='composite,'+min(composite.phases)+'.'+max(composite.phases)+'.'+min(composite.redshifts)+'.'max(composite.redshifts)+'...--'+np.average(composite.phases)+'.'+np.average(composite.redshifts)+len(SN_Array)+'SN'
 	#	#phase_min.phase_max.deltam15_min.deltam15_max. ... --avg_phase.avg_deltam15... --#SN
