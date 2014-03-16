@@ -32,8 +32,8 @@ class supernova(object):
 
 #Connect to database
 #change this address to whereever you locally stored the SNe.db
-#con = sq3.connect('../../../SNe.db')
-con = sq3.connect('../../temp/SNe.db')
+con = sq3.connect('../../../SNe.db')
+#con = sq3.connect('../../temp/SNe.db')
 cur = con.cursor()
 def grab(sql_input, Full_query):
     SN_Array = []
