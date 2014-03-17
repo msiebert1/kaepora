@@ -1,5 +1,6 @@
 from __future__ import division
 import numpy as np
+import pandas as pd
 import sqlite3 as sq3
 import msgpack as msg
 import msgpack_numpy as mn
@@ -55,8 +56,19 @@ def read_cfa_info(data_file, dates_file):
     return sndict, date_dict
 
 def read_bsnip_data(data_file):
+    #  Supernova Name (1)
+    #  SNID (Sub)Type (2)
+    #  Host Galaxy
+    #  Host Morphology (3)
+    #  Heliocentric Redshift, cz (km/s) (4)
+    #  Milky Way Reddening, E(B-V) (mag) (5)
+    #  UT date of discovery
     with open(data_file) as data:
-        lines = data.readlines()
+        data = pd.read_fwf('obj_info_table.txt', names=('SN name', 'Type',
+                'Host Galaxy', 'Host Morphology', 'Redshift', 'Reddening',
+                'Discovery Date'), colspecs=((0,10),(10,17),(17,51),(51,58),
+                (58,63),(63,69),(69,97)))
+        dmat = data.as_matrix()
         bsnip_dict = {}
         for line in lines:
             if not line.startswith('#'):
@@ -96,7 +108,7 @@ con.execute("""CREATE TABLE IF NOT EXISTS Supernovae (Filename
                     TEXT PRIMARY KEY, SN Text, Redshift REAL, Phase REAL,
                     MinWave REAL, MaxWave REAL, Dm15 REAL, M_B REAL,
                     B_mMinusV_m REAL, Targeted INTEGER, Signal_Noise REAL,
-                    Spectra BLOB, Interpolated_Spectra BLOB)""")
+                    Interpolated_Spectra BLOB)""")
 
 #change this depending on where script is
 root = '../data'
@@ -182,9 +194,9 @@ for path, subdirs, files in os.walk(root):
 
             interped  = msg.packb(interp_spec)
             con.execute("""INSERT INTO Supernovae(Filename, SN, Redshift, Phase,
-                                MinWave, MaxWave, Dm15, M_B, B_mMinusV_m, Signal_Noise, Spectra, Interpolated_Spectra)
-                                VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", (name, sn_name, redshift,
-                                phase, min_wave, max_wave, Dm15, m_b, bm_vm, sig_noise, buffer(spec), buffer(interped)))
+                                MinWave, MaxWave, Dm15, M_B, B_mMinusV_m, Signal_Noise, Interpolated_Spectra)
+                                VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", (name, sn_name, redshift,
+                                phase, min_wave, max_wave, Dm15, m_b, bm_vm, sig_noise, buffer(interped)))
 con.commit()
 te = time.clock()
 print bad_interp

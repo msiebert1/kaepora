@@ -1,0 +1,582 @@
+SN 1989A  Ia-norm  NGC 3687                        Sbc     2506 0.020 1989 01 19                 IAUC 4721                 IAUC 4724  1  83.80         1
+SN 1989B  Ia-norm  NGC 3627                        Sb       728 0.030 1989 01 30                 IAUC 4726                 IAUC 4727  4   7.54 152.19  2
+SN 1989M  Ia-norm  NGC 4579                        Sb      1520 0.039 1989 06 28                 IAUC 4802                 IAUC 4802  4   2.49 297.42  3
+SN 1990G  Ia-norm  IC 2735                         Sab    10727 0.021 1990 03 19                 IAUC 4982                 IAUC 4984  1
+SN 1990M  Ia-norm  NGC 5493                        S0      2710 0.036 1990 06 15                 IAUC 5033                 IAUC 5034  5
+SN 1990O  Ia-norm  MCG +03-44-3                    Sa      9192 0.095 1990 06 22                 IAUC 5039                 IAUC 5039  3  12.54  54.50  2
+SN 1990N  Ia-norm  NGC 4639                        Sbc     1019 0.025 1990 06 23                 IAUC 5039                 IAUC 5039  5   7.11 160.16  2
+SN 1990R  Ia-norm  UGC 11699                       Sd/Irr  4857 0.096 1990 06 26                 IAUC 5054                 IAUC 5054  3
+SN 1990Y  Ia-norm  FCCB 1147                       E      11702 0.008 1990 08 22                 IAUC 5080                 IAUC 5083  1  16.78         2
+SN 1991B  Ia-norm  NGC 5426                        Sc      2572 0.028 1991 01 11                 IAUC 5163                 IAUC 5164  3
+SN 1991K  Ia-norm  NGC 2851                        S0      5096 0.059 1991 02 20                 IAUC 5196    Matheson et al. (2001)  2
+SN 1991M  Ia-norm  IC 1151                         Sc      2170 0.036 1991 03 12                 IAUC 5207                 IAUC 5207  4  18.06 152.09  2
+SN 1991O  Ia-91bg  2MASX J14243792+6545294                      0.012 1991 03 18                 IAUC 5233                 IAUC 5233  1
+SN 1991S  Ia-norm  UGC 5691                        Sb     16489 0.026 1991 04 10                 IAUC 5238                 IAUC 5245  1  31.05         2
+SN 1991T  Ia-91T   NGC 4527                        Sbc     1736 0.023 1991 04 13                 IAUC 5239                 IAUC 5251  9 -10.10 347.19  2
+SN 1991am Ia-norm  MCG +06-37-6                    Sb     18353 0.018 1991 07 14                 IAUC 5312                 IAUC 5318  1
+SN 1991ak Ia-norm  NGC 5378                        Sa      3043 0.013 1991 07 15                 IAUC 5309                 IAUC 5311  3
+SN 1991at Ia-norm  UGC 733                         Sb     12306 0.068 1991 08 19                 IAUC 5336                 IAUC 5347  1
+SN 1991as Ia       [M91k] 224610+0754.6                         0.107 1991 08 19                 IAUC 5336                 IAUC 5347  1
+SN 1991ay Ia-norm  2MASX J00471896+4032336         Sb     15289 0.062 1991 09 09                 IAUC 5352                 IAUC 5366  1
+SN 1991bd Ia-norm  UGC 2936                        Sd/Irr  3813 0.449 1991 10 12                 IAUC 5367                 IAUC 5367  1
+SN 1991bc Ia-norm  UGC 2691                        Sb      6401 0.071 1991 10 12                 IAUC 5366                 IAUC 5366  2
+SN 1991bb Ia-norm  UGC 2892                        Sbc     7962 0.331 1991 10 13                 IAUC 5365                 IAUC 5365  2
+SN 1991bf Ia-norm  MCG -05-56-027                  S0      9021 0.016 1991 11 13                 IAUC 5389                 IAUC 5404  1
+SN 1991bg Ia-91bg  NGC 4374                        E       1061 0.037 1991 12 03                 IAUC 5400                 IAUC 5403  8   0.14 161.88  2
+SN 1991bh Ia-norm  [M91o] 024216.2+145713.4                     0.102 1991 12 07                 IAUC 5401                 IAUC 5404  1
+SN 1991bj Ia-02cx  IC 344                          Sb      5441 0.052 1991 12 30                 IAUC 5420                 IAUC 5420  1
+SN 1992G  Ia-norm  NGC 3294                        Sc      1586 0.018 1992 02 09                 IAUC 5452                 IAUC 5458  8  23.41 126.76  2
+SN 1992M  Ia-norm  2MASX J07150996+4525556         E      15589 0.086 1992 02 25                 IAUC 5473                 IAUC 5473  2
+SN 1992ah Ia-norm  2MASX J17374476+1254168                      0.149 1992 06 27                 IAUC 5559                 IAUC 5559  1
+SN 1992ap Ia-norm  UGC 10430                       Sbc     8958 0.009 1992 07 29                 IAUC 5573                 IAUC 5601  1
+SN 1993C  Ia-norm  NGC 2954                        E       3819 0.037 1993 01 27                 IAUC 5699                 IAUC 5701  3
+SN 1993Y  Ia-norm  UGC 2771                        S0      5990 0.186 1993 09 18                 IAUC 5870                 IAUC 5870  1  28.33         4
+SN 1993aa Ia-91bg  APMUKS(BJ) B230046.41-063708.1               0.041 1993 09 19                 IAUC 5871                 IAUC 5871  1
+SN 1993Z  Ia-norm  NGC 2775                        Sab     1355 0.041 1993 09 23                 IAUC 5870                 IAUC 5870  9  28.92 232.69  4
+SN 1993ab Ia-norm  NGC 1164                        Sab     4176 0.155 1993 09 24                 IAUC 5871                 IAUC 5877  1
+SN 1993ac Ia-norm  CGCG 307-023                    E      14690 0.162 1993 10 13                 IAUC 5879                 IAUC 5882  2  12.68  28.66  2
+SN 1993ae Ia-norm  IC 126                          Sb      5711 0.039 1993 11 07                 IAUC 5888                 IAUC 5888  2  18.99  68.87  2
+SN 1993ai Ia-norm  UGC 3483                        Sbc    10193 0.120 1993 12 10                 IAUC 5912                 IAUC 5912  1
+SN 1993aj Ia-norm  2MFGC 09481                     Sb     23264 0.025 1993 12 27                 IAUC 5915                 IAUC 5921  3
+SN 1994B  Ia-norm  [P94a] 081751.35+155320.5              26682 0.044 1994 01 16                 IAUC 5923                 IAUC 5923  2
+SN 1994E  Ia       SDSS J113207.01+552138.0               19148 0.010 1994 03 05                 IAUC 5952                 IAUC 5952  1
+SN 1994J           [P94] 095815.51+544427.4               16788 0.013 1994 03 05                 IAUC 5971                 IAUC 5974  1
+SN 1994D  Ia-norm  NGC 4526                        S0       447 0.023 1994 03 07                 IAUC 5946                 IAUC 5946 20 -12.31 114.73  2
+SN 1994Q  Ia-norm  CGCG 224-104                    S0      8863 0.018 1994 06 02                 IAUC 6001                 IAUC 6001  3   9.68  69.79  2
+SN 1994S  Ia-norm  NGC 4495                        Sab     4551 0.017 1994 06 04                 IAUC 6005                 IAUC 6005  1   1.11         2
+SN 1994T  Ia-norm  CGCG 016-058                    Sa     10390 0.020 1994 06 11                 IAUC 6007                 IAUC 6007  1  33.09         5
+SN 1994U  Ia-norm  NGC 4948                        Sd/Irr  1124 0.056 1994 06 27                 IAUC 6011                 IAUC 6011  1
+SN 1994X  Ia-norm  2MASX J00152051-2453337         Sb     16668 0.013 1994 08 15                 IAUC 6056                 IAUC 6068  1
+SN 1994ab Ia-norm  MCG -05-50-8                    Sb     10373 0.102 1994 09 17                 IAUC 6089                 IAUC 6094  1
+SN 1994ae Ia-norm  NGC 3370                        Sc      1280 0.027 1994 11 14                 IAUC 6105                 IAUC 6108  3  87.37 218.55  2
+SN 1995A  Ia-norm  MCG +04-16-6                    Sb      9476 0.085 1995 01 02                 IAUC 6131                 IAUC 6141  1
+SN 1995C  Ia-norm  2MASX J12040140-3135542                 8158 0.069 1995 02 08                 IAUC 6133                 IAUC 6138  1
+SN 1995D  Ia-norm  NGC 2962                        S0      1967 0.061 1995 02 10                 IAUC 6134                 IAUC 6135  4   3.84  92.02  2
+SN 1995E  Ia-norm  NGC 2441                        Sb      3472 0.026 1995 02 20                 IAUC 6137                 IAUC 6137  2  -2.46  53.88  2
+SN 1995L  Ia-norm  NGC 5157                        Sa      7321 0.011 1995 03 26                 IAUC 6165                 IAUC 6165  1
+SN 1995T  Ia       SDSS J222712.66-092941.9               16913 0.053 1995 07 25                 IAUC 6195                 IAUC 6195  1
+SN 1995ac Ia-91T   2MFGC 17122                     Sb     14960 0.042 1995 09 22                 IAUC 6237                 IAUC 6237  2  -6.34  24.71  2
+SN 1995ak Ia-norm  IC 1844                         Sbc     6811 0.038 1995 10 27                 IAUC 6254                 IAUC 6254  1  26.38         5
+SN 1995al Ia-norm  NGC 3021                        Sbc     1541 0.017 1995 11 01                 IAUC 6255                 IAUC 6256  2  22.15  39.06  2
+SN 1996O  Ia-norm  MCG +03-41-115                  Sbc    11167 0.050 1996 03 21                 IAUC 6352                 IAUC 6352  1
+SN 1996P  Ia-norm  NGC 5335                        Sb      4650 0.019 1996 03 25                 IAUC 6357                 IAUC 6357  1
+SN 1996ai Ia-norm  NGC 5005                        Sbc      947 0.014 1996 06 16                 IAUC 6422                 IAUC 6422  5
+SN 1996bv Ia-norm  UGC 3432                        Scd     4998 0.105 1996 11 03                 IAUC 6508                 IAUC 6508  1  20.30         2
+SN 1997E  Ia-norm  NGC 2258                        S0      4059 0.127 1997 01 14                 IAUC 6538                 IAUC 6538  1  20.40         2
+SN 1997T  Ia-norm  UGC 6896                               12561 0.079 1997 01 19                 IAUC 6543                 IAUC 6557  1
+SN 1997Y  Ia-norm  NGC 4675                        Sb      4758 0.019 1997 02 02                 IAUC 6556                 IAUC 6557  1   1.27         2
+SN 1997bp Ia-norm  NGC 4680                        Sd/Irr  2491 0.044 1997 04 06                 IAUC 6613                 IAUC 6613  1   5.49         2
+SN 1997br Ia-91T   ESO 576-40                      Sd/Irr  2081 0.113 1997 04 10                 IAUC 6623                 IAUC 6623  5  -4.84  79.37  2
+SN 1997cn Ia-91bg  NGC 5490                        E       4857 0.021 1997 05 14                 IAUC 6661                 IAUC 6667  1  18.38         2
+SN 1997cw Ia       NGC 105                         Sab     5291 0.074 1997 07 10                 IAUC 6699                 IAUC 6699  2  32.77  65.16  2
+SN 1997do Ia-norm  UGC 3845                        Sbc     3034 0.062 1997 10 31                 IAUC 6766                 IAUC 6766  2  -5.67  74.35  2
+SN 1997fb Ia-norm  2MASX J05011474-3838135         Sb     16118 0.023 1997 12 31                 IAUC 6807                 IAUC 6809  1
+SN 1997fc Ia       APMUKS(BJ) B045816.80-385931.0         16189 0.021 1997 12 31                 IAUC 6807                 IAUC 6809  1
+SN 1998V  Ia-norm  NGC 6627                        Sb      5273 0.197 1998 03 10                 IAUC 6841                 IAUC 6844  1   7.20         2
+SN 1998aq Ia-norm  NGC 3982                        Sb      1109 0.008 1998 04 13                 IAUC 6875                 IAUC 6878  3  51.34  86.13  2
+SN 1998bn Ia-norm  NGC 4462                        Sab     1793 0.101 1998 04 17                 IAUC 6886                 IAUC 6888  3
+SN 1998bp Ia-91bg  NGC 6495                        E       3127 0.078 1998 04 29                 IAUC 6890                 IAUC 6890  5  18.87 163.06  2
+SN 1998bu Ia-norm  NGC 3368                        Sab      896 0.025 1998 05 09                 IAUC 6899                 IAUC 6905  5  29.58 338.73  2
+SN 1998cd Ia-norm  2MFGC 08366                             7491 0.014 1998 05 17                 IAUC 6909                 IAUC 6945  1
+SN 1998cl Ia-norm  MRK 0261                        Sb      9129 0.036 1998 06 03                 IAUC 6934                 IAUC 6946  1
+SN 1998cm Ia       MSACSS J134412.96+030039.9             23983 0.018 1998 06 10                 IAUC 6943                 IAUC 6943  1
+SN 1998cs Ia-norm  UGC 10432                       Sb      9761 0.012 1998 06 29                 IAUC 6957                 IAUC 6960  3
+SN 1998dh Ia-norm  NGC 7541                        Sbc     2689 0.067 1998 07 20                 IAUC 6978                 IAUC 6980  4  18.77  71.00  2
+SN 1998de Ia-norm  NGC 252                         S0      4938 0.059 1998 07 23                 IAUC 6977                 IAUC 6980  3  29.49  73.56  2
+SN 1998dj Ia-norm  NGC 788                         S0a     4077 0.027 1998 08 08                 IAUC 6986                 IAUC 6990  1
+SN 1998dk Ia-norm  UGC 139                         Sc      3963 0.045 1998 08 19                 IAUC 6991                 IAUC 6997  4  -7.24  43.83  2
+SN 1998dm Ia-norm  MCG -01-4-44                    Sc      1961 0.045 1998 08 22                 IAUC 6993                 IAUC 6997  5 -12.48  79.70  2
+SN 1998dw Ia-norm  2MASX J01091133-1529471         Sb     14787 0.026 1998 08 28                 IAUC 7007                 IAUC 7018  1
+SN 1998dx Ia-norm  UGC 11149                       Sb     16255 0.040 1998 09 10                 IAUC 7011                 IAUC 7011  2   5.13  27.84  2
+SN 1998eb Ia-norm  NGC 1961                        Sc      3933 0.124 1998 09 17                 IAUC 7016                 IAUC 7018  1
+SN 1998ec Ia-norm  UGC 3576                        Sb      5966 0.084 1998 09 26                 IAUC 7022                 IAUC 7024  1  11.86         2
+SN 1998ef Ia-norm  UGC 646                         Sb      5318 0.074 1998 10 18                 IAUC 7032                 IAUC 7032  5  -8.62  84.83  2
+SN 1998eg Ia-norm  UGC 12133                       Sc      7423 0.121 1998 10 19                 IAUC 7033                 IAUC 7037  1  30.60         2
+SN 1998en Ia-norm  UGC 3645                        Sbc     6386 0.070 1998 10 30                 IAUC 7045                 IAUC 7070  1
+SN 1998es Ia-99aa  NGC 632                         S0      3169 0.032 1998 11 13                 IAUC 7050                 IAUC 7054  7   0.28 106.04  2
+SN 1998fc Ia-91bg  2MASX J02591406+0329563                32078 0.116 1998 12 20                 IAUC 7082                 IAUC 7091  1
+SN 1999C  Ia-norm  WOOTS J100851.03+711042.9              37474 0.082 1999 01 14                 IAUC 7088                 IAUC 7092  1
+SN 1999X  Ia-norm  CGCG 180-022                            7546 0.034 1999 01 23                 IAUC 7105                 IAUC 7105  2  15.76  26.60  2
+SN 1999aa Ia-99aa  NGC 2595                        Sc      4329 0.041 1999 02 11                 IAUC 7108                 IAUC 7108  7 -10.58 281.51  2
+SN 1999aq Ia-norm  NGSS B093540.48-045523.2               14990 0.033 1999 02 20                 IAUC 7125                 IAUC 7125  1
+SN 1999ac Ia-norm  NGC 6063                        Scd     2848 0.044 1999 02 26                 IAUC 7114                 IAUC 7122  4  -3.70 116.87  2
+SN 1999bh Ia       NGC 3435                        Sb      5159 0.015 1999 03 29                 IAUC 7135                 IAUC 7138  1
+SN 1999bv Ia-norm  MCG +10-25-14                   Sb      5594 0.030 1999 04 19                 IAUC 7148    Matheson et al. (2001)  1
+SN 1999by Ia-91bg  NGC 2841                        Sb       639 0.018 1999 04 30                 IAUC 7156                 IAUC 7158  1 183.50         2
+SN 1999cl Ia-norm  NGC 4501                        Sb      2281 0.035 1999 05 29                 IAUC 7185                 IAUC 7190  4   7.90 183.95  2
+SN 1999cp Ia-norm  NGC 5468                        Scd     2842 0.025 1999 06 18                 IAUC 7205                 IAUC 7206  2   4.91  13.85  2
+SN 1999cw Ia-norm  MCG -01-2-1                     Sab     3708 0.036 1999 06 28                 IAUC 7211                 IAUC 7216  5  14.79 132.08  2
+SN 1999da Ia-91bg  NGC 6411                        E       3804 0.051 1999 07 05                 IAUC 7215                 IAUC 7219  5  -2.12  66.89  2
+SN 1999dg Ia-norm  UGC 9758                        S0      6613 0.033 1999 07 23                 IAUC 7229                 IAUC 7239  2  15.08  38.52  2
+SN 1999dk Ia-norm  UGC 1087                        Sc      4485 0.050 1999 08 12                 IAUC 7237                 IAUC 7238  5  -6.60  72.16  2
+SN 1999do Ia-norm  MCG +05-54-3                    Scd     6574 0.054 1999 08 20                 IAUC 7242                 IAUC 7252  1   9.96         6
+SN 1999dq Ia-99aa  NGC 976                         Sc      4296 0.109 1999 09 02                 IAUC 7247                 IAUC 7250  4  -3.93  51.03  2
+SN 1999ee Ia-91T   IC 5179                         Sbc     3421 0.020 1999 10 07                 IAUC 7272                 IAUC 7272  1  17.65         2
+SN 1999ek Ia-norm  UGC 3329                        Sbc     5252 0.568 1999 10 20                 IAUC 7286                 IAUC 7300  1   5.66         2
+SN 1999fz Ia-norm  UGC 8164                        Sbc     6637 0.041 1999 11 18                 IAUC 7314                 IAUC 7328  1
+SN 1999gd Ia-norm  NGC 2623                        Sd/Irr  5549 0.042 1999 11 24                 IAUC 7319                 IAUC 7328  1  -1.12         2
+SN 1999gf Ia-norm  UGC 5515                        E      13293 0.044 1999 11 27                 IAUC 7321                 IAUC 7328  1
+SN 1999gh Ia-norm  NGC 2986                        E       2302 0.058 1999 12 03                 IAUC 7328                 IAUC 7328  4   4.12 117.97  2
+SN 1999gm Ia-norm  2MASX J08351095-0823132         S0     12706 0.041 1999 12 15                 IAUC 7334                 IAUC 7334  1
+SN 2000J  Ia-norm  UGC 8510                        Sbc    14369 0.014 2000 02 04                 IAUC 7362               (this work)  1
+SN 2000al Ia-norm  SDSS J133201.08-021136.6               59958 0.026 2000 03 01                 IAUC 7387                 IAUC 7388  1
+SN 2000Q  Ia-norm  2MASX J16051100+6939493                 5996 0.027 2000 03 12                 IAUC 7380                 IAUC 7380  2
+SN 2000bk Ia-norm  NGC 4520                        S0      7627 0.026 2000 04 11                 IAUC 7402                 IAUC 7408  1  14.84         2
+SN 2000ce Ia-norm  UGC 4195                        Sb      4890 0.057 2000 05 08                 IAUC 7417                 IAUC 7422  1  27.05         2
+SN 2000cn Ia-norm  UGC 11064                       Scd     7042 0.057 2000 06 02                 IAUC 7436                 IAUC 7437  2  14.25  23.09  2
+SN 2000cp Ia-norm  2MFGC 12921                     Sb     10254 0.047 2000 06 21                 IAUC 7441                 IAUC 7442  2   2.92  11.70  2
+SN 2000cv Ia-norm  CGCG 292-085                    E       6071 0.014 2000 07 11                 IAUC 7456                 IAUC 7464  1
+SN 2000cu Ia-norm  ESO 525-G004                    Sa      5866 0.088 2000 07 12                 IAUC 7453                 IAUC 7454  2   9.65  38.96  2
+SN 2000cw Ia-norm  MCG +05-56-7                    Sbc     9033 0.072 2000 07 14                 IAUC 7456                 IAUC 7457  2   4.81  63.02  2
+SN 2000cx Ia-pec   NGC 524                         S0      2377 0.082 2000 07 17                 IAUC 7458                 IAUC 7463 23  -4.46 448.22  2
+SN 2000dd Ia-norm  MCG -04-48-19                   S0     12726 0.042 2000 08 10                 IAUC 7477                 IAUC 7483  1
+SN 2000df Ia-norm  CGCG 051-070                    E      11754 0.051 2000 08 17                 IAUC 7478                 IAUC 7483  1
+SN 2000dg Ia-norm  MCG +01-1-29                    Sb     11539 0.092 2000 08 22                 IAUC 7480                 IAUC 7484  2  -5.09   4.66  2
+SN 2000dk Ia-norm  NGC 382                         E       5228 0.070 2000 09 18                 IAUC 7493                 IAUC 7494  4   1.00  36.32  2
+SN 2000dm Ia-norm  UGC 11198                       Sab     4506 0.185 2000 09 24                 IAUC 7495                 IAUC 7497  4  -1.63  33.76  2
+SN 2000dn Ia-norm  IC 1468                         S0      9614 0.048 2000 09 27                 IAUC 7498                 IAUC 7499  2  -0.94  16.38  2
+SN 2000dp Ia-norm  NGC 1139                        S0a    10349 0.038 2000 10 02                 IAUC 7503                 IAUC 7505  2
+SN 2000dr Ia-norm  IC 1610                         S0      5636 0.021 2000 10 05                 IAUC 7505                 IAUC 7506  1   6.78         2
+SN 2000dx Ia-norm  UGC 1775                        Sb      9108 0.039 2000 10 30                 IAUC 7514                 IAUC 7514  1  -9.26         6
+SN 2000ej Ia-91bg  IC 1371                         S0      9102 0.066 2000 11 02                 IAUC 7517                 IAUC 7532  1
+SN 2000ey Ia-norm  IC 1481                         Sb      6119 0.077 2000 11 11                 IAUC 7531                 IAUC 7531  3   7.90  61.76  6
+SN 2000fa Ia-norm  UGC 3770                        Sd/Irr  6377 0.067 2000 11 30                 IAUC 7533                 IAUC 7535  2  -8.25   6.86  2
+SN 2000fo Ia-norm  CGCG 475-012                    Sb      7152 0.068 2000 12 21                 IAUC 7547                 IAUC 7557  1
+SN 2001A  Ia       NGC 4261                        E       2239 0.019 2001 01 01                 IAUC 7554                 IAUC 7579  1
+SN 2001C  Ia-norm  CGCG 285-012                    Sb      3280 0.070 2001 01 04                 IAUC 7555                 IAUC 7563  2
+SN 2001E  Ia-norm  NGC 3905                        Sc      5774 0.039 2001 01 05                 IAUC 7557                 IAUC 7566  1  15.01         2
+SN 2001G  Ia-norm  MCG +08-17-43                           5028 0.018 2001 01 08                 IAUC 7560                 IAUC 7564  1  11.57         2
+SN 2001L  Ia-norm  MCG -01-30-11                   Sb      4566 0.036 2001 01 18                 IAUC 7566                 IAUC 7566  1  21.57         6
+SN 2001N  Ia-norm  NGC 3327                        Sb      6302 0.025 2001 01 21                 IAUC 7568                 IAUC 7569  1  13.05         2
+SN 2001P  Ia-91bg  NGC 3947                        Sb      6197 0.035 2001 01 31                 IAUC 7576                 IAUC 7576  1
+SN 2001U  Ia-norm  NGC 5442                        Sb      8583 0.045 2001 02 15                 IAUC 7583                 IAUC 7604  1
+SN 2001V  Ia-norm  NGC 3987                        Sb      4503 0.013 2001 02 19                 IAUC 7585                 IAUC 7585  6  15.86  71.04  2
+SN 2001ay Ia-norm  IC 4423                         Sb      9066 0.022 2001 04 18                 IAUC 7611                 IAUC 7612  2   6.79  22.72  7
+SN 2001az Ia-norm  UGC 10483                       Sb     12202 0.051 2001 04 27                 IAUC 7614                 IAUC 7615  1  -3.24         2
+SN 2001ba Ia-norm  MCG -05-28-1                    Sb      8820 0.064 2001 04 27                 IAUC 7614                 IAUC 7614  1  -4.64         2
+SN 2001bf Ia-norm  MCG +04-42-22                           4647 0.099 2001 05 03                 IAUC 7620                 IAUC 7625  2   1.22  72.06  2
+SN 2001bg Ia-norm  NGC 2608                        Sb      2135 0.042 2001 05 08                 IAUC 7621                 IAUC 7622  2  13.70  18.91  2
+SN 2001br Ia-norm  UGC 11260                       Sa      6185 0.065 2001 05 13                 IAUC 7629                 IAUC 7629  2   3.47   3.48  2
+SN 2001bp Ia-norm  SDSS J160208.91+364313.8               28438 0.021 2001 05 15                 IAUC 7626                 IAUC 7626  2   0.51  12.34  2
+SN 2001bs Ia-norm  UGC 10018                       Sbc     8751 0.031 2001 05 22                 IAUC 7631                 IAUC 7636  1
+SN 2001cg Ia-91bg  IC 3900                         S0      7114 0.004 2001 05 28                 IAUC 7637                 IAUC 7637  1
+SN 2001cj Ia-norm  UGC 8399                        Sb      7264 0.012 2001 05 30                 IAUC 7640                 IAUC 7640  1  23.14         2
+SN 2001ck Ia-norm  UGC 9425                        Sb     10409 0.010 2001 06 03                 IAUC 7641                 IAUC 7645  2  16.39  32.77  2
+SN 2001cp Ia-norm  UGC 10738                       Sbc     6715 0.157 2001 06 19                 IAUC 7645                 IAUC 7649  3   1.39  28.62  2
+SN 2001da Ia-norm  NGC 7780                        Sab     5153 0.058 2001 07 09                 IAUC 7658                 IAUC 7664  2  -1.12   9.72  2
+SN 2001de Ia-91bg  UGC 12089                       Sbc     9312 0.219 2001 07 13                 IAUC 7664                 IAUC 7671  1
+SN 2001dd Ia-norm  UGC 11579                       Sc      5828 0.199 2001 07 13                 IAUC 7663                 IAUC 7663  1
+SN 2001dl Ia-norm  UGC 11725                       Sd/Irr  6203 0.054 2001 07 30                 IAUC 7675                 IAUC 7680  2  13.84  33.22  2
+SN 2001dm Ia       NGC 749                         S0a     4362 0.017 2001 08 07                 IAUC 7679                 IAUC 7685  1
+SN 2001dn Ia-norm  NGC 662                         Sd/Irr  5654 0.054 2001 08 14                 IAUC 7681                 IAUC 7716  1
+SN 2001ds Ia-norm  UGC 1654                        Sc     10870 0.054 2001 08 14                 IAUC 7684                 IAUC 7699  1
+SN 2001ei Ia-91bg  LOTOSS J235102.95+271050.6                   0.038 2001 08 19                 IAUC 7718                 IAUC 7721  2
+SN 2001dt Ia-norm  UGC 12558                       Scd     8946 0.208 2001 08 23                 IAUC 7689                 IAUC 7716  1  13.60         6
+SN 2001dw Ia-norm  NGC 1168                        Sb      7627 0.264 2001 08 25                 IAUC 7691                 IAUC 7716  1  11.06         6
+SN 2001eg Ia-norm  UGC 3885                        Sb      3807 0.049 2001 08 29                 IAUC 7712                 IAUC 7716  1
+SN 2001ec Ia-norm  KUG 0209+313A                   Sb     13599 0.082 2001 08 31                 IAUC 7702                 IAUC 7716  1
+SN 2001ed Ia-norm  NGC 706                         Sbc     4980 0.058 2001 09 02                 IAUC 7703                 IAUC 7714  1
+SN 2001eh Ia-99aa  UGC 1162                        Sb     11104 0.064 2001 09 09                 IAUC 7712                 IAUC 7714  6  -5.63  59.90  2
+SN 2001eu Ia-91T   2MASX J02375888-0101390                40544 0.030 2001 09 21                 IAUC 7731                 IAUC 7754  1
+SN 2001en Ia-norm  NGC 523                         Sd/Irr  4758 0.054 2001 09 26                 IAUC 7724                 IAUC 7732  3  10.09  35.64  2
+SN 2001ep Ia-norm  NGC 1699                        Sb      3900 0.047 2001 10 03                 IAUC 7727                 IAUC 7731  7   2.83 114.91  2
+SN 2001er Ia-norm  UGC 5301                        Sd/Irr  4863 0.012 2001 10 04                 IAUC 7728                 IAUC 7737  1
+SN 2001es Ia-norm  2MASX J02020834+1905246                20086 0.082 2001 10 07                 IAUC 7729               (this work)  2
+SN 2001ew Ia-norm  2MASX J03125120+4122342         E       9294 0.188 2001 10 09                 IAUC 7734                 IAUC 7737  1
+SN 2001fg Ia-norm  SDSS J211245.44-005232.2                9324 0.061 2001 10 15                 IAUC 7744                 IAUC 7754  1
+SN 2001ex Ia-91bg  UGC 3595                        Sb      7909 0.053 2001 10 16                 IAUC 7735                 IAUC 7736  1  -1.82         2
+SN 2001fe Ia-norm  UGC 5129                        Sa      4059 0.021 2001 11 02                 IAUC 7742                 IAUC 7752  1  -0.99         2
+SN 2001fh Ia-norm  2MASX J21204248+4423590         Sb      3894 0.746 2001 11 03                 IAUC 7744                 IAUC 7748  2   5.93   7.84  5
+SN 2001fu Ia-norm  MCG -03-23-11                   S0      1694 0.195 2001 11 05                 IAUC 7746                 IAUC 7748  1
+SN 2001gc Ia-norm  UGC 3375                        Sc      5783 0.210 2001 11 21                 IAUC 7759                 IAUC 7761  1  43.27         6
+SN 2001ic Ia-norm  NGC 7503                        E      13263 0.068 2001 12 07                 IAUC 7770                 IAUC 7783  2  10.24  21.64  2
+SN 2001ib Ia-norm  NGC 7242                        E       5789 0.151 2001 12 07                 IAUC 7768                 IAUC 7773  2
+SN 2001iq Ia-norm  UGC 12032                       Sb      5521 0.143 2001 12 14                 IAUC 7780                 IAUC 7784  2
+SN 2002G  Ia-norm  CGCG 189-024                    E      10114 0.010 2002 01 18                 IAUC 7797                 IAUC 7802  1  19.31         2
+SN 2002ar Ia-norm  NGC 3746                        Sb      9021 0.023 2002 02 03                 IAUC 7819                 IAUC 7825  1
+SN 2002av Ia-norm  ESO 489-G7                      E      14702 0.042 2002 02 08                 IAUC 7823                 IAUC 7825  3
+SN 2002bk Ia       2MASX J09022690-0917450                16788 0.048 2002 02 09                 IAUC 7842                 IAUC 7846  1
+SN 2002aw Ia-norm  2MFGC 13321                     Sb      7838 0.007 2002 02 15                 IAUC 7831                 IAUC 7834  2   2.10  15.84  2
+SN 2002bf Ia-norm  CGCG 266-031                    Sb      7254 0.014 2002 02 22                 IAUC 7836                 IAUC 7846  2   2.97   6.90  2
+SN 2002bg Ia-norm  MCG +02-38-31                   Sb     12813 0.028 2002 02 23                 IAUC 7836                 IAUC 7844  1
+SN 2002bi Ia-norm  UGC 8527                        Sd/Irr  6985 0.025 2002 02 25                 IAUC 7837                 IAUC 7846  1
+SN 2002bp Ia       UGC 6332                        Sa      6227 0.017 2002 03 08                 IAUC 7847               (this work)  1
+SN 2002bo Ia-norm  NGC 3190                        Sa      1271 0.024 2002 03 09                 IAUC 7847                 IAUC 7848  8 -11.94 227.44  2
+SN 2002bs Ia       IC 4221                         Sc      2890 0.081 2002 03 11                 IAUC 7861                 IAUC 7868  1
+SN 2002bz Ia-norm  MCG +05-34-33                   Sb     11137 0.022 2002 04 03                 IAUC 7866                 IAUC 7874  1   4.92         2
+SN 2002cc Ia-norm  SDSS J083402.21+553906.7               19786 0.071 2002 04 04                 IAUC 7871                 IAUC 7877  1
+SN 2002cd Ia-norm  NGC 6916                        Sbc     3100 0.405 2002 04 08                 IAUC 7871                 IAUC 7873  3   1.10  58.40  2
+SN 2002cf Ia-91bg  NGC 4786                        E       4647 0.036 2002 04 13                 IAUC 7877                 IAUC 7878  2  -0.75  15.95  2
+SN 2002ci Ia-norm  UGC 10301                       Sb      6664 0.032 2002 04 19                 IAUC 7881                 IAUC 7881  1
+SN 2002ck Ia-norm  UGC 10030                       Sb      8952 0.092 2002 04 23                 IAUC 7884                 IAUC 7893  1   3.64         2
+SN 2002cr Ia-norm  NGC 5468                        Scd     2842 0.025 2002 05 01                 IAUC 7890                 IAUC 7891  5  -6.78  85.98  2
+SN 2002cs Ia-norm  NGC 6702                        E       4728 0.108 2002 05 05                 IAUC 7891                 IAUC 7894  8  -7.76 172.24  2
+SN 2002cu Ia-norm  NGC 6575                        E       6991 0.063 2002 05 11                 IAUC 7898                 IAUC 7898  2  -5.28  16.62  2
+SN 2002cx Ia-02cx  CGCG 044-035                            7184 0.027 2002 05 12                 IAUC 7902                 IAUC 7903  8  19.78 277.25  8
+SN 2002cv Ia-norm  NGC 3190                        Sa      1271 0.024 2002 05 13                 IAUC 7901                 IAUC 7911  2  -1.40  18.53  9
+SN 2002db Ia-norm  NGC 5683                        S0a    10858 0.030 2002 05 18                 IAUC 7906                 IAUC 7915  1   9.21         6
+SN 2002de Ia-norm  NGC 6104                        Sd/Irr  8430 0.018 2002 06 01                 IAUC 7914                 IAUC 7915  2  -0.32   8.37  2
+SN 2002df Ia-norm  MCG -01-53-6                    Sab     8598 0.053 2002 06 02                 IAUC 7915                 IAUC 7916  1   6.55         6
+SN 2002di Ia-91bg  MCG +05-40-2                    S0     10909 0.031 2002 06 09                 IAUC 7917                 IAUC 7920  1
+SN 2002dj Ia-norm  NGC 5018                        E       2815 0.095 2002 06 12                 IAUC 7918                 IAUC 7919  1  -7.98         2
+SN 2002dk Ia-91bg  NGC 6616                        Sab     5555 0.146 2002 06 13                 IAUC 7919                 IAUC 7920  1  -1.23         6
+SN 2002do Ia       MCG +07-41-1                    E       4761 0.314 2002 06 17                 IAUC 7923                 IAUC 7927  1  23.09         2
+SN 2002dp Ia-norm  NGC 7678                        Sc      3490 0.049 2002 06 18                 IAUC 7924                 IAUC 7927  5  15.55 134.73  2
+SN 2002dr Ia       UGC 12214                       S0      6610 0.077 2002 06 24                 IAUC 7927                 IAUC 7953  1
+SN 2002dx Ia-norm  UGC 12861                       Sab     7099 0.053 2002 07 08                 IAUC 7933                 IAUC 7953  1
+SN 2002eb Ia-norm  CGCG 473-011                    Sb      8255 0.061 2002 07 22                 IAUC 7937                 IAUC 7953  3   1.68  59.75  2
+SN 2002ec Ia-norm  NGC 5910                        E      12256 0.104 2002 07 23                 IAUC 7937                 IAUC 7946  2
+SN 2002ef Ia-norm  NGC 7761                        S0      7189 0.032 2002 07 30                 IAUC 7943                 IAUC 7945  2   4.70  28.93  2
+SN 2002eh Ia       NGC 917                         Sab     5387 0.076 2002 08 01                 IAUC 7947                 IAUC 7953  1   6.88         6
+SN 2002ep Ia-norm  2MASX J21572200-0751253                16806 0.035 2002 08 06                 IAUC 7959                 IAUC 7964  1
+SN 2002el Ia-norm  NGC 6986                        S0      8613 0.087 2002 08 12                 IAUC 7953                 IAUC 7954  3  11.82  38.94  2
+SN 2002er Ia-norm  UGC 10743                       Sa      2569 0.161 2002 08 23                 IAUC 7959                 IAUC 7961  4  -4.58  60.64  2
+SN 2002et Ia-norm  MCG -04-47-10                   Sc      8217 0.141 2002 08 24                 IAUC 7959                 IAUC 7967  1  11.92         6
+SN 2002gb Ia-norm  SDSS J224321.26-000654.5               22185 0.064 2002 08 28                 IAUC 7983                 IAUC 7988  1
+SN 2002eu Ia-norm  2MASXI J0149427+323730                 11280 0.045 2002 08 30                 IAUC 7963                 IAUC 7965  5  -0.06  63.12  2
+SN 2002ey Ia-91bg  2MASX J23101188+0732541                11627 0.059 2002 09 03                 IAUC 7964                 IAUC 7964  1
+SN 2002fb Ia-91bg  NGC 759                         E       4668 0.089 2002 09 06                 IAUC 7967                 IAUC 7967  3   0.98  55.83  2
+SN 2002fi Ia-norm  MCG -04-7-10                    Sa     17139 0.023 2002 09 13                 IAUC 7972                 IAUC 7979  1
+SN 2002fk Ia-norm  NGC 1309                        Sbc     2138 0.040 2002 09 17                 IAUC 7973                 IAUC 7976  5   7.74 148.74  2
+SN 2002gf Ia-norm  2MASX J20551849-0004243         E      25853 0.093 2002 09 27                 IAUC 7990                 IAUC 8016  1
+SN 2002gc Ia-norm  UGC 1394                        Sa      6389 0.105 2002 10 03                 IAUC 7983                 IAUC 7988  4
+SN 2002gg Ia-norm  NEAT J222745.65+065548.9               32977 0.126 2002 10 05                 IAUC 7990                 IAUC 8016  1
+SN 2002gx Ia-norm  NEAT J023144.16+401646.5               23983 0.055 2002 10 13                 IAUC 7995                 IAUC 8013  1
+SN 2002ha Ia-norm  NGC 6962                        Sab     4212 0.102 2002 10 21                 IAUC 7997                 IAUC 7999  5  -0.85  63.11  2
+SN 2002hd Ia-norm  MCG -01-23-8                    S0     10493 0.038 2002 10 24                 IAUC 7999                 IAUC 8002  2   6.48  12.72  2
+SN 2002he Ia-norm  UGC 4322                        E       7363 0.040 2002 10 28                 IAUC 8002                 IAUC 8004  4  -5.91   3.22  2
+SN 2002hl Ia-norm  NGC 3665                        S0      2048 0.018 2002 11 05                 IAUC 8008                 IAUC 8011  1
+SN 2002hv Ia       UGC 4974                        S0      7024 0.017 2002 11 05                 IAUC 8012                 IAUC 8013  1
+SN 2002hu Ia-99aa  MCG +06-6-12                    Sb     11002 0.045 2002 11 07                 IAUC 8012                 IAUC 8013  1  -5.81         2
+SN 2002hw Ia-norm  UGC 52                          Sc      5255 0.105 2002 11 09                 IAUC 8014                 IAUC 8015  2  -6.27  24.42  2
+SN 2002jg Ia-norm  NGC 7253                        Sb      4719 0.066 2002 11 23                 IAUC 8022                 IAUC 8023  1  10.11         2
+SN 2002jm Ia-91bg  IC 603                          Sa      5399 0.050 2002 12 07                 IAUC 8030                 IAUC 8031  1
+SN 2002jo Ia-norm  NGC 5708                        Sd/Irr  2752 0.017 2002 12 11                 IAUC 8031                 IAUC 8031  1
+SN 2002jy Ia-norm  NGC 477                         Sc      5876 0.053 2002 12 17                 IAUC 8035                 IAUC 8037  2  11.86  39.46  2
+SN 2002kf Ia-norm  CGCG 233-023                            5786 0.117 2002 12 27                 IAUC 8040                 IAUC 8041  1   6.81         2
+SN 2003D  Ia-norm  MCG -01-25-9                    E       6628 0.065 2003 01 06                 IAUC 8043                 IAUC 8043  2   9.98  59.88  2
+SN 2003F  Ia-norm  UGC 3261                        Sd/Irr  5168 0.329 2003 01 08                 IAUC 8045                 IAUC 8045  2
+SN 2003K  Ia-91T   IC 1129                         Scd     6541 0.028 2003 01 11                   CBET 04                 IAUC 8048  2  13.43  20.18  5
+SN 2003M  Ia-91bg  UGC 7224                        E       7267 0.022 2003 01 13                 IAUC 8048                 IAUC 8059  2
+SN 2003V  Ia-norm  APMUKS(BJ) B030310.79-013550.9         13491 0.070 2003 01 16                 IAUC 8060                 IAUC 8083  1
+SN 2003ae Ia-norm  2MASX J09282257+2726402                 9850 0.024 2003 01 23                 IAUC 8066                 IAUC 8066  1  31.69         5
+SN 2003P  Ia-norm  MCG +09-13-107                         10131 0.067 2003 01 23                 IAUC 8057                 IAUC 8060  1
+SN 2003S  Ia-norm  MCG +09-22-94                   Sb     11962 0.011 2003 01 24                 IAUC 8058                 IAUC 8058  1
+SN 2003U  Ia-norm  NGC 6365                        Sb      7885 0.033 2003 01 27                 IAUC 8059                 IAUC 8061  1  -2.55         2
+SN 2003W  Ia-norm  UGC 5234                        Sc      6017 0.049 2003 01 28                 IAUC 8061                 IAUC 8061  3  -5.06  56.56  2
+SN 2003X  Ia-norm  UGC 11151                       Sb      7018 0.090 2003 01 28                 IAUC 8062                 IAUC 8065  1
+SN 2003Y  Ia-91bg  IC 522                          S0      5078 0.064 2003 01 29                 IAUC 8062                 IAUC 8063  2  -1.74  21.63  2
+SN 2003af Ia-norm  KUG 1107+236                    Sb      6157 0.014 2003 02 03                 IAUC 8067                 IAUC 8071  1
+SN 2003av Ia-norm  NEAT J080132.34+024826.7               41971 0.030 2003 02 04                 IAUC 8077                 IAUC 8083  1
+SN 2003ai Ia-norm  IC 4062                                10493 0.015 2003 02 08                 IAUC 8068                 IAUC 8074  1   7.25         5
+SN 2003ah Ia-norm  LOTOSS J044309.01+004553.4            10153 0.092 2003 02 08                 IAUC 8068                 IAUC 8083  1
+SN 2003an Ia       MCG +05-32-22                   Sb     11104 0.015 2003 02 09                 IAUC 8069                 IAUC 8085  1
+SN 2003ax Ia-norm  2MASX J08083589+0746399                16189 0.029 2003 02 09                 IAUC 8079                 IAUC 8083  1
+SN 2003au Ia-91bg  NGC 6095                        S0      9246 0.012 2003 02 17                 IAUC 8075                 IAUC 8085  1
+SN 2003bf Ia-norm  2MASX J08082660+1219571                10068 0.027 2003 02 18                 IAUC 8082                 IAUC 8083  1
+SN 2003ay Ia-norm  NEAT J040726.40+280748.4               21885 0.592 2003 02 19                 IAUC 8079                 IAUC 8085  1
+SN 2003bh Ia-norm  NEAT J100006.84+281650.0               26682 0.020 2003 02 21                 IAUC 8084                 IAUC 8084  1
+SN 2003bi Ia-norm  2MASX J10440556+1231293                27666 0.024 2003 02 22                 IAUC 8084                 IAUC 8084  1
+SN 2003cq Ia-norm  NGC 3978                        Sbc     9977 0.022 2003 03 30                 IAUC 8103                 IAUC 8106  1  -0.15         2
+SN 2003du Ia-norm  UGC 9391                        Sd/Irr  1913 0.011 2003 04 22                 IAUC 8121                 IAUC 8122  6  17.61  80.98  2
+SN 2003dw Ia-norm  MCG +10-24-51                   Sb      9003 0.018 2003 04 26                 IAUC 8124                 IAUC 8129  1
+SN 2003ek Ia-norm  FGC 2126                        Sc     10804 0.023 2003 05 20                 IAUC 8134                 IAUC 8136  4
+SN 2003fa Ia-99aa  ARK 527                         Sb     11800 0.039 2003 06 01                 IAUC 8140                 IAUC 8142  3  -8.15  39.78  2
+SN 2003fd Ia-norm  UGC 8670                        Sd/Irr 18054 0.006 2003 06 09                 IAUC 8147                 IAUC 8158  1
+SN 2003gj Ia-norm  NGC 7017                        S0     10118 0.065 2003 06 30                 IAUC 8161                   CBET 26  1
+SN 2003gn Ia-norm  CGCG 452-024                    Sab    10328 0.050 2003 07 22                 IAUC 8168                 IAUC 8170  2  -5.38   3.26  2
+SN 2003gq Ia-02cx  NGC 7407                        Sbc     6431 0.069 2003 07 24                 IAUC 8168                 IAUC 8170  2  -0.69  60.99  2
+SN 2003gs Ia-norm  NGC 936                         S0      1430 0.035 2003 07 29                 IAUC 8171                 IAUC 8171  2  30.46 199.51  2
+SN 2003gt Ia-norm  NGC 6930                        Sab     4695 0.110 2003 07 29                 IAUC 8172                 IAUC 8175  2  -5.07  17.61  2
+SN 2003he Ia-norm  MCG -01-1-10                    Sbc     7645 0.039 2003 08 11                 IAUC 8182                 IAUC 8196  2   2.71   8.54  2
+SN 2003hj Ia-norm  MCG +05-36-28                          22595 0.024 2003 08 19                 IAUC 8184                 IAUC 8189  1
+SN 2003hm Ia       UGC 2295                        Sb      4173 0.061 2003 08 20                 IAUC 8185                 IAUC 8189  1
+SN 2003hs Ia-norm  UGC 11149                       Sb     16255 0.040 2003 08 31                 IAUC 8191                 IAUC 8196  1  -5.49         6
+SN 2003hw Ia       2MASX J03014982+3544343                12680 0.221 2003 09 08                 IAUC 8198                 IAUC 8211  1
+SN 2003hv Ia-norm  NGC 1201                        S0      1679 0.015 2003 09 09                 IAUC 8197                 IAUC 8198  3  21.85  77.29  2
+SN 2003hx Ia-norm  NGC 2076                        S0      2144 0.084 2003 09 12                 IAUC 8199                 IAUC 8200  1  21.89        10
+SN 2003ij Ia-99aa  UGC 3336                        Sb      5510 0.099 2003 09 25                 IAUC 8210                 IAUC 8214  1
+SN 2003ik Ia-norm  MCG +11-10-56                   Scd     7114 0.067 2003 09 29                 IAUC 8212                 IAUC 8214  1
+SN 2003in Ia-norm  IC 1956                         Sbc     6401 0.245 2003 09 30                 IAUC 8214                 IAUC 8214  1
+SN 2003im Ia-norm  2MASX J00445922-0853228         Sa      5804 0.032 2003 09 30                 IAUC 8214                 IAUC 8214  1
+SN 2003iv Ia-norm  MCG +02-8-14                    Sd/Irr 10286 0.137 2003 10 17                 IAUC 8226                 IAUC 8228  2   1.76   6.58  2
+SN 2003iz Ia-norm  UGC 638                                14453 0.077 2003 10 21                 IAUC 8230                 IAUC 8231  1
+SN 2003kc Ia-norm  MCG +05-23-37                   Sc     10004 0.022 2003 11 21                 IAUC 8242                 IAUC 8242  1
+SN 2003kd Ia-norm  UGC 2468                        S0a     9050 0.209 2003 11 23                 IAUC 8243                 IAUC 8245  2
+SN 2003kh Ia       UGC 11491                       Scd    10013 0.104 2003 11 27                 IAUC 8245                 IAUC 8246  1
+SN 2003kg Ia-norm  IC 1427                         E       7804 0.044 2003 11 27                 IAUC 8245                 IAUC 8246  1
+SN 2003kf Ia-norm  MCG -02-16-2                    Sb      2215 0.313 2003 11 27                   CBET 53                   CBET 53  2  -7.50  40.94  2
+SN 2003ls Ia-norm  APMUKS(BJ) B025836.01-110449.4         13011 0.069 2003 12 22                 IAUC 8271                 IAUC 8271  1
+SN 2003lb Ia-norm  UGC 2850                        Sd/Irr  5426 0.226 2003 12 25                 IAUC 8260                 IAUC 8260  1
+SN 2003lc Ia-norm  UGC 934                         Sb     10493 0.054 2003 12 26                 IAUC 8260                 IAUC 8260  1
+SN 2003lq Ia-norm  UGC 5                           Sbc     7270 0.040 2003 12 28                 IAUC 8262                 IAUC 8268  1
+SN 2004E  Ia-norm  KUG 1314+318B                   E/S0    8944 0.013 2004 01 15                 IAUC 8271                 IAUC 8271  1   5.26         2
+SN 2004W  Ia-91bg  NGC 4649                        E       1118 0.024 2004 01 28                 IAUC 8286                 IAUC 8286  1
+SN 2004S  Ia-norm  MCG -05-16-21                   Sc      2809 0.100 2004 02 03                 IAUC 8282                 IAUC 8283  2   8.26 311.57  2
+SN 2004Y  Ia-norm  2MASX J11432825+2140266         E      20746 0.015 2004 02 12                 IAUC 8288                 IAUC 8288  1
+SN 2004as Ia-norm  SDSS J112538.81+224952.2        Sd/Irr  9300 0.011 2004 03 11                 IAUC 8302                 IAUC 8302  1  -4.36         2
+SN 2004bd Ia-norm  NGC 3786                        Sa      2677 0.024 2004 04 07                 IAUC 8316                 IAUC 8317  3  10.76  42.68  2
+SN 2004bg Ia-norm  UGC 6363                        Sb      6308 0.018 2004 04 07                 IAUC 8317                 IAUC 8321  2  10.34  28.01  2
+SN 2004bj Ia-norm  MCG +01-34-13                   E      15035 0.026 2004 04 22                 IAUC 8329                 IAUC 8331  1
+SN 2004bk Ia-norm  NGC 5246                        Sb      6931 0.022 2004 04 22                 IAUC 8329                 IAUC 8331  2   6.13  38.32  2
+SN 2004bl Ia-norm  MCG +00-31-42                   Sd/Irr  5192 0.036 2004 04 29                 IAUC 8334                 IAUC 8337  2   4.61  19.38  6
+SN 2004bp Ia-91bg  MCG +06-25-14                           8913 0.011 2004 05 03                 IAUC 8335                 IAUC 8339  1
+SN 2004bq Ia-norm  ESO 597-G32                     Sa      8327 0.059 2004 05 05                 IAUC 8336                 IAUC 8339  1
+SN 2004cb Ia-norm  ESO 445-G20                     Scd     4128 0.058 2004 05 12                 IAUC 8350                 IAUC 8353  1
+SN 2004br Ia-99aa  NGC 4493                        E       6943 0.020 2004 05 15                 IAUC 8340                 IAUC 8343  3   3.50  26.90  2
+SN 2004bv Ia-91T   NGC 6907                        Sbc     3181 0.063 2004 05 24                 IAUC 8344                 IAUC 8345  7  -7.06 161.68  2
+SN 2004bw Ia-norm  MCG +00-38-19                   Scd     6356 0.142 2004 05 26                 IAUC 8345                 IAUC 8353  2 -10.03   6.59  2
+SN 2004ca Ia-norm  UGC 11799                       Sb      5342 0.449 2004 06 02                 IAUC 8350                 IAUC 8350  1
+SN 2004bz Ia-norm  MCG +02-56-25                   Sb     10232 0.058 2004 06 02                 IAUC 8350                 IAUC 8353  1
+SN 2004cv Ia-norm  MCG +03-41-120                  Sbc    11017 0.044 2004 06 24                 IAUC 8362                 IAUC 8364  1
+SN 2004db Ia       NGC 7377                        S0      3340 0.028 2004 06 28                 IAUC 8367                 IAUC 8372  1
+SN 2004da Ia       NGC 6901                        Sab     4761 0.124 2004 07 06                 IAUC 8370                 IAUC 8371  3
+SN 2004di Ia-91bg  UGC 10097                       S0      5963 0.017 2004 07 26                 IAUC 8376                 IAUC 8390  2
+SN 2004eq Ia-norm  ESO 404-G12                     Sc      2650 0.022 2004 07 30                 IAUC 8407                 IAUC 8420  1
+SN 2004dt Ia-norm  NGC 799                         Sa      5915 0.027 2004 08 11                 IAUC 8386                 IAUC 8387  9  -6.46 168.93  2
+SN 2004ef Ia-norm  UGC 12158                       Sb      9288 0.055 2004 09 04                 IAUC 8399                 IAUC 8403  6  -5.52  84.60  2
+SN 2004fa Ia       MCG -05-48-5                                 0.088 2004 09 05                 IAUC 8420                 IAUC 8437  1
+SN 2004eo Ia-norm  NGC 6928                        Sab     4707 0.108 2004 09 17                 IAUC 8406                 IAUC 8409  3  -5.57  44.40  2
+SN 2004ev Ia-norm  ESO 459-G13                     Sc           0.123 2004 10 06                 IAUC 8417                 IAUC 8420  1
+SN 2004ey Ia-norm  UGC 11816                       Sc      4734 0.137 2004 10 14                 IAUC 8419                 IAUC 8420  3  -7.58  51.39  2
+SN 2004fd Ia-norm  NGC 1060                        S0      5189 0.195 2004 10 21                 IAUC 8423                 IAUC 8437  2
+SN 2004fg Ia       MCG +05-56-7                    Sbc     9033 0.072 2004 10 31                 IAUC 8425                 IAUC 8437  1
+SN 2004fu Ia-norm  NGC 6949                        Sc      2761 0.388 2004 11 04                 IAUC 8428                 IAUC 8436  3  -2.65  25.28  5
+SN 2004fw Ia       UGC 4633                        Sb      5777 0.031 2004 11 06                 IAUC 8431                 IAUC 8437  1
+SN 2004fy Ia-norm  MCG +15-1-10                                 0.257 2004 11 10                 IAUC 8435                 IAUC 8437  2
+SN 2004fz Ia-norm  NGC 783                         Sc      5189 0.061 2004 11 14                 IAUC 8437                 IAUC 8440  3  -5.18  22.28  2
+SN 2004go Ia-norm  IC 270                          S0      8745 0.041 2004 11 18                 IAUC 8448                 IAUC 8450  1  26.08         6
+SN 2004gc Ia-norm  ARP 327                         Sd/Irr  9204 0.206 2004 11 18                 IAUC 8442                 IAUC 8449  1  31.33        11
+SN 2004gl Ia-norm  MCG +08-16-31                          11782 0.032 2004 11 21                 IAUC 8446                 IAUC 8453  1
+SN 2004gs Ia-norm  MCG +03-22-20                   S0      7986 0.035 2004 12 12                 IAUC 8453                 IAUC 8453  1   0.44         2
+SN 2004gu Ia-norm  FGC 175A                               13748 0.024 2004 12 13                 IAUC 8454                 IAUC 8454  1  -4.65        11
+SN 2004gw Ia-02cx  CGCG 283-003                    Sb      5102 0.305 2004 12 27                 IAUC 8459                 IAUC 8465  2
+SN 2004gz Ia-norm  MCG +10-23-45                                0.014 2004 12 28                 IAUC 8460                 IAUC 8468  1
+SN 2005A  Ia       NGC 958                         Sc      5738 0.030 2005 01 05                 IAUC 8459                 IAUC 8461  1   5.55        11
+SN 2005F  Ia-norm  MCG +02-23-27                   Sb      8544 0.042 2005 01 13                 IAUC 8465                 IAUC 8465  1
+SN 2005G  Ia-norm  UGC 8690                        Scd     6937 0.019 2005 01 14                 IAUC 8465                 IAUC 8468  1
+SN 2005M  Ia-norm  NGC 2930                        Sb      6598 0.032 2005 01 19                 IAUC 8470                 IAUC 8474  5  -1.41  35.50  2
+SN 2005as Ia-norm  NGC 3450                        Sb      4026 0.056 2005 01 21                 IAUC 8493                 IAUC 8493  1
+SN 2005P  Ia-02cx  NGC 5468                        Scd     2842 0.025 2005 01 21                 IAUC 8472        Jha et al. (2006a)  2
+SN 2005X  Ia-norm                                         22335 0.023 2005 01 24                 IAUC 8476                 IAUC 8482  1
+SN 2005W  Ia-norm  NGC 691                         Sbc     2665 0.072 2005 02 01                 IAUC 8475                 IAUC 8479  3   0.59  28.36 11
+SN 2005ag Ia-norm  2MASX J14564322+0919361                23804 0.033 2005 02 10                 IAUC 8484                 IAUC 8484  1   0.52        11
+SN 2005am Ia-norm  NGC 2811                        Sa      2368 0.054 2005 02 22                 IAUC 8490                 IAUC 8491  4   4.47  41.04  2
+SN 2005ao Ia       NGC 6462                        E      11515 0.052 2005 03 07                  CBET 114                 IAUC 8492  2  -1.29   0.52 12
+SN 2005bc Ia-norm  NGC 5698                        Sb      3678 0.012 2005 04 02                 IAUC 8504                  CBET 132  2   1.55   7.37  2
+SN 2005be Ia-norm  2MASX J14593310+1640070                10493 0.032 2005 04 05                 IAUC 8506                  CBET 134  2  10.96  16.71 11
+SN 2005bl Ia-91bg  NGC 4070                        E       7213 0.024 2005 04 14                 IAUC 8512                  CBET 139  2  -5.56  18.07  2
+SN 2005bo Ia-norm  NGC 4708                        Sab     4104 0.046 2005 04 17                 IAUC 8514                 IAUC 8517  1  27.71         2
+SN 2005bu Ia-norm  CGCG 117-019                            8754 0.055 2005 04 21                  CBET 144                  CBET 150  1
+SN 2005cf Ia-norm  MCG -01-39-3                    S0      1937 0.097 2005 05 28                  CBET 158                  CBET 160  7 -10.94 610.27  2
+SN 2005de Ia-norm  UGC 11097                       Sb      4551 0.102 2005 08 02                  CBET 191                  CBET 193  4  -0.75  40.49  2
+SN 2005do Ia-norm  UGC 2495                        S0      9135 0.131 2005 08 08                  CBET 206                  CBET 206  1
+SN 2005dh Ia-91bg  MCG +04-37-55                   Sb      4375 0.064 2005 08 10                  CBET 196                  CBET 199  2
+SN 2005di Ia-norm  MCG -04-52-46                   Sb      7585 0.032 2005 08 12                  CBET 198                  ATEL 581  1   0.49         6
+SN 2005dm Ia-91bg  IC 219                          E       5049 0.026 2005 08 26                  CBET 203                  ATEL 596  1   5.23         2
+SN 2005dv Ia-norm  NGC 5283                        S0      3118 0.020 2005 09 04                  CBET 217                  CBET 218  1  -0.57         5
+SN 2005ec Ia       NGC 1690                        E       8763 0.076 2005 09 16                  CBET 228                  ATEL 610  1
+SN 2005ej Ia-norm  CGCG 323-004                    Sb     11354 0.057 2005 09 23                  CBET 231                  CBET 234  3
+SN 2005el Ia-norm  NGC 1819                        S0      4470 0.114 2005 09 25                  CBET 233                  CBET 235  3  -6.70   8.09  2
+SN 2005gj Ia-csm   SDSS J030111.99-003313.5               17988 0.121 2005 09 26                  CBET 247                  CBET 302  5  46.32 460.35 13
+SN 2005er Ia-91bg  NGC 7385                        E       7849 0.076 2005 09 29                 IAUC 8608                  CBET 243  3  -0.26   5.64  6
+SN 2005eq Ia-99aa  MCG -01-9-6                     Scd     8688 0.074 2005 09 30                 IAUC 8608                 IAUC 8610  4  -6.01  51.16  2
+SN 2005ew Ia-99aa  NSF J033923.74+350249.0                  899 0.500 2005 10 04                  CBET 244                  CBET 244  2  18.23  40.03  5
+SN 2005eu Ia-norm  NSF J022743.32+281037.6                10463 0.131 2005 10 04                  CBET 242                  ATEL 620  4 -10.06  44.91  2
+SN 2005hc Ia       MCG +00-6-3                            13491 0.033 2005 10 12                  CBET 259                  CBET 259  1  14.26         2
+SN 2005hj Ia-norm  SDSS J012648.45-011417.3               17250 0.039 2005 10 26                  CBET 266                  CBET 266  1   7.51         2
+SN 2005hk Ia-02cx  UGC 272                         Sd/Irr  3894 0.023 2005 10 30                 IAUC 8625                  CBET 268 12  -8.29 454.74 14
+SN 2005iq Ia-norm  MCG -03-1-8                     Sa     10205 0.022 2005 11 05                 IAUC 8628                  CBET 278  1  -5.86         2
+SN 2005kc Ia-norm  NGC 7311                        Sab     4533 0.132 2005 11 09                 IAUC 8629                  CBET 286  2  10.28  12.25  5
+SN 2005ke Ia-91bg  NGC 1371                        Sa      1463 0.025 2005 11 13                 IAUC 8630                 IAUC 8631  6   7.80 362.11  5
+SN 2005ki Ia-norm  NGC 3332                        S0      5879 0.031 2005 11 18                 IAUC 8632                  CBET 296  3   1.62  35.80  2
+SN 2005ls Ia-norm  MCG +07-7-1                     Sb      6332 0.093 2005 12 09                 IAUC 8643                  CBET 324  3  26.29  56.66  2
+SN 2005lt Ia-norm  MCG +03-30-51                   Sbc     5975 0.012 2005 12 10                 IAUC 8645                  CBET 319  1
+SN 2005lu Ia-norm  MCG -03-07-40                   Sd/Irr  9650 0.026 2005 12 11                 IAUC 8645                  CBET 321  1  27.88        11
+SN 2005mc Ia-norm  UGC 4414                        S0a     7561 0.045 2005 12 23                  CBET 331                  CBET 334  2   6.64  25.16  2
+SN 2005lz Ia-norm  UGC 1666                        Sd/Irr 11992 0.090 2005 12 24                  CBET 329                  CBET 337  1   0.58         2
+SN 2005ms Ia-norm  UGC 4614                        Sb      7555 0.034 2005 12 27                  CBET 343                  CBET 345  2  -1.88  14.62  2
+SN 2005na Ia-norm  UGC 3634                        Sa      7891 0.078 2005 12 31                  CBET 350                  CBET 351  5   0.03  31.19  2
+SN 2006D  Ia-norm  MCG -01-33-34                   Sab     2557 0.046 2006 01 11                  CBET 362                  CBET 366  5   3.70 126.46  2
+SN 2006E  Ia-norm  NGC 5338                        S0       815 0.020 2006 01 12                  CBET 363                  CBET 366  3
+SN 2006H  Ia-91bg  2MASX J03260105+4041403         Sa      4195 0.206 2006 01 15                  CBET 367                  ATEL 699  1   7.01         5
+SN 2006N  Ia-norm  MCG +11-8-12                            4281 0.096 2006 01 21                  CBET 375                 IAUC 8661  4  -1.89  27.54  2
+SN 2006S  Ia-99aa  UGC 7934                        Sb      9623 0.018 2006 01 26                  CBET 379                  CBET 382  3  -3.93  18.45  2
+SN 2006X  Ia-norm  NGC 4321                        Sbc     1571 0.022 2006 02 04                 IAUC 8667                  CBET 393  9   3.15 358.37  2
+SN 2006ac Ia-norm  NGC 4619                        Sb      6928 0.016 2006 02 09                 IAUC 8669                  CBET 398  2   7.96  35.39  2
+SN 2006ak Ia-norm  2MASX J11093314+2837393         Sb     11422 0.028 2006 02 17                  CBET 408                  CBET 408  1   8.43         2
+SN 2006ay Ia-norm  HCG 079:[PZH2002] 2.05          Sd/Irr 26292 0.057 2006 02 24                  CBET 436                  CBET 486  1
+SN 2006ax Ia-norm  NGC 3663                        Sbc     5019 0.050 2006 03 20                  CBET 435                  CBET 437  3 -10.07  33.01  2
+SN 2006az Ia-norm  NGC 4172                        Sb      9276 0.010 2006 03 23                 IAUC 8691                  CBET 447  1  26.30         2
+SN 2006bq Ia-norm  NGC 6685                        S0      6568 0.059 2006 04 23                  CBET 479                  CBET 481  4   6.97  44.94  2
+SN 2006br Ia-norm  NGC 5185                        Sb      7372 0.018 2006 04 25                  CBET 482                  CBET 487  2   3.87  10.62  2
+SN 2006bt Ia-norm  CGCG 108-013                    S0a     9640 0.051 2006 04 26                  CBET 485                  CBET 485  5  -5.30  52.59  2
+SN 2006bu Ia-norm  2MASX J13524703+0518496                25183 0.019 2006 04 27                  CBET 490                 IAUC 8707  1   4.22         5
+SN 2006bw Ia-norm  SDSS J143358.05+034750.3                8994 0.033 2006 04 27                  CBET 497                  CBET 499  2   8.90  31.26  2
+SN 2006bz Ia-91bg  IC 4042A                        S0      8366 0.006 2006 05 04                 IAUC 8707                 IAUC 8707  1  -2.44         2
+SN 2006cc Ia-norm  UGC 10244                       Sb      9752 0.016 2006 05 06                  CBET 505                  CBET 506  1  17.67         2
+SN 2006ch Ia-norm  NGC 7753                        Sbc     5168 0.099 2006 05 09                  CBET 510                  CBET 525  2
+SN 2006ce Ia-norm  NGC 908                         Sc      1508 0.025 2006 05 10                 IAUC 8709                  CBET 541  3
+SN 2006cf Ia-norm  UGC 6015                        Scd    12456 0.012 2006 05 11                 IAUC 8710                  CBET 514  3   6.28  18.69  5
+SN 2006cj Ia-norm  2MASX J12592407+2820498                20241 0.008 2006 05 17                  CBET 515                  CBET 517  1   3.43         2
+SN 2006cm Ia-norm  UGC 11723                       Sb      4899 0.048 2006 05 24                  CBET 521                  CBET 526  4  -1.15  35.29  2
+SN 2006ct Ia-norm  2MASX J12095669+4705461                 9432 0.019 2006 05 25                  CBET 537                  CBET 537  2
+SN 2006cp Ia-norm  UGC 7357                        Sc      6682 0.023 2006 05 28                  CBET 524                  CBET 528  1  -5.30         2
+SN 2006cq Ia-norm  IC 4239                         Sb     14492 0.013 2006 05 29                  CBET 527                  CBET 529  1   2.00         2
+SN 2006cs Ia-91bg  MCG +06-30-79                   S0      7099 0.011 2006 06 03                  CBET 536                  CBET 539  1   2.28         5
+SN 2006da Ia-norm  2MASX J23274876+1428315                12345 0.065 2006 06 12                  CBET 545                  CBET 550  4
+SN 2006cz Ia-99aa  MCG -01-38-2                    Scd    12531 0.083 2006 06 14                 IAUC 8721                  CBET 550  5   1.12  36.60  6
+SN 2006dh Ia-norm  UGC 8670                        Sd/Irr 18054 0.006 2006 06 21                 IAUC 8725                  CBET 562  1
+SN 2006di Ia-norm  NGC 439                         S0      5804 0.031 2006 06 24                 IAUC 8726                  CBET 587  1
+SN 2006dm Ia-norm  MCG -01-60-21                   Sc      6601 0.039 2006 07 03                  CBET 568                  CBET 569  5  -7.90  36.06  2
+SN 2006do Ia       ESO 470-G18                     S0a     8523 0.020 2006 07 05                  CBET 572                  ATEL 854  4
+SN 2006dv Ia-norm  UGC 12461                       S0      9884 0.071 2006 07 20                 IAUC 8733                  CBET 585  5
+SN 2006eb Ia-norm  UGC 771                         Sa      5165 0.029 2006 07 22                  CBET 590                  CBET 592  2
+SN 2006dw Ia-norm  2MASX J16174359+3457534                 8107 0.021 2006 07 23                 IAUC 8733                  CBET 587  4
+SN 2006dy Ia-norm  NGC 5587                        S0a     2302 0.018 2006 07 25                  CBET 586                  CBET 587  5
+SN 2006ef Ia-norm  NGC 809                         S0      5360 0.024 2006 08 18                  CBET 597                  CBET 604  3   3.20  34.56  2
+SN 2006gr Ia-norm  UGC 12071                       Sb     10373 0.085 2006 08 21                  CBET 638                  CBET 642  3  -8.70  25.03  2
+SN 2006ej Ia-norm  NGC 191                         Sc      6077 0.035 2006 08 23                  CBET 603                  CBET 604  4  -3.70  27.54  2
+SN 2006em Ia-91bg  NGC 911                         E       5765 0.059 2006 08 25                  CBET 605                  CBET 612  3   4.16  26.70  2
+SN 2006en Ia-norm  MCG +05-54-41                   Sc      9575 0.064 2006 08 26                  CBET 606                  CBET 608  3   8.55  30.75  2
+SN 2006es Ia-norm  UGC 2828                        Sbc    12303 0.229 2006 09 01                  CBET 613                  CBET 613  2
+SN 2006eu Ia-norm  MCG +08-36-16                   E       7072 0.194 2006 09 03                  CBET 618                  CBET 622  2  10.17  16.02  2
+SN 2006et Ia-norm  NGC 232                         Sa      6646 0.019 2006 09 03                  CBET 616                  CBET 619  3   3.29  43.34  2
+SN 2006ev Ia-norm  UGC 11758                       Sbc     8613 0.090 2006 09 12                 IAUC 8747                  CBET 622  2  10.54  16.36  5
+SN 2006gj Ia-norm  UGC 2650                        Sab     8482 0.084 2006 09 18                  CBET 631                  CBET 634  1   4.70         2
+SN 2006gt Ia-91bg  2MASX J00561810-0137327                13422 0.037 2006 09 18                  CBET 641                  CBET 641  1   3.08         2
+SN 2006ha Ia-norm  IC 1461                         Sc      9189 0.045 2006 09 27                  CBET 649                  CBET 771  1  49.55         2
+SN 2006hb Ia-norm  MCG -04-12-34                   E       4599 0.027 2006 09 27                  CBET 649                  CBET 652  1  39.38         2
+SN 2006hn Ia-02cx  UGC 6154                        Sa      5156 0.043 2006 09 28                  CBET 653                  CBET 694  1
+SN 2006je Ia-norm  IC 1735                         Sb     11392 0.046 2006 10 15                  CBET 675                  CBET 678  2  20.18  26.02  2
+SN 2006ke Ia-91bg  UGC 3365                        Sa      5150 0.188 2006 10 19                  CBET 682                  CBET 685  2   2.36   8.38  5
+SN 2006kf Ia-norm  UGC 2829                        S0      6386 0.246 2006 10 21                  CBET 686                  CBET 691  3  -8.96  17.37  2
+SN 2006nr Ia-norm  UGC 3336                        Sb      5510 0.098 2006 10 26                  CBET 742                  CBET 744  1
+SN 2006lf Ia-norm  UGC 3108                        Sb      3960 0.954 2006 10 26                  CBET 704                  CBET 705  4  -6.30  43.77  2
+SN 2006le Ia-norm  UGC 3218                        Sb      5225 0.408 2006 10 26                  CBET 700                  CBET 702  3  -8.69  41.18  2
+SN 2006mo Ia-norm  MCG +06-02-17                   Sb     11092 0.045 2006 11 01                  CBET 719                  CBET 722  1  12.46         5
+SN 2006mp Ia-99aa  MCG +08-31-29                           8094 0.035 2006 11 03                  CBET 720                  CBET 724  1   5.66         2
+SN 2006ob Ia-norm  UGC 01333                       Sb     17759 0.033 2006 11 13                  CBET 743                  CBET 743  1   7.65         5
+SN 2006or Ia-norm  NGC 3891                        Sbc     6218 0.036 2006 11 18                  CBET 749                  CBET 750  2  -2.79   4.93  5
+SN 2006os Ia-norm  UGC 2384                        Sb      9836 0.146 2006 11 21                  CBET 751                  CBET 751  2   8.61  27.09  5
+SN 2006ot Ia-norm  ESO 544-G31                     Sa     15871 0.018 2006 11 22                  CBET 754                  CBET 754  2
+SN 2006ow Ia-norm  UGC 03908                       Sbc          0.044 2006 11 26                  CBET 759                  CBET 765  1
+SN 2006qo Ia       UGC 4133                        Sc      9129 0.062 2006 11 29                  CBET 763                  CBET 765  1 -11.08         2
+SN 2006sr Ia-norm  UGC 14                          Sc      7237 0.094 2006 12 12                 IAUC 8784                  CBET 779  2  -2.34   2.69  2
+SN 2006su Ia-norm  IC 3772                                14030 0.015 2006 12 18                  CBET 782                  CBET 784  1
+SN 2006td Ia-norm  KUG 0155+361                    Sb      4761 0.088 2006 12 24                  CBET 787                  CBET 790  1  22.62         2
+SN 2006te Ia-norm  CGCG 207-042                            9471 0.050 2006 12 28                  CBET 791                  CBET 800  3  24.22  51.28  2
+SN 2007A  Ia-norm  NGC 105                         Sab     5290 0.074 2007 01 02                  CBET 795                  CBET 796  3   2.37  37.68  6
+SN 2007B  Ia-norm  NGC 7315                        S0      6312 0.079 2007 01 05                  CBET 797                  CBET 799  3
+SN 2007E  Ia-norm  NGC 921                         Sc      6778 0.030 2007 01 10                  CBET 802                  CBET 805  2
+SN 2007F  Ia-norm  UGC 8162                        Scd     7072 0.018 2007 01 11                  CBET 803                  CBET 805  4  -9.35  52.18  2
+SN 2007M  Ia       NGC 4076                        Sa      6214 0.038 2007 01 14                  CBET 816                 IAUC 8798  1
+SN 2007N  Ia-91bg  MCG -01-33-12                   Sa      3861 0.040 2007 01 21                  CBET 818                  CBET 818  2   0.44  23.23  2
+SN 2007O  Ia-norm  UGC 9612                        Sc     10856 0.023 2007 01 21                  CBET 818                  CBET 818  2  -0.33  25.56  2
+SN 2007R  Ia-norm  UGC 4008                        S0a     9219 0.059 2007 01 26                  CBET 823                  CBET 826  1  21.58         2
+SN 2007S  Ia-norm  UGC 5378                        Sb      4161 0.033 2007 01 29                  CBET 825                  CBET 829  3   5.18  61.38  2
+SN 2007V  Ia-norm  LCRS B102433.3-030244                   9100 0.040 2007 02 12                  CBET 841                  CBET 841  1
+SN 2007af Ia-norm  NGC 5584                        Scd     1638 0.031 2007 03 01                  CBET 863                  CBET 865  9  -1.25 158.54  2
+SN 2007aj Ia-norm  SDSS J124754.53+540038.5                8994 0.019 2007 03 03                  CBET 871                  CBET 873  2  10.75  38.00  6
+SN 2007al Ia-91bg  2MASX J09591870-1928233                 3634 0.042 2007 03 10                  CBET 875                  CBET 878  1   3.39         2
+SN 2007ap Ia-norm  MCG +03-41-3                    S0      4742 0.030 2007 03 13                  CBET 883                  CBET 887  3   9.37  35.93  2
+SN 2007ao Ia-91bg  NGC 5532                                7406 0.019 2007 03 13                  CBET 883                  CBET 892  1
+SN 2007au Ia-norm  UGC 3725                        S0      6171 0.067 2007 03 18                  CBET 895                  CBET 898  2  16.11  31.85  2
+SN 2007ax Ia-91bg  NGC 2577                        S0      2057 0.054 2007 03 21                  CBET 904                  CBET 907  1  14.93         5
+SN 2007ba Ia-91bg  UGC 9798                        S0a    11546 0.033 2007 03 29                  CBET 911                  CBET 918  3   2.14   8.06  5
+SN 2007bc Ia-norm  UGC 6332                        Sa      6227 0.017 2007 04 04                  CBET 913                  CBET 915  2   0.61  16.35  2
+SN 2007bd Ia-norm  UGC 4455                        Sa      9299 0.034 2007 04 04                  CBET 914                  CBET 915  2  -5.79   9.70  2
+SN 2007bj Ia-norm  NGC 6172                        E       5009 0.118 2007 04 18                  CBET 930                 IAUC 8834  3  14.25  41.73  2
+SN 2007bm Ia-norm  NGC 3672                        Sc      1862 0.041 2007 04 20                  CBET 936                  CBET 939  4  -7.79  40.84  5
+SN 2007bz Ia-norm  IC 3918                         Sc      6529 0.031 2007 04 22                  CBET 941                  CBET 943  1   1.65         2
+SN 2007ca Ia-norm  MCG -02-34-61                   Sc      4217 0.067 2007 04 25                  CBET 945                  CBET 947  3 -11.14  32.22  2
+SN 2007cf Ia-91bg  MCG +02-39-21                   Sb      9873 0.030 2007 05 08                  CBET 954                  CBET 958  1
+SN 2007cg Ia-norm  ESO 508-G75                     Sb      9952 0.082 2007 05 11                  CBET 960                  CBET 962  1  16.17         2
+SN 2007ci Ia-norm  NGC 3873                        E       5434 0.019 2007 05 15                  CBET 966                 IAUC 8843  4  -6.57  27.75  2
+SN 2007co Ia-norm  MCG +05-43-16                           8083 0.113 2007 06 04                  CBET 977                  CBET 978  8  -4.09  60.06  2
+SN 2007cp Ia-norm  IC 807                                 10971 0.043 2007 06 13                  CBET 980                  CBET 981  2
+SN 2007cq Ia       2MASX J22144070+0504435                 7765 0.109 2007 06 21                  CBET 983                  CBET 984  6  -5.82  44.79  2
+SN 2007cs Ia-norm  UGC 12798                       Sb      5264 0.066 2007 06 24                  CBET 986                  CBET 987  4  12.15  49.42  6
+SN 2007fb Ia-norm  UGC 12859                       Sbc     5405 0.056 2007 07 03                  CBET 992                  CBET 993  7   1.95 100.91  6
+SN 2007fc Ia-norm  ESO 538-G8                      Sb     10116 0.025 2007 07 08                  CBET 995                  CBET 998  3
+SN 2007fq Ia-91bg  MCG -04-48-19                   S0     12728 0.041 2007 07 14                 CBET 1001                 ATEL 1154  1
+SN 2007fr Ia-norm  UGC 11780                              15290 0.061 2007 07 14                 CBET 1001                 IAUC 8864  2  -5.83  -1.25  2
+SN 2007fs Ia-norm  ESO 601-G5                      Sb      5154 0.034 2007 07 15                 CBET 1002                 CBET 1003  6   5.03  91.35  6
+SN 2007ge Ia-norm  MCG +08-1-13                    Sb     13444 0.110 2007 07 19                 CBET 1012                 CBET 1014  1  12.53         6
+SN 2007gi Ia-norm  NGC 4036                        S0      1445 0.021 2007 07 31                 CBET 1017                 CBET 1021  5  -7.31 153.29 15
+SN 2007gk Ia-norm  MCG +11-20-27                   Sb      7984 0.040 2007 08 05                 CBET 1023                 CBET 1025  2  -1.72  19.65  6
+SN 2007if Ia-norm                                         22233 0.083 2007 08 16                 CBET 1059                 CBET 1059  3  37.23  92.02 16
+SN 2007hj Ia-norm  NGC 7461                        S0      4231 0.088 2007 09 01                 CBET 1048                 CBET 1048  4  -1.23  71.62  2
+SN 2007hu Ia-norm  NGC 6261                        S0a    10610 0.046 2007 09 09                 CBET 1056                 CBET 1058  2
+SN 2007ir Ia-norm  UGC 02033                       Sb     10548 0.050 2007 09 12                 CBET 1067                 CBET 1101  2
+SN 2007is Ia-norm  UGC 10553                       Sab     8897 0.021 2007 09 14                 CBET 1067                 CBET 1075  2
+SN 2007kf Ia-norm  [K2007] J173131.76+691840.1                  0.044 2007 09 22                 CBET 1085                 CBET 1097  1
+SN 2007kg Ia-norm  2MFGC 18005                                  0.995 2007 09 22                 CBET 1086                 CBET 1095  1
+SN 2007kd Ia-norm  MCG +6-21-36                    Sc      7248 0.022 2007 09 23                 CBET 1083                 CBET 1094  1
+SN 2007kk Ia-norm  UGC 2828                        Sbc    12305 0.228 2007 09 28                 CBET 1096                 CBET 1097  1   7.15         6
+SN 2007le Ia-norm  NGC 7721                        Sc      2015 0.033 2007 10 13                 CBET 1100                 CBET 1101  9 -10.31 304.74  2
+SN 2007s1 Ia-norm  2MASX J00150006+1619596                 8214 0.069 2007 10 21      Bailey et al. (2009)      Bailey et al. (2009)  2  -1.23  37.79  2
+SN 2007qd Ia-02cx  SDSS J020932.74-005959.6               12935 0.035 2007 10 31                 CBET 1137                 CBET 1137  1
+SN 2007on Ia-norm  NGC 1404                        E       1947 0.012 2007 11 05                 CBET 1121                 ATEL 1261  4  -3.01  27.68 17
+SN 2007qe Ia-norm  NSF J235412.09+272432.3                 7195 0.038 2007 11 13                 CBET 1138                 CBET 1138  3  -6.54  16.00  2
+SN 2007sa Ia-norm  NGC 3499                        S0a     1522 0.010 2007 11 21                 CBET 1161                 CBET 1163  1
+SN 2007rx Ia-norm  BATC J234012.05+272512.23               8994 0.089 2007 11 28                 CBET 1157                 CBET 1157  1
+SN 2007ry Ia-norm  2MASX J03254297+4114422         Sb     11992 0.192 2007 12 08                 CBET 1158                 CBET 1162  1
+SN 2007sr Ia-norm  NGC 4038                        Sd/Irr  1642 0.047 2007 12 18                 CBET 1172                 CBET 1173  2  32.61 135.70  2
+SN 2007su Ia-norm  SDSS J221908.85+131040.5                8353 0.083 2007 12 19                 CBET 1178                 CBET 1178  1
+SN 2007ux Ia-norm  2MASX J10091969+1459268                 9268 0.044 2007 12 23                 CBET 1187                 CBET 1189  2   5.59  20.16  2
+SN 2008A  Ia-02cx  NGC 634                         Sa      4925 0.054 2008 01 02                 CBET 1193                 CBET 1198  6
+SN 2008C  Ia-norm  UGC 3611                        S0a     4983 0.084 2008 01 03                 CBET 1195                 CBET 1197  1  15.68         2
+SN 2008L  Ia-norm  NGC 1259                        S0      5816 0.159 2008 01 14                 CBET 1212                 CBET 1219  1  32.37         5
+SN 2008Q  Ia-norm  NGC 524                         S0      2379 0.083 2008 01 26                 CBET 1228                 CBET 1232  3   6.46 199.31  2
+SN 2008Z  Ia-99aa  SDSS J094315.36+361709.2                6293 0.013 2008 02 07                 CBET 1243                 CBET 1246  2  -2.29   9.99  2
+SN 2008af Ia       UGC 09640                       E      10045 0.032 2008 02 09                 CBET 1248                 CBET 1253  1  24.32         2
+SN 2008ai Ia-91bg  MCG +06-24-39                          10571 0.017 2008 02 13                 CBET 1256                 CBET 1264  2
+SN 2008ar Ia-norm  IC 3284                         Sa      7839 0.034 2008 02 27                 CBET 1273                 CBET 1273  3  -8.87  49.13  2
+SN 2008ca Ia-91bg  SDSS J122901.28+122218.0        E      39423 0.019 2008 03 10                 CBET 1355                 CBET 1358  1
+SN 2008cb Ia-norm  SDSS J123118.84+082315.4               49571 0.018 2008 03 10                 CBET 1355                 CBET 1358  1
+SN 2008bf Ia-norm  NGC 4055                        E       7203 0.030 2008 03 18                 CBET 1307                 CBET 1310  3  27.93  40.62  2
+SN 2008bt Ia-91bg  NGC 3404                        Sab     4606 0.056 2008 04 13                 CBET 1336                 CBET 1337  2  -1.08  10.97  6
+SN 2008bv Ia-norm  UGC 4653                               16748 0.035 2008 04 19                 CBET 1345                 CBET 1358  1
+SN 2008bw Ia       UGC 11241                       Sb      9931 0.040 2008 04 21                 CBET 1346                 CBET 1358  1
+SN 2008bz Ia-norm  2MASX J12385810+1107502                18071 0.024 2008 04 22                 CBET 1353                 CBET 1353  1
+SN 2008cd Ia       NGC 5038                        S0      2222 0.069 2008 04 29                 CBET 1360                 CBET 1362  1
+SN 2008cf Ia-99aa  [WLF2008] J140732.38-263305.6          13799 0.067 2008 05 04                 CBET 1365                 CBET 1367  1
+SN 2008cl Ia-norm  UGC 10261                       S0     19017 0.020 2008 05 16                 CBET 1378                 CBET 1380  1   4.24         2
+SN 2008s1 Ia-norm  UGC 8472                        S0      6624 0.028 2008 05 16                 ATEL 1532                 ATEL 1532  8  -6.36  34.02  2
+SN 2008ct Ia-norm  UGC 11878                       Sb      7591 0.070 2008 05 31                 CBET 1394                 CBET 1419  1
+SN 2008db Ia-norm  NGC 50                          S0      5701 0.037 2008 06 13                 CBET 1407                 CBET 1411  3
+SN 2008dx Ia-91bg  NGC 4898A                       E       6903 0.006 2008 06 24                 CBET 1427                 CBET 1427  4   2.46  28.84  2
+SN 2008ds Ia-99aa  UGC 299                         Sc      6305 0.064 2008 06 28                 CBET 1419                 CBET 1419 11
+SN 2008dr Ia-norm  NGC 7222                        Sb     12426 0.043 2008 06 28                 CBET 1419                 CBET 1419  5
+SN 2008dt Ia-norm  NGC 6261                        S0a    10610 0.046 2008 06 30                 CBET 1423                 CBET 1424  3   9.27  69.95  2
+SN 2008r3 Ia-norm  Coma Cluster                            6925 0.006 2008 07 12                 ATEL 1615                 ATEL 1617  2
+SN 2008ec Ia-norm  NGC 7469                        Sa      4892 0.069 2008 07 14                 CBET 1437                 CBET 1438  7  -0.24  71.58  2
+SN 2008ee Ia-norm  NGC 307                         S0      4010 0.043 2008 07 16                 CBET 1440                 CBET 1447  3
+SN 2008ei Ia-norm  UGC 11977                       Sd/Irr 11284 0.084 2008 07 23                 CBET 1446                 CBET 1447  4   3.29  33.10  2
+SN 2008er Ia-norm  UGC 1563                        E       4991 0.170 2008 08 05                 CBET 1461                 CBET 1465  1
+SN 2008ez Ia-norm  NGC 5222                        E       6858 0.021 2008 08 18                 CBET 1474                 CBET 1477  1
+SN 2008ey Ia-norm  IC 262                          S0      5385 0.080 2008 08 18                 CBET 1473                 CBET 1478  1
+SN 2008s3 Ia-norm  2MASX J23004648+0734590                12291 0.056 2008 08 25                       SNF                       SNF  1
+SN 2008s4 Ia-norm  IC 144                                 12159 0.019 2008 08 26                       SNF                       SNF  1
+SN 2008fg Ia-norm  NGC 1268                        Sb      3263 0.171 2008 08 30                 CBET 1489                 CBET 1503  1
+SN 2008fj Ia-91bg  UGC 10759                               8138 0.018 2008 09 01                 CBET 1494                 CBET 1495  1
+SN 2008s5 Ia                                               9294 0.069 2008 09 09                       SNF                       SNF  3   1.26  15.76  2
+SN 2008fr Ia-norm  SDSS J011149.19+143826.5               11692 0.045 2008 09 14                 CBET 1513                 CBET 1513  3
+SN 2008s8 Ia-norm                                               0.025 2008 09 20                       SNF                       SNF  2
+SN 2008gs Ia       CRTS J012705.78+031305.7                     0.023 2008 09 21                 CBET 1559                 CBET 1563  1
+SN 2008fx Ia-norm  2MASX J02113233+2353074                      0.080 2008 09 23                 CBET 1523                 CBET 1525  1
+SN 2008ge Ia-02cx  NGC 1527                        S0      1174 0.013 2008 10 08                 CBET 1531                 CBET 1540  1
+SN 2008gh Ia-norm  UGC 3957                        E      10229 0.049 2008 10 11                 CBET 1539                 CBET 1585  2
+SN 2008gt Ia-norm  APMUKS(BJ) B224209.38-032444.7               0.044 2008 10 29                 CBET 1559                 CBET 1563  2
+SN 2008gy Ia-norm  2MASX J03100247+1913173                 8694 0.167 2008 10 30                 CBET 1565                 CBET 1577  1
+SN 2008gw Ia-norm  2MASX J04392713+0908218                19187 0.225 2008 11 03                 CBET 1559                 CBET 1585  1
+SN 2008hk Ia-norm  SDSS J091243.63+095548.3        E       9025 0.083 2008 11 06                 CBET 1581                 CBET 1581  1
+SN 2008ha Ia-02cx  UGC 12682                       Sd/Irr  1393 0.079 2008 11 07                 CBET 1567                 CBET 1576  3   7.46  22.17 18
+SN 2008hj Ia-norm  MCG -02-1-14                    Sc     11360 0.036 2008 11 20                 CBET 1579                 CBET 1583  3
+SN 2008hq Ia-norm  UGC 3963                        Sd/Irr 20086 0.082 2008 11 22                 CBET 1593                 CBET 1607  1
+SN 2008hr Ia-norm  2MASX J09185174+1857294                22725 0.030 2008 11 23                 CBET 1595                 CBET 1607  1
+SN 2008hz Ia-norm  SKHV 220                               21900 0.078 2008 11 26                 CBET 1609                 ATEL 1866  1
+SN 2008hu Ia-norm  ESO 561-G18                     Sb           0.107 2008 12 01                 CBET 1600                 CBET 1607  1
+SN 2008hs Ia-norm  NGC 910                         E       5207 0.057 2008 12 01                 CBET 1598                 CBET 1599  1  -7.94         6
+SN 2008hy Ia-norm  IC 334                          Sb      2536 0.236 2008 12 06                 CBET 1608                 CBET 1610  1
