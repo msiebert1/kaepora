@@ -130,13 +130,18 @@ def makearray(SN_Array):
 	for i in range(len(SN_Array)):
 	    #try:
 		#factor, pcov = curve_fit(scfunc, fluxes[0,:], fluxes[i,:], sigma = 1/errors[i,:])
-		factors = np.array([f for f in fluxes[0,:] if f != 'nan']) / np.array([f for f in fluxes[i,:] if f != 'nan'])
+		flux1 = np.array([value for value in fluxes[0,:] if not math.isnan(value)])
+		flux2 = np.array([value for value in fluxes[i,:] if not math.isnan(value)])
+		#print flux1[0:len(flux2)], flux2
+		factors = flux1[0:len(flux2)] / flux2
+		#print factors
 		factor = np.mean(factors)
 		fluxes[i,:] *= factor
 		errors[i,:] *= factor**-2
 		print "Scaled at factor", factor
 	    #except RuntimeError:
 		#print "Curve-fit failed"
+	#print fluxes, errors
 	return waves, fluxes, errors, reds, factor
 
 low_overlap = []
@@ -154,7 +159,13 @@ def overlap(waves, SN_Array):
 #averages with weights based on the given errors in .flm files
 def average(SN_Array, fluxes, errors, reds):
 	print "Averaging..."
-	avg_flux = np.average(fluxes, weights = 1.0/errors, axis=0)
+	newflux = []
+	newerror = []
+	for i in range(len(SN_Array)):
+	    newflux[i] = np.array([value for value in fluxes[i,:] if not math.isnan(value)])
+	    newerror[i] = np.array([value for value in errors[i,:] if not math.isnan(value)])
+	avg_flux = np.average(newflux, weights = 1.0/newerror, axis=0)
+	print avg_flux
 	#avg_red = np.average(reds, weights = 1.0/errors, axis = 0)
 	#avg_age = np.average(ages, weights = 1.0/errors, axis = 0)
 	compare_spectrum = SN_Array[0]
@@ -202,16 +213,13 @@ def main():
 	low_overlap, SN_Array = overlap(waves, SN_Array)
 	print len(low_overlap), "do not overlap.", len(SN_Array), "spectra being averaged."
 	#I think that you can scale things in the makearray function.  That would make things a little more efficient and cleaner.
-        #for SN, i in zip(SN_Array, range(len(SN_Array))):
-	    #SN, scale_factor = scale(fluxes[i,:], errors[i,:], fluxes[0,:], template.wavelength, SN, 1000, 1500)
-	    #scales.append(scale_factor)
 	#Below can be done cleaner and without a for loop.
         template = average(SN_Array, fluxes, errors, reds)
         if not np.any(scales) == 0:
 	    i += 1
     print "Done."
     #Either writes data to file, or returns it to user
-    table = Table([composite.wavelength, composite.flux, composite.variance], names = ('Wavelength', 'Flux', 'Variance'))
+    table = Table([template.wavelength, template.flux, template.variance], names = ('Wavelength', 'Flux', 'Variance'))
     c_file = str(raw_input("Create a file for data? (y/n)"))
     if c_file=='y':
 		#f_name='composite,'+min(composite.phases)+'.'+max(composite.phases)+'.'+min(composite.redshifts)+'.'+max(composite.redshifts)+'...--'+np.average(composite.phases)+'.'+np.average(composite.redshifts)+len(SN_Array)+'SN'
