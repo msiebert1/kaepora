@@ -129,11 +129,17 @@ def makearray(SN_Array):
 	print "Scaling..."
 	for i in range(len(SN_Array)):
 	    #try:
+		#I still can't make curve_fit work, so I'm trying something else. -Sam
 		#factor, pcov = curve_fit(scfunc, fluxes[0,:], fluxes[i,:], sigma = 1/errors[i,:])
 		flux1 = np.array([value for value in fluxes[0,:] if not math.isnan(value)])
 		flux2 = np.array([value for value in fluxes[i,:] if not math.isnan(value)])
-		#print flux1[0:len(flux2)], flux2
-		factors = flux1[0:len(flux2)] / flux2
+		#Ideally, this only scales the region overlapping spectrum 0.
+		#Somehow, using the same slice in two different arrays gives different sizes.
+		#Need to fix it.
+		low2 = np.where(waves[i]==find_nearest(waves[i], round(SN_Array[i].minwave)))
+		high2 = np.where(waves[i]==find_nearest(waves[i], round(SN_Array[i].maxwave)))
+		print low2[0], high2[0]
+		factors = flux1[low2[0]:high2[0]] / flux2[low2[0]:high2[0]]
 		#print factors
 		factor = np.mean(factors)
 		fluxes[i,:] *= factor
