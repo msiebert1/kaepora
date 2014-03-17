@@ -129,6 +129,7 @@ def makearray(SN_Array):
 	print "Scaling..."
 	for i in range(len(SN_Array)):
 	    #try:
+		#factor, pcov = curve_fit(scfunc, fluxes[0,:], fluxes[i,:], sigma = 1/errors[i,:])
 		factors = np.array([f for f in fluxes[0,:] if f != 'nan']) / np.array([f for f in fluxes[i,:] if f != 'nan'])
 		factor = np.mean(factors)
 		fluxes[i,:] *= factor
