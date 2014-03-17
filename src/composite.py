@@ -131,15 +131,15 @@ def makearray(SN_Array):
 	    #try:
 		#I still can't make curve_fit work, so I'm trying something else. -Sam
 		#factor, pcov = curve_fit(scfunc, fluxes[0,:], fluxes[i,:], sigma = 1/errors[i,:])
-		flux1 = np.array([value for value in fluxes[0,:] if not math.isnan(value)])
-		flux2 = np.array([value for value in fluxes[i,:] if not math.isnan(value)])
+		#flux1 = np.array([value for value in fluxes[0,:] if not math.isnan(value)])
+		#flux2 = np.array([value for value in fluxes[i,:] if not math.isnan(value)])
 		#Ideally, this only scales the region overlapping spectrum 0.
 		#Somehow, using the same slice in two different arrays gives different sizes.
 		#Need to fix it.
 		low2 = np.where(waves[i]==find_nearest(waves[i], round(SN_Array[i].minwave)))
 		high2 = np.where(waves[i]==find_nearest(waves[i], round(SN_Array[i].maxwave)))
 		print low2[0], high2[0]
-		factors = flux1[low2[0]:high2[0]] / flux2[low2[0]:high2[0]]
+		factors = fluxes[0,:][low2[0]:high2[0]] / fluxes[i,:][low2[0]:high2[0]]
 		#print factors
 		factor = np.mean(factors)
 		fluxes[i,:] *= factor
@@ -168,8 +168,12 @@ def average(SN_Array, fluxes, errors, reds):
 	newflux = []
 	newerror = []
 	for i in range(len(SN_Array)):
-	    newflux[i] = np.array([value for value in fluxes[i,:] if not math.isnan(value)])
-	    newerror[i] = np.array([value for value in errors[i,:] if not math.isnan(value)])
+	    if i == 0:
+		newflux = np.array([value for value in fluxes[i,:] if not math.isnan(value)])
+		newerror = np.array([value for value in errors[i,:] if not math.isnan(value)])
+	    else:
+		newflux = np.append(newflux, np.array([value for value in fluxes[i,:] if not math.isnan(value)]), axis=0)
+		newerror = np.append(newerror, np.array([value for value in errors[i,:] if not math.isnan(value)]), axis=0)
 	avg_flux = np.average(newflux, weights = 1.0/newerror, axis=0)
 	print avg_flux
 	#avg_red = np.average(reds, weights = 1.0/errors, axis = 0)
