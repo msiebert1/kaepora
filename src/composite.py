@@ -14,6 +14,7 @@ import msgpack as msg
 import msgpack_numpy as mn
 import lmfit
 from scipy.optimize import curve_fit
+from lmfit import minimize, Parameters
 
 np.set_printoptions(threshold=np.nan)
 mn.patch()
@@ -92,6 +93,48 @@ def find_nearest(array,value):
 
 def scfunc(x,a):
     return a*x
+
+def scale_func(params, in_data, out_data, error):
+    scale = params['scale'].value
+
+    model = scale * in_data
+
+    return (out_data - model)/error
+
+
+def find_scales(SN_Array, temp_flux, temp_ivar):
+    scales = []
+
+    #loop over each SN in the array
+    for SN in SN_Array:
+        #grab out the flux and inverse variance for that SN
+        flux = SN.flux
+        ivar = SN.variance
+
+        #Make the combined inverse variance function.  Zeros should multiply to get zeros
+        overlap = temp_ivar * ivar
+        n_overlap = len([x for x in overlap if x > 0])
+
+        if n_overlap < 100:
+
+            #If there is insufficient overlap, the scale is zero.
+            scales = np.append(scales, np.array([0]), axis = 0)
+
+        else:
+
+            #Otherwise, fit things
+            params = Parameters()
+            params.add('scale') = 1.
+
+            #Find the appropriate values for scaling
+            good = np.where(overlap > 0)
+            result = minimize(residual, params, args=(flux[good], template[good], 1/ivar[good]))
+
+            #Put the fitted value in the array
+            scales = np.append(scales, np.array([scale]), axis = 0)
+
+    return scales
+
 
 def makearray(SN_Array):
 	print "Creating arrays..."
@@ -183,6 +226,8 @@ def average(SN_Array, fluxes, errors, reds):
 	#compare_spectrum.redshifts = avg_red
 	#compare_spectrum.ages = avg_ages
 	return compare_spectrum
+
+
 def main():
     SN_Array = []
     #Accept SQL query as input and then grab what we need
@@ -214,13 +259,22 @@ def main():
     template.wavelength = np.array([composite.wavelength[good]])
     template.flux       = np.array([composite.flux[good]])
 
-    i = 0
-    while (i == 0):
+#    i = 0
+#    while (i == 0):
 	# Instead of trimming things, I think a better approach would be to make an array that is the minimum of the inverse variances of the template and comparison spectrum.  That will be zero where they don't overlap.  Then you just select the indices corresponding to non-zero values.  No for loops necessary.
-        scales=[]
-	waves, fluxes, errors, reds, factor = makearray(SN_Array)
-	scales.append(factor)
-	low_overlap, SN_Array = overlap(waves, SN_Array)
+    n_start = 0
+    n_end   = 1
+    while (n_start != n_end):
+        scales = []
+        scales = find_scale(SN_Array, temp_flux, temp_ivar)
+        
+        n_scale = len([x for x in scales if x > 0])
+
+
+
+#	waves, fluxes, errors, reds, factor = makearray(SN_Array)
+#	scales.append(factor)
+#	low_overlap, SN_Array = overlap(waves, SN_Array)
 	print len(low_overlap), "do not overlap.", len(SN_Array), "spectra being averaged."
 	#I think that you can scale things in the makearray function.  That would make things a little more efficient and cleaner.
 	#Below can be done cleaner and without a for loop.
