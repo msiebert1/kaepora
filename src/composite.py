@@ -13,8 +13,7 @@ from astropy.table import Table
 import msgpack as msg
 import msgpack_numpy as mn
 import lmfit
-from scipy.optimize import curve_fit
-from lmfit import minimize, Parameters
+from scipy.optimize import curve_fit, minimize
 
 np.set_printoptions(threshold=np.nan)
 mn.patch()
@@ -30,6 +29,9 @@ max_light = np.loadtxt("../personal/AaronBeaudoin/week4/MaxSpectra.dat", dtype =
 
 class supernova(object):
     """Attributes can be added"""
+    
+class Parameters(object):
+    """Not sure what goes here"""
 
 #Connect to database
 #change this address to whereever you locally stored the SNe.db
@@ -94,48 +96,6 @@ def find_nearest(array,value):
 def scfunc(x,a):
     return a*x
 
-def scale_func(params, in_data, out_data, error):
-    scale = params['scale'].value
-
-    model = scale * in_data
-
-    return (out_data - model)/error
-
-
-def find_scales(SN_Array, temp_flux, temp_ivar):
-    scales = []
-
-    #loop over each SN in the array
-    for SN in SN_Array:
-        #grab out the flux and inverse variance for that SN
-        flux = SN.flux
-        ivar = SN.variance
-
-        #Make the combined inverse variance function.  Zeros should multiply to get zeros
-        overlap = temp_ivar * ivar
-        n_overlap = len([x for x in overlap if x > 0])
-
-        if n_overlap < 100:
-
-            #If there is insufficient overlap, the scale is zero.
-            scales = np.append(scales, np.array([0]), axis = 0)
-
-        else:
-
-            #Otherwise, fit things
-            params = Parameters()
-            params.add('scale') = 1.
-
-            #Find the appropriate values for scaling
-            good = np.where(overlap > 0)
-            result = minimize(residual, params, args=(flux[good], template[good], 1/ivar[good]))
-
-            #Put the fitted value in the array
-            scales = np.append(scales, np.array([scale]), axis = 0)
-
-    return scales
-
-
 def makearray(SN_Array):
 	print "Creating arrays..."
 	fluxes = []
@@ -176,13 +136,13 @@ def makearray(SN_Array):
 		#factor, pcov = curve_fit(scfunc, fluxes[0,:], fluxes[i,:], sigma = 1/errors[i,:])
 		#flux1 = np.array([value for value in fluxes[0,:] if not math.isnan(value)])
 		#flux2 = np.array([value for value in fluxes[i,:] if not math.isnan(value)])
-		#Ideally, this only scales the region overlapping spectrum 0.
-		#Somehow, using the same slice in two different arrays gives different sizes.
-		#Need to fix it.
+		#Oh man, this might actually almost work?
+		#I think it still needs tweaking.
 		low2 = np.where(waves[i]==find_nearest(waves[i], round(SN_Array[i].minwave)))
 		high2 = np.where(waves[i]==find_nearest(waves[i], round(SN_Array[i].maxwave)))
 		print low2[0], high2[0]
-		factors = fluxes[0,:][low2[0]:high2[0]] / fluxes[i,:][low2[0]:high2[0]]
+		#print fluxes[i,:][low2[0]:high2[0]]
+		factors = np.array(fluxes[0,:][(low2[0]+1):high2[0]]) / np.array(fluxes[i,:][(low2[0]+1):high2[0]])
 		#print factors
 		factor = np.mean(factors)
 		fluxes[i,:] *= factor
@@ -205,29 +165,71 @@ def overlap(waves, SN_Array):
             SN_Array.remove(SN)
     return low_overlap, SN_Array
 
+def scale_func(params, in_data, out_data, error):
+    scale = params
+
+    model = scale * in_data
+
+    return (out_data - model)/error
+
+def find_scales(SN_Array, temp_flux, temp_ivar):
+    scales = []
+
+    #loop over each SN in the array
+    for SN in SN_Array:
+        #grab out the flux and inverse variance for that SN
+        flux = SN.flux
+        ivar = SN.variance
+
+        #Make the combined inverse variance function.  Zeros should multiply to get zeros
+        overlap = temp_ivar * ivar
+        n_overlap = len([x for x in overlap if x > 0])
+
+        if n_overlap < 100:
+
+            #If there is insufficient overlap, the scale is zero.
+            scales = np.append(scales, np.array([0]), axis = 0)
+
+        else:
+
+            #Otherwise, fit things
+            params = Parameters()
+            params.scale = 1.
+
+            #Find the appropriate values for scaling
+            good = np.where(overlap > 0)
+            result = minimize(scale_func, params.scale, args=(flux[good], temp_flux[good], 1/ivar[good]))
+
+            #Put the fitted value in the array
+            scales = np.append(scales, np.array([result]), axis = 0)
+
+    return scales
+
+def scale_data(SN_Array, scales):
+    for i in len(SN_Array):
+	SN_Array[i].flux *= scales[i]
+    return SN_Array
+
 #averages with weights based on the given errors in .flm files
 def average(SN_Array, fluxes, errors, reds):
 	print "Averaging..."
-	newflux = []
-	newerror = []
 	for i in range(len(SN_Array)):
-	    if i == 0:
-		newflux = np.array([value for value in fluxes[i,:] if not math.isnan(value)])
-		newerror = np.array([value for value in errors[i,:] if not math.isnan(value)])
-	    else:
-		newflux = np.append(newflux, np.array([value for value in fluxes[i,:] if not math.isnan(value)]), axis=0)
-		newerror = np.append(newerror, np.array([value for value in errors[i,:] if not math.isnan(value)]), axis=0)
-	avg_flux = np.average(newflux, weights = 1.0/newerror, axis=0)
-	print avg_flux
+	    for j in range(len(fluxes[0,:])):
+		if np.isnan(fluxes[i,j]):
+		    errors[i,j] = 0
+		    fluxes[i,j] = 0
+	#print fluxes, errors
+	avg_flux = np.average(fluxes, weights = 1.0/errors, axis=0)
+	avg_error = np.average(errors, weights = 1.0/errors, axis=0)
+	print avg_flux, avg_error
 	#avg_red = np.average(reds, weights = 1.0/errors, axis = 0)
 	#avg_age = np.average(ages, weights = 1.0/errors, axis = 0)
 	compare_spectrum = SN_Array[0]
 	compare_spectrum.flux = avg_flux
+	compare_spectrum.variance = avg_error
 	#compare_spectrum.redshifts = avg_red
 	#compare_spectrum.ages = avg_ages
 	return compare_spectrum
-
-
 def main():
     SN_Array = []
     #Accept SQL query as input and then grab what we need
@@ -256,31 +258,25 @@ def main():
 
     good = np.where(len(np.where(((wavemin > wmin) & (wavemax < wmax)) > 100))) #& (SN.SNR>.8*max(SN.SNR)))
     template = supernova()
-    template.wavelength = np.array([composite.wavelength[good]])
-    template.flux       = np.array([composite.flux[good]])
-
-#    i = 0
-#    while (i == 0):
-	# Instead of trimming things, I think a better approach would be to make an array that is the minimum of the inverse variances of the template and comparison spectrum.  That will be zero where they don't overlap.  Then you just select the indices corresponding to non-zero values.  No for loops necessary.
+    template = SN_Array[good[0]]
+    
+    i = 0
     n_start = 0
-    n_end   = 1
+    n_end = 1
     while (n_start != n_end):
-        scales = []
-        scales = find_scale(SN_Array, temp_flux, temp_ivar)
-        
-        n_scale = len([x for x in scales if x > 0])
-
-
-
-#	waves, fluxes, errors, reds, factor = makearray(SN_Array)
-#	scales.append(factor)
-#	low_overlap, SN_Array = overlap(waves, SN_Array)
-	print len(low_overlap), "do not overlap.", len(SN_Array), "spectra being averaged."
+	# Instead of trimming things, I think a better approach would be to make an array that is the minimum of the inverse variances of the template and comparison spectrum.  That will be zero where they don't overlap.  Then you just select the indices corresponding to non-zero values.  No for loops necessary.
+        scales=[]
+	waves, fluxes, errors, reds, factor = makearray(SN_Array)
+	scales.append(factor)
+	scales = find_scales(SN_Array, template.flux, template.variance)
+	n_scale = len([x for x in scales if x>0])
+	SN_Array = scale_data(SN_Array, scales)
+	#low_overlap, SN_Array = overlap(waves, SN_Array)
+	#print len(low_overlap), "do not overlap.", len(SN_Array), "spectra being averaged."
 	#I think that you can scale things in the makearray function.  That would make things a little more efficient and cleaner.
 	#Below can be done cleaner and without a for loop.
         template = average(SN_Array, fluxes, errors, reds)
-        if not np.any(scales) == 0:
-	    i += 1
+        n_end = n_scale
     print "Done."
     #Either writes data to file, or returns it to user
     table = Table([template.wavelength, template.flux, template.variance], names = ('Wavelength', 'Flux', 'Variance'))
