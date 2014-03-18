@@ -70,11 +70,12 @@ def read_bsnip_data(data_file):
                 (58,63),(63,69),(69,97)))
         dmat = data.as_matrix()
         bsnip_dict = {}
-        for line in lines:
-            if not line.startswith('#'):
-                sndata = line.split()
-
-
+        for line in dmat:
+            key = line[0].split()[1].lower()
+            rs = line[4]
+            vals = [rs]
+            bsnip_dict[key] = vals
+        return bsnip_dict
 
 def find_SN(fname, source=None, csplist=None):
     """
@@ -105,7 +106,7 @@ con = sq3.connect('SNe.db')
 #make sure no prior table in db to avoid doubling/multiple copies of same data
 con.execute("""DROP TABLE IF EXISTS Supernovae""")
 con.execute("""CREATE TABLE IF NOT EXISTS Supernovae (Filename
-                    TEXT PRIMARY KEY, SN Text, Redshift REAL, Phase REAL,
+                    TEXT PRIMARY KEY, SN Text, Source Text, Redshift REAL, Phase REAL,
                     MinWave REAL, MaxWave REAL, Dm15 REAL, M_B REAL,
                     B_mMinusV_m REAL, Targeted INTEGER, Signal_Noise REAL,
                     Interpolated_Spectra BLOB)""")
@@ -114,6 +115,7 @@ con.execute("""CREATE TABLE IF NOT EXISTS Supernovae (Filename
 root = '../data'
 bad_files = []
 bad_interp = []
+bsnip_vals = read_bsnip_data('obj_info_table.txt')
 print "Adding information to table"
 for path, subdirs, files in os.walk(root):
     for name in files:
@@ -141,6 +143,7 @@ for path, subdirs, files in os.walk(root):
 
             #csp source
             if 'csp' in f:
+                source = 'csp'
                 redshift = info[2]
                 phase = float(info[4]) - float(info[3])
                 Dm15 = None
@@ -149,6 +152,7 @@ for path, subdirs, files in os.walk(root):
 
             #cfa spectra
             elif 'cfa' in f:
+                source = 'cfa'
                 redshift = sn_cfa[0]
                 if  sn_cfa[1] == '99999.9':
                     phase = None
@@ -173,7 +177,9 @@ for path, subdirs, files in os.walk(root):
 
             #bsnip spectra
             else:
-                redshift = None
+                source = 'bsnip'
+                data = bsnip_vals[sn_name]
+                redshift = data[0]
                 phase = None
                 Dm15 = None
                 m_b = None
@@ -186,16 +192,18 @@ for path, subdirs, files in os.walk(root):
             spec = msg.packb(spectra)
 
             try:
+
                 interp_spec, sig_noise = prep.compprep(spectra, sn_name)
             except:
+                raise
                 print "Interp failed"
                 bad_interp.append(name)
                 interp_spec, sig_noise = None, None
 
             interped  = msg.packb(interp_spec)
-            con.execute("""INSERT INTO Supernovae(Filename, SN, Redshift, Phase,
+            con.execute("""INSERT INTO Supernovae(Filename, SN, Source, Redshift, Phase,
                                 MinWave, MaxWave, Dm15, M_B, B_mMinusV_m, Signal_Noise, Interpolated_Spectra)
-                                VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", (name, sn_name, redshift,
+                                VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", (name, sn_name, source, redshift,
                                 phase, min_wave, max_wave, Dm15, m_b, bm_vm, sig_noise, buffer(interped)))
 con.commit()
 te = time.clock()

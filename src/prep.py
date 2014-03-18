@@ -122,15 +122,15 @@ def Interpo (wave, flux, variance) :
     good_data = np.where((wave >= lower) & (wave <= upper))	#creates an array of wavelength values between minimum and maximum wavelengths from new spectrum
     influx = inter.splrep(wave[good_data], flux[good_data])	#creates b-spline from new spectrum
     invar  = inter.splrep(wave[good_data], variance[good_data]) # doing the same with the errors
-    
+
     inter_flux = inter.splev(wavelength, influx)	#fits b-spline over wavelength range
     inter_var  = inter.splev(wavelength, invar)   # doing the same with errors
-    
+
     missing_data = np.where((wavelength < lower) | (wavelength > upper))
     inter_flux[missing_data] = float('NaN')  # set the bad values to NaN !!!
     inter_var[missing_data] =  float('NaN')
-    
-    output = np.array([wavelength, inter_flux, fitted_var]) # put the interpolated data into the new table
+
+    output = np.array([wavelength, inter_flux, inter_var]) # put the interpolated data into the new table
 
     return output # return new table
 
@@ -151,21 +151,21 @@ def compprep(spectrum,file_name):
     sn_parameter = ReadParam()
     sne = ReadExtin()
     newdata = []
-    
+
     old_wave = spectrum[:,0]	    #wavelengths
     old_flux = spectrum[:,1] 	#fluxes
-    old_var  = spectrum[:,2]  #errors
-    
-#    old_var = genvar(old_wave, old_flux) #variance
+    #old_var  = spectrum[:,2]  #errors
+
+    old_var = genvar(old_wave, old_flux) #variance
     snr = getsnr(old_flux, old_var)
     print 'S/N ratio', file_name, snr
-    
+
     new_spectrum = dered(sn_parameter, sne, file_name, old_wave, old_flux)
     new_wave = new_spectrum[0]
     new_flux = new_spectrum[1]
     new_var  = genvar(new_wave, new_flux) #variance
     #var = new_flux*0+1
     newdata = Interpo(new_wave, new_flux, new_var) # Do the interpolation
-#    print 'new spectra',newdata    
+#    print 'new spectra',newdata
     return newdata, snr
 
