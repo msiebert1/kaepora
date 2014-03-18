@@ -45,22 +45,22 @@ def grab(sql_input, Full_query):
     #at some point this should be more modular but for now I'm only going to accept the full query
     for row in cur:
         if sql_input == Full_query:
-            SN = supernova()
+            SN          = supernova()
             SN.filename = row[0]
-            SN.name = row[1]
+            SN.name     = row[1]
             SN.redshift = row[2]
-	    SN.phase = row[3]
-            SN.minwave = row[4]
-            SN.maxwave = row[5]
-	    SN.SNR = row[10]
+	    SN.phase    = row[3]
+            SN.minwave  = row[4]
+            SN.maxwave  = row[5]
+	    SN.SNR      = row[10]
             #spectra = msg.unpackb(row[7])
             #SN.spectrum = spectra
-	    interp = msg.unpackb(row[12])
-	    SN.interp = interp
+	    interp      = msg.unpackb(row[12])
+	    SN.interp   = interp
 	    try:
 		SN.wavelength = SN.interp[0,:]
-		SN.flux = SN.interp[1,:]
-		SN.variance = SN.interp[2,:]
+		SN.flux       = SN.interp[1,:]
+		SN.variance   = SN.interp[2,:]
 	    except TypeError:
 		continue
 	    full_array.append(SN)
@@ -201,7 +201,8 @@ def find_scales(SN_Array, temp_flux, temp_ivar):
             result = minimize(scale_func, params.scale, args=(flux[good], temp_flux[good], 1/ivar[good]))
 
             #Put the fitted value in the array
-            scales = np.append(scales, np.array([result]), axis = 0)
+#            scales = np.append(scales, np.array([result]), axis = 0)
+            scales = np.append(scales, np.array([params.scale]), axis = 0)
 
     return scales
 
@@ -213,6 +214,8 @@ def scale_data(SN_Array, scales):
 #averages with weights based on the given errors in .flm files
 def average(SN_Array, fluxes, errors, reds):
 	print "Averaging..."
+
+#This should not be necessary.  The ivars should all be zero, and this should be done before adding things to the database
 	for i in range(len(SN_Array)):
 	    for j in range(len(fluxes[0,:])):
 		if np.isnan(fluxes[i,j]):
@@ -224,12 +227,15 @@ def average(SN_Array, fluxes, errors, reds):
 	print avg_flux, avg_error
 	#avg_red = np.average(reds, weights = 1.0/errors, axis = 0)
 	#avg_age = np.average(ages, weights = 1.0/errors, axis = 0)
+
+#I'm confused about the below stuff.  I also think that most of this function can be done in only a few lines (the np.average stuff)... I must be missing something.
 	compare_spectrum = SN_Array[0]
 	compare_spectrum.flux = avg_flux
 	compare_spectrum.variance = avg_error
 	#compare_spectrum.redshifts = avg_red
 	#compare_spectrum.ages = avg_ages
 	return compare_spectrum
+
 def main():
     SN_Array = []
     #Accept SQL query as input and then grab what we need
@@ -266,17 +272,23 @@ def main():
     while (n_start != n_end):
 	# Instead of trimming things, I think a better approach would be to make an array that is the minimum of the inverse variances of the template and comparison spectrum.  That will be zero where they don't overlap.  Then you just select the indices corresponding to non-zero values.  No for loops necessary.
         scales=[]
+	n_start = len([x for x in scales if x>0])
+        
 	waves, fluxes, errors, reds, factor = makearray(SN_Array)
 	scales.append(factor)
+        
 	scales = find_scales(SN_Array, template.flux, template.variance)
 	n_scale = len([x for x in scales if x>0])
 	SN_Array = scale_data(SN_Array, scales)
+
 	#low_overlap, SN_Array = overlap(waves, SN_Array)
 	#print len(low_overlap), "do not overlap.", len(SN_Array), "spectra being averaged."
 	#I think that you can scale things in the makearray function.  That would make things a little more efficient and cleaner.
 	#Below can be done cleaner and without a for loop.
+
         template = average(SN_Array, fluxes, errors, reds)
         n_end = n_scale
+
     print "Done."
     #Either writes data to file, or returns it to user
     table = Table([template.wavelength, template.flux, template.variance], names = ('Wavelength', 'Flux', 'Variance'))
