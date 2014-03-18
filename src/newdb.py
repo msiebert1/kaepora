@@ -139,6 +139,7 @@ for path, subdirs, files in os.walk(root):
                 if 'sn2011' not in name:
                     sn_cfa = sndict[sn_name]
                 else:
+                    snd = None
                     sn_cfa = [None] * 14
 
             #csp source
@@ -157,8 +158,11 @@ for path, subdirs, files in os.walk(root):
                 if  sn_cfa[1] == '99999.9':
                     phase = None
                 else:
-                    phase = float(date_dict[name]) - float(sn_cfa[1])
-
+                    #try/except catches and fixes sn2011 errors
+                    try:
+                        phase = float(date_dict[name]) - float(sn_cfa[1])
+                    except:
+                        phase = None
                 if sn_cfa[4] == '9.99':
                     Dm15 = None
                 else:
@@ -178,7 +182,7 @@ for path, subdirs, files in os.walk(root):
             #bsnip spectra
             else:
                 source = 'bsnip'
-                data = bsnip_vals[sn_name]
+                data = bsnip_vals[sn_name.lower()]
                 redshift = data[0]
                 phase = None
                 Dm15 = None
@@ -195,9 +199,9 @@ for path, subdirs, files in os.walk(root):
 
                 interp_spec, sig_noise = prep.compprep(spectra, sn_name)
             except:
-                raise
                 print "Interp failed"
                 bad_interp.append(name)
+                bad_files.append(name)
                 interp_spec, sig_noise = None, None
 
             interped  = msg.packb(interp_spec)
@@ -207,5 +211,6 @@ for path, subdirs, files in os.walk(root):
                                 phase, min_wave, max_wave, Dm15, m_b, bm_vm, sig_noise, buffer(interped)))
 con.commit()
 te = time.clock()
-print bad_interp
+print 'bad files', bad_files, len(bad_files)
+print 'bad interps', bad_interp, len(bad_interp)
 print te - ts

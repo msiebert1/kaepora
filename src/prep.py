@@ -120,7 +120,9 @@ def Interpo (wave, flux, variance) :
     upper = wave[-1]
 
     good_data = np.where((wave >= lower) & (wave <= upper))	#creates an array of wavelength values between minimum and maximum wavelengths from new spectrum
+
     influx = inter.splrep(wave[good_data], flux[good_data])	#creates b-spline from new spectrum
+
     invar  = inter.splrep(wave[good_data], variance[good_data]) # doing the same with the errors
 
     inter_flux = inter.splev(wavelength, influx)	#fits b-spline over wavelength range
