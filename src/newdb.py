@@ -179,7 +179,6 @@ for path, subdirs, files in os.walk(root):
                 else:
                     bm_vm = sn_cfa[11]
 
-
             #bsnip spectra
             else:
                 c = 299792.458
@@ -191,14 +190,12 @@ for path, subdirs, files in os.walk(root):
                 m_b = None
                 bm_vm = None
 
-
             waves = spectra[:, 0]
             min_wave = waves[0]
             max_wave = waves[len(spectra) - 1]
             spec = msg.packb(spectra)
 
             try:
-
                 interp_spec, sig_noise = prep.compprep(spectra, sn_name)
             except:
                 print "Interp failed"
