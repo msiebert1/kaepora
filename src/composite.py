@@ -134,10 +134,6 @@ def makearray(SN_Array):
 	    #try:
 		#I still can't make curve_fit work, so I'm trying something else. -Sam
 		#factor, pcov = curve_fit(scfunc, fluxes[0,:], fluxes[i,:], sigma = 1/errors[i,:])
-		#flux1 = np.array([value for value in fluxes[0,:] if not math.isnan(value)])
-		#flux2 = np.array([value for value in fluxes[i,:] if not math.isnan(value)])
-		#Oh man, this might actually almost work?
-		#I think it still needs tweaking.
 		low2 = np.where(waves[i]==find_nearest(waves[i], round(SN_Array[i].minwave)))
 		high2 = np.where(waves[i]==find_nearest(waves[i], round(SN_Array[i].maxwave)))
 		print low2[0], high2[0]
@@ -198,7 +194,10 @@ def find_scales(SN_Array, temp_flux, temp_ivar):
 
             #Find the appropriate values for scaling
             good = np.where(overlap > 0)
-            result = minimize(scale_func, params.scale, args=(flux[good], temp_flux[good], 1/ivar[good]))
+	    flux = np.array([flux[good]])
+	    temp_flux = np.array([temp_flux[good]])
+	    ivar = np.array([ivar[good]])
+            result = minimize(scale_func, params.scale, args=(flux, temp_flux, ivar))
 
             #Put the fitted value in the array
 #            scales = np.append(scales, np.array([result]), axis = 0)
@@ -222,18 +221,11 @@ def average(SN_Array, fluxes, errors, reds):
 		    errors[i,j] = 0
 		    fluxes[i,j] = 0
 	#print fluxes, errors
-	avg_flux = np.average(fluxes, weights = 1.0/errors, axis=0)
-	avg_error = np.average(errors, weights = 1.0/errors, axis=0)
-	print avg_flux, avg_error
+	compare_spectrum.flux = np.average(fluxes, weights = 1.0/errors, axis=0)
+	compare_spectrum.variance = np.average(errors, weights = 1.0/errors, axis=0)
+	print compare_spectrum.flux, compare_spectrum.variance
 	#avg_red = np.average(reds, weights = 1.0/errors, axis = 0)
 	#avg_age = np.average(ages, weights = 1.0/errors, axis = 0)
-
-#I'm confused about the below stuff.  I also think that most of this function can be done in only a few lines (the np.average stuff)... I must be missing something.
-	compare_spectrum = SN_Array[0]
-	compare_spectrum.flux = avg_flux
-	compare_spectrum.variance = avg_error
-	#compare_spectrum.redshifts = avg_red
-	#compare_spectrum.ages = avg_ages
 	return compare_spectrum
 
 def main():
