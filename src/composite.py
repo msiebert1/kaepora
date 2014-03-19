@@ -71,7 +71,7 @@ def grab(sql_input, Full_query):
 	    print "Invalid query...more support will come"
     print len(SN_Array), "spectra found"
     #cut the array down to be more manageable
-    SN_Array = SN_Array[0:50]
+    SN_Array = SN_Array[0:100]
     SN_Array = [SN for SN in SN_Array if hasattr(SN, 'wavelength')]
     SN_Array = [SN for SN in SN_Array if hasattr(SN, 'variance')]
     print len(SN_Array), "spectra remain"
@@ -313,6 +313,7 @@ def main():
 	
     print "Done."
     plt.plot(template.wavelength, template.flux)
+    plt.savefig('Test Composite.png')
     plt.show()
     #Either writes data to file, or returns it to user
     table = Table([template.wavelength, template.flux, template.ivar], names = ('Wavelength', 'Flux', 'Variance'))
