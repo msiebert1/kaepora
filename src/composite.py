@@ -165,18 +165,19 @@ def scale_func(params, in_data, out_data, error):
     scale = params
 
     model = scale * in_data
-
-    return (out_data - model)/error
+    #previously, this was returning an array, and minimize didn't like that...so I made it a single value like this.
+    #I hope that's reasonable
+    return np.mean((out_data - model)/error)
 
 def find_scales(SN_Array, temp_flux, temp_ivar):
     scales = []
-
+    print "Finding scales..."
     #loop over each SN in the array
     for SN in SN_Array:
         #grab out the flux and inverse variance for that SN
         flux = SN.flux
         ivar = SN.variance
-
+	tempflux = temp_flux
         #Make the combined inverse variance function.  Zeros should multiply to get zeros
         overlap = temp_ivar * ivar
         n_overlap = len([x for x in overlap if x > 0])
@@ -195,10 +196,10 @@ def find_scales(SN_Array, temp_flux, temp_ivar):
             #Find the appropriate values for scaling
             good = np.where(overlap > 0)
 	    flux = np.array([flux[good]])
-	    temp_flux = np.array([temp_flux[good]])
+	    tempflux = np.array([temp_flux[good]])
 	    ivar = np.array([ivar[good]])
-            result = minimize(scale_func, params.scale, args=(flux, temp_flux, ivar))
-
+            result = minimize(scale_func, params.scale, args=(flux, tempflux, ivar))
+	    print params.scale
             #Put the fitted value in the array
 #            scales = np.append(scales, np.array([result]), axis = 0)
             scales = np.append(scales, np.array([params.scale]), axis = 0)
@@ -206,27 +207,43 @@ def find_scales(SN_Array, temp_flux, temp_ivar):
     return scales
 
 def scale_data(SN_Array, scales):
-    for i in len(SN_Array):
+    print "Scaling..."
+    for i in range(len(SN_Array)):
 	SN_Array[i].flux *= scales[i]
     return SN_Array
 
 #averages with weights based on the given errors in .flm files
-def average(SN_Array, fluxes, errors, reds):
+def average(SN_Array, template):
 	print "Averaging..."
-
-#This should not be necessary.  The ivars should all be zero, and this should be done before adding things to the database
+	#print fluxes, errors
+	fluxes = []
+	errors = []
+	for SN in SN_Array:
+	    if len(fluxes) == 0:
+		fluxes = np.array([SN.flux])
+		errors = np.array([SN.variance])
+		#waves = np.array([wavelength])
+ 		#reds = np.array([red])
+		#ages = np.array([age])
+	    else:
+		try:
+		    fluxes = np.append(fluxes, np.array([SN.flux]), axis=0)
+		    errors = np.append(errors, np.array([SN.variance]), axis=0)
+		    #waves = np.append(waves, np.array([wavelength]), axis=0)
+		    #reds = np.append(reds, np.array([red]), axis = 0)
+		    #ages = np.append(ages, np.array([age]), axis = 0)
+		except ValueError:
+		    print "oh god what is happening"
 	for i in range(len(SN_Array)):
 	    for j in range(len(fluxes[0,:])):
 		if np.isnan(fluxes[i,j]):
-		    errors[i,j] = 0
 		    fluxes[i,j] = 0
-	#print fluxes, errors
-	compare_spectrum.flux = np.average(fluxes, weights = 1.0/errors, axis=0)
-	compare_spectrum.variance = np.average(errors, weights = 1.0/errors, axis=0)
-	print compare_spectrum.flux, compare_spectrum.variance
-	#avg_red = np.average(reds, weights = 1.0/errors, axis = 0)
-	#avg_age = np.average(ages, weights = 1.0/errors, axis = 0)
-	return compare_spectrum
+		    errors[i,j] = 0
+	print fluxes, errors
+	template.flux = np.average(fluxes, weights = 1.0/errors, axis=0)
+	template.variance = np.average(errors, weights = 1.0/errors, axis=0)
+	print template.flux, template.variance
+	return template
 
 def main():
     SN_Array = []
@@ -266,8 +283,8 @@ def main():
         scales=[]
 	n_start = len([x for x in scales if x>0])
         
-	waves, fluxes, errors, reds, factor = makearray(SN_Array)
-	scales.append(factor)
+	#waves, fluxes, errors, reds, factor = makearray(SN_Array)
+	#scales.append(factor)
         
 	scales = find_scales(SN_Array, template.flux, template.variance)
 	n_scale = len([x for x in scales if x>0])
@@ -278,7 +295,7 @@ def main():
 	#I think that you can scale things in the makearray function.  That would make things a little more efficient and cleaner.
 	#Below can be done cleaner and without a for loop.
 
-        template = average(SN_Array, fluxes, errors, reds)
+        template = average(SN_Array, template)
         n_end = n_scale
 
     print "Done."
