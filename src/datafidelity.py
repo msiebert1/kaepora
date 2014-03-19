@@ -121,13 +121,13 @@ def wsmooth(x,window_len=75,window='hanning'):
 #
 # Function to generate variance for files that are missing this data
 #
-## Function gvar() generates a variance spectrum.
+## Function genivar() generates an inverse variance spectrum.
 ## Required inputs are an array of wavelengths (wavelength) and an array of corresponding fluxes (flux)
 ## Optional inputs are velocity of smoothing (vexp) [default 0.005] and number of sigma (nsig) [default 5.0]
-## genvar(wavelength, flux, float vexp = 0.005, float nsig = 5.0)
+## genivar(wavelength, flux, float vexp = 0.005, float nsig = 5.0)
 #
 
-def genvar(wavelength, flux, vexp = 0.0008, nsig = 3.0):
+def genivar(wavelength, flux, vexp = 0.0008, nsig = 3.0):
     
     # Create variance from sky spectrum (Will add additional code here)
     varflux = np.zeros(len(wavelength))+1.0 # Place holder
@@ -141,8 +141,10 @@ def genvar(wavelength, flux, vexp = 0.0008, nsig = 3.0):
     # Smooth noise to find the variance
     variance = gsmooth(wavelength, error, varflux, vexp, nsig)
     
+    ivar = 1/(variance**2)
+    
     # Return generated variance
-    return variance
+    return ivar
 
 ############################################################################
 #
