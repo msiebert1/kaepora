@@ -8,6 +8,7 @@ import prep
 import os
 import time
 
+
 mn.patch()
 
 def read_cfa_or_bsnip(fname):
@@ -181,9 +182,10 @@ for path, subdirs, files in os.walk(root):
 
             #bsnip spectra
             else:
+                c = 299792.458
                 source = 'bsnip'
                 data = bsnip_vals[sn_name.lower()]
-                redshift = data[0]
+                redshift = data[0]/c
                 phase = None
                 Dm15 = None
                 m_b = None
