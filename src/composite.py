@@ -75,8 +75,14 @@ def grab(sql_input, Full_query):
     SN_Array = [SN for SN in SN_Array if hasattr(SN, 'wavelength')]
     SN_Array = [SN for SN in SN_Array if hasattr(SN, 'variance')]
     print len(SN_Array), "spectra remain"
+    for SN in SN_Array[0:5]:
+	plt.plot(SN.wavelength, SN.flux)
+	plt.plot(SN.wavelength, 1/(SN.ivar ** .5))
+	plt.show()
+	plt.savefig(SN.name + ' test spectrum.png')
     return SN_Array
-    
+
+
 """
 #Only keeps one per supernova at max light. Condition can be changed later.
 for SN in full_array:
