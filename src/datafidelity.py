@@ -130,7 +130,7 @@ def wsmooth(x,window_len=75,window='hanning'):
 def genivar(wavelength, flux, vexp = 0.0008, nsig = 3.0):
     
     # Create variance from sky spectrum (Will add additional code here)
-    varflux = np.zeros(len(wavelength))+1.0 # Place holder
+    varflux = np.ones(len(wavelength)) # Place holder
     
     # Smooth original flux
     new_flux = gsmooth(wavelength, flux, varflux, vexp, nsig)
@@ -139,9 +139,9 @@ def genivar(wavelength, flux, vexp = 0.0008, nsig = 3.0):
     error = abs(flux - new_flux)
     
     # Smooth noise to find the variance
-    variance = gsmooth(wavelength, error, varflux, vexp, nsig)
+    sm_error = gsmooth(wavelength, error, varflux, vexp, nsig)
     
-    ivar = 1/(variance**2)
+    ivar = 1/(sm_error**2)
     
     # Return generated variance
     return ivar
@@ -224,29 +224,29 @@ def telluric_flag(wavelength, flux, limit=0.5):
 # inverse variance array
 # Syntax is update_variance(wavelength_array,flux_array, variance_array)
 
-def update_variance(wavelength, flux, variance):
+def update_ivar(wavelength, flux, ivar):
 
     import matplotlib.pyplot as plt
     
 #Determine the clipped indices
 
-    telluric_clip=telluric_flag(wavelength, flux)
+    telluric_clip = telluric_flag(wavelength, flux)
 
 
     for i in range(len(clipped_points)):
-            index=clipped_points[i]
-            variance[index] = 0
+            index = clipped_points[i]
+            ivar[index] = 0
 
 
     for j in range(len(telluric_clip)):
-        index=telluric_clip[j]
-        variance[index] = 0
+        index = telluric_clip[j]
+        ivar[index] = 0
 
     plt.plot(wavelength,flux)
-    plt.plot(wavelength, variance)
+    plt.plot(wavelength, ivar)
     plt.show()
 
     #Return the updated inverse variance spectrum
-    return variance
+    return ivar
 
 
