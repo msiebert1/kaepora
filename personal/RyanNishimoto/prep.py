@@ -12,7 +12,13 @@ import scipy.interpolate as inter
 from math import floor,ceil
 import sqlite3 as sq3
 import msgpack
+"""
+todo:
+varience = sqrt(noise)
+flux/var^2 = signal_to_noise
 
+median for each spectra
+"""
 con = sq3.connect('SNe.db')
 cur = con.cursor()
 #list of files
