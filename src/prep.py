@@ -9,7 +9,7 @@ from astropy.io import ascii
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.interpolate as inter
-from math import floor,ceil
+import math
 #import sqlite3 as sq3
 #import msgpack
 
@@ -76,8 +76,8 @@ def dered(sn_param,sne,filename,wave,flux):
             v = sne[j][2].astype(float)
             bv = b-v
             r = v/bv
-            print "B(%s)-V(%s)=%s"%(b,v,bv)
-            print "R(v) =",r
+#            print "B(%s)-V(%s)=%s"%(b,v,bv)
+#            print "R(v) =",r
             #or use fm07 model
             #test1 = spectra_data[i][:,1] * ex.reddening(spectra_data[i][:,0],ebv = bv, model='ccm89')
             #test2 = spectra_data[i][:,1] * ex.reddening(spectra_data[i][:,0],ebv = bv, model='od94')
@@ -105,36 +105,45 @@ we output the outside values as NAN
 """
 
 
-def Interpo (wave,flux,variance) :
+def Interpo (wave, flux, variance) :
     wave_min = 1500
     wave_max = 12000
-    pix = 2
+    dw = 2
+
     #wavelength = np.linspace(wave_min,wave_max,(wave_max-wave_min)/pix+1)
-    wavelength = np.arange(ceil(wave_min), floor(wave_max), dtype=int, step=pix) #creates N equally spaced wavelength values
-    fitted_flux = []
-    fitted_var = []
-    new = []
+    wavelength = np.arange(math.ceil(wave_min), math.floor(wave_max), dtype=int, step=dw) #creates N equally spaced wavelength values
+    inter_flux = []
+    inter_var  = []
+    output     = []
+
     lower = wave[0] # Find the area where interpolation is valid
-    upper = wave[len(wave)-1]
-    lines = np.where((wave>lower) & (wave<upper))	#creates an array of wavelength values between minimum and maximum wavelengths from new spectrum
-    indata = inter.splrep(wave[lines],flux[lines])	#creates b-spline from new spectrum
-    inerror = inter.splrep(wave[lines],variance[lines]) # doing the same with the errors
-    fitted_flux = inter.splev(wavelength,indata)	#fits b-spline over wavelength range
-    fitted_var = inter.splev(wavelength,inerror)   # doing the same with errors
-    badlines = np.where((wavelength<lower) | (wavelength>upper))
-    fitted_flux[badlines] = float('NaN')  # set the bad values to NaN !!!
-    fitted_var[badlines] = float('NaN')
-    new = np.array([wavelength,fitted_flux,fitted_var]) # put the interpolated data into the new table
-#    print 'new table',new
-    return new # return new table
+    upper = wave[-1]
+
+    good_data = np.where((wave >= lower) & (wave <= upper))	#creates an array of wavelength values between minimum and maximum wavelengths from new spectrum
+
+    influx = inter.splrep(wave[good_data], flux[good_data])	#creates b-spline from new spectrum
+
+    invar  = inter.splrep(wave[good_data], variance[good_data]) # doing the same with the errors
+
+    inter_flux = inter.splev(wavelength, influx)	#fits b-spline over wavelength range
+    inter_var  = inter.splev(wavelength, invar)   # doing the same with errors
+
+    missing_data = np.where((wavelength < lower) | (wavelength > upper))
+    inter_flux[missing_data] = float('NaN')  # set the bad values to NaN !!!
+    inter_var[missing_data] =  float('NaN')
+
+    output = np.array([wavelength, inter_flux, inter_var]) # put the interpolated data into the new table
+
+    return output # return new table
+
 
     # Get the Noise for each spectra
 
-def getnoise(flux,variance) :
-
-    noise = flux/variance**2.0
-    navg = np.median(noise)
-    return navg
+def getsnr(flux, ivar) :
+    sqvar = map(math.sqrt, ivar)
+    snr = flux/(np.divide(1.0, sqvar))
+    snr_med = np.median(snr)
+    return snr_med
 
 from datafidelity import *  # Get variance from the datafidelity outcome
 
@@ -144,19 +153,21 @@ def compprep(spectrum,file_name):
     sn_parameter = ReadParam()
     sne = ReadExtin()
     newdata = []
+
     old_wave = spectrum[:,0]	    #wavelengths
     old_flux = spectrum[:,1] 	#fluxes
-    new_spectrum = dered(sn_parameter,sne,file_name,old_wave,old_flux)
+    #old_var  = spectrum[:,2]  #errors
+
+    old_var = genivar(old_wave, old_flux) #variance
+    snr = getsnr(old_flux, old_var)
+    print 'S/N ratio', file_name, snr
+
+    new_spectrum = dered(sn_parameter, sne, file_name, old_wave, old_flux)
     new_wave = new_spectrum[0]
     new_flux = new_spectrum[1]
-    var = genvar(new_wave, new_flux) #variance
+    new_var  = genivar(new_wave, new_flux) #variance
     #var = new_flux*0+1
-    newdata = Interpo(new_wave,new_flux,var) # Do the interpolation
-    #print 'new spectra',newdata
-    navg = getnoise(new_flux,var)
-
-    return newdata, navg
-
-
-
+    newdata = Interpo(new_wave, new_flux, new_var) # Do the interpolation
+#    print 'new spectra',newdata
+    return newdata, snr
 

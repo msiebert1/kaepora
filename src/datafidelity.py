@@ -11,6 +11,7 @@
 # Import necessary python modules
 import numpy as np
 from math import *
+import matplotlib.pyplot as plt
 
 ############################################################################
 #
@@ -48,7 +49,7 @@ def gsmooth(x_array, y_array, var_y, vexp = 0.005, nsig = 5.0):
         W0 = np.sum(W_lambda)
         W1 = np.sum(W_lambda*y_array)
         new_y[i] = W1/W0
-    
+
     # Return smoothed y-array
     return new_y
 
@@ -58,7 +59,7 @@ def gsmooth(x_array, y_array, var_y, vexp = 0.005, nsig = 5.0):
 ## Optional inputs are window length (window_len) and window type (window)
 ## Syntax: new_flux_array = wsmooth(flux_array, window_len=17, window='hanning')
 
-def wsmooth(x,window_len=11,window='hanning'):
+def wsmooth(x,window_len=75,window='hanning'):
     """smooth the data using a window with requested size.
         
         This method is based on the convolution of a scaled window with the signal.
@@ -120,16 +121,16 @@ def wsmooth(x,window_len=11,window='hanning'):
 #
 # Function to generate variance for files that are missing this data
 #
-## Function gvar() generates a variance spectrum.
+## Function genivar() generates an inverse variance spectrum.
 ## Required inputs are an array of wavelengths (wavelength) and an array of corresponding fluxes (flux)
 ## Optional inputs are velocity of smoothing (vexp) [default 0.005] and number of sigma (nsig) [default 5.0]
-## genvar(wavelength, flux, float vexp = 0.005, float nsig = 5.0)
+## genivar(wavelength, flux, float vexp = 0.005, float nsig = 5.0)
 #
 
-def genvar(wavelength, flux, vexp = 0.005, nsig = 5.0):
+def genivar(wavelength, flux, vexp = 0.0008, nsig = 3.0):
     
     # Create variance from sky spectrum (Will add additional code here)
-    varflux = np.zeros(len(wavelength))+1.0 # Place holder
+    varflux = np.ones(len(wavelength)) # Place holder
     
     # Smooth original flux
     new_flux = gsmooth(wavelength, flux, varflux, vexp, nsig)
@@ -138,10 +139,12 @@ def genvar(wavelength, flux, vexp = 0.005, nsig = 5.0):
     error = abs(flux - new_flux)
     
     # Smooth noise to find the variance
-    variance = gsmooth(wavelength, error, varflux, vexp, nsig)
+    sm_error = gsmooth(wavelength, error, varflux, vexp, nsig)
+    
+    ivar = 1/(sm_error**2)
     
     # Return generated variance
-    return variance
+    return ivar
 
 ############################################################################
 #
@@ -150,8 +153,8 @@ def genvar(wavelength, flux, vexp = 0.005, nsig = 5.0):
 # Optional inputs are the upper and lower limits for the ratio
 # Syntax is clip(flux_array, upper = 1.7, lower = 0.5)
 
-def clip(flux, upper = 1.1, lower = 0.9):
-    
+def clip(wavelength, flux, upper = 1.9, lower = 0.1):
+    import matplotlib.pyplot as plt
     #Clip any bad data and replace it with the smoothed value.  Fine tune the ratio limits to cut more (ratio closer to one) or less (ratio farther from one) data
     
     new_flux = np.zeros(len(flux))
@@ -169,7 +172,10 @@ def clip(flux, upper = 1.1, lower = 0.9):
             clipped_points.append(i)
         else:
             new_flux[i] = flux[i]
-    
+
+    plt.plot(wavelength,flux)
+    plt.plot(wavelength, new_flux)
+    plt.show()
     return new_flux, clipped_points
 
 
@@ -178,29 +184,34 @@ def clip(flux, upper = 1.1, lower = 0.9):
 # Function telluric_flag() scans data for telluric lines and flags any
 # of the indices that have telluric contamination
 # Required inputs are an array of wavelengths and an array of fluxes
-# Optional input is the limit for flagging
-# Syntax is telluric_flag(wavelength_array,flux_array, limit = 0.99)
+# Optional input is the limit for flagging. As the limit approaches 1, the
+# amount of clipping increases.
+# Syntax is telluric_flag(wavelength_array,flux_array, limit = 0.9)
 
-def telluric_flag(wavelength, flux, limit=0.9):
+def telluric_flag(wavelength, flux, limit=0.5):
+    import matplotlib.pyplot as plt
+    telluric_lines = np.loadtxt('../../../personal/malloryconlon/Data_fidelity/telluric_lines.txt')
 
-    telluric_lines = np.loadtxt('telluric_lines.txt')
+    mi = telluric_lines[:,0]
+    ma = telluric_lines[:,1]
 
-    min = telluric_lines[:,0]
-    max = telluric_lines[:,1]
-
-    new_flux = wsmooth(flux,window_len=35)
+    new_flux = wsmooth(flux)
 
     ratio = flux/new_flux
-    telluric_clip = np.zeros(len(flux))
+    telluric_clip = []
 
 #Look at the flux/smoothed flux ratios for a given telluric absorption range as defined by the min and max arrays. If the ratio is less than the given condition, clip and replace with the smoothed flux value.
 
     for i in range(len(wavelength)):
-        for j in range(len(min)):
-            if wavelength[i] > min[j]:
-                if wavelength[i] < max[j]:
+        for j in range(len(mi)):
+            if wavelength[i] > mi[j]:
+                if wavelength[i] < ma[j]:
                     if ratio[i] < limit:
                         telluric_clip.append(i)
+
+    plt.plot(wavelength,flux)
+    plt.plot(wavelength[telluric_clip],flux[telluric_clip],'rD')
+    plt.show()
 
 #Return the indices of telluric absorption
     return telluric_clip
@@ -213,21 +224,29 @@ def telluric_flag(wavelength, flux, limit=0.9):
 # inverse variance array
 # Syntax is update_variance(wavelength_array,flux_array, variance_array)
 
-def update_variance(wavelength, flux, variance):
+def update_ivar(wavelength, flux, ivar):
 
+    import matplotlib.pyplot as plt
+    
 #Determine the clipped indices
-    telluric_clip=telluric_flag(wavelength, flux)
-    clipped_points=clip(flux)
+
+    telluric_clip = telluric_flag(wavelength, flux)
+
 
     for i in range(len(clipped_points)):
-            variance[clipped_points[i]] = 0
+            index = clipped_points[i]
+            ivar[index] = 0
 
 
     for j in range(len(telluric_clip)):
-        variance[telluric_clip[i]] = 0
+        index = telluric_clip[j]
+        ivar[index] = 0
 
+    plt.plot(wavelength,flux)
+    plt.plot(wavelength, ivar)
+    plt.show()
 
     #Return the updated inverse variance spectrum
-    return variance
+    return ivar
 
 
