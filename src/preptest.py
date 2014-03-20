@@ -36,8 +36,8 @@ file_name = []
 junk_data = []
 
 #number of spectra to modify
-#num = len(spectra_files)
-num = 20
+num = len(spectra_files)
+#num = 20
 
 #get data, pathnames
 for i in range(num):
