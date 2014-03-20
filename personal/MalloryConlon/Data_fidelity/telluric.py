@@ -8,23 +8,34 @@ import pyfits
 import glob
 import os
 
-cor = []
+
+root = '/users/malloryconlon/astr596/data/cfa/'
+
+list = []
+scales = []
+
+for path, subdirs, files in os.walk(root):
+    for name in files:
+        list.append(os.path.join(path,name))
+print list
+
+for i in range(len(list)):
+    try:
+        SN = np.genfromtxt(list[i])
+        wavelength = SN[:,0]
+        flux = SN[:,1]
+        var = SN[:,2]
+        var1 = genvar(wavelength,flux)
+        new = var/var1
+        scale = np.average(new)
+        scales.append(scale)
+    except:
+        print list[i]
+
+print np.average(scales)
 
 
-for dirs,subdirs,files in os.walk('../../data/cfa/'):
-    for subdir in subdirs:
-        list = glob.glob("*.flm")
-
-
-#for i in range(len(list)):
-#   SN = np.genfromtxt('../../../'+'list[i]')
-#    wavelength = SN[:,0]
-#   flux = SN[:,1]
-#    var = SN[:,2]
-#    var1 = genvar(wavelength,flux)
-#    plt.plot(wavelength,var)
-#    plt.plot(wavelength,var1)
-#    plt.show()
+plt.hist(scales)
 
 #open = pyfits.open('bstarr.fits')
 #sky = open[0].data
