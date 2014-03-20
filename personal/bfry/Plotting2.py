@@ -27,6 +27,7 @@ import scipy.optimize as optimize
 #Show_Data     = [Relative_Flux,Residuals]
 #image_title  = "WHOA.png"            # Name the image (with location)
 #title        = "Image is called this" 
+#legend       = ["First","Second","Third","Fouth"]         # Names for the legend
 #
 ## Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift, Multiple Spectrum, Stacked Spectrum
 ##                   0              1          2            3    4      5         6,                 7
@@ -34,7 +35,7 @@ import scipy.optimize as optimize
 #
 ## The following line will plot the data
 #
-#Plotting.main(Show_Data , Plots, image_title , title)
+#Plotting.main(Show_Data , Plots, image_title , title , legend)
 #
 #
 ###########################################
@@ -124,7 +125,7 @@ def main(Show_Data , Plots , image_title , title):
     
     yaxis_1 = []
     yaxis_1 = Scaling(smoothed)
-    
+   
     plt.figure(num = 1, dpi = 100, figsize = [8, np.sum(h)], facecolor = 'w')
     plt.title(title)
     gs = gridspec.GridSpec(len(Plots), 1, height_ratios = h, hspace = 0.001)
@@ -276,10 +277,12 @@ def main(Show_Data , Plots , image_title , title):
         plt.figure(num = 3, dpi = 100, figsize = [8, 4*len(yaxis_1)], facecolor = 'w')
         #plt.plot(xaxis_1, yaxis_1[0])
         plt.plot(xaxis_1, yaxis_1[0])
-        plt.annotate(str(names_1[0]), xy = (max(xaxis_1), max(yaxis_1[0])), xytext = (-10, -15), textcoords = 'offset points', fontsize = 8, family  = 'serif', weight = 'bold', ha = 'right')
+        plt.annotate(str(names_1[0]), xy = (max(xaxis_1), max(yaxis_1[0])), xytext = (-10, -10), textcoords = 'offset points', fontsize = 8, family  = 'serif', weight = 'bold', ha = 'right')
         for m in range(len(yaxis_1)-1):
+            #shift = (m+1)*max(abs(yaxis_1[m+1]-yaxis_1[m]))+0.2
+            #plt.plot(xaxis_1, yaxis_1[m+1]+ymax+max(yaxis_1[m])-min(yaxis_1[m]))
             plt.plot(xaxis_1, yaxis_1[m+1]+(m+1))
-            plt.annotate(str(names_1[m+1]), xy = (max(xaxis_1), max(yaxis_1[m+1])+(m+1)), xytext = (-10, -15), textcoords = 'offset points', fontsize = 8, family  = 'serif', weight = 'bold', ha = 'right')
+            plt.annotate(str(names_1[m+1]), xy = (max(xaxis_1), yaxis_1[m+1]+(m+1)), xytext = (-10, 0), textcoords = 'offset points', fontsize = 8, family  = 'serif', weight = 'bold', ha = 'right')
         plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
         plt.ylabel('Relative, f$_{\lambda}$', fontdict = font)
         plt.minorticks_on()
@@ -300,92 +303,4 @@ def main(Show_Data , Plots , image_title , title):
     plt.savefig( image_title )
     plt.show()
 
-
-
-"""
-    #plt.title("".join(["$^{53}$Mn / $^{55}$Mn, t$_{res}$ = ", str(t_width_Mn), " kyr", ", U$_{Mn}$ = ", str(uptake_Mn[0])]), fontdict = font)
-    #plt.xlabel('Age [Myr]', fontdict = font)
-    plt.ylabel('Residuals', fontdict = font)
-    #plt.axis([Start_Mn-0.05, End_Mn+0.05, 0, 10])
-    #plt.minorticks_on()
-    #plt.xticks(np.arange(Start_Mn, End_Mn+0.05, x_tik))
-    #plt.yticks(np.arange(0, 11, 1))
-    plt.plot(xaxis_1, 2.0*xaxis_1, label = "title goes here", ls = '-')
-    #plt.legend(prop = {'family' : 'serif'})
-    p = p+1
-
-if 2 in Plots:
-    SpecBin = plt.subplot(gs[p], sharex = Rel_flux)
-    #plt.title("".join(["$^{60}$Fe / $^{56}$Fe, t$_{res}$ = ", str(t_width_Fe), " kyr", ", U$_{Fe}$ = ", str(uptake_Fe[0])]), fontdict = font)
-    #plt.xlabel('Age [Myr]', fontdict = font)
-    plt.ylabel('Spectra/Bin', fontdict = font)
-    #plt.axis([Start_Fe-0.05, End_Fe+0.05, 0, 40])
-    #plt.minorticks_on()
-    #plt.xticks(np.arange(Start_Fe, End_Fe+0.05, x_tik))
-    #plt.yticks(np.arange(0, 41, 5))
-    plt.plot(xaxis_1, 0*xaxis_1+3.0, label = "title goes here", ls = '-')
-    #plt.legend(prop = {'family' : 'serif'})
-    p = p+1
-
-if 3 in Plots:
-    Age = plt.subplot(gs[p], sharex = Rel_flux)
-    #plt.title('Decay corrected $^{26}$Al / $^{27}$Al', fontdict = font)
-    #plt.xlabel('Age [Myr]', fontdict = font)
-    plt.ylabel('Age [d]', fontdict = font)
-    #plt.axis([Start_Al-0.05, End_Al+0.05, 0, 30])
-    #plt.minorticks_on()
-    #plt.xticks(np.arange(Start_Al, End_Al+.05, x_tik))
-    #plt.yticks(np.arange(0, 29, 5))
-    plt.plot(xaxis_1, xaxis_1**3.0, label = "title goes here", ls = '-')
-    #plt.legend(prop = {'family' : 'serif'})
-    p = p+1
-
-if 4 in Plots:
-    Delta = plt.subplot(gs[p], sharex = Rel_flux)
-    #plt.title('Decay corrected $^{53}$Mn / $^{55}$Mn', fontdict = font)
-    #plt.xlabel('Age [Myr]', fontdict = font)
-    plt.ylabel('$\Delta$', fontdict = font)
-    #plt.axis([Start_Mn-0.05, End_Mn+0.05, 0, 13])
-    #plt.minorticks_on()
-    #plt.xticks(np.arange(Start_Mn, End_Mn+0.05, x_tik))
-    #plt.yticks(np.arange(0, 13, 2))
-    plt.plot(xaxis_1, 1/xaxis_1, label = "title goes here", ls = '-')
-    #plt.legend(prop = {'family' : 'serif'})
-    p = p+1
-
-if 5 in Plots:
-    Redshift = plt.subplot(gs[p], sharex = Rel_flux)
-    #plt.title('Decay corrected $^{60}$Fe / $^{56}$Fe', fontdict = font)
-    #plt.xlabel('Age [Myr]', fontdict = font)
-    plt.ylabel('Redshift', fontdict = font)
-    #plt.axis([Start_Fe-0.05, End_Fe+0.05, 0, 70])
-    #plt.minorticks_on()
-    #plt.xticks(np.arange(Start_Fe, End_Fe+0.05, x_tik))
-    #plt.yticks(np.arange(0, 70, 10))
-    plt.plot(xaxis_1, xaxis_1**2.0-xaxis_1, label = "title goes here", ls = '-')
-    #plt.legend(prop = {'family' : 'serif'})
-    p = p+1
-
-if Plots[len(Plots)-1] != 0:
-    RFxticklabels = Rel_flux.get_xticklabels()
-    plt.setp(RFxticklabels, visible=False)
-if Plots[len(Plots)-1] != 1:
-    RSxticklabels = Resid.get_xticklabels()
-    plt.setp(RSxticklabels, visible=False)
-if Plots[len(Plots)-1] != 2:
-    SBxticklabels = SpecBin.get_xticklabels()
-    plt.setp(SBxticklabels, visible=False)
-if Plots[len(Plots)-1] != 3:
-    AGxticklabels = Age.get_xticklabels()
-    plt.setp(AGxticklabels, visible=False)
-if Plots[len(Plots)-1] != 4:
-    DLxticklabels = Delta.get_xticklabels()
-    plt.setp(DLxticklabels, visible=False)
-
-
-
-plt.show()
-
-
-"""
 

@@ -30,7 +30,7 @@ max_light = np.loadtxt("../personal/AaronBeaudoin/week4/MaxSpectra.dat", dtype =
 class supernova(object):
     """Attributes can be added"""
     
-class Parameters(object):
+class Parameters:
     """Not sure what goes here"""
 
 #Connect to database
@@ -61,6 +61,8 @@ def grab(sql_input, Full_query):
 		SN.wavelength = SN.interp[0,:]
 		SN.flux       = SN.interp[1,:]
 		SN.variance   = SN.interp[2,:]
+		SN.ivar = 1/(SN.variance**2)
+		#print SN.flux
 	    except TypeError:
 		continue
 	    full_array.append(SN)
@@ -70,12 +72,18 @@ def grab(sql_input, Full_query):
 	    print "Invalid query...more support will come"
     print len(SN_Array), "spectra found"
     #cut the array down to be more manageable
-    SN_Array = SN_Array[0:50]
+    SN_Array = SN_Array[0:100]
     SN_Array = [SN for SN in SN_Array if hasattr(SN, 'wavelength')]
     SN_Array = [SN for SN in SN_Array if hasattr(SN, 'variance')]
     print len(SN_Array), "spectra remain"
+    for SN in SN_Array[10:20]:
+	plt.plot(SN.wavelength, SN.flux)
+	plt.plot(SN.wavelength, 1/(SN.ivar ** .5))
+	plt.savefig(SN.name + ' test spectrum.png')
+	plt.show()
     return SN_Array
-    
+
+
 """
 #Only keeps one per supernova at max light. Condition can be changed later.
 for SN in full_array:
@@ -176,11 +184,12 @@ def find_scales(SN_Array, temp_flux, temp_ivar):
     for SN in SN_Array:
         #grab out the flux and inverse variance for that SN
         flux = SN.flux
-        ivar = SN.variance
+        ivar = SN.ivar
 	tempflux = temp_flux
         #Make the combined inverse variance function.  Zeros should multiply to get zeros
         overlap = temp_ivar * ivar
         n_overlap = len([x for x in overlap if x > 0])
+	#print n_overlap
 
         if n_overlap < 100:
 
@@ -191,25 +200,47 @@ def find_scales(SN_Array, temp_flux, temp_ivar):
 
             #Otherwise, fit things
             params = Parameters()
-            params.scale = 1.
-
+            params.scale = 1.0
+	    #print params.scale
             #Find the appropriate values for scaling
             good = np.where(overlap > 0)
 	    flux = np.array([flux[good]])
 	    tempflux = np.array([temp_flux[good]])
 	    ivar = np.array([ivar[good]])
             result = minimize(scale_func, params.scale, args=(flux, tempflux, ivar))
-	    print params.scale
+	    params.scale = float(result.x)
+	    print "Scale factor = ", params.scale
             #Put the fitted value in the array
 #            scales = np.append(scales, np.array([result]), axis = 0)
             scales = np.append(scales, np.array([params.scale]), axis = 0)
 
     return scales
 
+def new_scales(SN_Array, template):
+    print "Scaling..."
+    scales = []
+    for SN in SN_Array:
+	#try:
+	    low2 = np.where(template.wavelength==find_nearest(template.wavelength, round(SN.minwave)))
+	    high2 = np.where(template.wavelength==find_nearest(template.wavelength , round(SN.maxwave)))
+	    factors = np.array(template.flux[(low2[0]+1):high2[0]]) / np.array(SN.flux[(low2[0]+1):high2[0]])
+	    #print factors
+	    factor = np.mean(factors)
+	    scales.append(factor)
+	    print "Scale factor = ", factor
+	#except RuntimeError:
+	    #print "Curve-fit failed"
+    #print fluxes, errors
+    return scales
+
 def scale_data(SN_Array, scales):
     print "Scaling..."
     for i in range(len(SN_Array)):
 	SN_Array[i].flux *= scales[i]
+	ivar1 = SN_Array[i].ivar
+	ivar2 = scales[i] * ivar1
+	SN_Array[i].ivar = ivar2
+	print "Scaled at factor ", scales[i]
     return SN_Array
 
 #averages with weights based on the given errors in .flm files
@@ -221,15 +252,15 @@ def average(SN_Array, template):
 	for SN in SN_Array:
 	    if len(fluxes) == 0:
 		fluxes = np.array([SN.flux])
-		errors = np.array([SN.variance])
-		#waves = np.array([wavelength])
+		errors = np.array([SN.ivar])
+		waves = np.array([SN.wavelength])
  		#reds = np.array([red])
 		#ages = np.array([age])
 	    else:
 		try:
 		    fluxes = np.append(fluxes, np.array([SN.flux]), axis=0)
-		    errors = np.append(errors, np.array([SN.variance]), axis=0)
-		    #waves = np.append(waves, np.array([wavelength]), axis=0)
+		    errors = np.append(errors, np.array([SN.ivar]), axis=0)
+		    waves = np.append(waves, np.array([SN.wavelength]), axis=0)
 		    #reds = np.append(reds, np.array([red]), axis = 0)
 		    #ages = np.append(ages, np.array([age]), axis = 0)
 		except ValueError:
@@ -239,10 +270,14 @@ def average(SN_Array, template):
 		if np.isnan(fluxes[i,j]):
 		    fluxes[i,j] = 0
 		    errors[i,j] = 0
-	print fluxes, errors
-	template.flux = np.average(fluxes, weights = 1.0/errors, axis=0)
-	template.variance = np.average(errors, weights = 1.0/errors, axis=0)
-	print template.flux, template.variance
+	#print fluxes, errors
+	#print errors[:,np.where(errors[0,:]!=0)]
+	template.flux = np.average(fluxes[:,np.where(errors[0,:]!=0)], weights = errors[:,np.where(errors[0,:]!=0)], axis=0)
+	template.flux = template.flux[0]
+	template.ivar = np.average(errors[:,np.where(errors[0,:]!=0)], weights = errors[:,np.where(errors[0,:]!=0)], axis=0)
+	template.ivar = template.ivar[0]
+	template.wavelength = template.wavelength[np.where(errors[0,:]!=0)]
+	#print template.flux, template.ivar, template.wavelength
 	return template
 
 def main():
@@ -272,8 +307,10 @@ def main():
     wavemax = composite.maxwave
 
     good = np.where(len(np.where(((wavemin > wmin) & (wavemax < wmax)) > 100))) #& (SN.SNR>.8*max(SN.SNR)))
+    print good
     template = supernova()
     template = SN_Array[good[0]]
+    template = composite
     
     i = 0
     n_start = 0
@@ -286,7 +323,8 @@ def main():
 	#waves, fluxes, errors, reds, factor = makearray(SN_Array)
 	#scales.append(factor)
         
-	scales = find_scales(SN_Array, template.flux, template.variance)
+	#scales = find_scales(SN_Array, template.flux, template.ivar)
+	scales = new_scales(SN_Array, template)
 	n_scale = len([x for x in scales if x>0])
 	SN_Array = scale_data(SN_Array, scales)
 
@@ -297,10 +335,15 @@ def main():
 
         template = average(SN_Array, template)
         n_end = n_scale
-
+	n_start = n_end
+	
     print "Done."
+    plt.plot(template.wavelength, template.flux)
+    plt.plot(template.wavelength, template.ivar)
+    plt.savefig('Test Composite.png')
+    plt.show()
     #Either writes data to file, or returns it to user
-    table = Table([template.wavelength, template.flux, template.variance], names = ('Wavelength', 'Flux', 'Variance'))
+    table = Table([template.wavelength, template.flux, template.ivar], names = ('Wavelength', 'Flux', 'Variance'))
     c_file = str(raw_input("Create a file for data? (y/n)"))
     if c_file=='y':
 		#f_name='composite,'+min(composite.phases)+'.'+max(composite.phases)+'.'+min(composite.redshifts)+'.'+max(composite.redshifts)+'...--'+np.average(composite.phases)+'.'+np.average(composite.redshifts)+len(SN_Array)+'SN'
