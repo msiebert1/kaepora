@@ -320,6 +320,7 @@ def main():
 	
     print "Done."
     plt.plot(template.wavelength, template.flux)
+    plt.plot(template.wavelength, template.ivar)
     plt.savefig('Test Composite.png')
     plt.show()
     #Either writes data to file, or returns it to user
