@@ -62,6 +62,7 @@ def grab(sql_input, Full_query):
 		SN.flux       = SN.interp[1,:]
 		SN.variance   = SN.interp[2,:]
 		SN.ivar = 1/(SN.variance**2)
+		#print SN.flux
 	    except TypeError:
 		continue
 	    full_array.append(SN)
@@ -75,11 +76,11 @@ def grab(sql_input, Full_query):
     SN_Array = [SN for SN in SN_Array if hasattr(SN, 'wavelength')]
     SN_Array = [SN for SN in SN_Array if hasattr(SN, 'variance')]
     print len(SN_Array), "spectra remain"
-    for SN in SN_Array[0:5]:
+    for SN in SN_Array[10:20]:
 	plt.plot(SN.wavelength, SN.flux)
 	plt.plot(SN.wavelength, 1/(SN.ivar ** .5))
-	plt.show()
 	plt.savefig(SN.name + ' test spectrum.png')
+	plt.show()
     return SN_Array
 
 
