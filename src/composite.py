@@ -216,13 +216,31 @@ def find_scales(SN_Array, temp_flux, temp_ivar):
 
     return scales
 
+def new_scales(SN_Array, template):
+    print "Scaling..."
+    scales = []
+    for SN in SN_Array:
+	#try:
+	    low2 = np.where(template.wavelength==find_nearest(template.wavelength, round(SN.minwave)))
+	    high2 = np.where(template.wavelength==find_nearest(template.wavelength , round(SN.maxwave)))
+	    factors = np.array(template.flux[(low2[0]+1):high2[0]]) / np.array(SN.flux[(low2[0]+1):high2[0]])
+	    #print factors
+	    factor = np.mean(factors)
+	    scales.append(factor)
+	    print "Scale factor = ", factor
+	#except RuntimeError:
+	    #print "Curve-fit failed"
+    #print fluxes, errors
+    return scales
+
 def scale_data(SN_Array, scales):
     print "Scaling..."
     for i in range(len(SN_Array)):
 	SN_Array[i].flux *= scales[i]
 	ivar1 = SN_Array[i].ivar
-	ivar2 = 1/scales[i]**2 * ivar1
+	ivar2 = scales[i] * ivar1
 	SN_Array[i].ivar = ivar2
+	print "Scaled at factor ", scales[i]
     return SN_Array
 
 #averages with weights based on the given errors in .flm files
@@ -235,14 +253,14 @@ def average(SN_Array, template):
 	    if len(fluxes) == 0:
 		fluxes = np.array([SN.flux])
 		errors = np.array([SN.ivar])
-		#waves = np.array([wavelength])
+		waves = np.array([SN.wavelength])
  		#reds = np.array([red])
 		#ages = np.array([age])
 	    else:
 		try:
 		    fluxes = np.append(fluxes, np.array([SN.flux]), axis=0)
 		    errors = np.append(errors, np.array([SN.ivar]), axis=0)
-		    #waves = np.append(waves, np.array([wavelength]), axis=0)
+		    waves = np.append(waves, np.array([SN.wavelength]), axis=0)
 		    #reds = np.append(reds, np.array([red]), axis = 0)
 		    #ages = np.append(ages, np.array([age]), axis = 0)
 		except ValueError:
@@ -259,7 +277,7 @@ def average(SN_Array, template):
 	template.ivar = np.average(errors[:,np.where(errors[0,:]!=0)], weights = errors[:,np.where(errors[0,:]!=0)], axis=0)
 	template.ivar = template.ivar[0]
 	template.wavelength = template.wavelength[np.where(errors[0,:]!=0)]
-	print template.flux, template.ivar, template.wavelength
+	#print template.flux, template.ivar, template.wavelength
 	return template
 
 def main():
@@ -305,7 +323,8 @@ def main():
 	#waves, fluxes, errors, reds, factor = makearray(SN_Array)
 	#scales.append(factor)
         
-	scales = find_scales(SN_Array, template.flux, template.ivar)
+	#scales = find_scales(SN_Array, template.flux, template.ivar)
+	scales = new_scales(SN_Array, template)
 	n_scale = len([x for x in scales if x>0])
 	SN_Array = scale_data(SN_Array, scales)
 
