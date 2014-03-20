@@ -80,13 +80,55 @@ def main(Show_Data , Plots , image_title , title):
 
 #    if 0 or 1 or 2 or 3 or 4 or 5 in Plots:
     
+    deg = 501
+    def smoothGauss(list, strippedXs = False, degree = deg):
+        window = degree*2-1
+        weight = np.array([1.0]*window)  
+        weightGauss = []  
+
+        for m in range(window):  
+            m = m-degree+1  
+            frac = m/float(window)  
+            gauss = 1/(np.exp((4*(frac))**2))  
+            weightGauss.append(gauss)  
+        
+        weight = np.array(weightGauss)*weight  
+        smoothed = [0.0]*(len(list)-window)  
+
+        for m in range(len(smoothed)):  
+            smoothed[m] = sum(np.array(list[m:m+window])*weight)/sum(weight)  
+
+        return smoothed     
+
+    def Scaling(data):
+        scaled = []
+        for m in range(len(data)):
+            scaled.append((data[m]-min(data[m]))/(max(data[m])-min(data[m])))
+        return scaled 
+
+    def residual(comp, data):
+        return comp - data
+    
+    def shift(key, array):
+        a = []
+        a = array
+        return a[-key:]+a[:-key]
+
+    xtrunc = xaxis_1[deg-1:len(xaxis_1)-deg]
+    xaxis_1 = []
+    xaxis_1 = xtrunc    
+
+    smoothed = []
+    for m in range(len(yaxis_1)):
+        smoothed.append(smoothGauss(yaxis_1[m]))
+    
+    yaxis_1 = []
+    yaxis_1 = Scaling(smoothed)
+    
     plt.figure(num = 1, dpi = 100, figsize = [8, np.sum(h)], facecolor = 'w')
     plt.title(title)
     gs = gridspec.GridSpec(len(Plots), 1, height_ratios = h, hspace = 0.001)
     p = 0
-        
-    def residual(comp, data):
-        return comp - data
     
     source = (np.array(yaxis_1)).T
     guess = yaxis_1[0]
@@ -217,25 +259,27 @@ def main(Show_Data , Plots , image_title , title):
         p = p+1
 
     plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
+    plt.savefig('composite plot.png', dpi = 100, facecolor='w', edgecolor='w', pad_inches = 0.1)
 
     if 6 in Plots:
         plt.figure(num = 2, dpi = 100, figsize = [8, 8], facecolor = 'w')
         for m in range(len(yaxis_1)):
-            plt.plot(xaxis_1, yaxis_1[m], label = str(names_1[m]))
+            #plt.plot(xaxis_1, yaxis_1[m], label = str(names_1[m]))
+            plt.plot(xtrunc, yaxis_1[m], label = str(names_1[m]))
         plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
         plt.ylabel('Relative, f$_{\lambda}$', fontdict = font)
         plt.minorticks_on()
         plt.legend(prop = {'family' : 'serif'})        
+        plt.savefig('multi-spectrum plot.png', dpi = 100, facecolor='w', edgecolor='w', pad_inches = 0.1)
 
     if 7 in Plots:
         plt.figure(num = 3, dpi = 100, figsize = [8, 4*len(yaxis_1)], facecolor = 'w')
+        #plt.plot(xaxis_1, yaxis_1[0])
         plt.plot(xaxis_1, yaxis_1[0])
-        plt.annotate(str(names_1[0]), xy = (max(xaxis_1), max(yaxis_1[0])), xytext = (-10, 0), textcoords = 'offset points', fontsize = 8, family  = 'serif', weight = 'bold', ha = 'right')
-        ymax = max(yaxis_1[0])
+        plt.annotate(str(names_1[0]), xy = (max(xaxis_1), max(yaxis_1[0])), xytext = (-10, -15), textcoords = 'offset points', fontsize = 8, family  = 'serif', weight = 'bold', ha = 'right')
         for m in range(len(yaxis_1)-1):
-            plt.plot(xaxis_1, yaxis_1[m+1]+ymax+max(yaxis_1[m])-min(yaxis_1[m]))
-            plt.annotate(str(names_1[m+1]), xy = (max(xaxis_1), max(yaxis_1[m+1])+ymax+max(yaxis_1[m])-min(yaxis_1[m])), xytext = (-10, 0), textcoords = 'offset points', fontsize = 8, family  = 'serif', weight = 'bold', ha = 'right')
-            ymax = max(yaxis_1[m+1])+ymax+max(yaxis_1[m])-min(yaxis_1[m])
+            plt.plot(xaxis_1, yaxis_1[m+1]+(m+1))
+            plt.annotate(str(names_1[m+1]), xy = (max(xaxis_1), max(yaxis_1[m+1])+(m+1)), xytext = (-10, -15), textcoords = 'offset points', fontsize = 8, family  = 'serif', weight = 'bold', ha = 'right')
         plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
         plt.ylabel('Relative, f$_{\lambda}$', fontdict = font)
         plt.minorticks_on()
@@ -257,6 +301,8 @@ def main(Show_Data , Plots , image_title , title):
     plt.show()
 
 
+
+"""
     #plt.title("".join(["$^{53}$Mn / $^{55}$Mn, t$_{res}$ = ", str(t_width_Mn), " kyr", ", U$_{Mn}$ = ", str(uptake_Mn[0])]), fontdict = font)
     #plt.xlabel('Age [Myr]', fontdict = font)
     plt.ylabel('Residuals', fontdict = font)
