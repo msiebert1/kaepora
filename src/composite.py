@@ -185,9 +185,10 @@ def scale_func(vars, in_data, out_data, error):
     scale = vars[0]
 
     model = scale * in_data
-    #previously, this was returning an array, and minimize didn't like that...so I made it a single value like this.
-    #I hope that's reasonable
-    return (out_data - model)/error
+    
+    output = (out_data-model)/error
+    #needed to reshape this?
+    return output[:,0]
 
 def find_scales(SN_Array, temp_flux, temp_ivar):
     min_overlap = 300
@@ -232,7 +233,7 @@ def find_scales(SN_Array, temp_flux, temp_ivar):
             #Put the fitted value in the array
 #            scales = np.append(scales, np.array([result]), axis = 0)
 #            scales = np.append(scales, np.array([params.scale]), axis = 0)
-            scales = np.append(scales, np.array([result[0]]), axis = 0)
+            scales = np.append(scales, np.array([float(result[0])]), axis = 0)
 
     return scales
 
@@ -283,7 +284,7 @@ def average(SN_Array, template):
 	    else:
 		try:
 		    fluxes = np.append(fluxes, np.array([SN.flux]), axis=0)
-		    ivars  = np.append(errors, np.array([SN.ivar]), axis=0)
+		    ivars  = np.append(ivars, np.array([SN.ivar]), axis=0)
 #		    waves = np.append(waves, np.array([SN.wavelength]), axis=0)
 		    #reds = np.append(reds, np.array([red]), axis = 0)
 		    #ages = np.append(ages, np.array([age]), axis = 0)
