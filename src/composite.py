@@ -12,8 +12,9 @@ import math
 from astropy.table import Table
 import msgpack as msg
 import msgpack_numpy as mn
-import lmfit
-from scipy.optimize import curve_fit, minimize
+#import lmfit
+#from scipy.optimize import curve_fit, minimize
+from scipy.optimize import leastsq
 
 np.set_printoptions(threshold=np.nan)
 mn.patch()
@@ -22,10 +23,10 @@ mn.patch()
 SN_Array = []
 full_array = []
 compare_spectrum = []
-file_list = []
-file_list = glob.glob("../data/cfa/*/*.flm")
-max_light = []
-max_light = np.loadtxt("../personal/AaronBeaudoin/week4/MaxSpectra.dat", dtype = 'str', delimiter = " ", skiprows = 1)
+#file_list = []
+#file_list = glob.glob("../data/cfa/*/*.flm")
+#max_light = []
+#max_light = np.loadtxt("../personal/AaronBeaudoin/week4/MaxSpectra.dat", dtype = 'str', delimiter = " ", skiprows = 1)
 
 class supernova(object):
     """Attributes can be added"""
@@ -38,6 +39,7 @@ class Parameters:
 con = sq3.connect('../../../SNe.db')
 #con = sq3.connect('../../temp/SNe.db')
 cur = con.cursor()
+
 def grab(sql_input, Full_query):
     print "Collecting data..."
     SN_Array = []
@@ -45,27 +47,27 @@ def grab(sql_input, Full_query):
     #at some point this should be more modular but for now I'm only going to accept the full query
     for row in cur:
         if sql_input == Full_query:
-            SN          = supernova()
-            SN.filename = row[0]
-            SN.name     = row[1]
-	    SN.source = row[2]
-            SN.redshift = row[3]
-	    SN.phase    = row[4]
-            SN.minwave  = row[5]
-            SN.maxwave  = row[6]
-	    SN.dm15 = row[7]
-	    SN.m_b = row[8]
+            SN           = supernova()
+            SN.filename  = row[0]
+            SN.name      = row[1]
+	    SN.source    = row[2]
+            SN.redshift  = row[3]
+	    SN.phase     = row[4]
+            SN.minwave   = row[5]
+            SN.maxwave   = row[6]
+	    SN.dm15      = row[7]
+	    SN.m_b       = row[8]
 	    SN.B_minus_v = row[9]
-	    SN.targeted = row[10]
-	    SN.SNR      = row[11]
+	    SN.targeted  = row[10]
+	    SN.SNR       = row[11]
             #spectra = msg.unpackb(row[7])
             #SN.spectrum = spectra
-	    interp      = msg.unpackb(row[12])
-	    SN.interp   = interp
+	    interp       = msg.unpackb(row[12])
+	    SN.interp    = interp
 	    try:
 		SN.wavelength = SN.interp[0,:]
 		SN.flux       = SN.interp[1,:]
-		SN.ivar   = SN.interp[2,:]
+		SN.ivar       = SN.interp[2,:]
 		
 		#print SN.flux
 	    except TypeError:
@@ -76,6 +78,7 @@ def grab(sql_input, Full_query):
 	else:
 	    print "Invalid query...more support will come"
     print len(SN_Array), "spectra found"
+
     #cut the array down to be more manageable
     SN_Array = SN_Array[0:100]
     for SN in SN_Array:
@@ -102,11 +105,13 @@ for SN in full_array:
             #print SN.age
 print len(SN_Array)
 """
+
 #gets as close as possible to matching the compare spectrum wavelength values
 def find_nearest(array,value):
     idx = (np.abs(array-value)).argmin()
     return array[idx]
 
+"""
 def scfunc(x,a):
     return a*x
 
@@ -174,16 +179,18 @@ def overlap(waves, SN_Array):
             low_overlap.append(SN)
             SN_Array.remove(SN)
     return low_overlap, SN_Array
+"""
 
-def scale_func(params, in_data, out_data, error):
-    scale = params
+def scale_func(vars, in_data, out_data, error):
+    scale = vars[0]
 
     model = scale * in_data
     #previously, this was returning an array, and minimize didn't like that...so I made it a single value like this.
     #I hope that's reasonable
-    return np.mean((out_data - model)/error)
+    return (out_data - model)/error
 
 def find_scales(SN_Array, temp_flux, temp_ivar):
+    min_overlap = 300
     scales = []
     print "Finding scales..."
     #loop over each SN in the array
@@ -191,13 +198,13 @@ def find_scales(SN_Array, temp_flux, temp_ivar):
         #grab out the flux and inverse variance for that SN
         flux = SN.flux
         ivar = SN.ivar
-	tempflux = temp_flux
+#	tempflux = temp_flux
         #Make the combined inverse variance function.  Zeros should multiply to get zeros
         overlap = temp_ivar * ivar
         n_overlap = len([x for x in overlap if x > 0])
 	#print n_overlap
 
-        if n_overlap < 100:
+        if n_overlap < min_overlap:
 
             #If there is insufficient overlap, the scale is zero.
             scales = np.append(scales, np.array([0]), axis = 0)
@@ -205,23 +212,31 @@ def find_scales(SN_Array, temp_flux, temp_ivar):
         else:
 
             #Otherwise, fit things
-            params = Parameters()
-            params.scale = 1.0
+            vars = [1.0]
+#            params = Parameters()
+#            params.scale = 1.0
 	    #print params.scale
             #Find the appropriate values for scaling
-            good = np.where(overlap > 0)
-	    flux = np.array([flux[good]])
+            good     = np.where(overlap > 0)
+	    flux     = np.array([flux[good]])
+	    ivar     = np.array([ivar[good]])
 	    tempflux = np.array([temp_flux[good]])
-	    ivar = np.array([ivar[good]])
-            result = minimize(scale_func, params.scale, args=(flux, tempflux, ivar))
-	    params.scale = float(result.x)
-	    print "Scale factor = ", params.scale
+            tempivar = np.array([temp_ivar[good]])
+            totivar  = 1/(1/ivar + 1/tempivar)
+
+#            result = minimize(scale_func, params.scale, args=(flux, tempflux, ivar))
+#	    params.scale = float(result.x)
+#	    print "Scale factor = ", params.scale
+            result = leastsq(scale_func, vars, args=(flux, tempflux, totivar))
+	    print "Scale factor = ", result[0]
             #Put the fitted value in the array
 #            scales = np.append(scales, np.array([result]), axis = 0)
-            scales = np.append(scales, np.array([params.scale]), axis = 0)
+#            scales = np.append(scales, np.array([params.scale]), axis = 0)
+            scales = np.append(scales, np.array([result[0]]), axis = 0)
 
     return scales
 
+"""
 def new_scales(SN_Array, template):
     print "Finding scales..."
     scales = []
@@ -242,12 +257,13 @@ def new_scales(SN_Array, template):
 	    #print "Curve-fit failed"
     #print fluxes, errors
     return scales, SN_Array
+"""
 
 def scale_data(SN_Array, scales):
     print "Scaling..."
     for i in range(len(scales)):
 	SN_Array[i].flux *= scales[i]
-	SN_Array[i].ivar *= scales[i]
+	SN_Array[i].ivar /= (scales[i])**2  #Check this!!
 	print "Scaled at factor ", scales[i]
     return SN_Array
 
@@ -256,30 +272,36 @@ def average(SN_Array, template):
 	print "Averaging..."
 	#print fluxes, errors
 	fluxes = []
-	errors = []
+	ivars  = []
 	for SN in SN_Array:
 	    if len(fluxes) == 0:
 		fluxes = np.array([SN.flux])
-		errors = np.array([SN.ivar])
-		waves = np.array([SN.wavelength])
+		ivars  = np.array([SN.ivar])
+#		waves = np.array([SN.wavelength])
  		#reds = np.array([red])
 		#ages = np.array([age])
 	    else:
 		try:
 		    fluxes = np.append(fluxes, np.array([SN.flux]), axis=0)
-		    errors = np.append(errors, np.array([SN.ivar]), axis=0)
-		    waves = np.append(waves, np.array([SN.wavelength]), axis=0)
+		    ivars  = np.append(errors, np.array([SN.ivar]), axis=0)
+#		    waves = np.append(waves, np.array([SN.wavelength]), axis=0)
 		    #reds = np.append(reds, np.array([red]), axis = 0)
 		    #ages = np.append(ages, np.array([age]), axis = 0)
 		except ValueError:
 		    print "oh god what is happening"
 	#print fluxes, errors
 	#print errors[:,np.where(errors[0,:]!=0)]
-	template.flux = np.average(fluxes[:,np.where(errors[0,:]!=0)], weights = errors[:,np.where(errors[0,:]!=0)], axis=0)
-	template.flux = template.flux[0]
-	template.ivar = np.average(errors[:,np.where(errors[0,:]!=0)], weights = errors[:,np.where(errors[0,:]!=0)], axis=0)
-	template.ivar = template.ivar[0]
-	template.wavelength = template.wavelength[np.where(errors[0,:]!=0)]
+#        good = np.where(errors[0,:] != 0)
+#	template.flux = np.average(fluxes[:,good], weights = errors[:,np.where(errors[0,:]!=0)], axis=0)
+#	template.flux = template.flux[0]
+#	template.ivar = np.average(errors[:,good], weights = errors[:,np.where(errors[0,:]!=0)], axis=0)
+#	template.ivar = template.ivar[0]
+#	template.wavelength = template.wavelength[good]
+
+        template.flux = np.average(fluxes, weights=ivars, axis=0)
+        template.ivar = 1/np.sum(ivar, axis=0)
+
+#        np.average(fluxes, weights=ivars, axis=0)
 	#print template.flux, template.ivar, template.wavelength
 	return template
 
@@ -309,7 +331,7 @@ def main():
     wavemin = composite.minwave
     wavemax = composite.maxwave
 
-    good = np.where(len(np.where(((wavemin > wmin) & (wavemax < wmax)) > 100))) #& (SN.SNR>.8*max(SN.SNR)))
+    good = np.where(len(np.where(((wavemin <= wmin) & (wavemax >= wmax)) > 100))) #& (SN.SNR>.8*max(SN.SNR)))
     #print good
     template = supernova()
     template = SN_Array[good[0]]
@@ -318,16 +340,17 @@ def main():
     i = 0
     n_start = 0
     n_end = 1
+    scales=[]
     while (n_start != n_end):
 	# Instead of trimming things, I think a better approach would be to make an array that is the minimum of the inverse variances of the template and comparison spectrum.  That will be zero where they don't overlap.  Then you just select the indices corresponding to non-zero values.  No for loops necessary.
-        scales=[]
 	n_start = len([x for x in scales if x>0])
-        
+        scales=[]
+
 	#waves, fluxes, errors, reds, factor = makearray(SN_Array)
 	#scales.append(factor)
         
-	#scales = find_scales(SN_Array, template.flux, template.ivar)
-	scales, SN_Array = new_scales(SN_Array, template)
+	scales = find_scales(SN_Array, template.flux, template.ivar)
+	#scales, SN_Array = new_scales(SN_Array, template)
 	n_scale = len([x for x in scales if x>0])
 	SN_Array = scale_data(SN_Array, scales)
 
