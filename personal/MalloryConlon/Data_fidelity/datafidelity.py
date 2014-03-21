@@ -127,7 +127,7 @@ def wsmooth(x,window_len=75,window='hanning'):
 ## genvar(wavelength, flux, float vexp = 0.005, float nsig = 5.0)
 #
 
-def genvar(wavelength, flux, vexp = 0.0035, nsig = 3.0):
+def genvar(wavelength, flux, vexp = 0.0008, nsig = 3.0):
     
     # Create variance from sky spectrum (Will add additional code here)
     varflux = np.zeros(len(wavelength))+1.0 # Place holder
@@ -141,8 +141,10 @@ def genvar(wavelength, flux, vexp = 0.0035, nsig = 3.0):
     # Smooth noise to find the variance
     variance = gsmooth(wavelength, error, varflux, vexp, nsig)
     
+    ivar = 1/(variance**2)
+    
     # Return generated variance
-    return variance
+    return ivar
 
 ############################################################################
 #
@@ -229,17 +231,7 @@ def update_variance(wavelength, flux, variance):
 #Determine the clipped indices
 
     telluric_clip=telluric_flag(wavelength, flux)
-<<<<<<< HEAD
-<<<<<<< HEAD
-    fl, clipped_points=clip(flux)
-=======
-    fl, clipped_points=clip(wavelength,flux)
-    
->>>>>>> 3fbf66b79eff772f1a4d4ce8932181cd5509a323
-=======
-    fl, clipped_points=clip(wavelength,flux)
-    
->>>>>>> 3fbf66b79eff772f1a4d4ce8932181cd5509a323
+
 
     for i in range(len(clipped_points)):
             index=clipped_points[i]

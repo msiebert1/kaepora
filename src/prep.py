@@ -9,7 +9,7 @@ from astropy.io import ascii
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.interpolate as inter
-from math import floor,ceil
+import math
 #import sqlite3 as sq3
 #import msgpack
 
@@ -18,11 +18,12 @@ README:
 
 This part of code is written for composite spectra preparation.
 It does deredding, deredshifting, and interpolation.
-Using the function prep:
+Using the function compprep:
 INPUT :
 SPECTRUM : table containing the original wavelength and flux
 FILE_NAME : containing name of supernova
-
+Z: redshift of the spectra
+SOURCE : the dataset to analyze. Currently we have 'cfa''csp''bsnip'
 
 OUTPUT:
 NEW_DATA: table containing the processed wavelength, flux and variance
@@ -31,13 +32,17 @@ NEW_DATA: table containing the processed wavelength, flux and variance
 
 def ReadParam():
     #Read in : table containing sn names, redshifts, etc.
-    sn_parameter = np.genfromtxt('../data/cfa/cfasnIa_param.dat',dtype = None)
+    sn_param = np.genfromtxt('../data/cfa/cfasnIa_param.dat',dtype = None)
+    sn = []
+    z = []
+    for i in range(len(sn_param)) :
+        sn.append(sn_param[i][0]) #get relevent parameters needed for calculations
+        z.append(sn_param[i][1]) # redshift value 
+    return z
 
-    return sn_parameter
-
-def ReadExtin():
+def ReadExtin(file):
     #table containing B and V values for determining extinction -> dereddening due to milky way
-    sne = np.genfromtxt('extinction.dat', dtype = None)
+    sne = np.genfromtxt(file, dtype = None)
 
     return sne
 
@@ -67,10 +72,9 @@ NOTE:Currently only has SN_name, B, and V values for purposes of Dereddening due
 #deredshift the spectra
 #deredden to host galaxy
 
-def dered(sn_param,sne,filename,wave,flux):
-    for j in range(len(sn_param)):#go through list of SN parameters
-        sn = sn_param[j][0] #get relevent parameters needed for calculations
-        z = sn_param[j][1]  # redshift value
+def dered(z,sne,snname,wave,flux):
+    for j in range(len(sne)):#go through list of SN parameters
+        sn = sne[j][0]        
         if sn in filename:#SN with parameter matches the path
             b = sne[j][1].astype(float)
             v = sne[j][2].astype(float)
@@ -105,65 +109,75 @@ we output the outside values as NAN
 """
 
 
-def Interpo (wave,flux,variance) :
+def Interpo (wave, flux, variance) :
     wave_min = 1500
     wave_max = 12000
-    pix = 2
+    dw = 2
+
     #wavelength = np.linspace(wave_min,wave_max,(wave_max-wave_min)/pix+1)
-    wavelength = np.arange(ceil(wave_min), floor(wave_max), dtype=int, step=pix) #creates N equally spaced wavelength values
-    fitted_flux = []
-    fitted_var = []
-    new = []
-#    print wave
+    wavelength = np.arange(math.ceil(wave_min), math.floor(wave_max), dtype=int, step=dw) #creates N equally spaced wavelength values
+    inter_flux = []
+    inter_var  = []
+    output     = []
+
     lower = wave[0] # Find the area where interpolation is valid
-#    lower = min(wave)
-#    upper = max(wave)
-    upper = wave[len(wave)-1]
-#    print lower,upper
-    lines = np.where((wave>lower) & (wave<upper))	#creates an array of wavelength values between minimum and maximum wavelengths from new spectrum
-    indata = inter.splrep(wave[lines],flux[lines])	#creates b-spline from new spectrum
-    inerror = inter.splrep(wave[lines],variance[lines]) # doing the same with the errors
-    fitted_flux = inter.splev(wavelength,indata)	#fits b-spline over wavelength range
-    fitted_var = inter.splev(wavelength,inerror)   # doing the same with errors
-    badlines = np.where((wavelength<lower) | (wavelength>upper))
-    fitted_flux[badlines] = float('NaN')  # set the bad values to NaN !!!
-    fitted_var[badlines] = float('NaN')
-    new = np.array([wavelength,fitted_flux,fitted_var]) # put the interpolated data into the new table
-#    print 'new table',new
-    return new # return new table
+    upper = wave[-1]
 
-    # Get the Noise for each spectra
+    good_data = np.where((wave >= lower) & (wave <= upper))	#creates an array of wavelength values between minimum and maximum wavelengths from new spectrum
 
-def getsnr(flux,variance) :
+    influx = inter.splrep(wave[good_data], flux[good_data])	#creates b-spline from new spectrum
 
-    snr = flux/variance
-    snavg = np.median(snr)
-    return snavg
+    invar  = inter.splrep(wave[good_data], variance[good_data]) # doing the same with the errors
+
+    inter_flux = inter.splev(wavelength, influx)	#fits b-spline over wavelength range
+    inter_var  = inter.splev(wavelength, invar)   # doing the same with errors
+
+    missing_data = np.where((wavelength < lower) | (wavelength > upper))
+    inter_flux[missing_data] = float('NaN')  # set the bad values to NaN !!!
+    inter_var[missing_data] =  float('NaN')
+
+    output = np.array([wavelength, inter_flux, inter_var]) # put the interpolated data into the new table
+
+    return output # return new table
+
+
+    # Get the Noise for each spectra ( with input of inverse variance)
+
+def getsnr(flux, ivar) :
+    sqvar = map(math.sqrt, ivar)
+    snr = flux/(np.divide(1.0, sqvar))
+    snr_med = np.median(snr)
+    return snr_med
 
 from datafidelity import *  # Get variance from the datafidelity outcome
 
 
-
-def compprep(spectrum,file_name):
-    sn_parameter = ReadParam()
-    sne = ReadExtin()
-    newdata = []
+def compprep(spectrum,sn_name,z,source):
     old_wave = spectrum[:,0]	    #wavelengths
     old_flux = spectrum[:,1] 	#fluxes
-#    print old_flux
-    old_var = spectrum[:,2]  #errors
-#    old_var = genvar(old_wave, old_flux) #variance
-    navg = getsnr(old_flux,old_var)
-    print 'S/N ratio',file_name,navg
-    new_spectrum = dered(sn_parameter,sne,file_name,old_wave,old_flux)
+    #old_var  = spectrum[:,2]  #errors 
+    old_var = genivar(old_wave, old_flux) #variance
+    snr = getsnr(old_flux, old_var)
+    print 'S/N ratio', sn_name, snr
+    
+    if source == 'cfa' : # choosing source dataset
+#        z = ReadParam()
+        sne = ReadExtin('extinction.dat')
+    if source == 'bsnip' :
+        sne = ReadExtin('extinctionbsnip.dat')     
+    if source == 'csp' :   
+        sne = ReadExtin('extinctioncsp.dat')
+        old_wave *= 1+z
+    
+    newdata = []
+
+    new_spectrum = dered(z, sne, sn_name, old_wave, old_flux)
     new_wave = new_spectrum[0]
     new_flux = new_spectrum[1]
-    new_var = genvar(new_wave, new_flux) #variance
+    new_var  = genivar(new_wave, new_flux) #variance
     #var = new_flux*0+1
-    newdata = Interpo(new_wave,new_flux,new_var) # Do the interpolation
-#    print 'new spectra',newdata    
-    return newdata, navg
-
-
+    newdata = Interpo(new_wave, new_flux, new_var) # Do the interpolation
+#    print 'new spectra',newdata
+    return newdata, snr
 
 

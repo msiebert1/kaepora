@@ -6,10 +6,10 @@ Created on Sun Mar 09 22:39:51 2014
 """
 import os
 import glob
-from specutils import extinction as ex
-import astroquery
-from astroquery.ned import Ned
-from astroquery.irsa_dust import IrsaDust
+#from specutils import extinction as ex
+#import astroquery
+#from astroquery.ned import Ned
+#from astroquery.irsa_dust import IrsaDust
 from astropy.table import Table
 from astropy.io import ascii
 import numpy as np
@@ -25,7 +25,7 @@ from math import floor,ceil
 
 #list of files
 spectra_files = glob.glob ('../data/cfa/*/*.flm')
-
+source = 'cfa'
 #holds spectra data (wavelength,flux,weight)
 spectra_data = []
 #holds file pathname
@@ -91,12 +91,13 @@ def ImpArr(d) :
 from prep import *
 
 navglist = [] 
+z = ReadParam()
+print z
       
 for i in range(num) :  #go through selected spectra data
 #    i = testonesn(spectra_data,file_name)
 #    print i
     spectrum = spectra_data[i]	#declares new spectrum from list
-    
 #sn =  '../data/cfa/sn2001V/sn2001V-20010325.40-mmt.flm'   
 #data = ReadIn(sn)
 #spectrum = ImpArr(data)
@@ -104,7 +105,7 @@ for i in range(num) :  #go through selected spectra data
 #file_name=sn[27:-4]
 #print file_name
     try :
-        data = compprep(spectrum,file_name[i])
+        data = compprep(spectrum,file_name[i],z,source)
         navglist.append(data[1]) # the S/N ratio
 #        print data
     except ValueError:
