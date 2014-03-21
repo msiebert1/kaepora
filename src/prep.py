@@ -18,11 +18,12 @@ README:
 
 This part of code is written for composite spectra preparation.
 It does deredding, deredshifting, and interpolation.
-Using the function prep:
+Using the function compprep:
 INPUT :
 SPECTRUM : table containing the original wavelength and flux
 FILE_NAME : containing name of supernova
-
+Z: redshift list of all supernova
+SOURCE : the dataset to analyze. Currently we have 'cfa''csp''bsnip'
 
 OUTPUT:
 NEW_DATA: table containing the processed wavelength, flux and variance
@@ -140,7 +141,7 @@ def Interpo (wave, flux, variance) :
     return output # return new table
 
 
-    # Get the Noise for each spectra
+    # Get the Noise for each spectra ( with input of inverse variance)
 
 def getsnr(flux, ivar) :
     sqvar = map(math.sqrt, ivar)
@@ -151,9 +152,8 @@ def getsnr(flux, ivar) :
 from datafidelity import *  # Get variance from the datafidelity outcome
 
 
-
 def compprep(spectrum,file_name,z,source):
-    if source == 'cfa' :
+    if source == 'cfa' : # choosing source dataset
         z = ReadParam()
         sne = ReadExtin('extinction.dat')
     if source == 'bsnip' :
