@@ -370,7 +370,7 @@ def main():
     print lowindex[0], highindex[0]
     plt.plot(template.wavelength[lowindex[0]:highindex[0]], template.flux[lowindex[0]:highindex[0]])
     #plt.plot(template.wavelength[lowindex[0]:highindex[0]], template.ivar[lowindex[0]:highindex[0]])
-    plt.savefig('../plots/Test Composite.png')
+    plt.savefig('../plots/TestComposite.png')
     plt.show()
     #Either writes data to file, or returns it to user
     table = Table([template.wavelength, template.flux, template.ivar], names = ('Wavelength', 'Flux', 'Variance'))
@@ -378,7 +378,7 @@ def main():
     if c_file=='y':
 		#f_name='composite,'+min(composite.phases)+'.'+max(composite.phases)+'.'+min(composite.redshifts)+'.'+max(composite.redshifts)+'...--'+np.average(composite.phases)+'.'+np.average(composite.redshifts)+len(SN_Array)+'SN'
 		#phase_min.phase_max.deltam15_min.deltam15_max. ... --avg_phase.avg_deltam15... --#SN
-		f_name = "../plots/Test Composite"
+		f_name = "../plots/TestComposite"
 		table.write(f_name,format='ascii')
     else:
 		return table
