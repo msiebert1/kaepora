@@ -51,7 +51,14 @@ def main(Show_Data , Plots , image_title , title):
 
     for m in Plots:
         h.append(Height[m])
-        
+
+    stacked = []
+
+    for m in arange(0,6,1):
+        if m in Plots:
+            stacked.append(m)
+        continue
+
 # re-name variables
     if len(Show_Data[:][0]) > 0 :
 	xaxis_1   = Show_Data[:][0][0] 
@@ -93,12 +100,12 @@ def main(Show_Data , Plots , image_title , title):
             weightGauss.append(gauss)  
         
         weight = np.array(weightGauss)*weight  
-        smoothed = [0.0]*(len(list)-window)  
+        smooth = [0.0]*(len(list)-window)  
 
-        for m in range(len(smoothed)):  
-            smoothed[m] = sum(np.array(list[m:m+window])*weight)/sum(weight)  
+        for m in range(len(smooth)):  
+            smooth[m] = sum(np.array(list[m:m+window])*weight)/sum(weight)  
 
-        return smoothed     
+        return smooth     
 
     def Scaling(data):
         scaled = []
@@ -162,10 +169,10 @@ def main(Show_Data , Plots , image_title , title):
         plt.plot(xaxis_1, comp_data-rms_data, label = "- RMS")
         plt.legend(prop = {'family' : 'serif'})
         RFxticklabels = Rel_flux.get_xticklabels()        
-        if Plots[len(Plots)-1] != 0:
-            plt.setp(RFxticklabels, visible=False)
-        else:
+        if max(stacked) == 0:
             plt.setp(RFxticklabels, visible=True)
+        else:
+            plt.setp(RFxticklabels, visible=False)
         p = p+1
                 
     if 1 in Plots:
@@ -180,10 +187,10 @@ def main(Show_Data , Plots , image_title , title):
         plt.plot(xaxis_1, rms_data, label = "RMS of residuals", ls = '-')
         #plt.legend(prop = {'family' : 'serif'})
         RSxticklabels = Resid.get_xticklabels()
-        if Plots[len(Plots)-1] != 1:
-            plt.setp(RSxticklabels, visible=False)
-        else:
+        if max(stacked) == 1:
             plt.setp(RSxticklabels, visible=True)
+        else:
+            plt.setp(RSxticklabels, visible=False)
         p = p+1
         
     if 2 in Plots:
@@ -198,10 +205,10 @@ def main(Show_Data , Plots , image_title , title):
         plt.plot(xaxis_1, 0*xaxis_1+3.0, label = "title goes here", ls = '-')
         #plt.legend(prop = {'family' : 'serif'})
         SBxticklabels = SpecBin.get_xticklabels()        
-        if Plots[len(Plots)-1] != 2:
-            plt.setp(SBxticklabels, visible=False)
-        else:
+        if max(stacked) == 2:
             plt.setp(SBxticklabels, visible=True)
+        else:
+            plt.setp(SBxticklabels, visible=False)
         p = p+1
         
     if 3 in Plots:
@@ -216,10 +223,10 @@ def main(Show_Data , Plots , image_title , title):
         plt.plot(xaxis_1, xaxis_1**3.0, label = "title goes here", ls = '-')
         #plt.legend(prop = {'family' : 'serif'})
         AGxticklabels = Age.get_xticklabels()        
-        if Plots[len(Plots)-1] != 3:
-            plt.setp(AGxticklabels, visible=False)
-        else:
+        if max(stacked) == 3:
             plt.setp(AGxticklabels, visible=True)
+        else:
+            plt.setp(AGxticklabels, visible=False)
         p = p+1
     
     if 4 in Plots:
@@ -234,10 +241,10 @@ def main(Show_Data , Plots , image_title , title):
         plt.plot(xaxis_1, 1/xaxis_1, label = "title goes here", ls = '-')
         #plt.legend(prop = {'family' : 'serif'})
         DLxticklabels = Delta.get_xticklabels()
-        if Plots[len(Plots)-1] != 4:            
-            plt.setp(DLxticklabels, visible=False)
-        else:
+        if max(stacked) == 4:            
             plt.setp(DLxticklabels, visible=True)
+        else:
+            plt.setp(DLxticklabels, visible=False)
         p = p+1
     
     if 5 in Plots:
@@ -252,10 +259,10 @@ def main(Show_Data , Plots , image_title , title):
         plt.plot(xaxis_1, xaxis_1**2.0-xaxis_1, label = "title goes here", ls = '-')
         #plt.legend(prop = {'family' : 'serif'})
         Zxticklabels = Redshift.get_xticklabels()        
-        if Plots[len(Plots)-1] != 5:            
-            plt.setp(Zxticklabels, visible=False)
-        else:
+        if max(stacked) == 5:            
             plt.setp(Zxticklabels, visible=True)
+        else:
+            plt.setp(Zxticklabels, visible=False)
         p = p+1
 
     plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
@@ -276,10 +283,11 @@ def main(Show_Data , Plots , image_title , title):
         plt.figure(num = 3, dpi = 100, figsize = [8, 4*len(yaxis_1)], facecolor = 'w')
         #plt.plot(xaxis_1, yaxis_1[0])
         plt.plot(xaxis_1, yaxis_1[0])
-        plt.annotate(str(names_1[0]), xy = (max(xaxis_1), max(yaxis_1[0])), xytext = (-10, -15), textcoords = 'offset points', fontsize = 8, family  = 'serif', weight = 'bold', ha = 'right')
+        plt.annotate(str(names_1[0]), xy = (max(xaxis_1), max(yaxis_1[0])), xytext = (-10, 0), textcoords = 'offset points', fontsize = 8, family  = 'serif', weight = 'bold', ha = 'right')
+        buffer = (max(yaxis_1[0])-min(yaxis_1[0]))/2.0
         for m in range(len(yaxis_1)-1):
-            plt.plot(xaxis_1, yaxis_1[m+1]+(m+1))
-            plt.annotate(str(names_1[m+1]), xy = (max(xaxis_1), max(yaxis_1[m+1])+(m+1)), xytext = (-10, -15), textcoords = 'offset points', fontsize = 8, family  = 'serif', weight = 'bold', ha = 'right')
+            plt.plot(xaxis_1, yaxis_1[m+1]+(m+1)*(1+buffer))
+            plt.annotate(str(names_1[m+1]), xy = (max(xaxis_1), max(yaxis_1[m+1])+(m+1)*(1+buffer)), xytext = (-10, 0), textcoords = 'offset points', fontsize = 8, family  = 'serif', weight = 'bold', ha = 'right')
         plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
         plt.ylabel('Relative, f$_{\lambda}$', fontdict = font)
         plt.minorticks_on()
