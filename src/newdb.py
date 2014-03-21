@@ -196,7 +196,7 @@ for path, subdirs, files in os.walk(root):
             spec = msg.packb(spectra)
 
             try:
-                interp_spec, sig_noise = prep.compprep(spectra, sn_name)
+                interp_spec, sig_noise = prep.compprep(spectra, sn_name, redshift, source)
             except:
                 print "Interp failed"
                 bad_interp.append(name)

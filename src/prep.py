@@ -18,11 +18,12 @@ README:
 
 This part of code is written for composite spectra preparation.
 It does deredding, deredshifting, and interpolation.
-Using the function prep:
+Using the function compprep:
 INPUT :
 SPECTRUM : table containing the original wavelength and flux
 FILE_NAME : containing name of supernova
-
+Z: redshift of the spectra
+SOURCE : the dataset to analyze. Currently we have 'cfa''csp''bsnip'
 
 OUTPUT:
 NEW_DATA: table containing the processed wavelength, flux and variance
@@ -31,13 +32,17 @@ NEW_DATA: table containing the processed wavelength, flux and variance
 
 def ReadParam():
     #Read in : table containing sn names, redshifts, etc.
-    sn_parameter = np.genfromtxt('../data/cfa/cfasnIa_param.dat',dtype = None)
+    sn_param = np.genfromtxt('../data/cfa/cfasnIa_param.dat',dtype = None)
+    sn = []
+    z = []
+    for i in range(len(sn_param)) :
+        sn.append(sn_param[i][0]) #get relevent parameters needed for calculations
+        z.append(sn_param[i][1]) # redshift value 
+    return z
 
-    return sn_parameter
-
-def ReadExtin():
+def ReadExtin(file):
     #table containing B and V values for determining extinction -> dereddening due to milky way
-    sne = np.genfromtxt('extinction.dat', dtype = None)
+    sne = np.genfromtxt(file, dtype = None)
 
     return sne
 
@@ -67,10 +72,9 @@ NOTE:Currently only has SN_name, B, and V values for purposes of Dereddening due
 #deredshift the spectra
 #deredden to host galaxy
 
-def dered(sn_param,sne,filename,wave,flux):
-    for j in range(len(sn_param)):#go through list of SN parameters
-        sn = sn_param[j][0] #get relevent parameters needed for calculations
-        z = sn_param[j][1]  # redshift value
+def dered(z,sne,snname,wave,flux):
+    for j in range(len(sne)):#go through list of SN parameters
+        sn = sne[j][0]        
         if sn in filename:#SN with parameter matches the path
             b = sne[j][1].astype(float)
             v = sne[j][2].astype(float)
@@ -137,7 +141,7 @@ def Interpo (wave, flux, variance) :
     return output # return new table
 
 
-    # Get the Noise for each spectra
+    # Get the Noise for each spectra ( with input of inverse variance)
 
 def getsnr(flux, ivar) :
     sqvar = map(math.sqrt, ivar)
@@ -148,21 +152,26 @@ def getsnr(flux, ivar) :
 from datafidelity import *  # Get variance from the datafidelity outcome
 
 
-
-def compprep(spectrum,file_name):
-    sn_parameter = ReadParam()
-    sne = ReadExtin()
-    newdata = []
-
+def compprep(spectrum,sn_name,z,source):
     old_wave = spectrum[:,0]	    #wavelengths
     old_flux = spectrum[:,1] 	#fluxes
-    #old_var  = spectrum[:,2]  #errors
-
+    #old_var  = spectrum[:,2]  #errors 
     old_var = genivar(old_wave, old_flux) #variance
     snr = getsnr(old_flux, old_var)
-    print 'S/N ratio', file_name, snr
+    print 'S/N ratio', sn_name, snr
+    
+    if source == 'cfa' : # choosing source dataset
+#        z = ReadParam()
+        sne = ReadExtin('extinction.dat')
+    if source == 'bsnip' :
+        sne = ReadExtin('extinctionbsnip.dat')     
+    if source == 'csp' :   
+        sne = ReadExtin('extinctioncsp.dat')
+        old_wave *= 1+z
+    
+    newdata = []
 
-    new_spectrum = dered(sn_parameter, sne, file_name, old_wave, old_flux)
+    new_spectrum = dered(z, sne, sn_name, old_wave, old_flux)
     new_wave = new_spectrum[0]
     new_flux = new_spectrum[1]
     new_var  = genivar(new_wave, new_flux) #variance
@@ -170,4 +179,5 @@ def compprep(spectrum,file_name):
     newdata = Interpo(new_wave, new_flux, new_var) # Do the interpolation
 #    print 'new spectra',newdata
     return newdata, snr
+
 
