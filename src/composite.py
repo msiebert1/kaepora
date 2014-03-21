@@ -298,7 +298,7 @@ def average(SN_Array, template):
 #	template.ivar = np.average(errors[:,good], weights = errors[:,np.where(errors[0,:]!=0)], axis=0)
 #	template.ivar = template.ivar[0]
 #	template.wavelength = template.wavelength[good]
-
+	print ivars
         template.flux = np.average(fluxes, weights=ivars, axis=0)
         template.ivar = 1/np.sum(ivar, axis=0)
 
@@ -309,8 +309,8 @@ def average(SN_Array, template):
 def main():
     SN_Array = []
     #Accept SQL query as input and then grab what we need
-    print "Query format: SELECT [items] FROM Supernovae"
-    print "Optional at the end: ORDER BY [attribute] DESC"
+    #print "Query format: SELECT [items] FROM Supernovae"
+    #print "Optional at the end: ORDER BY [attribute] DESC"
     Full_query = "SELECT * FROM Supernovae"
     print "Full Query:", Full_query
     #sql_input = str(raw_input("Enter a SQL Query---> "))
