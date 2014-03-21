@@ -107,7 +107,6 @@ def find_nearest(array,value):
     idx = (np.abs(array-value)).argmin()
     return array[idx]
 
-#def scale_func(vars, in_data, out_data, ivar):
 def scale_func(vars, in_data, out_data):
     
     scale = vars[0]
