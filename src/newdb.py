@@ -109,7 +109,7 @@ con.execute("""DROP TABLE IF EXISTS Supernovae""")
 con.execute("""CREATE TABLE IF NOT EXISTS Supernovae (Filename
                     TEXT PRIMARY KEY, SN Text, Source Text, Redshift REAL, Phase REAL,
                     MinWave REAL, MaxWave REAL, Dm15 REAL, M_B REAL,
-                    B_mMinusV_m REAL, Targeted INTEGER, Snr REAL,
+                    B_mMinusV_m REAL, Targeted INTEGER, snr REAL,
                     Interpolated_Spectra BLOB)""")
 
 #change this depending on where script is
@@ -205,7 +205,7 @@ for path, subdirs, files in os.walk(root):
 
             interped  = msg.packb(interp_spec)
             con.execute("""INSERT INTO Supernovae(Filename, SN, Source, Redshift, Phase,
-                                MinWave, MaxWave, Dm15, M_B, B_mMinusV_m, Snr, Interpolated_Spectra)
+                                MinWave, MaxWave, Dm15, M_B, B_mMinusV_m, snr, Interpolated_Spectra)
                                 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", (name, sn_name, source, redshift,
                                 phase, min_wave, max_wave, Dm15, m_b, bm_vm, sig_noise, buffer(interped)))
 con.commit()
