@@ -167,7 +167,7 @@ def compprep(spectrum,sn_name,z,source):
         sne = ReadExtin('extinctionbsnip.dat')
     if source == 'csp' :
         sne = ReadExtin('extinctioncsp.dat')
-        old_wave *= 1+z
+        old_wave *= 1+float(z)
 
     newdata = []
 
