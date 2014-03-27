@@ -21,7 +21,7 @@ More can be added as our programs evolve
 composite = composite.main("SELECT * FROM Supernovae WHERE snr > 8")
 
 #Read whatever you sasved the table as
-Data = Table.read('../plots/TestComposite', format='ascii')
+Data = Table.read(composite.savedname, format='ascii')
 
 #Checking to see how the table reads..right now it has a header that might be screwing things up.
 print Data
