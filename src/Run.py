@@ -18,8 +18,9 @@ More can be added as our programs evolve
 """
 
 #This part works just fine
-template = composite.main("SELECT * FROM Supernovae WHERE snr > 8")
+composite = composite.main("SELECT * FROM Supernovae WHERE snr > 8")
 
+#Read whatever you sasved the table as
 Data = Table.read('../plots/TestComposite', format='ascii')
 
 #Checking to see how the table reads..right now it has a header that might be screwing things up.
@@ -27,8 +28,8 @@ print Data
 
 #To be honest, I'm not sure entirely how this works.
 #Can someone who worked on this piece of code work with it?
-Relative_Flux = [Data[0], Data[1], template.name]  # Want to plot a composite of multiple spectrum
-Residuals     = [Data[0], Data[2], template.name]
+Relative_Flux = [Data[0], Data[1], composite.name]  # Want to plot a composite of multiple spectrum
+Residuals     = [Data[0], Data[2], composite.name]
 Spectra_Bin   = []
 Age           = []
 Delta         = []
