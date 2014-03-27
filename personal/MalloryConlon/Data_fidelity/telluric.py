@@ -1,60 +1,55 @@
 #This code looks for telluric lines in a given spectrum.  It clips those lines and changes the inverse variance to 0 because the flux value has been corrected.
 
-import numpy as np
-from scipy import *
-from datafidelity import *
-import matplotlib.pyplot as plt
-import pyfits
-import glob
-import os
+def scale(root):
+
+    import numpy as np
+    from datafidelity import *
+    import matplotlib.pyplot as plt
+    import os
+    list = []
+    scales = []
+
+    for path, subdirs, files in os.walk(root):
+        for name in files:
+            if name.endswith('.flm'):
+                list.append(os.path.join(path,name))
 
 
-root = '/users/malloryconlon/astr596/data/cfa/'
+    for i in range(len(list)):
+        try:
+            SN = np.genfromtxt(list[i])
+            wavelength = SN[:,0]
+            flux = SN[:,1]
+            var = SN[:,2]
+            var1 = genvar(wavelength,flux)
+                #if np.sum(var)!= 0:
+            new = 0
+            new = var/var1
+            scale = np.average(new)
+            #print list[i]
+            #print scale
+            scales.append(scale)
+            print len(scales)
+        except:
+            print list[i]
 
-list = []
-scales = []
+    new = [x for x in scales if str(x) != 'nan']
 
-for path, subdirs, files in os.walk(root):
-    for name in files:
-        list.append(os.path.join(path,name))
-print list
+    new1 = [x for x in new if float(x) < 100]
 
-for i in range(len(list)):
-    try:
-        SN = np.genfromtxt(list[i])
-        wavelength = SN[:,0]
-        flux = SN[:,1]
-        var = SN[:,2]
-        var1 = genvar(wavelength,flux)
-        new = var/var1
-        scale = np.average(new)
-        scales.append(scale)
-    except:
-        print list[i]
+    new2 = [x for x in new1 if float(x) != 0]
 
-print np.average(scales)
+    new_scales = [x for x in new2 if str(x) != 'inf']
 
-
-plt.hist(scales)
-
-#open = pyfits.open('bstarr.fits')
-#sky = open[0].data
-
-#cor = correlate(flux,sky)
-
-#for i in range(len(cor)):
-#   if cor[i]!=0:
-#       print cor[i]
+    print new_scales
+    print np.average(new_scales)
+    print np.median(new_scales)
 
 
-
-#plt.plot(sky_telluric)
-#plt.show()
-
-
-
-
-
-#plt.plot(wavelength,var)
-#plt.plot(wavelength,var1)
-#plt.show()
+    num_bins = 900
+# the histogram of the data
+    n, bins, patches = plt.hist(new_scales, num_bins, normed=1, facecolor='green', alpha=0.5)
+    plt.xlabel('Scaling factors')
+    plt.ylabel('Number of counts')
+    plt.axis([0,100,0, 10])
+    plt.show()
