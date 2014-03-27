@@ -13,6 +13,7 @@ from astropy.table import Table
 import msgpack as msg
 import msgpack_numpy as mn
 from scipy.optimize import leastsq
+import file_name
 
 np.set_printoptions(threshold=np.nan)
 mn.patch()
@@ -249,20 +250,20 @@ def main(Full_query):
     print "Done."
     print "Average redshift =", template.redshift
     #print "Average phase =", template.phase
+    #This next line creates a unique filename for each run based on the sample set used
+    f_name = "../plots/" + file_name.make_name(SN_Array)
     lowindex = np.where(template.wavelength == find_nearest(template.wavelength, wmin))
     highindex = np.where(template.wavelength == find_nearest(template.wavelength, wmax))
     plt.plot(template.wavelength[lowindex[0]:highindex[0]], template.flux[lowindex[0]:highindex[0]])
     plt.plot(template.wavelength[lowindex[0]:highindex[0]], template.ivar[lowindex[0]:highindex[0]])
-    plt.savefig('../plots/TestComposite.png')
+    plt.savefig('../plots/' + f_name + '.png')
     plt.show()
     #Either writes data to file, or returns it to user
     #This part is still in progress
     table = Table([template.wavelength, template.flux, template.ivar], names = ('Wavelength', 'Flux', 'Variance'))
     c_file = str(raw_input("Create a file for data? (y/n)"))
     if c_file=='y':
-		#f_name='composite,'+min(composite.phases)+'.'+max(composite.phases)+'.'+min(composite.redshifts)+'.'+max(composite.redshifts)+'...--'+np.average(composite.phases)+'.'+np.average(composite.redshifts)+len(SN_Array)+'SN'
-		#phase_min.phase_max.deltam15_min.deltam15_max. ... --avg_phase.avg_deltam15... --#SN
-		f_name = "../plots/TestComposite"
+		#f_name = "../plots/TestComposite"
 		table.write(f_name,format='ascii')
 		return template
     else:
