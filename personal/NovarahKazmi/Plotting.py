@@ -1,3 +1,4 @@
+import numpy as np
 import matplotlib as mpl
 from matplotlib import rc
 import matplotlib.pyplot as plt
@@ -69,53 +70,89 @@ def main(Show_Data , Plots , image_title , title):
 # final figure has multiple data sets that can be shown 
 # overlapping on the same figure. 
 #############################################################
-    #length = len(Show_Data[:][0])
-    xaxis_1 = Show_Data[:][0][0] 
-    yaxis_1 = Show_Data[:][0][1]
-   # xaxis_2 = Show_Data[:][0][2] 
-    #yaxis_2 = Show_Data[:][0][3]
-    
-    """    
-    
+    # Use the length of each component of Show_Data to rename and fill arrays
+    len_RF = len(Show_Data[:][0])
+    len_SB = len(Show_Data[:][1])
+    len_AG = len(Show_Data[:][2])
+    len_DE = len(Show_Data[:][3])
+    len_RD = len(Show_Data[:][4])
 
-    RF_X = []
-    RF_Y = []
-    RS_X = []
-    RS_Y = []
-    SB_X = []
-    SB_Y = []
-    AG_X = []
-    AG_Y = []
-    DE_X = []
-    DE_Y = []
-    RD_X = []
-    RD_Y = []
-
+    # Even values are x. Odd are y  (Slightly confusing for the time being)
+    RF = []
+    SB = []
+    AG = []
+    DE = []
+    RD = []
+    # Fill each array with data that will go in each plot
+    for i in range(len_RF):
+        data = Show_Data[:][0][i] 
+        RF.append(data) 
+    for i in range(len_SB):
+        data = Show_Data[:][1][i] 
+        SB.append(data)
+    for i in range(len_AG):
+        data = Show_Data[:][2][i] 
+        AG.append(data) 
+    for i in range(len_DE):
+        data = Show_Data[:][3][i] 
+        DE.append(data)  
+    for i in range(len_RD):
+        data = Show_Data[:][4][i] 
+        RD.append(data)  
+    # Currently here until I change all the variable names throughout the code
+    if len(Show_Data[:][0]) > 0 :
+        xaxis_1 = Show_Data[:][0][0] 
+        yaxis_1 = Show_Data[:][0][1]
+        xaxis_2 = Show_Data[:][0][2] 
+        yaxis_2 = Show_Data[:][0][3]
+    """
+        #yaxis_i = Show_Data[:][i][1]
+        #RF_X = Show_Data[:][0][0] # I'd like the naming of varibles to be 
+        #RF_Y = Show_Data[:][0][1] # more specific later
+    # No residual bc residual is calculated in this code
+    if len(Show_Data[:][1]) > 0 :
+        SB_X = Show_Data[:][1][0]
+        SB_Y = Show_Data[:][1][1]
+    if len(Show_Data[:][2]) > 0 :
+        AG_X = Show_Data[:][2][0]
+        AG_Y = Show_Data[:][2][1]
+    if len(Show_Data[:][2]) > 0 :    
+        DE_X = Show_Data[:][3][0]
+        DE_Y = Show_Data[:][3][1]
+    if len(Show_Data[:][2]) > 0 :
+        RD_X = Show_Data[:][4][0]
+        RD_Y = Show_Data[:][4][1]
+    """
+    #print RF_1,RF_2
+    #print xaxis_1, yaxis_1,xaxis_2,yaxis_2
 #    def rename(Show_Data):
 #	if len(Show_Data[:]) 
  	# Want to remove the 0 values
+    """    
     def remove_zero(s):
-		if s[:][i][1] == 0 :
-			delete.append(i)
-	for i in range(len(delete)):
-		del s[:][i][delete[len(delete)-1-i]]	#remove zero indices from the end of the data array
-		del s[:][i][delete[len(delete)-1-i]]
-
-    remove_zero(Show_Data)
-    xaxis = []
-    yaxis = []
-    
-    for i in range(length):   
-            xaxis[i] = Show_Data[:][0][i] 
-            yaxis[i] = Show_Data[:][0][i]
+        if s[:][i][1] == 0 :
+            delete.append(i)
+            for i in range(len(delete)):
+                del s[:][i][delete[len(delete)-1-i]]	#remove zero indices from the end of the data array
+                #del s[:][i][delete[len(delete)-1-i]]
             
-   """         
+    remove_zero(Show_Data)
+    """    
+    
+    #for i in range(length):   
+     #   xaxis[i] = Show_Data[:][i][0] 
+     #   yaxis[i] = Show_Data[:][i][1]
+            
+             
     #xaxis = np.array(xaxis)
     #print xaxis[1],yaxis[1]
     #if len(Show_Data[:][0]) > 2 :
      #   xaxis_2   = Show_Data[:][0][2] 
      #   yaxis_2   = Show_Data[:][0][3]
     
+    
+    # Name_1 should be its own array, not read in with data. 
+    # somewhat confusing at the moment
     names_1   = "Random String"
 
 #############################################################
@@ -339,12 +376,12 @@ def main(Show_Data , Plots , image_title , title):
     comp_data = yaxis_1*1.2
     rms_data = []
     rms_data = yaxis_1*.5
-    """    
-    comp_data[2] = []
-    comp_data[2] = yaxis_2*1.86
-    rms_data[2] = []
-    rms_data[2] = yaxis_2*1.41
-    """
+    
+    comp_data_2 = []
+    comp_data_2 = yaxis_2*1.86
+    rms_data_2 = []
+    rms_data_2 = yaxis_2*1.41
+    
 #############################################################
 # The following section sets up the plotting figure information. 
 # it sets the size, color, title. 
@@ -404,9 +441,9 @@ def main(Show_Data , Plots , image_title , title):
 #############################################################                  
         
 # Remove legend box frame 
-    l = legend()
-    l.draw_frame(False)
-    plt.draw()
+    #l = legend()
+    #l.draw_frame(False)
+    #plt.draw()
 
 #Set the visual range. Automatic range is ugly. 
 #    xmin = int(float(xaxis_1[0])) 
@@ -416,7 +453,6 @@ def main(Show_Data , Plots , image_title , title):
 #Label the figure and show
     #plt.xlabel( "Wavelength $\AA$" )
     #plt.savefig( image_title )
-    plt.show()
-
+    #plt.show()
 
 
