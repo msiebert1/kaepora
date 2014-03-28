@@ -6,6 +6,7 @@ import math
 from pylab import *
 import matplotlib.gridspec as gridspec
 import scipy.optimize as optimize
+import random # new import so that colors in fill_between are random
 
 
 ###########################################
@@ -18,7 +19,7 @@ import scipy.optimize as optimize
 # 
 #import Plotting
 #
-#Relative_Flux = [wavelengths, avg_flux_p, names of samples]  # Want to plot a composite of multiple spectrum
+#Relative_Flux = [wavelengths, avg_flux_p]  # Want to plot a composite of multiple spectrum
 #Residuals     = []
 #Spectra_Bin   = []
 #Age           = []
@@ -83,6 +84,7 @@ def main(Show_Data , Plots , image_title , title):
     AG = []
     DE = []
     RD = []
+    
     # Fill each array with data that will go in each plot
     for i in range(len_RF):
         data = Show_Data[:][0][i] 
@@ -99,60 +101,7 @@ def main(Show_Data , Plots , image_title , title):
     for i in range(len_RD):
         data = Show_Data[:][4][i] 
         RD.append(data)  
-    # Currently here until I change all the variable names throughout the code
-    if len(Show_Data[:][0]) > 0 :
-        xaxis_1 = Show_Data[:][0][0] 
-        yaxis_1 = Show_Data[:][0][1]
-        xaxis_2 = Show_Data[:][0][2] 
-        yaxis_2 = Show_Data[:][0][3]
-    """
-        #yaxis_i = Show_Data[:][i][1]
-        #RF_X = Show_Data[:][0][0] # I'd like the naming of varibles to be 
-        #RF_Y = Show_Data[:][0][1] # more specific later
-    # No residual bc residual is calculated in this code
-    if len(Show_Data[:][1]) > 0 :
-        SB_X = Show_Data[:][1][0]
-        SB_Y = Show_Data[:][1][1]
-    if len(Show_Data[:][2]) > 0 :
-        AG_X = Show_Data[:][2][0]
-        AG_Y = Show_Data[:][2][1]
-    if len(Show_Data[:][2]) > 0 :    
-        DE_X = Show_Data[:][3][0]
-        DE_Y = Show_Data[:][3][1]
-    if len(Show_Data[:][2]) > 0 :
-        RD_X = Show_Data[:][4][0]
-        RD_Y = Show_Data[:][4][1]
-    """
-    #print RF_1,RF_2
-    #print xaxis_1, yaxis_1,xaxis_2,yaxis_2
-#    def rename(Show_Data):
-#	if len(Show_Data[:]) 
- 	# Want to remove the 0 values
-    """    
-    def remove_zero(s):
-        if s[:][i][1] == 0 :
-            delete.append(i)
-            for i in range(len(delete)):
-                del s[:][i][delete[len(delete)-1-i]]	#remove zero indices from the end of the data array
-                #del s[:][i][delete[len(delete)-1-i]]
-            
-    remove_zero(Show_Data)
-    """    
     
-    #for i in range(length):   
-     #   xaxis[i] = Show_Data[:][i][0] 
-     #   yaxis[i] = Show_Data[:][i][1]
-            
-             
-    #xaxis = np.array(xaxis)
-    #print xaxis[1],yaxis[1]
-    #if len(Show_Data[:][0]) > 2 :
-     #   xaxis_2   = Show_Data[:][0][2] 
-     #   yaxis_2   = Show_Data[:][0][3]
-    
-    
-    # Name_1 should be its own array, not read in with data. 
-    # somewhat confusing at the moment
     names_1   = "Random String"
 
 #############################################################
@@ -217,19 +166,22 @@ def main(Show_Data , Plots , image_title , title):
         a = array
         return a[-key:]+a[:-key]
 #############################################################
-# The following function take the x,y,rms, and composite data to 
-# plot the composite spectrum
+# The following function take the x,y,rms, and composite data    
+# to plot the composite spectrum
 #############################################################    
-    def Composite(xaxis_1, comp_data,rms_data):
+    def Composite(RF,comp_data,rms_data):
         # Rel_flux = plt.subplot(gs[p]) is turned into a global variable outside all the functions
         plt.ylabel('Relative, f$_{\lambda}$', fontdict = font)
         plt.minorticks_on()
-        plt.fill_between(xaxis_1, comp_data+rms_data, comp_data-rms_data, facecolor = 'red',alpha=0.5)
-        #for i in range(len(Show_Data)+2):
-        #   plt.fill_between(xaxis[i], comp_data[i]+rms_data[i], comp_data[i]-rms_data[i],alpha=0.5)          
-        plt.plot(xaxis_1, comp_data, label = "Composite")
-        plt.plot(xaxis_1, comp_data+rms_data, label = "+ RMS")
-        plt.plot(xaxis_1, comp_data-rms_data, label = "- RMS")
+
+        # This for loop plots all the relative fluxes that were read in
+        # the iterating is not 
+        for k in range(len_RF):
+            if k % 2 == 0:
+                plt.fill_between(RF[k], comp_data[k+1] + rms_data[k+1], comp_data[k+1] - rms_data[k+1], facecolor = random.choice(['g', 'r', 'c', 'm', 'y', 'k']),alpha=0.5)          
+        plt.plot(RF[0], comp_data[1], label = "Composite")
+        plt.plot(RF[0], comp_data[1] + rms_data[1], label = "+ RMS")
+        plt.plot(RF[0], comp_data[1] - rms_data[1], label = "- RMS")
         plt.legend(prop = {'family' : 'serif'})
         RFxticklabels = Rel_flux.get_xticklabels()  
         if max(stacked) == 0:
@@ -239,119 +191,121 @@ def main(Show_Data , Plots , image_title , title):
 #############################################################
 # The following function uses the x and rms to plot the RMS 
 #############################################################
-    def Residual(xaxis_1, rms_data):
+    def Residual(RF, rms_data):
         Resid = plt.subplot(gs[p], sharex = Rel_flux)
         plt.ylabel('Residuals', fontdict = font)
-        plt.plot(xaxis_1, rms_data, label = "RMS of residuals", ls = '-')
+        plt.plot(RF[0], rms_data[1], label = "RMS of residuals", ls = '-')
         RSxticklabels = Resid.get_xticklabels()
         if max(stacked) == 1:
             plt.setp(RSxticklabels, visible=True)
         else:
             plt.setp(RSxticklabels, visible=False)
 #############################################################
-# The following function will fill a smaller plot that shows the 
-# Spectra per bin with respect to wavelength.
+# The following function will fill a smaller plot that shows 
+# the Spectra per bin with respect to wavelength.
 #############################################################            
-    def SpecBin(xaxis_1, rms_data):
+    def SpecBin(RF, rms_data):
         SpecBin = plt.subplot(gs[p], sharex = Rel_flux)
         plt.ylabel('Spectra/Bin', fontdict = font)
-        plt.plot(xaxis_1, 0*xaxis_1+3.0, label = "title goes here", ls = '-')
+        plt.plot(RF[0], 0*RF[0]+3.0, label = "title goes here", ls = '-')
         SBxticklabels = SpecBin.get_xticklabels()        
         if max(stacked) == 2:
             plt.setp(SBxticklabels, visible=True)
         else:
             plt.setp(SBxticklabels, visible=False)
 #############################################################
-# The following function will fill a smaller plot that shows the 
-# age(?) with respect to wavelength(?).
+# The following function will fill a smaller plot that shows  
+# the age(?) with respect to wavelength(?).
 #############################################################              
-    def Age(xaxis_1, rms_data):
+    def Age(RF, rms_data):
         Age = plt.subplot(gs[p], sharex = Rel_flux)
         plt.ylabel('Age [d]', fontdict = font)
-        plt.plot(xaxis_1, xaxis_1**3.0, label = "title goes here", ls = '-')
+        plt.plot(RF[0], RF[0]**3.0, label = "title goes here", ls = '-')
         AGxticklabels = Age.get_xticklabels()        
         if max(stacked) == 3:
             plt.setp(AGxticklabels, visible=True)
         else:
             plt.setp(AGxticklabels, visible=False)
 #############################################################
-# The following function will fill a smaller plot that shows the 
-# delta(?) with respect to wavelength(?).
+# The following function will fill a smaller plot that shows  
+# the delta(?) with respect to wavelength(?).
 #############################################################              
-    def Delta(xaxis_1, rms_data):
+    def Delta(RF, rms_data):
         Delta = plt.subplot(gs[p], sharex = Rel_flux)
         plt.ylabel('$\Delta$', fontdict = font)
-        plt.plot(xaxis_1, 1/xaxis_1, label = "title goes here", ls = '-')
+        plt.plot(RF[0], 1/RF[0], label = "title goes here", ls = '-')
         DLxticklabels = Delta.get_xticklabels()
         if max(stacked) == 4:            
             plt.setp(DLxticklabels, visible=True)
         else:
             plt.setp(DLxticklabels, visible=False)
 #############################################################
-# The following function will fill a smaller plot that shows the 
-# redshift with respect to wavelength(?).
+# The following function will fill a smaller plot that shows  
+# the redshift with respect to wavelength(?).
 #############################################################              
-    def Redshift(xaxis_1, rms_data):
+    def Redshift(RF, rms_data):
         Redshift = plt.subplot(gs[p], sharex = Rel_flux)
         plt.ylabel('Redshift', fontdict = font)
-        plt.plot(xaxis_1, xaxis_1**2.0-xaxis_1, label = "title goes here", ls = '-')
+        plt.plot(RF[0], RF[0]**2.0-RF[0], label = "title goes here", ls = '-')
         Zxticklabels = Redshift.get_xticklabels()        
         if max(stacked) == 5:            
             plt.setp(Zxticklabels, visible=True)
         else:
             plt.setp(Zxticklabels, visible=False)
 #############################################################
-# The following function will take all the data sets to build the 
-# composite spectrum and lay each one over the next. 
+# The following function will take all the data sets to build  
+# the composite spectrum and lay each one over the next. 
 # This will appear on a separate figure.
 ############################################################# 
-    def Multi(xtrunc,yaxis_1):
+    def Multi(xtrunc,RF):
         plt.figure(num = 2, dpi = 100, figsize = [8, 8], facecolor = 'w')
-        for m in range(len(yaxis_1)):
-            plt.plot(xtrunc, yaxis_1[m], label = str(names_1[m]))
+        for m in range(len(RF[1])):
+            plt.plot(xtrunc, RF[1][m], label = str(names_1[m]))
         plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
         plt.ylabel('Relative, f$_{\lambda}$', fontdict = font)
         plt.minorticks_on()
         plt.legend(prop = {'family' : 'serif'})        
         plt.savefig('multi-spectrum plot.png', dpi = 100, facecolor='w', edgecolor='w', pad_inches = 0.1)
 #############################################################
-# The following function stacks all the data sets used to build the 
-# composite spectrum. This will appear on a separate figure.
+# The following function stacks all the data sets used to  
+# build the composite spectrum. This will appear on a 
+# separate figure.
 #############################################################  
-    def Stacked(xaxis_1,yaxis_1): 
-       plt.figure(num = 3, dpi = 100, figsize = [8, 4*len(yaxis_1)], facecolor = 'w')
-       plt.plot(xaxis_1, yaxis_1[0])
-       plt.annotate(str(names_1[0]), xy = (max(xaxis_1), max(yaxis_1[0])), xytext = (-10, 0), textcoords = 'offset points', fontsize = 8, family  = 'serif', weight = 'bold', ha = 'right')
-       buffer = (max(yaxis_1[0])-min(yaxis_1[0]))/2.0
-       for m in range(len(yaxis_1)-1):
-            plt.plot(xaxis_1, yaxis_1[m+1]+(m+1)*(1+buffer))
-            plt.annotate(str(names_1[m+1]), xy = (max(xaxis_1), max(yaxis_1[m+1])+(m+1)*(1+buffer)), xytext = (-10, 0), textcoords = 'offset points', fontsize = 8, family  = 'serif', weight = 'bold', ha = 'right')
+    def Stacked(RF,rms_data): 
+       plt.figure(num = 3, dpi = 100, figsize = [8, 4*len(RF[1])], facecolor = 'w')
+       plt.plot(RF[0], RF[1][0])
+       plt.annotate(str(names_1[0]), xy = (max(RF[0]), max(RF[1][0])), xytext = (-10, 0), textcoords = 'offset points', fontsize = 8, family  = 'serif', weight = 'bold', ha = 'right')
+       buffer = (max(RF[1][0])-min(RF[1][0]))/2.0
+       for m in range(len(RF[1])-1):
+            plt.plot(RF[0], RF[1][m+1]+(m+1)*(1+buffer))
+            plt.annotate(str(names_1[m+1]), xy = (max(RF[0]), max(RF[1][m+1])+(m+1)*(1+buffer)), xytext = (-10, 0), textcoords = 'offset points', fontsize = 8, family  = 'serif', weight = 'bold', ha = 'right')
        plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
        plt.ylabel('Relative, f$_{\lambda}$', fontdict = font)
        plt.minorticks_on()
        plt.savefig('stacked plot.png', dpi = 100, facecolor='w', edgecolor='w', pad_inches = 0.1)
        
 #############################################################
-########################      End of Function Section
+########################      End of function section
 ########################              :)   
 ########################  Proceed to function application
 ############################################################# 
-# What does this section do?
+# What does this section do? I was having problems with it
+# so I've temporarily commented it out. 
 #############################################################
-    xtrunc = xaxis_1[deg-1:len(xaxis_1)-deg]
+    xtrunc = RF[0][deg-1:len(RF[0])-deg]
     """    
-    xaxis_1 = []
-    xaxis_1 = xtrunc  
+    RF[0] = []
+    RF[0] = xtrunc  
     
     smoothed = []
-    for m in range(len(yaxis_1)):
-        smoothed.append(smoothGauss(yaxis_1[m]))
+    for m in range(len(RF[1])):
+        smoothed.append(smoothGauss(RF[1][m]))
     
-    yaxis_1 = []
-    yaxis_1 = Scaling(smoothed)
+    RF[1] = []
+    RF[1] = Scaling(smoothed)
     
-    source = (np.array(yaxis_1)).T
-    guess = yaxis_1[0]
+    source = (np.array(RF[1])).T
+    guess = RF[1][0]
     comp_data = []
     sbins = []
     print source
@@ -364,24 +318,37 @@ def main(Show_Data , Plots , image_title , title):
         
     delta_data = []     # difference from the mean value
     
-    for m in range(len(yaxis_1)):   # finds difference between composite data and interpolated data sets
-        delta_data.append(comp_data-yaxis_1[m]) 
+    for m in range(len(RF[1])):   # finds difference between composite data and interpolated data sets
+        delta_data.append(comp_data-RF[1][m]) 
         rms_data = np.sqrt(np.mean(np.square(delta_data), axis = 0))    # finds root-mean-square of differences at each wavelength within overlap
     """
     
 ############################################################# 
-# Delete this later. I was having trouble with smoothing. 
+# Delete this later. I was having trouble with smoothing and
+# needed data to play with. 
 #############################################################
     comp_data = []
-    comp_data = yaxis_1*1.2
-    rms_data = []
-    rms_data = yaxis_1*.5
+    rms_data  = []
+    
+    for j in range(len_RF):
+        c = RF[j]*3
+        r = RF[j]*1
+        #if j % 2 != 0:
+        comp_data.append(c) 
+        rms_data.append(r)
+    
+    """    
+    print comp_data[2]   
+    
+    comp_data[1] = RF[1]*3
+    rms_data_1 = RF[1]*1
+    # RMS and comp should easier to iterate so that multiple runs can be done
     
     comp_data_2 = []
-    comp_data_2 = yaxis_2*1.86
+    comp_data_2 = RF[3]*2
     rms_data_2 = []
-    rms_data_2 = yaxis_2*1.41
-    
+    rms_data_2 = RF[3]*3
+    """
 #############################################################
 # The following section sets up the plotting figure information. 
 # it sets the size, color, title. 
@@ -399,45 +366,46 @@ def main(Show_Data , Plots , image_title , title):
     Rel_flux = plt.subplot(gs[p])
 
 #############################################################
-# The following series of if statments runs a specific portion of the
-# ploting functions. The p = p+1 allows the code to iterate 
-# through all the possible plot options      
+# The following series of if statments runs a specific portion 
+# of the ploting functions. The p = p+1 allows the code to  
+# iterate through all the possible plot options      
 # if 0 or 1 or 2 or 3 or 4 or 5 in Plots.
-#############################################################   
+############################################################# 
+    
     if 0 in Plots: # will always plot a composite spectrum if any 1-5 are selected   
-        Composite(xaxis_1,comp_data,rms_data)
+        Composite(RF, comp_data,rms_data) 
         p = p+1
     if 1 in Plots:
-        Residual(xaxis_1, rms_data)
+        Residual(RF, rms_data) 
         p = p+1
     if 2 in Plots:  
-        SpecBin(xaxis_1,rms_data)
-        p = p+1
+        SpecBin(RF, rms_data) # Currently set to RF, needs to be changed 
+        p = p+1               # to it's associated array. 
     if 3 in Plots:
-        Age(xaxis_1, rms_data)
+        Age(RF, rms_data)
         p = p+1
     if 4 in Plots:
-        Delta(xaxis_1, rms_data)
+        Delta(RF, rms_data)
         p = p+1
     if 5 in Plots:
-        Redshift(xaxis_1, rms_data)
+        Redshift(RF, rms_data)
         p = p+1
     # Regardless of what is plotted, we label the Xaxis and save the plot image       
     plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
     plt.savefig('image_title', dpi = 100, facecolor='w', edgecolor='w', pad_inches = 0.1)
     #plt.savefig('composite plot.png', dpi = 100, facecolor='w', edgecolor='w', pad_inches = 0.1)
+    
 #############################################################
 # Other figures to plot, we put these after the first figure
 # is saved. So as to not confuse the code.     
 #############################################################      
     if 6 in Plots:
-        Multi(xtrunc,yaxis_1)
+        Multi(xtrunc,RF[1])
            
     if 7 in Plots:
-        Stacked(xaxis_1,yaxis_1)
+        Stacked(RF[0],RF[1])
 #############################################################
 # Last steps are removing the legend frame *crosses fingers*
-# and showing the figures    
 #############################################################                  
         
 # Remove legend box frame 
@@ -446,8 +414,8 @@ def main(Show_Data , Plots , image_title , title):
     #plt.draw()
 
 #Set the visual range. Automatic range is ugly. 
-#    xmin = int(float(xaxis_1[0])) 
-#    xmax = int(float(xaxis_1[-1])) 
+#    xmin = int(float(RF[0][0])) 
+#    xmax = int(float(RF[0][-1])) 
 #    plt.xlim((xmin,xmax))
 
 #Label the figure and show
