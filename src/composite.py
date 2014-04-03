@@ -157,14 +157,9 @@ badfiles = []
 def scale_data(SN_Array, scales):
     print "Scaling..."
     for i in range(len(scales)):
-	if scales[i] != 0:
-	    SN_Array[i].flux *= np.abs(scales[i])
-	    SN_Array[i].ivar /= (scales[i])**2
-	    print "Scaled at factor ", scales[i]
-	else:
-	    print "Bad scale factor in SN", SN_Array[i].filename
-	    badfiles.append(SN_Array[i].filename)
-    np.savetxt('badfiles.txt', badfiles, fmt='%50s')
+	SN_Array[i].flux *= np.abs(scales[i])
+	SN_Array[i].ivar /= (scales[i])**2
+	print "Scaled at factor ", scales[i]
     return SN_Array
 
 #averages with weights based on the given errors in .flm files

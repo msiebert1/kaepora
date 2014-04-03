@@ -19,7 +19,7 @@ More can be added as our programs evolve
 """
 
 #This part works just fine
-composite = composite.main("SELECT * FROM Supernovae")
+composite_full = composite.main("SELECT * FROM Supernovae")
 composite1 = composite.main("SELECT * FROM Supernovae WHERE phase BETWEEN 3 AND 7")
 composite2 = composite.main("SELECT * FROM Supernovae WHERE phase BETWEEN -3 AND 3")
 
