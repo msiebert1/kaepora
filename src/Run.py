@@ -44,4 +44,4 @@ Plots = [0] # the plots you want to create
 
 # The following line will plot the data
 #It's commented out until it works...
-#Plotting.main(Show_Data , Plots, image_title , title)
+Plotting.main(Show_Data , Plots, image_title , title)
