@@ -98,8 +98,11 @@ def find_SN(fname, source=None, csplist=None):
 
 
 #change this depending on where script is
-sndict, date_dict= read_cfa_info('../data/cfa/cfasnIa_param.dat',
+sndict, date_dict = read_cfa_info('../data/cfa/cfasnIa_param.dat',
                                                        '../data/cfa/cfasnIa_mjdspec.dat')
+
+carbonpos = np.loadtxt('../data/info_files/wk4_carbon_pos.txt')
+carbonneg = np.loadtxt('../data/info_files/wk4_carbon_neg.txt')
 
 ts = time.clock()
 con = sq3.connect('SNe.db')
@@ -109,7 +112,7 @@ con.execute("""DROP TABLE IF EXISTS Supernovae""")
 con.execute("""CREATE TABLE IF NOT EXISTS Supernovae (Filename
                     TEXT PRIMARY KEY, SN Text, Source Text, Redshift REAL, Phase REAL,
                     MinWave REAL, MaxWave REAL, Dm15 REAL, M_B REAL,
-                    B_mMinusV_m REAL, Targeted INTEGER, snr REAL,
+                    B_mMinusV_m REAL, Carbon INTEGER, snr REAL,
                     Interpolated_Spectra BLOB)""")
 
 #change this depending on where script is
@@ -204,11 +207,18 @@ for path, subdirs, files in os.walk(root):
                 bad_files.append(name)
                 interp_spec, sig_noise = None, None
 
+            if sn_name in carbonneg:
+                carbon = 0
+            elif sn_name in carbonpos:
+                carbon = 1
+            else:
+                carbon = None
+
             interped  = msg.packb(interp_spec)
             con.execute("""INSERT INTO Supernovae(Filename, SN, Source, Redshift, Phase,
-                                MinWave, MaxWave, Dm15, M_B, B_mMinusV_m, snr, Interpolated_Spectra)
+                                MinWave, MaxWave, Dm15, M_B, B_mMinusV_m, Carbon, snr, Interpolated_Spectra)
                                 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", (name, sn_name, source, redshift,
-                                phase, min_wave, max_wave, Dm15, m_b, bm_vm, sig_noise, buffer(interped)))
+                                phase, min_wave, max_wave, Dm15, m_b, bm_vm, carbon, sig_noise, buffer(interped)))
 con.commit()
 te = time.clock()
 print 'bad files', bad_files, len(bad_files)
