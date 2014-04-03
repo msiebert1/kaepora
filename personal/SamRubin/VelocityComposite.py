@@ -9,6 +9,7 @@ import glob
 import sqlite3 as sq3
 from scipy import interpolate as intp
 import math
+from astropy.table import Table
 
 
 """creates a new class for storing all the relevant data"""
@@ -28,6 +29,15 @@ for row in v_data[0:100]:
     SN.dv_si = row[3]
     SN_Array.append(SN)
 print len(v_data), "velocities found"
+names = []
+vels = []
+d_vels = []
+for row in v_data:
+    names.append(row[0])
+    vels.append(row[2])
+    d_vels.append(row[3])
+vel_table = Table([names, vels, d_vels], names = ('SN', 'v_si', 'dv_si'))
+vel_table.write('velocity_data.dat', format='ascii.no_header')
 
 #read in data structure
 """connect to the database"""

@@ -1,6 +1,7 @@
 import composite
 import Plotting
 from astropy.table import Table
+import matplotlib.pyplot as plt
 #import targeted
 """
 Here's the main function that anyone can use to run some analysis.
@@ -18,10 +19,15 @@ More can be added as our programs evolve
 """
 
 #This part works just fine
-composite = composite.main("SELECT * FROM Supernovae WHERE snr > 8")
+composite = composite.main("SELECT * FROM Supernovae")
+composite1 = composite.main("SELECT * FROM Supernovae WHERE phase BETWEEN 3 AND 7")
+composite2 = composite.main("SELECT * FROM Supernovae WHERE phase BETWEEN -3 AND 3")
 
+plt.plot(composite1.wavelength, 4*composite1.flux)
+plt.plot(composite2.wavelength, composite2.flux)
+plt.show()
 #Read whatever you sasved the table as
-Data = Table.read(composite.savedname, format='ascii')
+Data = Table.read(composite1.savedname, format='ascii')
 
 #Checking to see how the table reads..right now it has a header that might be screwing things up.
 print Data

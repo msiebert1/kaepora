@@ -74,7 +74,7 @@ def grab(sql_input, Full_query):
 
     #cut the array down to be more manageable
     #Used mostly in testing, if you want the full array of whatever you're looking at, comment this line out
-    SN_Array = SN_Array[0:100]
+    #SN_Array = SN_Array[0:100]
     
     for SN in SN_Array:
 	for i in range(len(SN.flux)):
@@ -153,12 +153,18 @@ def find_scales(SN_Array, temp_flux, temp_ivar):
     return scales
 
 #Scales the data using the factors found before
+badfiles = []
 def scale_data(SN_Array, scales):
     print "Scaling..."
     for i in range(len(scales)):
-	SN_Array[i].flux *= np.abs(scales[i])
-	SN_Array[i].ivar /= (scales[i])**2
-	print "Scaled at factor ", scales[i]
+	if scales[i] != 0:
+	    SN_Array[i].flux *= np.abs(scales[i])
+	    SN_Array[i].ivar /= (scales[i])**2
+	    print "Scaled at factor ", scales[i]
+	else:
+	    print "Bad scale factor in SN", SN_Array[i].filename
+	    badfiles.append(SN_Array[i].filename)
+    np.savetxt('badfiles.txt', badfiles, fmt='%50s')
     return SN_Array
 
 #averages with weights based on the given errors in .flm files
@@ -265,7 +271,7 @@ def main(Full_query):
     c_file = str(raw_input("Create a file for data? (y/n)"))
     if c_file=='y':
 		#f_name = "../plots/TestComposite"
-		table.write(f_name,format='ascii')
+		table.write(f_name,format='ascii.no_header')
 		return template
     else:
 		return template
