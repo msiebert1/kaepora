@@ -23,24 +23,29 @@ plot_name is where the plot showing both composite spectra together will be save
 wmin and wmax define the boundary of the plot.
 """
 
-plot_name = '2_composite_comparison'
-wmin = 4000
-wmax = 7000
+
 
 #This part works just fine
 #composite_full = composite.main("SELECT * FROM Supernovae WHERE Redshift > 0 AND Phase > -100")
 """
 Here we set the queries that get used to find the spectra for compositing.
 We only want to select spectra that have data for both redshift and phase, so both of them need to be in the query.
-But you can change the values to whatever you want.
+But you can change the values to whatever you want, and add more parameters.
 """
-composite1 = composite.main("SELECT * FROM Supernovae WHERE Redshift >.01 AND Phase BETWEEN -3 AND 3")
-composite2 = composite.main("SELECT * FROM Supernovae WHERE Redshift >.01 AND Phase BETWEEN 3 AND 7")
+composite1 = composite.main("SELECT * FROM Supernovae WHERE Redshift >.01 AND Phase BETWEEN 0 AND 3 AND Dm15 BETWEEN .9 and 1")
+composite2 = composite.main("SELECT * FROM Supernovae WHERE Redshift >.01 AND Phase BETWEEN 0 and 3 AND Dm15 BETWEEN 1 and 1.1")
+
+avgphase = (composite1.phase + composite2.phase)/2
+avgred = (composite1.redshift + composite2.redshift)/2
+
+plot_name = '2_composite_comparison, ' + 'avgphase, ' + str(avgphase) + ', avgred, ' + str(avgred)
+wmin = 4000
+wmax = 7000
 
 #This makes, shows, and saves a quick comparison plot...we can probably get rid of this when plotting.main works.
 lowindex = np.where(composite1.wavelength == composite.find_nearest(composite1.wavelength, wmin))
 highindex = np.where(composite1.wavelength == composite.find_nearest(composite1.wavelength, wmax))
-plt.plot(composite1.wavelength[lowindex[0]:highindex[0]], composite1.flux[lowindex[0]:highindex[0]])
+plt.plot(composite1.wavelength[lowindex[0]:highindex[0]], 5*composite1.flux[lowindex[0]:highindex[0]])
 plt.plot(composite2.wavelength[lowindex[0]:highindex[0]], composite2.flux[lowindex[0]:highindex[0]])
 plt.savefig('../plots/' + plot_name + '.png')
 plt.show()
