@@ -137,14 +137,17 @@ def find_scales(SN_Array, temp_flux, temp_ivar):
             #Otherwise, fit things
             vars = [1.0]
             #Find the appropriate values for scaling
-            good     = np.where(overlap > 0)
+            good      = np.where(overlap > 0)
 	    flux2     = np.array([flux[good]])
 	    ivar2     = np.array([ivar[good]])
 	    tempflux2 = np.array([temp_flux[good]])
             tempivar2 = np.array([temp_ivar[good]])
-            totivar  = 1/(1/ivar2 + 1/tempivar2)
+            totivar   = 1/(1/ivar2 + 1/tempivar2)
 
-	    result = np.mean(tempflux2/flux2)
+	    result = np.median(tempflux2/flux2)
+
+            if result < 0:
+                result = 0
 
 	    print "Scale factor = ", result
 
@@ -183,17 +186,25 @@ def average(SN_Array, template):
 		    phases = np.append(phases, np.array([SN.phase]), axis = 0)
 		except ValueError:
 		    print "This should never happen!"
+
+        #Make flux/ivar mask so we can average for pixels where everything has 0 ivar
 	flux_mask = np.zeros(len(fluxes[0,:]))
 	ivar_mask = np.zeros(len(fluxes[0,:]))
 	have_data = np.where(np.sum(ivars, axis = 0)>0)
-	no_data = np.where(np.sum(ivars, axis = 0)==0)
-	has_reds = np.where(reds != None)
-	has_phase = np.where(phases != None)
-	reds = reds[has_reds]
-	phases = phases[has_phase]
+	no_data   = np.where(np.sum(ivars, axis = 0)==0)
 	ivar_mask[no_data] = 1
+
+        #Add in flux/ivar mask
+        fluxes = np.append(fluxes, np.array(flux_mask), axis=0)
+        ivars  = np.append(ivars, np.array(ivar_mask), axis=0)
+
+	has_reds  = np.where(reds != None)
+	has_phase = np.where(phases != None)
+	reds      = reds[has_reds]
+	phases    = phases[has_phase]
+
 	for i in range(len(fluxes)):
-	    ivars[i,:] += ivar_mask
+#	    ivars[i,:] += ivar_mask
         template.flux = np.average(fluxes, weights=ivars, axis=0)
         template.ivar = 1/np.sum(ivars, axis=0)
 	template.redshift = sum(reds)/len(reds)
