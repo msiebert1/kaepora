@@ -268,7 +268,7 @@ def main(Full_query):
     print "Average phase =", template.phase
     #This next line creates a unique filename for each run based on the sample set used
     f_name = "../plots/" + file_name.make_name(SN_Array)
-    template.savedname = f_name
+    template.savedname = f_name + '.dat'
     lowindex = np.where(template.wavelength == find_nearest(template.wavelength, wmin))
     highindex = np.where(template.wavelength == find_nearest(template.wavelength, wmax))
     plt.plot(template.wavelength[lowindex[0]:highindex[0]], template.flux[lowindex[0]:highindex[0]])
@@ -281,7 +281,7 @@ def main(Full_query):
     c_file = str(raw_input("Create a file for data? (y/n)"))
     if c_file=='y':
 		#f_name = "../plots/TestComposite"
-		table.write(f_name,format='ascii.no_header')
+		table.write(template.savedname,format='ascii')
 		return template
     else:
 		return template
