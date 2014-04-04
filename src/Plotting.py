@@ -70,12 +70,12 @@ def main(Show_Data , Plots , image_title , title):
     #subplots_adjust(hspace=0.001)
 
 # Changing font parameters. 
-    params = {'legend.fontsize': 8, 
+    params = {'legend.fontsize': 10, 
               'legend.linewidth': 2,
               'legend.font': 'serif',
               'mathtext.default': 'regular', 
-              'xtick.labelsize': 8, 
-              'ytick.labelsize': 8} # changes font size in the plot legend
+              'xtick.labelsize': 10, 
+              'ytick.labelsize': 10} # changes font size in the plot legend
 
     plt.rcParams.update(params)                             # reset the plot parameters
 
@@ -86,8 +86,9 @@ def main(Show_Data , Plots , image_title , title):
             }
 
 #    if 0 or 1 or 2 or 3 or 4 or 5 in Plots:
-    
-    deg = 501
+
+    """    
+    deg = 5
     def smoothGauss(list, strippedXs = False, degree = deg):
         window = degree*2-1
         weight = np.array([1.0]*window)  
@@ -106,6 +107,7 @@ def main(Show_Data , Plots , image_title , title):
             smooth[m] = sum(np.array(list[m:m+window])*weight)/sum(weight)  
 
         return smooth     
+    """
 
     def Scaling(data):
         scaled = []
@@ -121,52 +123,62 @@ def main(Show_Data , Plots , image_title , title):
         a = array
         return a[-key:]+a[:-key]
 
-    xtrunc = xaxis_1[deg-1:len(xaxis_1)-deg]
-    xaxis_1 = []
-    xaxis_1 = xtrunc    
+#    xtrunc = xaxis_1[deg-1:len(xaxis_1)-deg]
+#    xaxis_1 = []
+#    xaxis_1 = xtrunc    
 
-    smoothed = []
-    for m in range(len(yaxis_1)):
-        smoothed.append(smoothGauss(yaxis_1[m]))
+#    smoothed = []
+#    for m in range(len(yaxis_1)):
+#        smoothed.append(smoothGauss(yaxis_1[m]))
     
-    yaxis_1 = []
-    yaxis_1 = Scaling(smoothed)
+#    yaxis_1 = []
+#    yaxis_1 = Scaling(smoothed)
     
     plt.figure(num = 1, dpi = 100, figsize = [8, np.sum(h)], facecolor = 'w')
     plt.title(title)
     gs = gridspec.GridSpec(len(Plots), 1, height_ratios = h, hspace = 0.001)
     p = 0
     
-    source = (np.array(yaxis_1)).T
-    guess = yaxis_1[0]
-    comp_data = []
-    sbins = []
+    print np.array(yaxis_1)    
 
-    for m in range(len(source)):
-        comp, cov = optimize.leastsq(residual, guess[m], args = (source[m]), full_output = False)
-        comp_data.append(comp[0])
-        sbins.append(len(source[m]))
+    comp_data = (np.array(yaxis_1)).T
+    #source = (np.array(yaxis_1)).T
+    guess = yaxis_1[0]
+    #comp_data = []
+    sbins = []
+    
+    """
+    print source
+
+    if len(source) != 1:
+        for m in range(len(source)):
+            comp, cov = optimize.leastsq(residual, guess[m], args = (source[m]), full_output = False)
+            comp_data.append(comp[0])
+            sbins.append(len(source[m]))
+    else:
+        comp_data = source
         
     delta_data = []     # difference from the mean value
     
     for m in range(len(yaxis_1)):   # finds difference between composite data and interpolated data sets
         delta_data.append(comp_data-yaxis_1[m]) 
         rms_data = np.sqrt(np.mean(np.square(delta_data), axis = 0))    # finds root-mean-square of differences at each wavelength within overlap
-
+    """
+    
     if 0 in Plots: # will always plot a composite spectrum if any 1-5 are selected
         Rel_flux = plt.subplot(gs[p])
         #plt.title("".join(["$^{26}$Al / $^{27}$Al, t$_{res}$ = ", str(t_width_Al), " kyr", ", U$_{Al}$ = ", str(uptake_Al[0])]), fontdict = font)
         #plt.xlabel('Age [Myr]', fontdict = font)
         plt.ylabel('Relative, f$_{\lambda}$', fontdict = font)
-        #plt.axis([Start_Al-0.05, End_Al+0.05, 0, 40])
+        plt.axis([3000, 11000, 0, 2])
         plt.minorticks_on()
-        #plt.xticks(np.arange(Start_Al, End_Al+0.05, x_tik))
-        #plt.yticks(np.arange(0, 41, 5))
+        plt.xticks(np.arange(3000, 11001, 1000))
+        plt.yticks(np.arange(0, 2.1, 0.5))
         #plt.plot(xaxis_1, yaxis_1, label = "generic data", ls = '-')  # The next three lines have been commented out - nk
-        plt.fill_between(xaxis_1, comp_data+rms_data, comp_data-rms_data, color = 'grey')        
+        #plt.fill_between(xaxis_1, comp_data+rms_data, comp_data-rms_data, color = 'grey')        
         plt.plot(xaxis_1, comp_data, label = "Composite")
-        plt.plot(xaxis_1, comp_data+rms_data, label = "+ RMS")
-        plt.plot(xaxis_1, comp_data-rms_data, label = "- RMS")
+        #plt.plot(xaxis_1, comp_data+rms_data, label = "+ RMS")
+        #plt.plot(xaxis_1, comp_data-rms_data, label = "- RMS")
         plt.legend(prop = {'family' : 'serif'})
         RFxticklabels = Rel_flux.get_xticklabels()        
         if max(stacked) == 0:
@@ -305,7 +317,7 @@ def main(Show_Data , Plots , image_title , title):
 
 #Label the figure and show
     #plt.xlabel( xlabel )
-    plt.savefig( image_title )
+    plt.savefig(image_title, dpi = 600, facecolor='w', edgecolor='w', orientation='portrait', transparent = False, bbox_inches = None, pad_inches = 0.1, frameon = None)
     plt.show()
 
 
