@@ -30,12 +30,11 @@ class supernova(object):
     """Attributes can be added"""
     
 class Parameters:
-    """Not sure what goes here"""
+    """Are we still using this?"""
 
 #Connect to database
 #change this address to whereever you locally stored the SNe.db
-#con = sq3.connect('../../../SNe.db')
-#con = sq3.connect('../../temp/SNe.db')
+#We should all be using the same save location, since there's a .gitignore now
 con = sq3.connect('../data/SNe.db')
 cur = con.cursor()
 
@@ -75,7 +74,7 @@ def grab(sql_input, Full_query):
 
     #cut the array down to be more manageable
     #Used mostly in testing, if you want the full array of whatever you're looking at, comment this line out
-    SN_Array = SN_Array[0:100]
+    #SN_Array = SN_Array[0:100]
     
     for SN in SN_Array:
 	for i in range(len(SN.flux)):
@@ -85,7 +84,6 @@ def grab(sql_input, Full_query):
 		SN.ivar[i] = 0
     SN_Array = [SN for SN in SN_Array if hasattr(SN, 'wavelength')]
     SN_Array = [SN for SN in SN_Array if hasattr(SN, 'ivar')]
-    SN_Array = [SN for SN in SN_Array if SN.redshift != None]
     print len(SN_Array), "spectra remain"
     return SN_Array
 
@@ -151,7 +149,7 @@ def find_scales(SN_Array, temp_flux, temp_ivar):
             if result < 0:
                 result = 0
 
-	    print "Scale factor = ", result
+	    #print "Scale factor = ", result
 
             scales = np.append(scales, np.array([float(result)]), axis = 0)
 

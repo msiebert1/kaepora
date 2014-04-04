@@ -28,7 +28,7 @@ wmin = 4000
 wmax = 7000
 
 #This part works just fine
-#composite_full = composite.main("SELECT * FROM Supernovae")
+#composite_full = composite.main("SELECT * FROM Supernovae WHERE Redshift > 0 AND Phase > -100")
 """
 Here we set the queries that get used to find the spectra for compositing.
 We only want to select spectra that have data for both redshift and phase, so both of them need to be in the query.
