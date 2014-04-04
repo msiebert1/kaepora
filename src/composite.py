@@ -30,12 +30,11 @@ class supernova(object):
     """Attributes can be added"""
     
 class Parameters:
-    """Not sure what goes here"""
+    """Are we still using this?"""
 
 #Connect to database
 #change this address to whereever you locally stored the SNe.db
-#con = sq3.connect('../../../SNe.db')
-#con = sq3.connect('../../temp/SNe.db')
+#We should all be using the same save location, since there's a .gitignore now
 con = sq3.connect('../data/SNe.db')
 cur = con.cursor()
 
@@ -75,7 +74,7 @@ def grab(sql_input, Full_query):
 
     #cut the array down to be more manageable
     #Used mostly in testing, if you want the full array of whatever you're looking at, comment this line out
-    SN_Array = SN_Array[0:100]
+    #SN_Array = SN_Array[0:100]
     
     for SN in SN_Array:
 	for i in range(len(SN.flux)):
@@ -150,7 +149,7 @@ def find_scales(SN_Array, temp_flux, temp_ivar):
             if result < 0:
                 result = 0
 
-	    print "Scale factor = ", result
+	    #print "Scale factor = ", result
 
             scales = np.append(scales, np.array([float(result)]), axis = 0)
 
@@ -161,9 +160,12 @@ badfiles = []
 def scale_data(SN_Array, scales):
     print "Scaling..."
     for i in range(len(scales)):
-	SN_Array[i].flux *= np.abs(scales[i])
-	SN_Array[i].ivar /= (scales[i])**2
-	print "Scaled at factor ", scales[i]
+	if scales[i] != 0:
+	    SN_Array[i].flux *= np.abs(scales[i])
+	    SN_Array[i].ivar /= (scales[i])**2
+	    print "Scaled at factor ", scales[i]
+	else:
+	    SN_Array[i].ivar = np.zeros(len(SN_Array[i].ivar))
     return SN_Array
 
 #averages with weights based on the given errors in .flm files
@@ -209,8 +211,7 @@ def average(SN_Array, template):
         template.flux = np.average(fluxes, weights=ivars, axis=0)
         template.ivar = 1/np.sum(ivars, axis=0)
 	template.redshift = sum(reds)/len(reds)
-	#template.phase = sum(phases)/len(phases)
-	#phase data isn't in the database yet
+	template.phase = sum(phases)/len(phases)
 	template.ivar[no_data] = 0
 	template.name = "Composite Spectrum"
 	return template
@@ -262,10 +263,10 @@ def main(Full_query):
 	
     print "Done."
     print "Average redshift =", template.redshift
-    #print "Average phase =", template.phase
+    print "Average phase =", template.phase
     #This next line creates a unique filename for each run based on the sample set used
     f_name = "../plots/" + file_name.make_name(SN_Array)
-    template.savedname = f_name
+    template.savedname = f_name + '.dat'
     lowindex = np.where(template.wavelength == find_nearest(template.wavelength, wmin))
     highindex = np.where(template.wavelength == find_nearest(template.wavelength, wmax))
     plt.plot(template.wavelength[lowindex[0]:highindex[0]], template.flux[lowindex[0]:highindex[0]])
@@ -278,7 +279,7 @@ def main(Full_query):
     c_file = str(raw_input("Create a file for data? (y/n)"))
     if c_file=='y':
 		#f_name = "../plots/TestComposite"
-		table.write(f_name,format='ascii.no_header')
+		table.write(template.savedname,format='ascii')
 		return template
     else:
 		return template
