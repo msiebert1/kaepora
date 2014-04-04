@@ -101,8 +101,14 @@ def find_SN(fname, source=None, csplist=None):
 sndict, date_dict = read_cfa_info('../data/cfa/cfasnIa_param.dat',
                                                        '../data/cfa/cfasnIa_mjdspec.dat')
 
-carbonpos = np.loadtxt('../data/info_files/wk4_carbon_pos.txt')
-carbonneg = np.loadtxt('../data/info_files/wk4_carbon_neg.txt')
+with open('../data/info_files/wk4_carbon_pos.txt') as f1:
+    cpos = f.readlines()
+    cleancpos = [x.strip() for x in cpos]
+    posout = filter(None, cleancpos)
+with open('../data/info_files/wk4_carbon_neg.txt') as f2:
+    cneg = f.readlines()
+    cleancneg = [x.strip() for x in cneg]
+    negout = filter(None, cleancneg)
 
 ts = time.clock()
 con = sq3.connect('SNe.db')
@@ -207,9 +213,9 @@ for path, subdirs, files in os.walk(root):
                 bad_files.append(name)
                 interp_spec, sig_noise = None, None
 
-            if sn_name in carbonneg:
+            if sn_name in negout:
                 carbon = 0
-            elif sn_name in carbonpos:
+            elif sn_name in posout:
                 carbon = 1
             else:
                 carbon = None
@@ -217,7 +223,7 @@ for path, subdirs, files in os.walk(root):
             interped  = msg.packb(interp_spec)
             con.execute("""INSERT INTO Supernovae(Filename, SN, Source, Redshift, Phase,
                                 MinWave, MaxWave, Dm15, M_B, B_mMinusV_m, Carbon, snr, Interpolated_Spectra)
-                                VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", (name, sn_name, source, redshift,
+                                VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", (name, sn_name, source, redshift,
                                 phase, min_wave, max_wave, Dm15, m_b, bm_vm, carbon, sig_noise, buffer(interped)))
 con.commit()
 te = time.clock()
