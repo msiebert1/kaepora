@@ -74,7 +74,7 @@ def grab(sql_input, Full_query):
 
     #cut the array down to be more manageable
     #Used mostly in testing, if you want the full array of whatever you're looking at, comment this line out
-    #SN_Array = SN_Array[0:100]
+    SN_Array = SN_Array[0:100]
     
     for SN in SN_Array:
 	for i in range(len(SN.flux)):
@@ -195,15 +195,15 @@ def average(SN_Array, template):
 	ivar_mask[no_data] = 1
 
         #Add in flux/ivar mask
-        fluxes = np.append(fluxes, np.array(flux_mask), axis=0)
-        ivars  = np.append(ivars, np.array(ivar_mask), axis=0)
+        fluxes = np.append(fluxes, np.array([flux_mask]), axis=0)
+        ivars  = np.append(ivars, np.array([ivar_mask]), axis=0)
 
 	has_reds  = np.where(reds != None)
 	has_phase = np.where(phases != None)
 	reds      = reds[has_reds]
 	phases    = phases[has_phase]
 
-	for i in range(len(fluxes)):
+#	for i in range(len(fluxes)):
 #	    ivars[i,:] += ivar_mask
         template.flux = np.average(fluxes, weights=ivars, axis=0)
         template.ivar = 1/np.sum(ivars, axis=0)

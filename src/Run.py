@@ -19,7 +19,7 @@ More can be added as our programs evolve
 """
 
 #This part works just fine
-composite_full = composite.main("SELECT * FROM Supernovae")
+#composite_full = composite.main("SELECT * FROM Supernovae")
 composite1 = composite.main("SELECT * FROM Supernovae WHERE phase BETWEEN 3 AND 7")
 composite2 = composite.main("SELECT * FROM Supernovae WHERE phase BETWEEN -3 AND 3")
 
@@ -34,8 +34,8 @@ print Data
 
 #To be honest, I'm not sure entirely how this works.
 #Can someone who worked on this piece of code work with it?
-Relative_Flux = [Data[0], Data[1], composite.name]  # Want to plot a composite of multiple spectrum
-Residuals     = [Data[0], Data[2], composite.name]
+Relative_Flux = [Data[0], Data[1], composite1.name]  # Want to plot a composite of multiple spectrum
+Residuals     = [Data[0], Data[2], composite1.name]
 Spectra_Bin   = []
 Age           = []
 Delta         = []
