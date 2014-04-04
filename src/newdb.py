@@ -96,11 +96,29 @@ def find_SN(fname, source=None, csplist=None):
 
         return snname
 
+def build_morph_dict():
+    """
+    Builds a diction of the form {sn_name: galaxy morphology}
+    """
+    with open('../data/info_files/host_info.dat') as f:
+        txt = f.readlines()
+
+    clean = [x.strip() for x in txt]
+    outlist = [item for item in clean if not item.startswith('#')]
+    morphlist = filter(None, outlist)
+
+    morph_dict = {}
+    for entry in morphlist:
+        ents = entry.split()
+        morph_dict[ents[0]] = ents[1]
+
+    return morph_dict
 
 #change this depending on where script is
 sndict, date_dict = read_cfa_info('../data/cfa/cfasnIa_param.dat',
                                                        '../data/cfa/cfasnIa_mjdspec.dat')
 
+#find data for carbon pos/neg supernova
 with open('../data/info_files/wk4_carbon_pos.txt') as f1:
     cpos = f.readlines()
     cleancpos = [x.strip() for x in cpos]
@@ -110,6 +128,8 @@ with open('../data/info_files/wk4_carbon_neg.txt') as f2:
     cleancneg = [x.strip() for x in cneg]
     negout = filter(None, cleancneg)
 
+morph_dict = build_morph_dict()
+
 ts = time.clock()
 con = sq3.connect('SNe.db')
 
@@ -118,11 +138,11 @@ con.execute("""DROP TABLE IF EXISTS Supernovae""")
 con.execute("""CREATE TABLE IF NOT EXISTS Supernovae (Filename
                     TEXT PRIMARY KEY, SN Text, Source Text, Redshift REAL, Phase REAL,
                     MinWave REAL, MaxWave REAL, Dm15 REAL, M_B REAL,
-                    B_mMinusV_m REAL, Carbon INTEGER, snr REAL,
+                    B_mMinusV_m REAL, Morphology INTEGER, Carbon INTEGER, snr REAL,
                     Interpolated_Spectra BLOB)""")
 
 #change this depending on where script is
-root = '../data'
+root = '../data/spectra'
 bad_files = []
 bad_interp = []
 bsnip_vals = read_bsnip_data('obj_info_table.txt')
@@ -220,11 +240,18 @@ for path, subdirs, files in os.walk(root):
             else:
                 carbon = None
 
+            if sn_name in morph_dict:
+                morph = morph_dict[sn_name]
+            else:
+                morph = None
+
             interped  = msg.packb(interp_spec)
             con.execute("""INSERT INTO Supernovae(Filename, SN, Source, Redshift, Phase,
-                                MinWave, MaxWave, Dm15, M_B, B_mMinusV_m, Carbon, snr, Interpolated_Spectra)
-                                VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", (name, sn_name, source, redshift,
-                                phase, min_wave, max_wave, Dm15, m_b, bm_vm, carbon, sig_noise, buffer(interped)))
+                                MinWave, MaxWave, Dm15, M_B, B_mMinusV_m, Carbon, snr,
+                                Interpolated_Spectra) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                                (name, sn_name, source, redshift, phase, min_wave, max_wave,
+                                Dm15, m_b, bm_vm, morph, carbon, sig_noise, buffer(interped)))
+
 con.commit()
 te = time.clock()
 print 'bad files', bad_files, len(bad_files)
