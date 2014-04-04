@@ -85,6 +85,7 @@ def grab(sql_input, Full_query):
 		SN.ivar[i] = 0
     SN_Array = [SN for SN in SN_Array if hasattr(SN, 'wavelength')]
     SN_Array = [SN for SN in SN_Array if hasattr(SN, 'ivar')]
+    SN_Array = [SN for SN in SN_Array if SN.redshift != None]
     print len(SN_Array), "spectra remain"
     return SN_Array
 
@@ -161,9 +162,12 @@ badfiles = []
 def scale_data(SN_Array, scales):
     print "Scaling..."
     for i in range(len(scales)):
-	SN_Array[i].flux *= np.abs(scales[i])
-	SN_Array[i].ivar /= (scales[i])**2
-	print "Scaled at factor ", scales[i]
+	if scales[i] != 0:
+	    SN_Array[i].flux *= np.abs(scales[i])
+	    SN_Array[i].ivar /= (scales[i])**2
+	    print "Scaled at factor ", scales[i]
+	else:
+	    SN_Array[i].ivar = np.zeros(len(SN_Array[i].ivar))
     return SN_Array
 
 #averages with weights based on the given errors in .flm files
@@ -209,8 +213,7 @@ def average(SN_Array, template):
         template.flux = np.average(fluxes, weights=ivars, axis=0)
         template.ivar = 1/np.sum(ivars, axis=0)
 	template.redshift = sum(reds)/len(reds)
-	#template.phase = sum(phases)/len(phases)
-	#phase data isn't in the database yet
+	template.phase = sum(phases)/len(phases)
 	template.ivar[no_data] = 0
 	template.name = "Composite Spectrum"
 	return template
@@ -262,7 +265,7 @@ def main(Full_query):
 	
     print "Done."
     print "Average redshift =", template.redshift
-    #print "Average phase =", template.phase
+    print "Average phase =", template.phase
     #This next line creates a unique filename for each run based on the sample set used
     f_name = "../plots/" + file_name.make_name(SN_Array)
     template.savedname = f_name
