@@ -2,6 +2,7 @@ import composite
 import Plotting
 from astropy.table import Table
 import matplotlib.pyplot as plt
+import numpy as np
 #import targeted
 """
 Here's the main function that anyone can use to run some analysis.
@@ -16,16 +17,29 @@ The next section sets up the plots to be used, and then plots using Plotting.py
 Right now it doesn't work...
 
 More can be added as our programs evolve
+
+Here are a few parameters you should set beforehand.
+plot_name is where the plot showing both composite spectra together will be saved.
+wmin and wmax define the boundary of the plot.
 """
+
+plot_name = '2_composite_comparison'
+wmin = 4000
+wmax = 7000
 
 #This part works just fine
 #composite_full = composite.main("SELECT * FROM Supernovae")
 composite1 = composite.main("SELECT * FROM Supernovae WHERE phase BETWEEN 3 AND 7")
 composite2 = composite.main("SELECT * FROM Supernovae WHERE phase BETWEEN -3 AND 3")
 
-plt.plot(composite1.wavelength, 4*composite1.flux)
-plt.plot(composite2.wavelength, composite2.flux)
+#This makes, shows, and saves a quick comparison plot...we can probably get rid of this when plotting.main works.
+lowindex = np.where(composite1.wavelength == composite.find_nearest(composite1.wavelength, wmin))
+highindex = np.where(composite1.wavelength == composite.find_nearest(composite1.wavelength, wmax))
+plt.plot(composite1.wavelength[lowindex[0]:highindex[0]], 4*composite1.flux[lowindex[0]:highindex[0]])
+plt.plot(composite2.wavelength[lowindex[0]:highindex[0]], composite2.flux[lowindex[0]:highindex[0]])
+plt.savefig('../plots/' + plot_name + '.png')
 plt.show()
+
 #Read whatever you sasved the table as
 Data = Table.read(composite1.savedname, format='ascii')
 
