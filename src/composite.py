@@ -34,8 +34,9 @@ class Parameters:
 
 #Connect to database
 #change this address to whereever you locally stored the SNe.db
-con = sq3.connect('../../../SNe.db')
+#con = sq3.connect('../../../SNe.db')
 #con = sq3.connect('../../temp/SNe.db')
+con = sq3.connect('../data/SNe.db')
 cur = con.cursor()
 
 #Pulls in all columns from the database for the selected query
