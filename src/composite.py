@@ -57,8 +57,8 @@ def grab(sql_input, Full_query):
 	    SN.m_b       = row[8]
 	    SN.B_minus_v = row[9]
 	    SN.targeted  = row[10]
-	    SN.SNR       = row[11]
-	    interp       = msg.unpackb(row[12])
+	    SN.SNR       = row[13]
+	    interp       = msg.unpackb(row[14])
 	    SN.interp    = interp
 	    try:
 		SN.wavelength = SN.interp[0,:]
