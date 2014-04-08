@@ -56,7 +56,9 @@ def grab(sql_input, Full_query):
 	    SN.dm15      = row[7]
 	    SN.m_b       = row[8]
 	    SN.B_minus_v = row[9]
-	    SN.targeted  = row[10]
+	    SN.velocity  = row[10]
+	    SN.morph     = row[11]
+	    SN.carbon    = row[12]
 	    SN.SNR       = row[13]
 	    interp       = msg.unpackb(row[14])
 	    SN.interp    = interp
@@ -76,14 +78,20 @@ def grab(sql_input, Full_query):
     #Used mostly in testing, if you want the full array of whatever you're looking at, comment this line out
     #SN_Array = SN_Array[0:100]
     
+    #Within the interpolated spectra there are a lot of 'NaN' values
+    #Now they become zeros so things work right
     for SN in SN_Array:
 	for i in range(len(SN.flux)):
 	    if np.isnan(SN.flux[i]):
 		SN.flux[i] = 0
 	    if np.isnan(SN.ivar[i]):
 		SN.ivar[i] = 0
+    #Here we clean up the data we pulled
+    #Some supernovae are missing important data, so we just get rid of them
     SN_Array = [SN for SN in SN_Array if hasattr(SN, 'wavelength')]
     SN_Array = [SN for SN in SN_Array if hasattr(SN, 'ivar')]
+    SN_Array = [SN for SN in SN_Array if SN.phase != None]
+    SN_Array = [SN for SN in SN_Array if SN.redshift != None]
     print len(SN_Array), "spectra remain"
     return SN_Array
 
@@ -156,6 +164,7 @@ def find_scales(SN_Array, temp_flux, temp_ivar):
     return scales
 
 #Scales the data using the factors found before
+#If a scale of zero is found, the spectrum's variance becomes zero so it just doesn't count.
 badfiles = []
 def scale_data(SN_Array, scales):
     print "Scaling..."
@@ -168,7 +177,7 @@ def scale_data(SN_Array, scales):
 	    SN_Array[i].ivar = np.zeros(len(SN_Array[i].ivar))
     return SN_Array
 
-#averages with weights based on the given errors in .flm files
+#averages with weights of the inverse variances in the spectra
 def average(SN_Array, template):
 	print "Averaging..."
 	#print fluxes, errors
@@ -181,12 +190,14 @@ def average(SN_Array, template):
 		ivars  = np.array([SN.ivar])
  		reds = np.array([SN.redshift])
 		phases = np.array([SN.phase])
+		vels = np.array([SN.velocity])
 	    else:
 		try:
 		    fluxes = np.append(fluxes, np.array([SN.flux]), axis=0)
 		    ivars  = np.append(ivars, np.array([SN.ivar]), axis=0)
 		    reds = np.append(reds, np.array([SN.redshift]), axis = 0)
 		    phases = np.append(phases, np.array([SN.phase]), axis = 0)
+		    vels = np.append(vels, np.array([SN.velocity]), axis = 0)
 		except ValueError:
 		    print "This should never happen!"
 
@@ -201,17 +212,18 @@ def average(SN_Array, template):
         fluxes = np.append(fluxes, np.array([flux_mask]), axis=0)
         ivars  = np.append(ivars, np.array([ivar_mask]), axis=0)
 
-	has_reds  = np.where(reds != None)
-	has_phase = np.where(phases != None)
-	reds      = reds[has_reds]
-	phases    = phases[has_phase]
-
-#	for i in range(len(fluxes)):
-#	    ivars[i,:] += ivar_mask
+	#The way this was done before was actually creating a single value array...
+	#This keeps them intact correctly.
+	reds      = [red for red in reds if red != None]
+	phases    = [phase for phase in phases if phase != None]
+	vels      = [vel for vel in vels if vel != None]
+	vels      = [vel for vel in vels if vel != -99.0]
+	
         template.flux = np.average(fluxes, weights=ivars, axis=0)
         template.ivar = 1/np.sum(ivars, axis=0)
 	template.redshift = sum(reds)/len(reds)
 	template.phase = sum(phases)/len(phases)
+	template.velocity = sum(vels)/len(vels)
 	template.ivar[no_data] = 0
 	template.name = "Composite Spectrum"
 	return template
@@ -219,7 +231,6 @@ def average(SN_Array, template):
 def main(Full_query):
     SN_Array = []
     #Accept SQL query as input and then grab what we need
-    #Full_query = "SELECT * FROM Supernovae WHERE snr > 8"
     print "SQL Query:", Full_query
     sql_input = Full_query
 
@@ -264,6 +275,7 @@ def main(Full_query):
     print "Done."
     print "Average redshift =", template.redshift
     print "Average phase =", template.phase
+    print "Average velocity =", template.velocity
     #This next line creates a unique filename for each run based on the sample set used
     f_name = "../plots/" + file_name.make_name(SN_Array)
     template.savedname = f_name + '.dat'
