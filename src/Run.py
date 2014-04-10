@@ -32,8 +32,8 @@ Here we set the queries that get used to find the spectra for compositing.
 We only want to select spectra that have data for both redshift and phase, so both of them need to be in the query.
 But you can change the values to whatever you want, and add more parameters.
 """
-composite1 = composite.main("SELECT * FROM Supernovae WHERE Redshift > -100 AND Phase BETWEEN -3 AND 3 AND Velocity BETWEEN -12 AND -10")
-composite2 = composite.main("SELECT * FROM Supernovae WHERE Redshift > -100 AND Phase BETWEEN -3 and 3 AND Velocity BETWEEN -10 AND -8")
+composite1 = composite.main("SELECT * FROM Supernovae WHERE Redshift > -100 AND Phase BETWEEN -3 AND 3 AND Velocity < -12")
+composite2 = composite.main("SELECT * FROM Supernovae WHERE Redshift > -100 AND Phase BETWEEN -3 and 3 AND Velocity > -12")
 
 avgphase = (composite1.phase + composite2.phase)/2
 avgred = (composite1.redshift + composite2.redshift)/2

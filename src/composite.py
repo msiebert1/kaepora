@@ -281,9 +281,13 @@ def main(Full_query):
     template.savedname = f_name + '.dat'
     lowindex = np.where(template.wavelength == find_nearest(template.wavelength, wmin))
     highindex = np.where(template.wavelength == find_nearest(template.wavelength, wmax))
+    
+    #This plots the individual composite just so you can see how it looks
     plt.plot(template.wavelength[lowindex[0]:highindex[0]], template.flux[lowindex[0]:highindex[0]])
     plt.plot(template.wavelength[lowindex[0]:highindex[0]], template.ivar[lowindex[0]:highindex[0]])
-    plt.savefig('../plots/' + f_name + '.png')
+    
+    #This saves it, if you want to.
+    #plt.savefig('../plots/' + f_name + '.png')
     plt.show()
     #Either writes data to file, or returns it to user
     #This part is still in progress
