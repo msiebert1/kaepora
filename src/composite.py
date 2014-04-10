@@ -14,6 +14,7 @@ import msgpack as msg
 import msgpack_numpy as mn
 from scipy.optimize import leastsq
 import file_name
+#import bootstrap
 
 np.set_printoptions(threshold=np.nan)
 mn.patch()
@@ -172,7 +173,7 @@ def scale_data(SN_Array, scales):
 	if scales[i] != 0:
 	    SN_Array[i].flux *= np.abs(scales[i])
 	    SN_Array[i].ivar /= (scales[i])**2
-	    print "Scaled at factor ", scales[i]
+	    #print "Scaled at factor ", scales[i]
 	else:
 	    SN_Array[i].ivar = np.zeros(len(SN_Array[i].ivar))
     return SN_Array
@@ -235,7 +236,7 @@ def main(Full_query):
     sql_input = Full_query
 
     SN_Array = grab(sql_input, Full_query)
-
+    #bootstrap.main(SN_Array)
     #finds the longest SN we have for our initial template
     lengths = []
     for SN in SN_Array:
