@@ -141,10 +141,8 @@ def genvar(wavelength, flux, vexp = 0.0008, nsig = 3.0):
     # Smooth noise to find the variance
     variance = gsmooth(wavelength, error, varflux, vexp, nsig)
     
-    ivar = 1/(variance**2)
-    
     # Return generated variance
-    return ivar
+    return variance
 
 ############################################################################
 #

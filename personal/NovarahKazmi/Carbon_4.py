@@ -403,7 +403,7 @@ Plots        = [0,1] # Plots to generate
 #num_data_set = [2,1,0,0,0,0]
 image_title  = "Compare.png"				  # You can specify the location between " " as well 
 
-Plot_2.main(fig_type, Show_Data, Plots, num_data_set, image_title , plot_labels , legend)
+Plot_2.main(fig_type, Show_Data, Plots, image_title , plot_labels , legend)
 #####'#'#'#'#####
 
 #fig = plt.figure()

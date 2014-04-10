@@ -37,7 +37,7 @@ def ReadParam():
     z = []
     for i in range(len(sn_param)) :
         sn.append(sn_param[i][0]) #get relevent parameters needed for calculations
-        z.append(sn_param[i][1]) # redshift value 
+        z.append(sn_param[i][1]) # redshift value
     return z
 
 def ReadExtin(file):
@@ -74,8 +74,8 @@ NOTE:Currently only has SN_name, B, and V values for purposes of Dereddening due
 
 def dered(z,sne,snname,wave,flux):
     for j in range(len(sne)):#go through list of SN parameters
-        sn = sne[j][0]        
-        if sn in filename:#SN with parameter matches the path
+        sn = sne[j][0]
+        if sn in snname:#SN with parameter matches the path
             b = sne[j][1].astype(float)
             v = sne[j][2].astype(float)
             bv = b-v
@@ -155,20 +155,20 @@ from datafidelity import *  # Get variance from the datafidelity outcome
 def compprep(spectrum,sn_name,z,source):
     old_wave = spectrum[:,0]	    #wavelengths
     old_flux = spectrum[:,1] 	#fluxes
-    #old_var  = spectrum[:,2]  #errors 
+    #old_var  = spectrum[:,2]  #errors
     old_var = genivar(old_wave, old_flux) #variance
     snr = getsnr(old_flux, old_var)
     print 'S/N ratio', sn_name, snr
-    
+
     if source == 'cfa' : # choosing source dataset
 #        z = ReadParam()
         sne = ReadExtin('extinction.dat')
     if source == 'bsnip' :
-        sne = ReadExtin('extinctionbsnip.dat')     
-    if source == 'csp' :   
+        sne = ReadExtin('extinctionbsnip.dat')
+    if source == 'csp' :
         sne = ReadExtin('extinctioncsp.dat')
-        old_wave *= 1+z
-    
+        old_wave *= 1+float(z)
+
     newdata = []
 
     new_spectrum = dered(z, sne, sn_name, old_wave, old_flux)

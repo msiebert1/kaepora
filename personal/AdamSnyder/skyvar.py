@@ -1,13 +1,12 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from scipy import interpolate
-import scipy 
-from math import *
 import pyfits
+import math
+import datafidelity as df
+import matplotlib.pyplot as plt
 
-sky = pyfits.open("kecksky.fits")
-prihdr = sky[0].header
-print prihdr
+SN = np.genfromtxt('sn1989m-19890710-oi1i2.flm')
 
-#plt.plot(wavelength, flux, 'b', wavelength, new_flux, 'r')
-#plt.show()
+wavelength = np.array(SN[:,0])
+flux = np.array(SN[:,1])
+
+ivar = df.genivar(wavelength, flux)

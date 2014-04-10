@@ -8,7 +8,6 @@ import prep
 import os
 import time
 
-
 mn.patch()
 
 def read_cfa_or_bsnip(fname):
@@ -96,10 +95,54 @@ def find_SN(fname, source=None, csplist=None):
 
         return snname
 
+def build_morph_dict():
+    """
+    Builds a dictionary of the form {sn_name: galaxy morphology}
+    """
+    with open('../data/info_files/host_info.dat') as f:
+        txt = f.readlines()
 
-#change this depending on where script is
-sndict, date_dict= read_cfa_info('../data/cfa/cfasnIa_param.dat',
-                                                       '../data/cfa/cfasnIa_mjdspec.dat')
+    clean = [x.strip() for x in txt]
+    outlist = [item for item in clean if not item.startswith('#')]
+    morphlist = filter(None, outlist)
+
+    morph_dict = {}
+    for entry in morphlist:
+        ents = entry.split()
+        morph_dict[ents[0]] = ents[1]
+
+    return morph_dict
+
+def build_vel_dict():
+    """
+    Builds a dictionary of the form {sn_name: velocity}
+    """
+    with open('../data/info_files/foley_master_data') as f:
+        txt = f.readlines()
+
+    clean = [x.strip() for x in txt]
+    vel_dict = {}
+    for entry in clean:
+        ents = entry.split()
+        if ents:
+            vel_dict[ents[0]] = ents[2]
+    return vel_dict
+
+#find data for carbon pos/neg supernova
+with open('../data/info_files/wk4_carbon_pos.txt') as f1:
+    cpos = f1.readlines()
+    cleancpos = [x.strip() for x in cpos]
+    posout = filter(None, cleancpos)
+with open('../data/info_files/wk4_carbon_neg.txt') as f2:
+    cneg = f2.readlines()
+    cleancneg = [x.strip() for x in cneg]
+    negout = filter(None, cleancneg)
+
+#build necessary dictionaries
+sndict, date_dict = read_cfa_info('../data/spectra/cfa/cfasnIa_param.dat',
+                                                       '../data/spectra/cfa/cfasnIa_mjdspec.dat')
+morph_dict = build_morph_dict()
+vel_dict = build_vel_dict()
 
 ts = time.clock()
 con = sq3.connect('SNe.db')
@@ -107,13 +150,14 @@ con = sq3.connect('SNe.db')
 #make sure no prior table in db to avoid doubling/multiple copies of same data
 con.execute("""DROP TABLE IF EXISTS Supernovae""")
 con.execute("""CREATE TABLE IF NOT EXISTS Supernovae (Filename
-                    TEXT PRIMARY KEY, SN Text, Source Text, Redshift REAL, Phase REAL,
-                    MinWave REAL, MaxWave REAL, Dm15 REAL, M_B REAL,
-                    B_mMinusV_m REAL, Targeted INTEGER, Snr REAL,
+                    TEXT PRIMARY KEY, SN Text, Source Text, Redshift REAL,
+                    Phase REAL, MinWave REAL, MaxWave REAL, Dm15 REAL,
+                    M_B REAL, B_mMinusV_m REAL, Velocity REAL,
+                    Morphology INTEGER, Carbon INTEGER, snr REAL,
                     Interpolated_Spectra BLOB)""")
 
 #change this depending on where script is
-root = '../data'
+root = '../data/spectra'
 bad_files = []
 bad_interp = []
 bsnip_vals = read_bsnip_data('obj_info_table.txt')
@@ -198,16 +242,37 @@ for path, subdirs, files in os.walk(root):
             try:
                 interp_spec, sig_noise = prep.compprep(spectra, sn_name, redshift, source)
             except:
+                raise
                 print "Interp failed"
                 bad_interp.append(name)
                 bad_files.append(name)
                 interp_spec, sig_noise = None, None
 
+            if sn_name in negout:
+                carbon = 0
+            elif sn_name in posout:
+                carbon = 1
+            else:
+                carbon = None
+
+            if sn_name in morph_dict:
+                morph = morph_dict[sn_name]
+            else:
+                morph = None
+
+            if sn_name in vel_dict:
+                vel = vel_dict[sn_name]
+            else:
+                vel = None
+
             interped  = msg.packb(interp_spec)
-            con.execute("""INSERT INTO Supernovae(Filename, SN, Source, Redshift, Phase,
-                                MinWave, MaxWave, Dm15, M_B, B_mMinusV_m, Snr, Interpolated_Spectra)
-                                VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""", (name, sn_name, source, redshift,
-                                phase, min_wave, max_wave, Dm15, m_b, bm_vm, sig_noise, buffer(interped)))
+            con.execute("""INSERT INTO Supernovae(Filename, SN, Source,
+                                Redshift, Phase, MinWave, MaxWave, Dm15, M_B,
+                                B_mMinusV_m, Velocity, Morphology, Carbon, snr,
+                                Interpolated_Spectra) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                                (name, sn_name, source, redshift, phase, min_wave, max_wave,
+                                Dm15, m_b, bm_vm, vel, morph, carbon, sig_noise, buffer(interped)))
+
 con.commit()
 te = time.clock()
 print 'bad files', bad_files, len(bad_files)
