@@ -121,7 +121,10 @@ def wsmooth(x,window_len=75,window='hanning'):
     return y[(window_len/2):-(window_len/2)]
 
 ############################################################################
-def addsky(wavelength, flux, err, med_err, sky = 'kecksky.fits'):
+#
+# Function to add sky over a wavelength range
+#
+def addsky(wavelength, flux, error, med_error, sky = 'kecksky.fits'):
 
     # Open kecksky spectrum from fits file and create arrays
     sky = pyfits.open('kecksky.fits')
@@ -141,14 +144,14 @@ def addsky(wavelength, flux, err, med_err, sky = 'kecksky.fits'):
     add_flux = interpolate.splev(wavelength[good], spline_rep)    
 
     # Scale sky
-    scale = 285*med_err
+    scale = 285*med_error
     add_flux = scale*add_flux
 
     # Add sky flux to the error
-    new_err = err
-    new_err[good] = err[good] + add_flux
+    new_error = error
+    new_error[good] = error[good] + add_flux
 
-    return new_err
+    return new_error
 
 ############################################################################
 #
@@ -163,9 +166,11 @@ def addsky(wavelength, flux, err, med_err, sky = 'kecksky.fits'):
 def genivar(wavelength, flux, varflux = 0, vexp = 0.0008, nsig = 3.0):
 
     # Check to see if it has a variance already
-    if varflux == 0:
-        # If not, start with variance of ones
-        varflux = np.ones(len(wavelength))
+    try:
+        if varflux == 0:
+            varflux = np.ones(len(wavelength))
+    except ValueError:
+        pass
     
     # Smooth original flux
     new_flux = gsmooth(wavelength, flux, varflux, vexp, nsig)
