@@ -3,6 +3,7 @@ import Plotting
 from astropy.table import Table
 import matplotlib.pyplot as plt
 import numpy as np
+import sys
 #import targeted
 """
 Here's the main function that anyone can use to run some analysis.
@@ -32,11 +33,11 @@ Here we set the queries that get used to find the spectra for compositing.
 We only want to select spectra that have data for both redshift and phase, so both of them need to be in the query.
 But you can change the values to whatever you want, and add more parameters.
 """
-composite1 = composite.main("SELECT * FROM Supernovae WHERE Redshift > -100 AND Phase BETWEEN -7 AND -3 AND Velocity BETWEEN -11 AND -10")
+composite1 = composite.main(sys.argv[1], sys.argv[2], sys.argv[3])
 composite2 = composite.main("SELECT * FROM Supernovae WHERE Redshift > -100 AND Phase BETWEEN -3 AND 3 AND Velocity BETWEEN -11 AND -10")
-#composite3 = composite.main("SELECT * FROM Supernovae WHERE Redshift > -100 AND Phase BETWEEN 3 AND 7 AND Velocity BETWEEN -11 AND -10")
-#composite4 = composite.main("SELECT * FROM Supernovae WHERE Redshift > -100 AND Phase BETWEEN 7 AND 14 AND Velocity BETWEEN -11 AND -10")
-#composite5 = composite.main("SELECT * FROM Supernovae WHERE Redshift > -100 AND Phase BETWEEN 14 AND 24 AND Velocity BETWEEN -11 AND -10")
+composite3 = composite.main("SELECT * FROM Supernovae WHERE Redshift > -100 AND Phase BETWEEN 3 AND 7 AND Velocity BETWEEN -11 AND -10")
+composite4 = composite.main("SELECT * FROM Supernovae WHERE Redshift > -100 AND Phase BETWEEN 7 AND 14 AND Velocity BETWEEN -11 AND -10")
+composite5 = composite.main("SELECT * FROM Supernovae WHERE Redshift > -100 AND Phase BETWEEN 14 AND 24 AND Velocity BETWEEN -11 AND -10")
 
 avgphase = (composite1.phase + composite2.phase)/2
 avgred = (composite1.redshift + composite2.redshift)/2
@@ -51,9 +52,9 @@ highindex = np.where(composite1.wavelength == composite.find_nearest(composite1.
 #factor = np.mean(composite1.flux[lowindex[0]:highindex[0]]/composite2.flux[lowindex[0]:highindex[0]])
 plt.plot(composite1.wavelength[lowindex[0]:highindex[0]], composite1.flux[lowindex[0]:highindex[0]])
 plt.plot(composite2.wavelength[lowindex[0]:highindex[0]], composite2.flux[lowindex[0]:highindex[0]])
-#plt.plot(composite3.wavelength[lowindex[0]:highindex[0]], composite3.flux[lowindex[0]:highindex[0]])
-#plt.plot(composite4.wavelength[lowindex[0]:highindex[0]], composite4.flux[lowindex[0]:highindex[0]])
-#plt.plot(composite5.wavelength[lowindex[0]:highindex[0]], composite5.flux[lowindex[0]:highindex[0]])
+plt.plot(composite3.wavelength[lowindex[0]:highindex[0]], composite3.flux[lowindex[0]:highindex[0]])
+plt.plot(composite4.wavelength[lowindex[0]:highindex[0]], composite4.flux[lowindex[0]:highindex[0]])
+plt.plot(composite5.wavelength[lowindex[0]:highindex[0]], composite5.flux[lowindex[0]:highindex[0]])
 plt.savefig('../plots/' + plot_name + '.png')
 plt.show()
 
