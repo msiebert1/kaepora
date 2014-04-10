@@ -128,6 +128,20 @@ def build_vel_dict():
             vel_dict[ents[0]] = ents[2]
     return vel_dict
 
+def build_gas_dict():
+    """
+    Builds a dictionary of the form {sn_name: gas rich (0/1)}
+    """
+    with open('../data/info_files/Gas-Rich-Poor.txt') as f:
+        txt = f.readlines()
+        clean = [x.strip() for x in txt]
+        gas_dict = {}
+        for entry in clean:
+            ents = entry.split()
+            if ents:
+                gas_dict[ents[0]] = ents[1]
+    return gas_dict
+
 #find data for carbon pos/neg supernova
 with open('../data/info_files/wk4_carbon_pos.txt') as f1:
     cpos = f1.readlines()
@@ -143,6 +157,7 @@ sndict, date_dict = read_cfa_info('../data/spectra/cfa/cfasnIa_param.dat',
                                                        '../data/spectra/cfa/cfasnIa_mjdspec.dat')
 morph_dict = build_morph_dict()
 vel_dict = build_vel_dict()
+gas_dict = build_gas_dict()
 
 ts = time.clock()
 con = sq3.connect('SNe.db')
@@ -153,7 +168,7 @@ con.execute("""CREATE TABLE IF NOT EXISTS Supernovae (Filename
                     TEXT PRIMARY KEY, SN Text, Source Text, Redshift REAL,
                     Phase REAL, MinWave REAL, MaxWave REAL, Dm15 REAL,
                     M_B REAL, B_mMinusV_m REAL, Velocity REAL,
-                    Morphology INTEGER, Carbon INTEGER, snr REAL,
+                    Morphology INTEGER, Carbon INTEGER, GasRich INTEGER, snr REAL,
                     Interpolated_Spectra BLOB)""")
 
 #change this depending on where script is
@@ -265,13 +280,20 @@ for path, subdirs, files in os.walk(root):
             else:
                 vel = None
 
+            if sn_name in gas_dict:
+                gasrich = gas_dict[sn_name]
+            else:
+                gasrich = None
+
             interped  = msg.packb(interp_spec)
             con.execute("""INSERT INTO Supernovae(Filename, SN, Source,
                                 Redshift, Phase, MinWave, MaxWave, Dm15, M_B,
-                                B_mMinusV_m, Velocity, Morphology, Carbon, snr,
-                                Interpolated_Spectra) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                                (name, sn_name, source, redshift, phase, min_wave, max_wave,
-                                Dm15, m_b, bm_vm, vel, morph, carbon, sig_noise, buffer(interped)))
+                                B_mMinusV_m, Velocity, Morphology, Carbon,
+                                GasRich, snr, Interpolated_Spectra)
+                                VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                                (name, sn_name, source, redshift, phase,
+                                min_wave, max_wave, Dm15, m_b, bm_vm, vel,
+                                morph, carbon, gasrich, sig_noise, buffer(interped)))
 
 con.commit()
 te = time.clock()
