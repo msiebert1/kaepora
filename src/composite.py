@@ -229,7 +229,7 @@ def average(SN_Array, template):
 	template.name = "Composite Spectrum"
 	return template
 
-def main(Full_query):
+def main(Full_query, showplot = 0, save_file = 'y'):
     SN_Array = []
     #Accept SQL query as input and then grab what we need
     print "SQL Query:", Full_query
@@ -284,17 +284,18 @@ def main(Full_query):
     highindex = np.where(template.wavelength == find_nearest(template.wavelength, wmax))
     
     #This plots the individual composite just so you can see how it looks
-    plt.plot(template.wavelength[lowindex[0]:highindex[0]], template.flux[lowindex[0]:highindex[0]])
-    plt.plot(template.wavelength[lowindex[0]:highindex[0]], template.ivar[lowindex[0]:highindex[0]])
+    if showplot == 1:
+	plt.plot(template.wavelength[lowindex[0]:highindex[0]], template.flux[lowindex[0]:highindex[0]])
+	plt.plot(template.wavelength[lowindex[0]:highindex[0]], template.ivar[lowindex[0]:highindex[0]])
     
-    #This saves it, if you want to.
-    #plt.savefig('../plots/' + f_name + '.png')
-    plt.show()
+	#This saves it, if you want to.
+	plt.savefig('../plots/' + f_name + '.png')
+	plt.show()
     #Either writes data to file, or returns it to user
     #This part is still in progress
     table = Table([template.wavelength, template.flux, template.ivar], names = ('Wavelength', 'Flux', 'Variance'))
-    c_file = str(raw_input("Create a file for data? (y/n)"))
-    if c_file=='y':
+    #c_file = str(raw_input("Create a file for data? (y/n)"))
+    if save_file=='y':
 		#f_name = "../plots/TestComposite"
 		table.write(template.savedname,format='ascii')
 		return template

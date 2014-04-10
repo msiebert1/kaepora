@@ -18,7 +18,7 @@ Right now it doesn't work...but it will
 
 More can be added as our programs evolve
 
-Here are a few parameters you should set beforehand.
+There are a few parameters you should set beforehand.
 plot_name is where the plot showing both composite spectra together will be saved.
 wmin and wmax define the boundary of the plot.
 """
@@ -69,7 +69,7 @@ variances1   = np.array([Data1["Variance"]])
 fluxes2      = np.array([Data2["Flux"]])
 variances2   = np.array([Data2["Variance"]])
 
-print wavelengths
+#print wavelengths
 
 #To be honest, I'm not sure entirely how this works.
 #Can someone who worked on this piece of code work with it?
