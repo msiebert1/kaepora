@@ -51,14 +51,19 @@ plt.show()
 #Read whatever you sasved the table as
 for n in range(queries):
     d["data{0}".format(n+1)] = Table.read(d["composite{0}".format(n+1)].savedname, format='ascii')
-    wavelengths  = np.array([d["data1"]["Wavelength"]])
+    d["wavelengths{0}".format(n+1)]  = np.array([d["data1"]["Wavelength"]])
     d["fluxes{0}".format(n+1)] = np.array([d["data{0}".format(n+1)]["Flux"]])
     d["variances{0}".format(n+1)] = np.array([d["data{0}".format(n+1)]["Variance"]])
     
 
 # From now on, list the data you want to plot as [ Xdata, Ydata, Xdata_2, Ydata_2]
-Relative_Flux   = [wavelengths, d["fluxes1"], wavelengths, d["fluxes2"]]  # Want to plot a composite of multiple spectrum
-Residuals       = [wavelengths, d["variances1"]]
+plot_array = []
+for n in range(queries):
+    plot_array.append(d["wavelengths{0}".format(n+1)])
+    plot_array.append(d["fluxes{0}".format(n+1)])
+    
+Relative_Flux   = plot_array # Want to plot a composite of multiple spectrum
+Residuals       = [d["wavelengths1"], d["variances1"]]
 Spectra_Bin     = [] 
 Age             = [] 
 Delta           = [] 
