@@ -340,7 +340,7 @@ def main(Show_Data , Plots , image_title , title, Names):
     
     p = 0
     Rel_flux = plt.subplot(gs[p])
-    plt.title(title)
+    plt.title(title, fontdict = font)
 #############################################################
 # The following series of if statments runs a specific portion 
 # of the ploting functions. The p = p+1 allows the code to  
@@ -369,7 +369,7 @@ def main(Show_Data , Plots , image_title , title, Names):
     # Regardless of what is plotted, we label the Xaxis and save the plot image       
     plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
     
-    plt.savefig('image_title', dpi = 100, facecolor='w', edgecolor='w', pad_inches = 0.1)
+    plt.savefig('image_title', dpi = 600, facecolor='w', edgecolor='w', pad_inches = 0.1)
     #plt.savefig('composite plot.png', dpi = 100, facecolor='w', edgecolor='w', pad_inches = 0.1)
     
 #############################################################
