@@ -63,22 +63,20 @@ variances2   = np.array([Data2["Variance"]])
 
 #print wavelengths
 
-#To be honest, I'm not sure entirely how this works.
-#Can someone who worked on this piece of code work with it?
-Relative_Flux = [wavelengths, fluxes1, d["composite1"].name]  # Want to plot a composite of multiple spectrum
-Residuals     = [wavelengths, variances1, d["composite1"].name]
-Spectra_Bin   = []
-Age           = []
-Delta         = []
-Redshift      = [] 
-Show_Data     = [Relative_Flux,Residuals]
-image_title   = "../plots/Composite_Spectrum_plotted.png"            # Name the image (with location)
-title         = "Composite Spectrum" 
-
-# Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift, Multiple Spectrum, Stacked Spectrum
-#                   0              1          2            3    4      5         6,                 7
-Plots = [0] # the plots you want to create
-
+# From now on, list the data you want to plot as [ Xdata, Ydata, Xdata_2, Ydata_2]
+Relative_Flux   = [wavelengths, fluxes1, wavelengths, fluxes2]  # Want to plot a composite of multiple spectrum
+Residuals       = [wavelengths, variances1]
+Spectra_Bin     = [] 
+Age             = [] 
+Delta           = [] 
+Redshift        = []
+Names           = [d["composite1"].name,d["composite1"].name] # the names corresponding to each composite go here
+Show_Data       = [Relative_Flux, Residuals, Spectra_Bin, Age , Delta , Redshift] # Removed residual section 
+## Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift
+##                   0              1          2            3    4      5         
+# the plots you want to create
+Plots        = [0,1] 
+image_title  = "../plots/Composite_Spectrum_plotted.png"				 
+title        = "Composite Spectrum"	
 # The following line will plot the data
-#It's commented out until it works...
-#Plotting.main(Show_Data , Plots, image_title , title)
+Plotting.main(Show_Data , Plots , image_title , title, Names)
