@@ -86,12 +86,12 @@ def dered(z,sne,snname,wave,flux):
             #test1 = spectra_data[i][:,1] * ex.reddening(spectra_data[i][:,0],ebv = bv, model='ccm89')
             #test2 = spectra_data[i][:,1] * ex.reddening(spectra_data[i][:,0],ebv = bv, model='od94')
             flux *= ex.reddening(wave,ebv = bv, r_v = 3.1, model='f99')
-            wave /= (1+z)
+#            wave /= (1+z)
 
             #print "de-reddened by host galaxy\n",flux*ex.reddening(wave,ebv = 0, r_v = r, model='f99')
             #host *= ex.reddening(wave,ebv = bv, r_v = r, model='f99')
 
-    return [wave,flux]
+    return [flux]
 
 
 ##############################################################################################################################################
@@ -171,8 +171,8 @@ def compprep(spectrum,sn_name,z,source):
 
     newdata = []
 
-    new_spectrum = dered(z, sne, sn_name, old_wave, old_flux)
-    new_wave = new_spectrum[0]
+    new_spectrum = dered(z, sne, sn_name, old_flux)
+    new_wave = wave/(1.+z)
     new_flux = new_spectrum[1]
     new_var  = genivar(new_wave, new_flux) #variance
     #var = new_flux*0+1
