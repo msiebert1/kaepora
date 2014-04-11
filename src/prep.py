@@ -72,14 +72,13 @@ NOTE:Currently only has SN_name, B, and V values for purposes of Dereddening due
 #deredshift the spectra
 #deredden to host galaxy
 
-def dered(z,sne,snname,wave,flux):
+def dered(sne,snname,wave,flux):
     for j in range(len(sne)):#go through list of SN parameters
         sn = sne[j][0]
         if sn in snname:#SN with parameter matches the path
             b = sne[j][1].astype(float)
             v = sne[j][2].astype(float)
             bv = b-v
-            r = v/bv
 #            print "B(%s)-V(%s)=%s"%(b,v,bv)
 #            print "R(v) =",r
             #or use fm07 model
@@ -171,7 +170,7 @@ def compprep(spectrum,sn_name,z,source):
 
     newdata = []
 
-    new_spectrum = dered(z, sne, sn_name, old_flux)
+    new_spectrum = dered(sne, sn_name, old_flux)
     new_wave = wave/(1.+z)
     new_flux = new_spectrum[1]
     new_var  = genivar(new_wave, new_flux) #variance
