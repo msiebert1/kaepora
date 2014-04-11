@@ -179,7 +179,7 @@ def scale_data(SN_Array, scales):
     return SN_Array
 
 #averages with weights of the inverse variances in the spectra
-def average(SN_Array, template):
+def average(SN_Array, template, medmean):
 	print "Averaging..."
 	#print fluxes, errors
 	fluxes = []
@@ -220,7 +220,10 @@ def average(SN_Array, template):
 	vels      = [vel for vel in vels if vel != None]
 	vels      = [vel for vel in vels if vel != -99.0]
 	
-        template.flux = np.average(fluxes, weights=ivars, axis=0)
+	if medmean == 1:
+	    template.flux = np.average(fluxes, weights=ivars, axis=0)
+	if medmean == 2:
+	    template.flux = np.median(fluxes, axis=0)
         template.ivar = 1/np.sum(ivars, axis=0)
 	template.redshift = sum(reds)/len(reds)
 	template.phase = sum(phases)/len(phases)
@@ -229,7 +232,7 @@ def average(SN_Array, template):
 	template.name = "Composite Spectrum"
 	return template
 
-def main(Full_query, showplot = 0, save_file = 'y'):
+def main(Full_query, showplot = 0, medmean = 1, save_file = 'y'):
     SN_Array = []
     #Accept SQL query as input and then grab what we need
     print "SQL Query:", Full_query
@@ -242,17 +245,22 @@ def main(Full_query, showplot = 0, save_file = 'y'):
     for SN in SN_Array:
         lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
     temp = [SN for SN in SN_Array if len(SN.flux[np.where(SN.flux!=0)]) == max(lengths)]
-    composite = temp[0]
+    try:
+	composite = temp[0]
+    except IndexError:
+	print "No spectra found"
+	exit()
+    
 
     #scales data, makes a composite, and splices in non-overlapping data
     #Here is where we set our wavelength range for the final plot
-    wmin = 4000
-    wmax = 7500
+    wmin    = 4000
+    wmax    = 7500
     wavemin = composite.minwave
     wavemax = composite.maxwave
 
     #finds range of useable data
-    good = np.where(len(np.where(((wavemin <= wmin) & (wavemax >= wmax)) > 100)))
+    good     = np.where(len(np.where(((wavemin <= wmin) & (wavemax >= wmax)) > 100)))
     template = supernova()
     template = SN_Array[good[0]]
     template = composite
@@ -260,17 +268,17 @@ def main(Full_query, showplot = 0, save_file = 'y'):
     #Starts our main loop
     i = 0
     n_start = 0
-    n_end = 1
-    scales=[]
+    n_end   = 1
+    scales  = []
     while (n_start != n_end):
 	n_start = len([x for x in scales if x>0])
-        scales=[]       
-	scales = find_scales(SN_Array, template.flux, template.ivar)
-	n_scale = len([x for x in scales if x>0])
+        scales   = []       
+	scales   = find_scales(SN_Array, template.flux, template.ivar)
+	n_scale  = len([x for x in scales if x>0])
 	SN_Array = scale_data(SN_Array, scales)
-        template = average(SN_Array, template)
-        n_end = n_scale
-	n_start = n_end
+        template = average(SN_Array, template, medmean)
+        n_end    = n_scale
+	n_start  = n_end
 	
 	
     print "Done."
@@ -280,11 +288,11 @@ def main(Full_query, showplot = 0, save_file = 'y'):
     #This next line creates a unique filename for each run based on the sample set used
     f_name = "../plots/" + file_name.make_name(SN_Array)
     template.savedname = f_name + '.dat'
-    lowindex = np.where(template.wavelength == find_nearest(template.wavelength, wmin))
+    lowindex  = np.where(template.wavelength == find_nearest(template.wavelength, wmin))
     highindex = np.where(template.wavelength == find_nearest(template.wavelength, wmax))
     
-    #This plots the individual composite just so you can see how it looks
-    if showplot == 1:
+    #This plots the individual composite just so you can see how it 
+    if int(showplot) == 1:
 	plt.plot(template.wavelength[lowindex[0]:highindex[0]], template.flux[lowindex[0]:highindex[0]])
 	plt.plot(template.wavelength[lowindex[0]:highindex[0]], template.ivar[lowindex[0]:highindex[0]])
     
