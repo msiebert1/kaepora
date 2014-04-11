@@ -4,6 +4,7 @@ from astropy.table import Table
 import matplotlib.pyplot as plt
 import numpy as np
 import sys
+import time
 #import bootstrap
 """
 Here's the main function that anyone can use to run some analysis.
@@ -33,10 +34,8 @@ for n in range(queries):
     else:
         d["composite{0}".format(n+1)] = composite.main(sys.argv[n+2])
 
-avgphase = (d["composite1"].phase + d["composite2"].phase)/2
-avgred   = (d["composite1"].redshift + d["composite2"].redshift)/2
-
-plot_name = '2_composite_comparison, ' + 'avgphase, ' + str(avgphase) + ', avgred, ' + str(avgred)
+plot_name = '2_composite_comparison, ' + (time.strftime("%H,%M,%S"))
+print plot_name
 wmin = 3000
 wmax = 10000
 
@@ -50,22 +49,16 @@ plt.savefig('../plots/' + plot_name + '.png')
 plt.show()
 
 #Read whatever you sasved the table as
-Data1 = Table.read(d["composite1"].savedname, format='ascii')
-Data2 = Table.read(d["composite2"].savedname, format='ascii')
-
-#Checking to see how the table reads..right now it has a header that might be screwing things up.
-#print Data
-wavelengths  = np.array([Data1["Wavelength"]])
-fluxes1      = np.array([Data1["Flux"]])
-variances1   = np.array([Data1["Variance"]])
-fluxes2      = np.array([Data2["Flux"]])
-variances2   = np.array([Data2["Variance"]])
-
-#print wavelengths
+for n in range(queries):
+    d["data{0}".format(n+1)] = Table.read(d["composite{0}".format(n+1)].savedname, format='ascii')
+    wavelengths  = np.array([d["data1"]["Wavelength"]])
+    d["fluxes{0}".format(n+1)] = np.array([d["data{0}".format(n+1)]["Flux"]])
+    d["variances{0}".format(n+1)] = np.array([d["data{0}".format(n+1)]["Variance"]])
+    
 
 # From now on, list the data you want to plot as [ Xdata, Ydata, Xdata_2, Ydata_2]
-Relative_Flux   = [wavelengths, fluxes1, wavelengths, fluxes2]  # Want to plot a composite of multiple spectrum
-Residuals       = [wavelengths, variances1]
+Relative_Flux   = [wavelengths, d["fluxes1"], wavelengths, d["fluxes2"]]  # Want to plot a composite of multiple spectrum
+Residuals       = [wavelengths, d["variances1"]]
 Spectra_Bin     = [] 
 Age             = [] 
 Delta           = [] 
