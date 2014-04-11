@@ -34,6 +34,7 @@ for n in range(queries):
     else:
         d["composite{0}".format(n+1)] = composite.main(sys.argv[n+2])
 
+#Now the file name of the plot is labeled by time of creation
 plot_name = '2_composite_comparison, ' + (time.strftime("%H,%M,%S"))
 print plot_name
 wmin = 3000
@@ -62,7 +63,10 @@ for n in range(queries):
     plot_array.append(d["wavelengths{0}".format(n+1)])
     plot_array.append(d["fluxes{0}".format(n+1)])
     
+
+
 Relative_Flux   = plot_array # Want to plot a composite of multiple spectrum
+print len(Relative_Flux)
 Residuals       = [d["wavelengths1"], d["variances1"]]
 Spectra_Bin     = [] 
 Age             = [] 
