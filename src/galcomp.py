@@ -76,23 +76,23 @@ def run():
 	if 1 in params:
 		range=input('Select redshift range: [xmin,xmax]')
 		query += 'redshift BETWEEN ' + str(range[0]) + ' AND ' + str(range[1]) + ' AND '
-		name+=',redshift'
+		name+=',redshift;['+str(range[0])+','+str(range[1])+']'
 	if 2 in params:
 		range=input('Select phase range: [xmin,xmax]')
 		query += 'Phase BETWEEN ' + str(range[0]) + ' AND ' + str(range[1]) + ' AND '
-		name+=',phase'
+		name+=',phase;['+str(range[0])+','+str(range[1])+']'
 	if 3 in params:
 		range=input('Select Dm15 range: [xmin,xmax]')
 		query += 'Dm15 BETWEEN ' + str(range[0]) + ' AND ' + str(range[1]) + ' AND '
-		name+=',dm15'
+		name+=',dm15;['+str(range[0])+','+str(range[1])+']'
 	if 4 in params:
 		range=input('Select M_B range: [xmin,xmax]')
 		query += 'M_B BETWEEN ' + str(range[0]) + ' AND ' + str(range[1]) + ' AND '
-		name+=',M_B'
+		name+=',M_B;['+str(range[0])+','+str(range[1])+']'
 	if 5 in params:
 		range=input('Select B_mMinusV_m range: [xmin,xmax]')
 		query += 'B_mMinusV_m BETWEEN ' + str(range[0]) + ' AND ' + str(range[1]) + ' AND '
-		name+=',B_m-V_m'
+		name+=',B_m-V_m;['+str(range[0])+','+str(range[1])+']'
 
 	query += 'Morphology='
 
@@ -136,6 +136,9 @@ def run():
 	for comp in composites:
 		plt.plot(comp.wavelength, scales[i]*comp.flux,label=labels[i])
 		i+=1
+	plt.title(plot_name)
+	plt.xlabel('Wavelength')
+	plt.ylabel('Flux')
 	plt.xlim(wmin,wmax)
 	#[lowindex[0]:highindex[0]]
 	legend=plt.legend(loc='upper right')
@@ -167,7 +170,7 @@ def run():
 	# The following line will plot the data
 	#It's commented out until it works...
 	#Plotting.main(Show_Data , Plots, image_title , title)
-cont=0	
+cont=0
 while(cont==0):
 	run()
 	if (raw_input('Make another query? (y/n)') == 'y'):
