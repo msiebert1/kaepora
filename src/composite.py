@@ -121,8 +121,8 @@ def find_nearest(array,value):
 #This is the model for how scales should be applied, used in the find_scales function
 def scale_func(vars, in_data, out_data):
     
-    scale = vars[0]
-    model = scale * in_data
+    scale  = vars[0]
+    model  = scale * in_data
     output = model
     return output[:,0]
 
@@ -136,7 +136,7 @@ def find_scales(SN_Array, temp_flux, temp_ivar):
         #grab out the flux and inverse variance for that SN
         flux = SN.flux
         ivar = SN.ivar
-        overlap = temp_ivar * ivar
+        overlap   = temp_ivar * ivar
         n_overlap = len([x for x in overlap if x > 0])
         
         if n_overlap < min_overlap:
@@ -191,16 +191,16 @@ def average(SN_Array, template, medmean):
             if len(fluxes) == 0:
                 fluxes = np.array([SN.flux])
                 ivars  = np.array([SN.ivar])
-                reds = np.array([SN.redshift])
+                reds   = np.array([SN.redshift])
                 phases = np.array([SN.phase])
-                vels = np.array([SN.velocity])
+                vels   = np.array([SN.velocity])
             else:
                 try:
                     fluxes = np.append(fluxes, np.array([SN.flux]), axis=0)
                     ivars  = np.append(ivars, np.array([SN.ivar]), axis=0)
-                    reds = np.append(reds, np.array([SN.redshift]), axis = 0)
+                    reds   = np.append(reds, np.array([SN.redshift]), axis = 0)
                     phases = np.append(phases, np.array([SN.phase]), axis = 0)
-                    vels = np.append(vels, np.array([SN.velocity]), axis = 0)
+                    vels   = np.append(vels, np.array([SN.velocity]), axis = 0)
                 except ValueError:
                     print "This should never happen!"
 
@@ -245,12 +245,15 @@ def average(SN_Array, template, medmean):
 
 def main(Full_query, showplot = 0, medmean = 1, save_file = 'y'):
     SN_Array = []
+    
     #Accept SQL query as input and then grab what we need
     print "SQL Query:", Full_query
     sql_input = Full_query
 
     SN_Array = grab(sql_input, Full_query)
+    
     #bootstrap.main(SN_Array)
+    
     #finds the longest SN we have for our initial template
     lengths = []
     for SN in SN_Array:
