@@ -24,8 +24,8 @@ spec = [0] * num    # Input the wavelength and flux.
 
 
 for i in range(num):
-    spec[i] = np.loadtxt(list[i], unpack = True, usecols = (0, 1,))
-
+    #spec[i] = np.loadtxt(list[i], unpack = True, usecols = (0, 1,))
+    spec[i][0] = 
 
 num_arr = np.arange(0, num, 1)
 

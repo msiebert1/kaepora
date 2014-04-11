@@ -235,7 +235,7 @@ def main(Full_query):
     sql_input = Full_query
 
     SN_Array = grab(sql_input, Full_query)
-
+    
     #finds the longest SN we have for our initial template
     lengths = []
     for SN in SN_Array:
