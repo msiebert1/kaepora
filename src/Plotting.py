@@ -48,6 +48,7 @@ def main(Show_Data , Plots , image_title , title, Names):
 #############################################################
 # Set the height of each figure
 #############################################################
+    print "Begin plotting..."
     # Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift, Multiple Spectrum, Stacked Spectrum
     #                   0              1          2            3    4      5         6,                 7
     Height =           [8,             2,         3,           2,   2,     2,        0,                 0]
@@ -87,10 +88,10 @@ def main(Show_Data , Plots , image_title , title, Names):
     #Names     = []
     # Fill each array with data that will go in each plot
     for i in range(len_RF):
-        rf = Show_Data[:][0][i] 
+        rf = Show_Data[:][0][i].T 
         RF.append(rf) 
     for i in range(len_RS):
-        rs = Show_Data[:][0][i] 
+        rs = Show_Data[:][0][i]
         RS.append(rs) 
     for i in range(len_SB):
         sb = Show_Data[:][1][i] 
@@ -104,7 +105,6 @@ def main(Show_Data , Plots , image_title , title, Names):
     for i in range(len_RD):
         rd = Show_Data[:][4][i] 
         RD.append(rd) 
-    
     
     """
     len_names = len(Names)
@@ -136,6 +136,9 @@ def main(Show_Data , Plots , image_title , title, Names):
     def Scaling(data):
         scaled = []
         #if len_RF == 2:
+        #print "Min Data ", min(data)
+        #print "Max Data ", max(data)
+        #scaled = data
         scaled = ((data-min(data))/(max(data)-min(data)))
         #if len_RF > 2:
         #    for m in range(len(data)):
@@ -155,7 +158,7 @@ def main(Show_Data , Plots , image_title , title, Names):
 # The following function take the x,y,rms, and composite data    
 # to plot the composite spectrum
 #############################################################    
-    def Composite(RF,RS):
+    def Composite(RF,RS,Names):
         # Rel_flux = plt.subplot(gs[p]) is turned into a global variable outside all the functions
         plt.ylabel('Relative, f$_{\lambda}$', fontdict = font)
         plt.minorticks_on()
@@ -167,8 +170,9 @@ def main(Show_Data , Plots , image_title , title, Names):
             if k % 2 == 0:
                 plt.fill_between(RF[k], RF[k+1] + RS[k+1], RF[k+1] - RS[k+1], facecolor = random.choice(['g', 'r', 'c', 'm', 'y', 'k']),alpha=0.5)          
         """
+        """
         if len_RF == 2:
-            plt.plot(RF[0], RF[1], color ='g', label = Names[0]) 
+            plt.plot(RF[0], RF[1], color ='g') 
         if len_RF == 4:
             plt.plot(RF[0], RF[1], color ='g', label = Names[0]) 
             plt.plot(RF[2], RF[3], color ='k', label = Names[1]) 
@@ -177,12 +181,13 @@ def main(Show_Data , Plots , image_title , title, Names):
             plt.plot(RF[2], RF[3], color ='k', label = Names[1])
             plt.plot(RF[4], RF[5], color ='b', label = Names[2]) 
         """
+        
         for k in range(len_RF):
             if k % 2 == 0:
-                plt.plot(RF[k], RF[k+1], color = random.choice(['g', 'r', 'c', 'm', 'y', 'k']), label = Names) 
+                plt.plot(RF[k], RF[k+1], color = random.choice(['g', 'r', 'c', 'm', 'y', 'k']), label = Names)
                 #plt.plot(RF[k], RF[k+1] + RS[1], label = "+ RMS")
                 #plt.plot(RF[k], RF[k+1] - RS[1], label = "- RMS")
-        """
+       
         plt.legend(prop = {'family' : 'serif'})
         """        
         for n in range(len_names):
@@ -299,11 +304,10 @@ def main(Show_Data , Plots , image_title , title, Names):
 # What does this section do? I was having problems with it
 # so I've temporarily commented it out. 
 #############################################################
-
+    
     for j in range(len_RF):
         if j % 2 != 0:
             RF[j] = Scaling(RF[j])
-
     # Commented out for the time being because we're only given a single array
     """
     source = (np.array(RF[1])).T
@@ -349,7 +353,7 @@ def main(Show_Data , Plots , image_title , title, Names):
 ############################################################# 
     
     if 0 in Plots: # will always plot a composite spectrum if any 1-5 are selected   
-        Composite(RF,RS) 
+        Composite(RF,RS,Names) 
         p = p+1
     if 1 in Plots:
         Residual(RS) 
@@ -366,10 +370,12 @@ def main(Show_Data , Plots , image_title , title, Names):
     if 5 in Plots:
         Redshift(RD)
         p = p+1
-    # Regardless of what is plotted, we label the Xaxis and save the plot image       
+    # Regardless of what is plotted, we label the Xaxis and save the plot image  
+    
     plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
     
-    plt.savefig('image_title', dpi = 600, facecolor='w', edgecolor='w', pad_inches = 0.1)
+    plt.savefig(image_title, dpi = 600, facecolor='w', edgecolor='w', pad_inches = 0.1)
+    print "Plotting complete..."    
     #plt.savefig('composite plot.png', dpi = 100, facecolor='w', edgecolor='w', pad_inches = 0.1)
     
 #############################################################
@@ -400,5 +406,5 @@ def main(Show_Data , Plots , image_title , title, Names):
 #Label the figure and show
     #plt.xlabel( "Wavelength $\AA$" )
     #plt.savefig( image_title )
-    #plt.show()
+    plt.show()
 

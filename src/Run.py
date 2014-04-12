@@ -44,11 +44,11 @@ for n in range(queries):
 #This makes, shows, and saves a quick comparison plot...we can probably get rid of this when plotting.main works.
 lowindex  = np.where(d["composite1"].wavelength == composite.find_nearest(d["composite1"].wavelength, wmin))
 highindex = np.where(d["composite1"].wavelength == composite.find_nearest(d["composite1"].wavelength, wmax))
-for n in range(queries):
-    plt.plot(d["composite{0}".format(n+1)].wavelength[lowindex[0]:highindex[0]], d["composite{0}".format(n+1)].flux[lowindex[0]:highindex[0]])
-plt.savefig('../plots/' + plot_name + '.png')
-print 'Plot saved as: ' + plot_name
-plt.show()
+#for n in range(queries):
+#    plt.plot(d["composite{0}".format(n+1)].wavelength[lowindex[0]:highindex[0]], d["composite{0}".format(n+1)].flux[lowindex[0]:highindex[0]])
+#plt.savefig('../plots/' + plot_name + '.png')
+#print 'Plot saved as: ' + plot_name
+#plt.show()
 
 #Read whatever you sasved the table as, iterates over however many composites you used. 
 for n in range(queries):
@@ -79,7 +79,7 @@ Show_Data       = [Relative_Flux, Residuals, Spectra_Bin, Age , Delta , Redshift
 ## Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift
 ##                   0              1          2            3    4      5         
 # the plots you want to create
-Plots        = [0,1] 
+Plots        = [0] 
 image_title  = "../plots/Composite_Spectrum_plotted.png"				 
 title        = "Composite Spectrum"	
 # The following line will plot the data
