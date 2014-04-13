@@ -87,12 +87,9 @@ def main(Show_Data , Plots , image_title , title, Names):
     for i in range(len_RF):
         rf = Show_Data[:][0][i].T 
         RF.append(rf) 
-    for i in range(len_RS):
-	#This is causing the residuals to just plot the composites again
-	#I tried changing the index but it gave me some weird error
-    ## fixed now!
-        rs = Show_Data[:][1][i].T
-        RS.append(rs) 
+    for i in range(len_RS): #This is causing the residuals to just plot the composites again  ## fixed now!
+        rs = Show_Data[:][1][i] #I tried changing the index but it gave me some weird error
+        RS.append(rs)    
     for i in range(len_SB):
         sb = Show_Data[:][2][i].T 
         SB.append(sb)
@@ -106,12 +103,12 @@ def main(Show_Data , Plots , image_title , title, Names):
         rd = Show_Data[:][5][i].T
         RD.append(rd) 
     
-    
+    """
     len_names = len(Names)
-    for n in range (len_names):
+    for n in range(len_names*2):
         Names.append("Spectrum")
     print Names
-    
+    """
 #############################################################
 # Changing font parameters
 #############################################################
@@ -165,13 +162,13 @@ def main(Show_Data , Plots , image_title , title, Names):
         """  
         for n in range(len_names):
             legend([Names[n]])
-        """  
+        """
         
         # Remove legend box frame        
         l = plt.legend(prop = {'family' : 'serif'})
         l.draw_frame(False)
         plt.draw()
- 
+          
         RFxticklabels = Rel_flux.get_xticklabels()  
         if max(stacked) == 0:
             plt.setp(RFxticklabels, visible=True)
@@ -183,9 +180,10 @@ def main(Show_Data , Plots , image_title , title, Names):
     def Residual(RS):
         Resid = plt.subplot(gs[p], sharex = Rel_flux)
         plt.ylabel('Residuals', fontdict = font)
-        for k in range(len_RS):
-            if k % 2 == 0:
-                plt.plot(RS[k], RS[k+1], label = "RMS of residuals", ls = '-')
+        for j in range(len_RS):
+            if j % 2 == 0:
+                print RS[j+1]
+                plt.plot(RS[j], RS[j+1], label = "RMS of residuals", ls = '-')
         #plt.plot(RS[0], RS[1], label = "RMS of residuals", ls = '-')
         RSxticklabels = Resid.get_xticklabels()
         if max(stacked) == 1:

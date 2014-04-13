@@ -81,21 +81,21 @@ for n in range(queries):
 
 Relative_Flux   = plot_array # Want to plot a composite of multiple spectrum
 #Technically, the variances are not the residuals. Plotting them is useful, but it's mislabeled here.
-Residuals       = residual_array
+## Do you want to plot the variance or the residual? The residual is something else that can be plotted. (4/13)
+Residuals       = residual_array # This is giving nan values when it's normalized, I'm not sure why
 Spectra_Bin     = [] 
 Age             = [] 
 Delta           = [] 
 Redshift        = []
-# Can name_array put an empty "  " space between each associated data name?
-#Names           = ["Carbon Positive", "","Carbon Negative",""] #name_array # the names corresponding to each composite go here
-#Show_Data       = [Relative_Flux, Residuals, Spectra_Bin, Age , Delta , Redshift] # Removed residual section 
-Names           = name_array #Every spectra is being labeled with the entire name_array instead of one each.
+# Can name_array put an empty "  " space between each associated data name 
+Names           = ["Carbon Positive", "","Carbon Negative",""] # the names corresponding to each composite go here
+#Names           = name_array #Every spectra is being labeled with the entire name_array instead of one each.
 Show_Data       = [Relative_Flux, Residuals, Spectra_Bin, Age , Delta , Redshift]
 
 ## Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift
 ##                   0              1          2            3    4      5         
 # the plots you want to create
-Plots        = [0,1] 
+Plots        = [0] 
 
 image_title  = "../plots/" + str(sys.argv[1]) + "_composites.png"
 print "Plot saved as: " + image_title
