@@ -62,27 +62,50 @@ for n in range(queries):
 #This chunk will create an array that's the right length for however many queries you used.
 plot_array = []
 name_array = []
+residual_array = []
+variance_array = []
 for n in range(queries):
     plot_array.append(d["wavelengths{0}".format(n+1)])
     plot_array.append(d["fluxes{0}".format(n+1)])
-    name_array.append(d["composite{0}".format(n+1)].name)
+    residual_array.append(d["wavelengths{0}".format(n+1)])
+    residual_array.append(np.array([d["fluxes{0}".format(n+1)]-d["fluxes1"]]))
+    variance_array.append(d["wavelengths{0}".format(n+1)])
+    variance_array.append(d["variances{0}".format(n+1)])
+    name_array.append("composite{0}".format(n+1))
+    
+##################
+#If you want to use custom names for your composites,
+#fill out and uncomment this next line
+#name_array = ["composite1name", "composite2name", etc]
+##################
 
 Relative_Flux   = plot_array # Want to plot a composite of multiple spectrum
 #Technically, the variances are not the residuals. Plotting them is useful, but it's mislabeled here.
-Residuals       = [d["wavelengths1"], d["variances1"],d["wavelengths2"], d["variances2"]]
+Residuals       = residual_array
 Spectra_Bin     = [] 
 Age             = [] 
 Delta           = [] 
 Redshift        = []
+<<<<<<< HEAD
 # Can name_array put an empty "  " space between each associated data name?
 Names           = ["Carbon Positive", "","Carbon Negative",""] #name_array # the names corresponding to each composite go here
 Show_Data       = [Relative_Flux, Residuals, Spectra_Bin, Age , Delta , Redshift] # Removed residual section 
+=======
+Names           = name_array #Every spectra is being labeled with the entire name_array instead of one each.
+Show_Data       = [Relative_Flux, Residuals, Spectra_Bin, Age , Delta , Redshift]
+>>>>>>> 0af9fd6868c79c2c15143cb5657fe4b4becaa653
 ## Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift
 ##                   0              1          2            3    4      5         
 # the plots you want to create
 Plots        = [0,1] 
+<<<<<<< HEAD
 #image_title  = "../plots/Composite_Spectrum_plotted.png"
 image_title  = "../plots/Composite_Spectrum.png"				 
 title        = "Composite Spectrum"	
+=======
+image_title  = "../plots/" + str(sys.argv[1]) + "_composites.png"
+print "Plot saved as: " + image_title
+title        = "Composite Spectra Comparison"	
+>>>>>>> 0af9fd6868c79c2c15143cb5657fe4b4becaa653
 # The following line will plot the data
 Plotting.main(Show_Data , Plots , image_title , title, Names)
