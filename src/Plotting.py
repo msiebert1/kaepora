@@ -90,19 +90,20 @@ def main(Show_Data , Plots , image_title , title, Names):
     for i in range(len_RS):
 	#This is causing the residuals to just plot the composites again
 	#I tried changing the index but it gave me some weird error
-        rs = Show_Data[:][0][i].T
+    ## fixed now!
+        rs = Show_Data[:][1][i].T
         RS.append(rs) 
     for i in range(len_SB):
-        sb = Show_Data[:][1][i].T 
+        sb = Show_Data[:][2][i].T 
         SB.append(sb)
     for i in range(len_AG):
-        ag = Show_Data[:][2][i].T
+        ag = Show_Data[:][3][i].T
         AG.append(ag) 
     for i in range(len_DE):
-        de = Show_Data[:][3][i].T
+        de = Show_Data[:][4][i].T
         DE.append(de)  
     for i in range(len_RD):
-        rd = Show_Data[:][4][i].T
+        rd = Show_Data[:][5][i].T
         RD.append(rd) 
     
     

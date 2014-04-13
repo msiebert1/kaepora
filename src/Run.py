@@ -86,26 +86,19 @@ Spectra_Bin     = []
 Age             = [] 
 Delta           = [] 
 Redshift        = []
-<<<<<<< HEAD
 # Can name_array put an empty "  " space between each associated data name?
-Names           = ["Carbon Positive", "","Carbon Negative",""] #name_array # the names corresponding to each composite go here
-Show_Data       = [Relative_Flux, Residuals, Spectra_Bin, Age , Delta , Redshift] # Removed residual section 
-=======
+#Names           = ["Carbon Positive", "","Carbon Negative",""] #name_array # the names corresponding to each composite go here
+#Show_Data       = [Relative_Flux, Residuals, Spectra_Bin, Age , Delta , Redshift] # Removed residual section 
 Names           = name_array #Every spectra is being labeled with the entire name_array instead of one each.
 Show_Data       = [Relative_Flux, Residuals, Spectra_Bin, Age , Delta , Redshift]
->>>>>>> 0af9fd6868c79c2c15143cb5657fe4b4becaa653
+
 ## Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift
 ##                   0              1          2            3    4      5         
 # the plots you want to create
 Plots        = [0,1] 
-<<<<<<< HEAD
-#image_title  = "../plots/Composite_Spectrum_plotted.png"
-image_title  = "../plots/Composite_Spectrum.png"				 
-title        = "Composite Spectrum"	
-=======
+
 image_title  = "../plots/" + str(sys.argv[1]) + "_composites.png"
 print "Plot saved as: " + image_title
 title        = "Composite Spectra Comparison"	
->>>>>>> 0af9fd6868c79c2c15143cb5657fe4b4becaa653
 # The following line will plot the data
 Plotting.main(Show_Data , Plots , image_title , title, Names)
