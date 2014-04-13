@@ -74,7 +74,8 @@ Spectra_Bin     = []
 Age             = [] 
 Delta           = [] 
 Redshift        = []
-Names           = ["Carbon Positive" , "Carbon Negative"] #name_array # the names corresponding to each composite go here
+# Can name_array put an empty "  " space between each associated data name?
+Names           = ["Carbon Positive", "","Carbon Negative",""] #name_array # the names corresponding to each composite go here
 Show_Data       = [Relative_Flux, Residuals, Spectra_Bin, Age , Delta , Redshift] # Removed residual section 
 ## Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift
 ##                   0              1          2            3    4      5         

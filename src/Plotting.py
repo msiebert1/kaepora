@@ -103,12 +103,12 @@ def main(Show_Data , Plots , image_title , title, Names):
         rd = Show_Data[:][4][i].T
         RD.append(rd) 
     
-    """
+    
     len_names = len(Names)
-    if len(Names) == 0:
+    for n in range (len_names):
         Names.append("Spectrum")
     print Names
-    """
+    
 #############################################################
 # Changing font parameters
 #############################################################
@@ -154,7 +154,7 @@ def main(Show_Data , Plots , image_title , title, Names):
        
         for k in range(len_RF):
             if k % 2 == 0:
-                plt.plot(RF[k], RF[k+1], color = random.choice(['g', 'r', 'c', 'm', 'y', 'k']), label = Names)
+                plt.plot(RF[k], RF[k+1], color = random.choice(['g', 'r', 'c', 'm', 'y', 'k']), label = Names[k] )
                 #plt.fill_between(RF[k], RF[k+1] + RS[k+1], RF[k+1] - RS[k+1], facecolor = random.choice(['g', 'r', 'c', 'm', 'y', 'k']),alpha=0.5)                
                 #plt.plot(RF[k], RF[k+1] + RS[1], label = "+ RMS")
                 #plt.plot(RF[k], RF[k+1] - RS[1], label = "- RMS")
