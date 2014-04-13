@@ -50,7 +50,9 @@ highindex = np.where(d["composite1"].wavelength == composite.find_nearest(d["com
 #print 'Plot saved as: ' + plot_name
 #plt.show()
 
-#Read whatever you sasved the table as, iterates over however many composites you used. 
+#Read whatever you sasved the table as, iterates over however many composites you used.
+#This is how you have to address things if you want to iterate over queries.
+#The n+1 makes the first item composite1, not composite0.
 for n in range(queries):
     d["data{0}".format(n+1)]         = Table.read(d["composite{0}".format(n+1)].savedname, format='ascii')
     d["wavelengths{0}".format(n+1)]  = np.array([d["data{0}".format(n+1)]["Wavelength"]])
@@ -60,42 +62,49 @@ for n in range(queries):
 
 # From now on, list the data you want to plot as [ Xdata, Ydata, Xdata_2, Ydata_2]
 #This chunk will create an array that's the right length for however many queries you used.
-plot_array = []
-name_array = []
+plot_array     = []
+name_array     = []
 residual_array = []
 variance_array = []
 for n in range(queries):
     plot_array.append(d["wavelengths{0}".format(n+1)])
     plot_array.append(d["fluxes{0}".format(n+1)])
     residual_array.append(d["wavelengths{0}".format(n+1)])
+    residual_list = abs(np.array([d["fluxes{0}".format(n+1)]-d["fluxes1"]]))
+    print residual_list
     residual_array.append(np.array([d["fluxes{0}".format(n+1)]-d["fluxes1"]]))
     variance_array.append(d["wavelengths{0}".format(n+1)])
     variance_array.append(d["variances{0}".format(n+1)])
     name_array.append("composite{0}".format(n+1))
+    name_array.append(" ")
     
 ##################
 #If you want to use custom names for your composites,
 #fill out and uncomment this next line
-#name_array = ["composite1name", "composite2name", etc]
+#name_array = ["composite1name", " ", "composite2name", " ", etc]
 ##################
 
-Relative_Flux   = plot_array # Want to plot a composite of multiple spectrum
+Relative_Flux   = plot_array #plots all given composites
 #Technically, the variances are not the residuals. Plotting them is useful, but it's mislabeled here.
 ## Do you want to plot the variance or the residual? The residual is something else that can be plotted. (4/13)
+###We should be able to plot both. I've created two separate arrays, and they both print just fine on this end. (also 4/13)
 Residuals       = residual_array # This is giving nan values when it's normalized, I'm not sure why
 Spectra_Bin     = [] 
 Age             = [] 
 Delta           = [] 
 Redshift        = []
-# Can name_array put an empty "  " space between each associated data name 
-Names           = ["Carbon Positive", "","Carbon Negative",""] # the names corresponding to each composite go here
-#Names           = name_array #Every spectra is being labeled with the entire name_array instead of one each.
+# Can name_array put an empty "  " space between each associated data name
+# yes
+#Names           = ["Carbon Positive", "","Carbon Negative",""] # the names corresponding to each composite go here
+## If you want custom names ^^^, uncomment and use line 82.
+##Otherwise it'll default to just labeling composites in order.
+Names           = name_array
 Show_Data       = [Relative_Flux, Residuals, Spectra_Bin, Age , Delta , Redshift]
 
 ## Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift
 ##                   0              1          2            3    4      5         
 # the plots you want to create
-Plots        = [0] 
+Plots        = [0,1] 
 
 image_title  = "../plots/" + str(sys.argv[1]) + "_composites.png"
 print "Plot saved as: " + image_title

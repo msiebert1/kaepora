@@ -133,7 +133,8 @@ def main(Show_Data , Plots , image_title , title, Names):
 # verses colums. So, I changed the file renaming and added .T
 #############################################################
     def Scaling(data):
-        scaled = [] 
+	#print data
+        scaled = []
         scaled = ((data-min(data))/(max(data)-min(data)))
         return scaled 
 #############################################################
@@ -182,7 +183,9 @@ def main(Show_Data , Plots , image_title , title, Names):
         plt.ylabel('Residuals', fontdict = font)
         for j in range(len_RS):
             if j % 2 == 0:
-                print RS[j+1]
+                #print RS[j+1]
+		#There's something wrong with the dimensionality of x and y here
+		#not sure what it is...if I print it, I can't see the entire array, it's too big.
                 plt.plot(RS[j], RS[j+1], label = "RMS of residuals", ls = '-')
         #plt.plot(RS[0], RS[1], label = "RMS of residuals", ls = '-')
         RSxticklabels = Resid.get_xticklabels()
