@@ -69,18 +69,19 @@ for n in range(queries):
 
 Relative_Flux   = plot_array # Want to plot a composite of multiple spectrum
 #Technically, the variances are not the residuals. Plotting them is useful, but it's mislabeled here.
-Residuals       = [d["wavelengths1"], d["variances1"]]
+Residuals       = [d["wavelengths1"], d["variances1"],d["wavelengths2"], d["variances2"]]
 Spectra_Bin     = [] 
 Age             = [] 
 Delta           = [] 
 Redshift        = []
-Names           = name_array # the names corresponding to each composite go here
+Names           = ["Carbon Positive" , "Carbon Negative"] #name_array # the names corresponding to each composite go here
 Show_Data       = [Relative_Flux, Residuals, Spectra_Bin, Age , Delta , Redshift] # Removed residual section 
 ## Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift
 ##                   0              1          2            3    4      5         
 # the plots you want to create
-Plots        = [0] 
-image_title  = "../plots/Composite_Spectrum_plotted.png"				 
+Plots        = [0,1] 
+#image_title  = "../plots/Composite_Spectrum_plotted.png"
+image_title  = "../plots/Carbon_presence_phase_3_3.png"				 
 title        = "Composite Spectrum"	
 # The following line will plot the data
 Plotting.main(Show_Data , Plots , image_title , title, Names)

@@ -10,8 +10,7 @@ import random # new import so that colors in fill_between are random
 
 # Eventually do scaling by choice
 # naming
-# comp_data
-# rms_data
+# rms data
 
 ###########################################
 #             HOW TO USE
@@ -30,8 +29,8 @@ import random # new import so that colors in fill_between are random
 #Delta         = []
 #Redshift      = [] 
 #Show_Data     = [Relative_Flux, Residuals, Spectra_Bin, Age , Delta , Redshift]
-#image_title  = "WHOA.png"            # Name the image (with location)
-#title        = "Title on the figure" 
+#image_title   = "WHOA.png"            # Name the image (with location)
+#title         = "Title on the figure" 
 #
 ## Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift, Multiple Spectrum, Stacked Spectrum
 ##                   0              1          2            3    4      5         6,                 7
@@ -84,26 +83,24 @@ def main(Show_Data , Plots , image_title , title, Names):
     DE = []
     RD = []
 
-    #rms_data  = []
-    #Names     = []
     # Fill each array with data that will go in each plot
     for i in range(len_RF):
         rf = Show_Data[:][0][i].T 
         RF.append(rf) 
     for i in range(len_RS):
-        rs = Show_Data[:][0][i]
+        rs = Show_Data[:][0][i].T
         RS.append(rs) 
     for i in range(len_SB):
-        sb = Show_Data[:][1][i] 
+        sb = Show_Data[:][1][i].T 
         SB.append(sb)
     for i in range(len_AG):
-        ag = Show_Data[:][2][i] 
+        ag = Show_Data[:][2][i].T
         AG.append(ag) 
     for i in range(len_DE):
-        de = Show_Data[:][3][i] 
+        de = Show_Data[:][3][i].T
         DE.append(de)  
     for i in range(len_RD):
-        rd = Show_Data[:][4][i] 
+        rd = Show_Data[:][4][i].T
         RD.append(rd) 
     
     """
@@ -131,27 +128,20 @@ def main(Show_Data , Plots , image_title , title, Names):
             } 
 
 #############################################################
-# Scaling:
+# Scaling: Normalize the y values. For reference the error 
+# in scaling (I think) was caused by calculating rows 
+# verses colums. So, I changed the file renaming and added .T
 #############################################################
     def Scaling(data):
-        scaled = []
-        #if len_RF == 2:
-        #print "Min Data ", min(data)
-        #print "Max Data ", max(data)
-        #scaled = data
+        scaled = [] 
         scaled = ((data-min(data))/(max(data)-min(data)))
-        #if len_RF > 2:
-        #    for m in range(len(data)):
-        #        scaled.append((data[m]-min(data[m]))/(max(data[m])-min(data[m])))
         return scaled 
-            
-        
 #############################################################
 # residual: Takes the data (Y values?) and subracts it from
-# the composite
+# the composite. 
 #############################################################
     """
-    def residual(comp, data):
+    def residual(comp, data): # WHAT IS DATA IN THIS?
         return comp - data
     """
 #############################################################
@@ -159,40 +149,26 @@ def main(Show_Data , Plots , image_title , title, Names):
 # to plot the composite spectrum
 #############################################################    
     def Composite(RF,RS,Names):
-        # Rel_flux = plt.subplot(gs[p]) is turned into a global variable outside all the functions
         plt.ylabel('Relative, f$_{\lambda}$', fontdict = font)
         plt.minorticks_on()
-
-        # This for loop plots all the relative fluxes that were read in
-        # the iterating is not 
-        """       
-        for k in range(len_RF):
-            if k % 2 == 0:
-                plt.fill_between(RF[k], RF[k+1] + RS[k+1], RF[k+1] - RS[k+1], facecolor = random.choice(['g', 'r', 'c', 'm', 'y', 'k']),alpha=0.5)          
-        """
-        """
-        if len_RF == 2:
-            plt.plot(RF[0], RF[1], color ='g') 
-        if len_RF == 4:
-            plt.plot(RF[0], RF[1], color ='g', label = Names[0]) 
-            plt.plot(RF[2], RF[3], color ='k', label = Names[1]) 
-        if len_RF == 6:
-            plt.plot(RF[0], RF[1], color ='g', label = Names[0]) 
-            plt.plot(RF[2], RF[3], color ='k', label = Names[1])
-            plt.plot(RF[4], RF[5], color ='b', label = Names[2]) 
-        """
-        
+       
         for k in range(len_RF):
             if k % 2 == 0:
                 plt.plot(RF[k], RF[k+1], color = random.choice(['g', 'r', 'c', 'm', 'y', 'k']), label = Names)
+                #plt.fill_between(RF[k], RF[k+1] + RS[k+1], RF[k+1] - RS[k+1], facecolor = random.choice(['g', 'r', 'c', 'm', 'y', 'k']),alpha=0.5)                
                 #plt.plot(RF[k], RF[k+1] + RS[1], label = "+ RMS")
                 #plt.plot(RF[k], RF[k+1] - RS[1], label = "- RMS")
-       
-        plt.legend(prop = {'family' : 'serif'})
-        """        
+
+        """  
         for n in range(len_names):
             legend([Names[n]])
-        """   
+        """  
+        
+        # Remove legend box frame        
+        l = plt.legend(prop = {'family' : 'serif'})
+        l.draw_frame(False)
+        plt.draw()
+ 
         RFxticklabels = Rel_flux.get_xticklabels()  
         if max(stacked) == 0:
             plt.setp(RFxticklabels, visible=True)
@@ -204,7 +180,10 @@ def main(Show_Data , Plots , image_title , title, Names):
     def Residual(RS):
         Resid = plt.subplot(gs[p], sharex = Rel_flux)
         plt.ylabel('Residuals', fontdict = font)
-        plt.plot(RS[0], RS[1], label = "RMS of residuals", ls = '-')
+        for k in range(len_RS):
+            if k % 2 == 0:
+                plt.plot(RS[k], RS[k+1], label = "RMS of residuals", ls = '-')
+        #plt.plot(RS[0], RS[1], label = "RMS of residuals", ls = '-')
         RSxticklabels = Resid.get_xticklabels()
         if max(stacked) == 1:
             plt.setp(RSxticklabels, visible=True)
@@ -217,7 +196,9 @@ def main(Show_Data , Plots , image_title , title, Names):
     def SpecBin(SB):
         SpecBin = plt.subplot(gs[p], sharex = Rel_flux)
         plt.ylabel('Spectra/Bin', fontdict = font)
-        plt.plot(SB[0], SB[1], label = "title goes here", ls = '-')
+        for k in range(len_SB):
+            if k % 2 == 0:
+                plt.plot(SB[k], SB[k+1], label = "Spectra per Bin", ls = '-')
         SBxticklabels = SpecBin.get_xticklabels()        
         if max(stacked) == 2:
             plt.setp(SBxticklabels, visible=True)
@@ -230,7 +211,9 @@ def main(Show_Data , Plots , image_title , title, Names):
     def Age(AG):
         Age = plt.subplot(gs[p], sharex = Rel_flux)
         plt.ylabel('Age [d]', fontdict = font)
-        plt.plot(AG[0], AG[1], label = "title goes here", ls = '-')
+        for k in range(len_AG):
+            if k % 2 == 0:
+                plt.plot(AG[k], AG[k+1], label = "Age", ls = '-')
         AGxticklabels = Age.get_xticklabels()        
         if max(stacked) == 3:
             plt.setp(AGxticklabels, visible=True)
@@ -243,7 +226,9 @@ def main(Show_Data , Plots , image_title , title, Names):
     def Delta(DE):
         Delta = plt.subplot(gs[p], sharex = Rel_flux)
         plt.ylabel('$\Delta$', fontdict = font)
-        plt.plot(DE[0], DE[1], label = "title goes here", ls = '-')
+        for k in range(len_DE):
+            if k % 2 == 0:
+                plt.plot(DE[k], DE[k+1], label = "Delta", ls = '-')
         DLxticklabels = Delta.get_xticklabels()
         if max(stacked) == 4:            
             plt.setp(DLxticklabels, visible=True)
@@ -256,7 +241,9 @@ def main(Show_Data , Plots , image_title , title, Names):
     def Redshift(RE):
         Redshift = plt.subplot(gs[p], sharex = Rel_flux)
         plt.ylabel('Redshift', fontdict = font)
-        plt.plot(RE[0], RE[1], label = "title goes here", ls = '-')
+        for k in range(len_RE):
+            if k % 2 == 0:
+                plt.plot(RE[k], RE[k+1], label = "Redshift", ls = '-')
         Zxticklabels = Redshift.get_xticklabels()        
         if max(stacked) == 5:            
             plt.setp(Zxticklabels, visible=True)
@@ -308,8 +295,24 @@ def main(Show_Data , Plots , image_title , title, Names):
     for j in range(len_RF):
         if j % 2 != 0:
             RF[j] = Scaling(RF[j])
-    # Commented out for the time being because we're only given a single array
+    for j in range(len_RS):
+        if j % 2 != 0:
+            RS[j] = Scaling(RS[j])
+    for j in range(len_SB):
+        if j % 2 != 0:
+            SB[j] = Scaling(SB[j])
+    for j in range(len_AG):
+        if j % 2 != 0:
+            AG[j] = Scaling(AG[j])
+    for j in range(len_DE):
+        if j % 2 != 0:
+            DE[j] = Scaling(DE[j])
+    for j in range(len_SB):
+        if j % 2 != 0:
+            RD[j] = Scaling(RD[j])
+    
     """
+    # Commented out for the time being because we're only given a single array
     source = (np.array(RF[1])).T
 
     sbins = []
@@ -370,13 +373,11 @@ def main(Show_Data , Plots , image_title , title, Names):
     if 5 in Plots:
         Redshift(RD)
         p = p+1
-    # Regardless of what is plotted, we label the Xaxis and save the plot image  
-    
+
+    # Regardless of what is plotted, we label the Xaxis and save the plot image         
     plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
-    
-    plt.savefig(image_title, dpi = 600, facecolor='w', edgecolor='w', pad_inches = 0.1)
+    plt.savefig(image_title, dpi = 200, facecolor='w', edgecolor='w', pad_inches = 0.1) # CHANGE dpi = 600
     print "Plotting complete..."    
-    #plt.savefig('composite plot.png', dpi = 100, facecolor='w', edgecolor='w', pad_inches = 0.1)
     
 #############################################################
 # Other figures to plot, we put these after the first figure
@@ -390,21 +391,8 @@ def main(Show_Data , Plots , image_title , title, Names):
         Stacked(RF[0],RF[1])
     """
 #############################################################
-# Last steps are removing the legend frame *crosses fingers*
+# Show the plots!
 #############################################################                  
-        
-# Remove legend box frame 
-    #l = legend()
-    #l.draw_frame(False)
-    #plt.draw()
 
-#Set the visual range. Automatic range is ugly. 
-#    xmin = int(float(RF[0][0])) 
-#    xmax = int(float(RF[0][-1])) 
-#    plt.xlim((xmin,xmax))
-
-#Label the figure and show
-    #plt.xlabel( "Wavelength $\AA$" )
-    #plt.savefig( image_title )
     plt.show()
 
