@@ -81,7 +81,7 @@ Show_Data       = [Relative_Flux, Residuals, Spectra_Bin, Age , Delta , Redshift
 # the plots you want to create
 Plots        = [0,1] 
 #image_title  = "../plots/Composite_Spectrum_plotted.png"
-image_title  = "../plots/Carbon_presence_phase_3_3.png"				 
+image_title  = "../plots/Composite_Spectrum.png"				 
 title        = "Composite Spectrum"	
 # The following line will plot the data
 Plotting.main(Show_Data , Plots , image_title , title, Names)
