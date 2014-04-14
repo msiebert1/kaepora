@@ -71,8 +71,7 @@ for n in range(queries):
     plot_array.append(d["fluxes{0}".format(n+1)])
     residual_array.append(d["wavelengths{0}".format(n+1)])
     residual_list = abs(np.array([d["fluxes{0}".format(n+1)]-d["fluxes1"]]))
-    print residual_list
-    residual_array.append(np.array([d["fluxes{0}".format(n+1)]-d["fluxes1"]]))
+    residual_array.append(residual_list)
     variance_array.append(d["wavelengths{0}".format(n+1)])
     variance_array.append(d["variances{0}".format(n+1)])
     name_array.append("composite{0}".format(n+1))
@@ -96,7 +95,7 @@ Redshift        = []
 # Can name_array put an empty "  " space between each associated data name
 # yes
 #Names           = ["Carbon Positive", "","Carbon Negative",""] # the names corresponding to each composite go here
-## If you want custom names ^^^, uncomment and use line 82.
+## If you want custom names ^^^, uncomment and use line 83, for consistency.
 ##Otherwise it'll default to just labeling composites in order.
 Names           = name_array
 Show_Data       = [Relative_Flux, Residuals, Spectra_Bin, Age , Delta , Redshift]
