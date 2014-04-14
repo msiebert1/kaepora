@@ -133,10 +133,11 @@ def main(Show_Data , Plots , image_title , title, Names):
 # verses colums. So, I changed the file renaming and added .T
 #############################################################
     def Scaling(data):
-	print len(data)
         scaled = []
 	#still getting an error here, which might be causing the 'nan'
-        scaled = ((data-min(data))/(max(data)-min(data)))
+	#both data.max() and data.min() are 0.0, which is a problem.
+	print max(data), min(data)
+        scaled = (data-min(data))/(max(data)-min(data))
         return scaled 
 #############################################################
 # residual: Takes the data (Y values?) and subracts it from
@@ -300,13 +301,12 @@ def main(Show_Data , Plots , image_title , title, Names):
 #I commented this out because the scaling was causing issues.
 #Now it runs through and the residuals actually plot which is good
 #But...it's not scaled. Is that bad? (4/13) - Sam
-    """
+
     for j in range(len_RF):
         if j % 2 != 0:
             RF[j] = Scaling(RF[j])
     for j in range(len_RS):
         if j % 2 != 0:
-	    print len(RS[j])
             RS[j] = Scaling(RS[j])
     for j in range(len_SB):
         if j % 2 != 0:
@@ -320,7 +320,7 @@ def main(Show_Data , Plots , image_title , title, Names):
     for j in range(len_SB):
         if j % 2 != 0:
             RD[j] = Scaling(RD[j])
-    """
+	    
     """
     # Commented out for the time being because we're only given a single array
     source = (np.array(RF[1])).T
