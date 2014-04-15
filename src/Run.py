@@ -87,24 +87,24 @@ Relative_Flux   = plot_array #plots all given composites
 #Technically, the variances are not the residuals. Plotting them is useful, but it's mislabeled here.
 ## Do you want to plot the variance or the residual? The residual is something else that can be plotted. (4/13)
 ###We should be able to plot both. I've created two separate arrays, and they both print just fine on this end. (also 4/13)
+Variance        = []
 Residuals       = residual_array # This is giving nan values when it's normalized, I'm not sure why
 Spectra_Bin     = [] 
 Age             = [] 
 Delta           = [] 
 Redshift        = []
-Variance        = plot_array
 # Can name_array put an empty "  " space between each associated data name
 # yes
 #Names           = ["Carbon Positive", "","Carbon Negative",""] # the names corresponding to each composite go here
 ## If you want custom names ^^^, uncomment and use line 83, for consistency.
 ##Otherwise it'll default to just labeling composites in order.
 Names           = name_array
-Show_Data       = [Relative_Flux,Residuals,Spectra_Bin,Age,Delta,Redshift,Variance]
+Show_Data       = [Relative_Flux,Variance,Residuals,Spectra_Bin,Age,Delta,Redshift]
 
 ## Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift, Variance
 ##                   0              1          2            3    4      5         6
 # the plots you want to create 
-Plots        = [0,6,1] 
+Plots        = [0,2] 
 
 image_title  = "../plots/" + str(sys.argv[1]) + "_composites.png"
 print "Plot saved as: " + image_title

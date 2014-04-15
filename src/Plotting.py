@@ -48,9 +48,9 @@ def main(Show_Data , Plots , image_title , title, Names):
 # Set the height of each figure
 #############################################################
     print "Begin plotting..."
-    # Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift, Variance 
+    # Available Plots:  Relative Flux,Variance, Residuals, Spectra/Bin, Age, Delta, Redshift,  
     #                   0              1          2            3    4      5         6
-    Height =           [8,             2,         3,           2,   2,     2,        3]
+    Height =           [8,             3,         2,           3,   2,     2,        2]
 
     
     h = []
@@ -68,13 +68,13 @@ def main(Show_Data , Plots , image_title , title, Names):
 # Rename the variable.
 #############################################################
     # Use the length of each component of Show_Data to rename and fill arrays
-    len_RF = len(Show_Data[:][0])
-    len_RS = len(Show_Data[:][1])
-    len_SB = len(Show_Data[:][2])
-    len_AG = len(Show_Data[:][3])
-    len_DE = len(Show_Data[:][4])
-    len_RD = len(Show_Data[:][5])
-    len_VA = len(Show_Data[:][6])
+    len_RF = len(Show_Data[:][0])    
+    len_VA = len(Show_Data[:][1])
+    len_RS = len(Show_Data[:][2])
+    len_SB = len(Show_Data[:][3])
+    len_AG = len(Show_Data[:][4])
+    len_DE = len(Show_Data[:][5])
+    len_RD = len(Show_Data[:][6])
 
     # Even values are x. Odd are y  (Slightly confusing for the time being)
     RF = []
@@ -89,24 +89,25 @@ def main(Show_Data , Plots , image_title , title, Names):
     for i in range(len_RF):
         rf = Show_Data[:][0][i].T 
         RF.append(rf)
+    for i in range(len_VA):
+        va = Show_Data[:][1][i].T
+        VA.append(va) 
     for i in range(len_RS): 
-        rs = Show_Data[:][1][i].T
+        rs = Show_Data[:][2][i].T
         RS.append(rs)    
     for i in range(len_SB):
-        sb = Show_Data[:][2][i].T 
+        sb = Show_Data[:][3][i].T 
         SB.append(sb)
     for i in range(len_AG):
-        ag = Show_Data[:][3][i].T
+        ag = Show_Data[:][4][i].T
         AG.append(ag) 
     for i in range(len_DE):
-        de = Show_Data[:][4][i].T
+        de = Show_Data[:][5][i].T
         DE.append(de)  
     for i in range(len_RD):
-        rd = Show_Data[:][5][i].T
+        rd = Show_Data[:][6][i].T
         RD.append(rd) 
-    for i in range(len_VA):
-        va = Show_Data[:][6][i].T
-        VA.append(va) 
+
     
     """    
     print "Length of RS :", len_RS
@@ -190,7 +191,20 @@ def main(Show_Data , Plots , image_title , title, Names):
             plt.setp(RFxticklabels, visible=True)
         else:
             plt.setp(RFxticklabels, visible=False)
-
+#############################################################
+# The following function plots the variance 
+#############################################################
+    def Variance(VA):
+        Variance = plt.subplot(gs[p], sharex = Rel_flux)
+        plt.ylabel('Variance', fontdict = font)
+        for k in range(len_VA):
+            if k % 2 == 0:
+                plt.plot(VA[k], VA[k+1], label = "Variance", ls = '-')
+        VAxticklabels = Variance.get_xticklabels()
+        if max(stacked) == 1:            
+            plt.setp(VAxticklabels, visible=True)
+        else:
+            plt.setp(VAxticklabels, visible=False)
 #############################################################
 # The following function uses the x and rms to plot the RMS 
 #############################################################
@@ -205,7 +219,7 @@ def main(Show_Data , Plots , image_title , title, Names):
                 plt.plot(RS[j][0], RS[j+1][0][0], label = "RMS of residuals", ls = '-')
         #plt.plot(RS[0], RS[1], label = "RMS of residuals", ls = '-')
         RSxticklabels = Resid.get_xticklabels()
-        if max(stacked) == 1:
+        if max(stacked) == 2:
             plt.setp(RSxticklabels, visible=True)
         else:
             plt.setp(RSxticklabels, visible=False)
@@ -220,7 +234,7 @@ def main(Show_Data , Plots , image_title , title, Names):
             if k % 2 == 0:
                 plt.plot(SB[k], SB[k+1], label = "Spectra per Bin", ls = '-')
         SBxticklabels = SpecBin.get_xticklabels()        
-        if max(stacked) == 2:
+        if max(stacked) == 3:
             plt.setp(SBxticklabels, visible=True)
         else:
             plt.setp(SBxticklabels, visible=False)
@@ -235,7 +249,7 @@ def main(Show_Data , Plots , image_title , title, Names):
             if k % 2 == 0:
                 plt.plot(AG[k], AG[k+1], label = "Age", ls = '-')
         AGxticklabels = Age.get_xticklabels()        
-        if max(stacked) == 3:
+        if max(stacked) == 4:
             plt.setp(AGxticklabels, visible=True)
         else:
             plt.setp(AGxticklabels, visible=False)
@@ -250,7 +264,7 @@ def main(Show_Data , Plots , image_title , title, Names):
             if k % 2 == 0:
                 plt.plot(DE[k], DE[k+1], label = "Delta", ls = '-')
         DLxticklabels = Delta.get_xticklabels()
-        if max(stacked) == 4:            
+        if max(stacked) == 5:            
             plt.setp(DLxticklabels, visible=True)
         else:
             plt.setp(DLxticklabels, visible=False)
@@ -265,24 +279,11 @@ def main(Show_Data , Plots , image_title , title, Names):
             if k % 2 == 0:
                 plt.plot(RE[k], RE[k+1], label = "Redshift", ls = '-')
         Zxticklabels = Redshift.get_xticklabels()        
-        if max(stacked) == 5:            
+        if max(stacked) == 6:            
             plt.setp(Zxticklabels, visible=True)
         else:
             plt.setp(Zxticklabels, visible=False)
-#############################################################
-# The following function plots the variance 
-#############################################################
-    def Variance(VA):
-        Variance = plt.subplot(gs[p], sharex = Rel_flux)
-        plt.ylabel('Variance', fontdict = font)
-        for k in range(len_VA):
-            if k % 2 == 0:
-                plt.plot(VA[k], VA[k+1], label = "Variance", ls = '-')
-        VAxticklabels = Variance.get_xticklabels()
-        if max(stacked) == 6:            
-            plt.setp(VAxticklabels, visible=True)
-        else:
-            plt.setp(VAxticklabels, visible=False)
+
 #############################################################
 # The following function will take all the data sets to build  
 # the composite spectrum and lay each one over the next. 
@@ -333,6 +334,9 @@ def main(Show_Data , Plots , image_title , title, Names):
     for j in range(len_RF):
         if j % 2 != 0:
             RF[j] = Scaling(RF[j])
+    for j in range(len_VA):
+        if j % 2 != 0:
+            VA[j] = Scaling(VA[j])
     #for j in range(len_RS):
         #if j % 2 != 0:
             #RS[j] = Scaling(RS[j])
@@ -348,9 +352,7 @@ def main(Show_Data , Plots , image_title , title, Names):
     for j in range(len_SB):
         if j % 2 != 0:
             RD[j] = Scaling(RD[j])
-    for j in range(len_VA):
-        if j % 2 != 0:
-            VA[j] = Scaling(VA[j])
+
 	    
     """
     # Commented out for the time being because we're only given a single array
@@ -400,24 +402,23 @@ def main(Show_Data , Plots , image_title , title, Names):
         Composite(RF,RS,Names) 
         p = p+1
     if 1 in Plots:
-        Residual(RS) 
-        p = p+1
-    if 2 in Plots:  
-        SpecBin(SB)  
-        p = p+1               
-    if 3 in Plots:
-        Age(AG)
-        p = p+1
-    if 4 in Plots:
-        Delta(DE)
-        p = p+1
-    if 5 in Plots:
-        Redshift(RD)
-        p = p+1
-    if 6 in Plots:
         Variance(VA)
         p = p+1
-        
+    if 2 in Plots:
+        Residual(RS) 
+        p = p+1
+    if 3 in Plots:  
+        SpecBin(SB)  
+        p = p+1               
+    if 4 in Plots:
+        Age(AG)
+        p = p+1
+    if 5 in Plots:
+        Delta(DE)
+        p = p+1
+    if 6 in Plots:
+        Redshift(RD)
+        p = p+1
 
     # Regardless of what is plotted, we label the Xaxis and save the plot image         
     plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
