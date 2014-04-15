@@ -48,9 +48,9 @@ def main(Show_Data , Plots , image_title , title, Names):
 # Set the height of each figure
 #############################################################
     print "Begin plotting..."
-    # Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift, Multiple Spectrum, Stacked Spectrum
-    #                   0              1          2            3    4      5         6,                 7
-    Height =           [8,             2,         3,           2,   2,     2,        0,                 0]
+    # Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift, Variance 
+    #                   0              1          2            3    4      5         6
+    Height =           [8,             2,         3,           2,   2,     2,        3]
 
     
     h = []
@@ -60,7 +60,7 @@ def main(Show_Data , Plots , image_title , title, Names):
 
     stacked = []
 
-    for m in arange(0,6,1):
+    for m in arange(0,7,1):
         if m in Plots:
             stacked.append(m)
         continue
@@ -74,6 +74,7 @@ def main(Show_Data , Plots , image_title , title, Names):
     len_AG = len(Show_Data[:][3])
     len_DE = len(Show_Data[:][4])
     len_RD = len(Show_Data[:][5])
+    len_VA = len(Show_Data[:][6])
 
     # Even values are x. Odd are y  (Slightly confusing for the time being)
     RF = []
@@ -82,13 +83,14 @@ def main(Show_Data , Plots , image_title , title, Names):
     AG = []
     DE = []
     RD = []
+    VA = []
 
     # Fill each array with data that will go in each plot
     for i in range(len_RF):
         rf = Show_Data[:][0][i].T 
-        RF.append(rf) 
-    for i in range(len_RS): #This is causing the residuals to just plot the composites again  ## fixed now!
-        rs = Show_Data[:][1][i] #I tried changing the index but it gave me some weird error
+        RF.append(rf)
+    for i in range(len_RS): 
+        rs = Show_Data[:][1][i].T
         RS.append(rs)    
     for i in range(len_SB):
         sb = Show_Data[:][2][i].T 
@@ -102,7 +104,18 @@ def main(Show_Data , Plots , image_title , title, Names):
     for i in range(len_RD):
         rd = Show_Data[:][5][i].T
         RD.append(rd) 
+    for i in range(len_VA):
+        va = Show_Data[:][6][i].T
+        VA.append(va) 
     
+    """    
+    print "Length of RS :", len_RS
+    print "Length of VA :", len_VA
+    print "Length of x1 :", len(RF[0])
+    print "Length of y1 :", len(RF[1])
+    print "Length of x2 :", len(VA[0])
+    print "Length of y2 :", len(VA[1])
+    """
     """
     len_names = len(Names)
     for n in range(len_names*2):
@@ -134,9 +147,9 @@ def main(Show_Data , Plots , image_title , title, Names):
 #############################################################
     def Scaling(data):
         scaled = []
-	#still getting an error here, which might be causing the 'nan'
-	#both data.max() and data.min() are 0.0, which is a problem.
-	print max(data), min(data)
+        #still getting an error here, which might be causing the 'nan'
+        #both data.max() and data.min() are 0.0, which is a problem.
+        #print max(data), min(data)
         scaled = (data-min(data))/(max(data)-min(data))
         return scaled 
 #############################################################
@@ -177,6 +190,7 @@ def main(Show_Data , Plots , image_title , title, Names):
             plt.setp(RFxticklabels, visible=True)
         else:
             plt.setp(RFxticklabels, visible=False)
+
 #############################################################
 # The following function uses the x and rms to plot the RMS 
 #############################################################
@@ -256,6 +270,20 @@ def main(Show_Data , Plots , image_title , title, Names):
         else:
             plt.setp(Zxticklabels, visible=False)
 #############################################################
+# The following function plots the variance 
+#############################################################
+    def Variance(VA):
+        Variance = plt.subplot(gs[p], sharex = Rel_flux)
+        plt.ylabel('Variance', fontdict = font)
+        for k in range(len_VA):
+            if k % 2 == 0:
+                plt.plot(VA[k], VA[k+1], label = "Variance", ls = '-')
+        VAxticklabels = Variance.get_xticklabels()
+        if max(stacked) == 6:            
+            plt.setp(VAxticklabels, visible=True)
+        else:
+            plt.setp(VAxticklabels, visible=False)
+#############################################################
 # The following function will take all the data sets to build  
 # the composite spectrum and lay each one over the next. 
 # This will appear on a separate figure.
@@ -305,9 +333,9 @@ def main(Show_Data , Plots , image_title , title, Names):
     for j in range(len_RF):
         if j % 2 != 0:
             RF[j] = Scaling(RF[j])
-    for j in range(len_RS):
-        if j % 2 != 0:
-            RS[j] = Scaling(RS[j])
+    #for j in range(len_RS):
+        #if j % 2 != 0:
+            #RS[j] = Scaling(RS[j])
     for j in range(len_SB):
         if j % 2 != 0:
             SB[j] = Scaling(SB[j])
@@ -320,6 +348,9 @@ def main(Show_Data , Plots , image_title , title, Names):
     for j in range(len_SB):
         if j % 2 != 0:
             RD[j] = Scaling(RD[j])
+    for j in range(len_VA):
+        if j % 2 != 0:
+            VA[j] = Scaling(VA[j])
 	    
     """
     # Commented out for the time being because we're only given a single array
@@ -383,6 +414,10 @@ def main(Show_Data , Plots , image_title , title, Names):
     if 5 in Plots:
         Redshift(RD)
         p = p+1
+    if 6 in Plots:
+        Variance(VA)
+        p = p+1
+        
 
     # Regardless of what is plotted, we label the Xaxis and save the plot image         
     plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)

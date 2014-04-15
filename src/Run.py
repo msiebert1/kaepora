@@ -92,18 +92,19 @@ Spectra_Bin     = []
 Age             = [] 
 Delta           = [] 
 Redshift        = []
+Variance        = plot_array
 # Can name_array put an empty "  " space between each associated data name
 # yes
 #Names           = ["Carbon Positive", "","Carbon Negative",""] # the names corresponding to each composite go here
 ## If you want custom names ^^^, uncomment and use line 83, for consistency.
 ##Otherwise it'll default to just labeling composites in order.
 Names           = name_array
-Show_Data       = [Relative_Flux, Residuals, Spectra_Bin, Age , Delta , Redshift]
+Show_Data       = [Relative_Flux,Residuals,Spectra_Bin,Age,Delta,Redshift,Variance]
 
-## Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift
-##                   0              1          2            3    4      5         
-# the plots you want to create
-Plots        = [0,1] 
+## Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift, Variance
+##                   0              1          2            3    4      5         6
+# the plots you want to create 
+Plots        = [0,6,1] 
 
 image_title  = "../plots/" + str(sys.argv[1]) + "_composites.png"
 print "Plot saved as: " + image_title
