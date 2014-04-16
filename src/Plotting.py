@@ -110,6 +110,19 @@ def main(Show_Data , Plots , image_title , title, Names):
 
     
     """    
+    def remove_zero(data):
+        delete = []
+        for i in range(data[0]):
+            if (data[i] == 0):
+                delete.append(i)
+                print delete
+                for j in range(len(delete)):
+                    del data[0][delete[len(delete)-1-j]]
+                    del data[1][delete[len(delete)-1-j]]
+            
+    remove_zero(RS)
+    print RS
+    
     print "Length of RS :", len_RS
     print "Length of VA :", len_VA
     print "Length of x1 :", len(RF[0])

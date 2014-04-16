@@ -77,7 +77,7 @@ for n in range(queries):
     name_array.append("composite{0}".format(n+1))
     name_array.append(" ")
   
-print residual_array # this array has zeros for values on the xaxis (wavelength)?    
+#print residual_array # this array has zeros for values on the xaxis (wavelength)?    
 ##################
 #If you want to use custom names for your composites,
 #fill out and uncomment this next line
@@ -105,10 +105,10 @@ Show_Data       = [Relative_Flux,Variance,Residuals,Spectra_Bin,Age,Delta,Redshi
 ## Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift, Variance
 ##                   0              1          2            3    4      5         6
 # the plots you want to create 
-Plots        = [0,2] 
+Plots        = [0] 
 
 image_title  = "../plots/" + str(sys.argv[1]) + "_composites.png"
 print "Plot saved as: " + image_title
 title        = "Composite Spectra Comparison"	
 # The following line will plot the data
-#Plotting.main(Show_Data , Plots , image_title , title, Names)
+Plotting.main(Show_Data , Plots , image_title , title, Names)
