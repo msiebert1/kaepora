@@ -6,7 +6,11 @@ import math
 from pylab import *
 import matplotlib.gridspec as gridspec
 import scipy.optimize as optimize
+import random # new import so that colors in fill_between are random
 
+# Eventually do scaling by choice
+# naming
+# rms data
 
 ###########################################
 #             HOW TO USE
@@ -18,35 +22,37 @@ import scipy.optimize as optimize
 # 
 #import Plotting
 #
-#Relative_Flux = [wavelengths, avg_flux_p, names of samples]  # Want to plot a composite of multiple spectrum
+#Relative_Flux = [wavelengths_1, composite_1, wavelength_2, composite_2]  # Want to plot a composite of multiple spectrum
 #Residuals     = []
 #Spectra_Bin   = []
 #Age           = []
 #Delta         = []
 #Redshift      = [] 
-#Show_Data     = [Relative_Flux,Residuals]
-#image_title  = "WHOA.png"            # Name the image (with location)
-#title        = "Image is called this" 
+#Show_Data     = [Relative_Flux, Residuals, Spectra_Bin, Age , Delta , Redshift]
+#image_title   = "WHOA.png"            # Name the image (with location)
+#title         = "Title on the figure" 
 #
 ## Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift, Multiple Spectrum, Stacked Spectrum
 ##                   0              1          2            3    4      5         6,                 7
-#Plots = [] # the plots you want to create
+#Plots = [0] # the plots you want to create
 #
 ## The following line will plot the data
 #
-#Plotting.main(Show_Data , Plots, image_title , title)
+#Plotting.main(Show_Data , Plots , image_title , title, Names)
 #
 #
 ###########################################
 
-def main(Show_Data , Plots , image_title , title):
+def main(Show_Data , Plots , image_title , title, Names):
+#############################################################
+# Set the height of each figure
+#############################################################
+    print "Begin plotting..."
+    # Available Plots:  Relative Flux,Variance, Residuals, Spectra/Bin, Age, Delta, Redshift,  
+    #                   0              1          2            3    4      5         6
+    Height =           [8,             3,         2,           3,   2,     2,        2]
 
-    # Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift, Multiple Spectrum, Stacked Spectrum
-    #                   0              1          2            3    4      5         6,                 7
-    Height =           [8,             2,         3,           2,   2,     2,        0,                 0]
-
-    #Plots = [0,1] # Plots to generate # Remove me
-
+    
     h = []
 
     for m in Plots:
@@ -54,28 +60,78 @@ def main(Show_Data , Plots , image_title , title):
 
     stacked = []
 
-    for m in arange(0,6,1):
+    for m in arange(0,7,1):
         if m in Plots:
             stacked.append(m)
         continue
+#############################################################
+# Rename the variable.
+#############################################################
+    # Use the length of each component of Show_Data to rename and fill arrays
+    len_RF = len(Show_Data[:][0])    
+    len_VA = len(Show_Data[:][1])
+    len_RS = len(Show_Data[:][2])
+    len_SB = len(Show_Data[:][3])
+    len_AG = len(Show_Data[:][4])
+    len_DE = len(Show_Data[:][5])
+    len_RD = len(Show_Data[:][6])
 
-# re-name variables
-    if len(Show_Data[:][0]) > 0 :
-	xaxis_1   = Show_Data[:][0][0] 
-	yaxis_1   = Show_Data[:][0][1]
-	names_1   = Show_Data[:][0][2]
-	#err_n_1   = Show_Data[:][0][3] 
+    # Even values are x. Odd are y  (Slightly confusing for the time being)
+    RF = []
+    RS = []
+    SB = []
+    AG = []
+    DE = []
+    RD = []
+    VA = []
 
-    #f = figure()
-    #subplots_adjust(hspace=0.001)
+    # Fill each array with data that will go in each plot
+    for i in range(len_RF):
+        rf = Show_Data[:][0][i].T 
+        RF.append(rf)
+    for i in range(len_VA):
+        va = Show_Data[:][1][i].T
+        VA.append(va) 
+    for i in range(len_RS): 
+        rs = Show_Data[:][2][i].T
+        RS.append(rs)    
+    for i in range(len_SB):
+        sb = Show_Data[:][3][i].T 
+        SB.append(sb)
+    for i in range(len_AG):
+        ag = Show_Data[:][4][i].T
+        AG.append(ag) 
+    for i in range(len_DE):
+        de = Show_Data[:][5][i].T
+        DE.append(de)  
+    for i in range(len_RD):
+        rd = Show_Data[:][6][i].T
+        RD.append(rd) 
 
-# Changing font parameters. 
-    params = {'legend.fontsize': 10, 
+    
+    """    
+    print "Length of RS :", len_RS
+    print "Length of VA :", len_VA
+    print "Length of x1 :", len(RF[0])
+    print "Length of y1 :", len(RF[1])
+    print "Length of x2 :", len(VA[0])
+    print "Length of y2 :", len(VA[1])
+    """
+    """
+    len_names = len(Names)
+    for n in range(len_names*2):
+        Names.append("Spectrum")
+    print Names
+    """
+#############################################################
+# Changing font parameters
+#############################################################
+    params = {'legend.fontsize': 8, 
               'legend.linewidth': 2,
               'legend.font': 'serif',
               'mathtext.default': 'regular', 
-              'xtick.labelsize': 10, 
-              'ytick.labelsize': 10} # changes font size in the plot legend
+              'xtick.labelsize': 8, 
+              'ytick.labelsize': 8} # changes font size in the plot legend
 
     plt.rcParams.update(params)                             # reset the plot parameters
 
@@ -83,329 +139,306 @@ def main(Show_Data , Plots , image_title , title):
             'color'  : 'black',
             'weight' : 'bold',
             'size'   : 10,
-            }
+            } 
 
-#    if 0 or 1 or 2 or 3 or 4 or 5 in Plots:
-
-    """    
-    deg = 5
-    def smoothGauss(list, strippedXs = False, degree = deg):
-        window = degree*2-1
-        weight = np.array([1.0]*window)  
-        weightGauss = []  
-
-        for m in range(window):  
-            m = m-degree+1  
-            frac = m/float(window)  
-            gauss = 1/(np.exp((4*(frac))**2))  
-            weightGauss.append(gauss)  
-        
-        weight = np.array(weightGauss)*weight  
-        smooth = [0.0]*(len(list)-window)  
-
-        for m in range(len(smooth)):  
-            smooth[m] = sum(np.array(list[m:m+window])*weight)/sum(weight)  
-
-        return smooth     
-    """
-
+#############################################################
+# Scaling: Normalize the y values. For reference the error 
+# in scaling (I think) was caused by calculating rows 
+# verses colums. So, I changed the file renaming and added .T
+#############################################################
     def Scaling(data):
         scaled = []
-        for m in range(len(data)):
-            scaled.append((data[m]-min(data[m]))/(max(data[m])-min(data[m])))
+        #still getting an error here, which might be causing the 'nan'
+        #both data.max() and data.min() are 0.0, which is a problem.
+        #print max(data), min(data)
+        scaled = (data-min(data))/(max(data)-min(data))
         return scaled 
-
-    def residual(comp, data):
+#############################################################
+# residual: Takes the data (Y values?) and subracts it from
+# the composite. 
+#############################################################
+    """
+    def residual(comp, data): # WHAT IS DATA IN THIS?
         return comp - data
-    
-    def shift(key, array):
-        a = []
-        a = array
-        return a[-key:]+a[:-key]
-
-#    xtrunc = xaxis_1[deg-1:len(xaxis_1)-deg]
-#    xaxis_1 = []
-#    xaxis_1 = xtrunc    
-
-#    smoothed = []
-#    for m in range(len(yaxis_1)):
-#        smoothed.append(smoothGauss(yaxis_1[m]))
-    
-#    yaxis_1 = []
-#    yaxis_1 = Scaling(smoothed)
-    
-    plt.figure(num = 1, dpi = 100, figsize = [8, np.sum(h)], facecolor = 'w')
-    plt.title(title)
-    gs = gridspec.GridSpec(len(Plots), 1, height_ratios = h, hspace = 0.001)
-    p = 0
-    
-    print np.array(yaxis_1)    
-
-    comp_data = (np.array(yaxis_1)).T
-    #source = (np.array(yaxis_1)).T
-    guess = yaxis_1[0]
-    #comp_data = []
-    sbins = []
-    
     """
-    print source
-
-    if len(source) != 1:
-        for m in range(len(source)):
-            comp, cov = optimize.leastsq(residual, guess[m], args = (source[m]), full_output = False)
-            comp_data.append(comp[0])
-            sbins.append(len(source[m]))
-    else:
-        comp_data = source
-        
-    delta_data = []     # difference from the mean value
-    
-    for m in range(len(yaxis_1)):   # finds difference between composite data and interpolated data sets
-        delta_data.append(comp_data-yaxis_1[m]) 
-        rms_data = np.sqrt(np.mean(np.square(delta_data), axis = 0))    # finds root-mean-square of differences at each wavelength within overlap
-    """
-    
-    if 0 in Plots: # will always plot a composite spectrum if any 1-5 are selected
-        Rel_flux = plt.subplot(gs[p])
-        #plt.title("".join(["$^{26}$Al / $^{27}$Al, t$_{res}$ = ", str(t_width_Al), " kyr", ", U$_{Al}$ = ", str(uptake_Al[0])]), fontdict = font)
-        #plt.xlabel('Age [Myr]', fontdict = font)
+#############################################################
+# The following function take the x,y,rms, and composite data    
+# to plot the composite spectrum
+#############################################################    
+    def Composite(RF,RS,Names):
         plt.ylabel('Relative, f$_{\lambda}$', fontdict = font)
-        plt.axis([3000, 11000, 0, 2])
         plt.minorticks_on()
-        plt.xticks(np.arange(3000, 11001, 1000))
-        plt.yticks(np.arange(0, 2.1, 0.5))
-        #plt.plot(xaxis_1, yaxis_1, label = "generic data", ls = '-')  # The next three lines have been commented out - nk
-        #plt.fill_between(xaxis_1, comp_data+rms_data, comp_data-rms_data, color = 'grey')        
-        plt.plot(xaxis_1, comp_data, label = "Composite")
-        #plt.plot(xaxis_1, comp_data+rms_data, label = "+ RMS")
-        #plt.plot(xaxis_1, comp_data-rms_data, label = "- RMS")
-        plt.legend(prop = {'family' : 'serif'})
-        RFxticklabels = Rel_flux.get_xticklabels()        
+       
+        for k in range(len_RF):
+            if k % 2 == 0:
+                plt.plot(RF[k], RF[k+1], color = random.choice(['g', 'r', 'c', 'm', 'y', 'k']), label = Names[k] )
+                #plt.fill_between(RF[k], RF[k+1] + RS[k+1], RF[k+1] - RS[k+1], facecolor = random.choice(['g', 'r', 'c', 'm', 'y', 'k']),alpha=0.5)                
+                #plt.plot(RF[k], RF[k+1] + RS[1], label = "+ RMS")
+                #plt.plot(RF[k], RF[k+1] - RS[1], label = "- RMS")
+
+        """  
+        for n in range(len_names):
+            legend([Names[n]])
+        """
+        
+        # Remove legend box frame        
+        l = plt.legend(prop = {'family' : 'serif'})
+        l.draw_frame(False)
+        plt.draw()
+          
+        RFxticklabels = Rel_flux.get_xticklabels()  
         if max(stacked) == 0:
             plt.setp(RFxticklabels, visible=True)
         else:
             plt.setp(RFxticklabels, visible=False)
-        p = p+1
-                
-    if 1 in Plots:
+#############################################################
+# The following function plots the variance 
+#############################################################
+    def Variance(VA):
+        Variance = plt.subplot(gs[p], sharex = Rel_flux)
+        plt.ylabel('Variance', fontdict = font)
+        for k in range(len_VA):
+            if k % 2 == 0:
+                plt.plot(VA[k], VA[k+1], label = "Variance", ls = '-')
+        VAxticklabels = Variance.get_xticklabels()
+        if max(stacked) == 1:            
+            plt.setp(VAxticklabels, visible=True)
+        else:
+            plt.setp(VAxticklabels, visible=False)
+#############################################################
+# The following function uses the x and rms to plot the RMS 
+#############################################################
+    def Residual(RS):
         Resid = plt.subplot(gs[p], sharex = Rel_flux)
-        #plt.title("".join(["$^{53}$Mn / $^{55}$Mn, t$_{res}$ = ", str(t_width_Mn), " kyr", ", U$_{Mn}$ = ", str(uptake_Mn[0])]), fontdict = font)
-        #plt.xlabel('Age [Myr]', fontdict = font)
         plt.ylabel('Residuals', fontdict = font)
-        #plt.axis([Start_Mn-0.05, End_Mn+0.05, 0, 10])
-        #plt.minorticks_on()
-        #plt.xticks(np.arange(Start_Mn, End_Mn+0.05, x_tik))
-        #plt.yticks(np.arange(0, 11, 1))
-        plt.plot(xaxis_1, rms_data, label = "RMS of residuals", ls = '-')
-        #plt.legend(prop = {'family' : 'serif'})
+        for j in range(len_RS):
+            if j % 2 == 0:		
+		#There's something wrong with the dimensionality of x and y here
+		#I added the extra [0]s because the arrays were 3 dimensional somehow, so now they're both 1-D
+		#But they're still full of 'nan' so the plot gets messed up. But it runs through.
+                plt.plot(RS[j][0], RS[j+1][0][0], label = "RMS of residuals", ls = '-')
+        #plt.plot(RS[0], RS[1], label = "RMS of residuals", ls = '-')
         RSxticklabels = Resid.get_xticklabels()
-        if max(stacked) == 1:
+        if max(stacked) == 2:
             plt.setp(RSxticklabels, visible=True)
         else:
             plt.setp(RSxticklabels, visible=False)
-        p = p+1
-        
-    if 2 in Plots:
+#############################################################
+# The following function will fill a smaller plot that shows 
+# the Spectra per bin with respect to wavelength.
+#############################################################            
+    def SpecBin(SB):
         SpecBin = plt.subplot(gs[p], sharex = Rel_flux)
-        #plt.title("".join(["$^{60}$Fe / $^{56}$Fe, t$_{res}$ = ", str(t_width_Fe), " kyr", ", U$_{Fe}$ = ", str(uptake_Fe[0])]), fontdict = font)
-        #plt.xlabel('Age [Myr]', fontdict = font)
         plt.ylabel('Spectra/Bin', fontdict = font)
-        #plt.axis([Start_Fe-0.05, End_Fe+0.05, 0, 40])
-        #plt.minorticks_on()
-        #plt.xticks(np.arange(Start_Fe, End_Fe+0.05, x_tik))
-        #plt.yticks(np.arange(0, 41, 5))
-        plt.plot(xaxis_1, 0*xaxis_1+3.0, label = "title goes here", ls = '-')
-        #plt.legend(prop = {'family' : 'serif'})
+        for k in range(len_SB):
+            if k % 2 == 0:
+                plt.plot(SB[k], SB[k+1], label = "Spectra per Bin", ls = '-')
         SBxticklabels = SpecBin.get_xticklabels()        
-        if max(stacked) == 2:
+        if max(stacked) == 3:
             plt.setp(SBxticklabels, visible=True)
         else:
             plt.setp(SBxticklabels, visible=False)
-        p = p+1
-        
-    if 3 in Plots:
+#############################################################
+# The following function will fill a smaller plot that shows  
+# the age(?) with respect to wavelength(?).
+#############################################################              
+    def Age(AG):
         Age = plt.subplot(gs[p], sharex = Rel_flux)
-        #plt.title('Decay corrected $^{26}$Al / $^{27}$Al', fontdict = font)
-        #plt.xlabel('Age [Myr]', fontdict = font)
         plt.ylabel('Age [d]', fontdict = font)
-        #plt.axis([Start_Al-0.05, End_Al+0.05, 0, 30])
-        #plt.minorticks_on()
-        #plt.xticks(np.arange(Start_Al, End_Al+.05, x_tik))
-        #plt.yticks(np.arange(0, 29, 5))
-        plt.plot(xaxis_1, xaxis_1**3.0, label = "title goes here", ls = '-')
-        #plt.legend(prop = {'family' : 'serif'})
+        for k in range(len_AG):
+            if k % 2 == 0:
+                plt.plot(AG[k], AG[k+1], label = "Age", ls = '-')
         AGxticklabels = Age.get_xticklabels()        
-        if max(stacked) == 3:
+        if max(stacked) == 4:
             plt.setp(AGxticklabels, visible=True)
         else:
             plt.setp(AGxticklabels, visible=False)
-        p = p+1
-    
-    if 4 in Plots:
+#############################################################
+# The following function will fill a smaller plot that shows  
+# the delta(?) with respect to wavelength(?).
+#############################################################              
+    def Delta(DE):
         Delta = plt.subplot(gs[p], sharex = Rel_flux)
-        #plt.title('Decay corrected $^{53}$Mn / $^{55}$Mn', fontdict = font)
-        #plt.xlabel('Age [Myr]', fontdict = font)
         plt.ylabel('$\Delta$', fontdict = font)
-        #plt.axis([Start_Mn-0.05, End_Mn+0.05, 0, 13])
-        #plt.minorticks_on()
-        #plt.xticks(np.arange(Start_Mn, End_Mn+0.05, x_tik))
-        #plt.yticks(np.arange(0, 13, 2))
-        plt.plot(xaxis_1, 1/xaxis_1, label = "title goes here", ls = '-')
-        #plt.legend(prop = {'family' : 'serif'})
+        for k in range(len_DE):
+            if k % 2 == 0:
+                plt.plot(DE[k], DE[k+1], label = "Delta", ls = '-')
         DLxticklabels = Delta.get_xticklabels()
-        if max(stacked) == 4:            
+        if max(stacked) == 5:            
             plt.setp(DLxticklabels, visible=True)
         else:
             plt.setp(DLxticklabels, visible=False)
-        p = p+1
-    
-    if 5 in Plots:
+#############################################################
+# The following function will fill a smaller plot that shows  
+# the redshift with respect to wavelength(?).
+#############################################################              
+    def Redshift(RE):
         Redshift = plt.subplot(gs[p], sharex = Rel_flux)
-        #plt.title('Decay corrected $^{60}$Fe / $^{56}$Fe', fontdict = font)
-        #plt.xlabel('Age [Myr]', fontdict = font)
         plt.ylabel('Redshift', fontdict = font)
-        #plt.axis([Start_Fe-0.05, End_Fe+0.05, 0, 70])
-        #plt.minorticks_on()
-        #plt.xticks(np.arange(Start_Fe, End_Fe+0.05, x_tik))
-        #plt.yticks(np.arange(0, 70, 10))
-        plt.plot(xaxis_1, xaxis_1**2.0-xaxis_1, label = "title goes here", ls = '-')
-        #plt.legend(prop = {'family' : 'serif'})
+        for k in range(len_RE):
+            if k % 2 == 0:
+                plt.plot(RE[k], RE[k+1], label = "Redshift", ls = '-')
         Zxticklabels = Redshift.get_xticklabels()        
-        if max(stacked) == 5:            
+        if max(stacked) == 6:            
             plt.setp(Zxticklabels, visible=True)
         else:
             plt.setp(Zxticklabels, visible=False)
-        p = p+1
 
-    plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
-    plt.savefig('composite plot.png', dpi = 100, facecolor='w', edgecolor='w', pad_inches = 0.1)
-
-    if 6 in Plots:
+#############################################################
+# The following function will take all the data sets to build  
+# the composite spectrum and lay each one over the next. 
+# This will appear on a separate figure.
+############################################################# 
+    # Temporary comment until we get data for multiple arrays
+    """
+    def Multi(RF,rms_data):
         plt.figure(num = 2, dpi = 100, figsize = [8, 8], facecolor = 'w')
-        for m in range(len(yaxis_1)):
-            #plt.plot(xaxis_1, yaxis_1[m], label = str(names_1[m]))
-            plt.plot(xtrunc, yaxis_1[m], label = str(names_1[m]))
+        for m in range(len(RF[1])):
+            plt.plot(xtrunc, RF[1][m], label = str(Names[m]))
         plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
         plt.ylabel('Relative, f$_{\lambda}$', fontdict = font)
         plt.minorticks_on()
         plt.legend(prop = {'family' : 'serif'})        
         plt.savefig('multi-spectrum plot.png', dpi = 100, facecolor='w', edgecolor='w', pad_inches = 0.1)
+#############################################################
+# The following function stacks all the data sets used to  
+# build the composite spectrum. This will appear on a 
+# separate figure.
+#############################################################  
+    def Stacked(RF,rms_data): 
+       plt.figure(num = 3, dpi = 100, figsize = [8, 4*len(RF[1])], facecolor = 'w')
+       plt.plot(RF[0], RF[1][0])
+       plt.annotate(str(Names[0]), xy = (max(RF[0]), max(RF[1][0])), xytext = (-10, 0), textcoords = 'offset points', fontsize = 8, family  = 'serif', weight = 'bold', ha = 'right')
+       buffer = (max(RF[1][0])-min(RF[1][0]))/2.0
+       for m in range(len(RF[1])-1):
+            plt.plot(RF[0], RF[1][m+1]+(m+1)*(1+buffer))
+            plt.annotate(str(Names[m+1]), xy = (max(RF[0]), max(RF[1][m+1])+(m+1)*(1+buffer)), xytext = (-10, 0), textcoords = 'offset points', fontsize = 8, family  = 'serif', weight = 'bold', ha = 'right')
+       plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
+       plt.ylabel('Relative, f$_{\lambda}$', fontdict = font)
+       plt.minorticks_on()
+       plt.savefig('stacked plot.png', dpi = 100, facecolor='w', edgecolor='w', pad_inches = 0.1)
+       """
+#############################################################
+########################      End of function section
+########################              :)   
+########################  Proceed to function application
+############################################################# 
+# What does this section do? I was having problems with it
+# so I've temporarily commented it out. 
+#############################################################
 
+#I commented this out because the scaling was causing issues.
+#Now it runs through and the residuals actually plot which is good
+#But...it's not scaled. Is that bad? (4/13) - Sam
+
+    for j in range(len_RF):
+        if j % 2 != 0:
+            RF[j] = Scaling(RF[j])
+    for j in range(len_VA):
+        if j % 2 != 0:
+            VA[j] = Scaling(VA[j])
+    #for j in range(len_RS):
+        #if j % 2 != 0:
+            #RS[j] = Scaling(RS[j])
+    for j in range(len_SB):
+        if j % 2 != 0:
+            SB[j] = Scaling(SB[j])
+    for j in range(len_AG):
+        if j % 2 != 0:
+            AG[j] = Scaling(AG[j])
+    for j in range(len_DE):
+        if j % 2 != 0:
+            DE[j] = Scaling(DE[j])
+    for j in range(len_SB):
+        if j % 2 != 0:
+            RD[j] = Scaling(RD[j])
+
+	    
+    """
+    # Commented out for the time being because we're only given a single array
+    source = (np.array(RF[1])).T
+
+    sbins = []
+    guess = []
+    print source
+    
+    if len(source) !=1:
+        for m in range(len(source)):
+            comp, cov = optimize.leastsq(residual, guess[m], args = (source[m]), full_output = False)
+            comp.append(comp[0])
+            sbins.append(len(source[m]))
+        else:
+            comp_data = RF[1]
+        
+    delta_data = []     # difference from the mean value
+    
+    for m in range(len(RF[1])):   # finds difference between composite data and interpolated data sets
+        delta_data.append(comp-RF[1][m]) 
+        rms_data = np.sqrt(np.mean(np.square(delta_data), axis = 0))    # finds root-mean-square of differences at each wavelength within overlap
+    """
+#############################################################
+# The following section sets up the plotting figure information. 
+# it sets the size, color, title. 
+# gs allows multiple plots to be shown on the same image
+# with their own x axis but in the same figure.
+# Rel_Flux is the name of the shared y axis, that will be 
+# stacked on
+# (not sure if I understand this 100%)
+#############################################################
+    plt.figure(num = 1, dpi = 100, figsize = [8, np.sum(h)], facecolor = 'w')
+    gs = gridspec.GridSpec(len(Plots), 1, height_ratios = h, hspace = 0.001)
+    
+    p = 0
+    Rel_flux = plt.subplot(gs[p])
+    plt.title(title, fontdict = font)
+#############################################################
+# The following series of if statments runs a specific portion 
+# of the ploting functions. The p = p+1 allows the code to  
+# iterate through all the possible plot options      
+# if 0 or 1 or 2 or 3 or 4 or 5 in Plots.
+############################################################# 
+    
+    if 0 in Plots: # will always plot a composite spectrum if any 1-5 are selected   
+        Composite(RF,RS,Names) 
+        p = p+1
+    if 1 in Plots:
+        Variance(VA)
+        p = p+1
+    if 2 in Plots:
+        Residual(RS) 
+        p = p+1
+    if 3 in Plots:  
+        SpecBin(SB)  
+        p = p+1               
+    if 4 in Plots:
+        Age(AG)
+        p = p+1
+    if 5 in Plots:
+        Delta(DE)
+        p = p+1
+    if 6 in Plots:
+        Redshift(RD)
+        p = p+1
+
+    # Regardless of what is plotted, we label the Xaxis and save the plot image         
+    plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
+    plt.savefig(image_title, dpi = 200, facecolor='w', edgecolor='w', pad_inches = 0.1) # CHANGE dpi = 600
+    print "Plotting complete..."    
+    
+#############################################################
+# Other figures to plot, we put these after the first figure
+# is saved. So as to not confuse the code.     
+#############################################################      
+    """
+   if 6 in Plots:
+        Multi(RF[0],RF[1])
+           
     if 7 in Plots:
-        plt.figure(num = 3, dpi = 100, figsize = [8, 4*len(yaxis_1)], facecolor = 'w')
-        #plt.plot(xaxis_1, yaxis_1[0])
-        plt.plot(xaxis_1, yaxis_1[0])
-        plt.annotate(str(names_1[0]), xy = (max(xaxis_1), max(yaxis_1[0])), xytext = (-10, 0), textcoords = 'offset points', fontsize = 8, family  = 'serif', weight = 'bold', ha = 'right')
-        buffer = (max(yaxis_1[0])-min(yaxis_1[0]))/2.0
-        for m in range(len(yaxis_1)-1):
-            plt.plot(xaxis_1, yaxis_1[m+1]+(m+1)*(1+buffer))
-            plt.annotate(str(names_1[m+1]), xy = (max(xaxis_1), max(yaxis_1[m+1])+(m+1)*(1+buffer)), xytext = (-10, 0), textcoords = 'offset points', fontsize = 8, family  = 'serif', weight = 'bold', ha = 'right')
-        plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
-        plt.ylabel('Relative, f$_{\lambda}$', fontdict = font)
-        plt.minorticks_on()
-        plt.savefig('stacked plot.png', dpi = 100, facecolor='w', edgecolor='w', pad_inches = 0.1)
+        Stacked(RF[0],RF[1])
+    """
+#############################################################
+# Show the plots!
+#############################################################                  
 
-# Remove legend box frame 
-    #l = legend()
-    #l.draw_frame(False)
-    #plt.draw()
-
-#Set the visual range. Automatic range is ugly. 
-    #xmin = int(float(xaxis_1[0]))
-    #xmax = int(float(xaxis_2[-1]))
-    #plt.xlim((xmin,xmax))
-
-#Label the figure and show
-    #plt.xlabel( xlabel )
-    plt.savefig(image_title, dpi = 600, facecolor='w', edgecolor='w', orientation='portrait', transparent = False, bbox_inches = None, pad_inches = 0.1, frameon = None)
     plt.show()
-
-
-
-"""
-    #plt.title("".join(["$^{53}$Mn / $^{55}$Mn, t$_{res}$ = ", str(t_width_Mn), " kyr", ", U$_{Mn}$ = ", str(uptake_Mn[0])]), fontdict = font)
-    #plt.xlabel('Age [Myr]', fontdict = font)
-    plt.ylabel('Residuals', fontdict = font)
-    #plt.axis([Start_Mn-0.05, End_Mn+0.05, 0, 10])
-    #plt.minorticks_on()
-    #plt.xticks(np.arange(Start_Mn, End_Mn+0.05, x_tik))
-    #plt.yticks(np.arange(0, 11, 1))
-    plt.plot(xaxis_1, 2.0*xaxis_1, label = "title goes here", ls = '-')
-    #plt.legend(prop = {'family' : 'serif'})
-    p = p+1
-
-if 2 in Plots:
-    SpecBin = plt.subplot(gs[p], sharex = Rel_flux)
-    #plt.title("".join(["$^{60}$Fe / $^{56}$Fe, t$_{res}$ = ", str(t_width_Fe), " kyr", ", U$_{Fe}$ = ", str(uptake_Fe[0])]), fontdict = font)
-    #plt.xlabel('Age [Myr]', fontdict = font)
-    plt.ylabel('Spectra/Bin', fontdict = font)
-    #plt.axis([Start_Fe-0.05, End_Fe+0.05, 0, 40])
-    #plt.minorticks_on()
-    #plt.xticks(np.arange(Start_Fe, End_Fe+0.05, x_tik))
-    #plt.yticks(np.arange(0, 41, 5))
-    plt.plot(xaxis_1, 0*xaxis_1+3.0, label = "title goes here", ls = '-')
-    #plt.legend(prop = {'family' : 'serif'})
-    p = p+1
-
-if 3 in Plots:
-    Age = plt.subplot(gs[p], sharex = Rel_flux)
-    #plt.title('Decay corrected $^{26}$Al / $^{27}$Al', fontdict = font)
-    #plt.xlabel('Age [Myr]', fontdict = font)
-    plt.ylabel('Age [d]', fontdict = font)
-    #plt.axis([Start_Al-0.05, End_Al+0.05, 0, 30])
-    #plt.minorticks_on()
-    #plt.xticks(np.arange(Start_Al, End_Al+.05, x_tik))
-    #plt.yticks(np.arange(0, 29, 5))
-    plt.plot(xaxis_1, xaxis_1**3.0, label = "title goes here", ls = '-')
-    #plt.legend(prop = {'family' : 'serif'})
-    p = p+1
-
-if 4 in Plots:
-    Delta = plt.subplot(gs[p], sharex = Rel_flux)
-    #plt.title('Decay corrected $^{53}$Mn / $^{55}$Mn', fontdict = font)
-    #plt.xlabel('Age [Myr]', fontdict = font)
-    plt.ylabel('$\Delta$', fontdict = font)
-    #plt.axis([Start_Mn-0.05, End_Mn+0.05, 0, 13])
-    #plt.minorticks_on()
-    #plt.xticks(np.arange(Start_Mn, End_Mn+0.05, x_tik))
-    #plt.yticks(np.arange(0, 13, 2))
-    plt.plot(xaxis_1, 1/xaxis_1, label = "title goes here", ls = '-')
-    #plt.legend(prop = {'family' : 'serif'})
-    p = p+1
-
-if 5 in Plots:
-    Redshift = plt.subplot(gs[p], sharex = Rel_flux)
-    #plt.title('Decay corrected $^{60}$Fe / $^{56}$Fe', fontdict = font)
-    #plt.xlabel('Age [Myr]', fontdict = font)
-    plt.ylabel('Redshift', fontdict = font)
-    #plt.axis([Start_Fe-0.05, End_Fe+0.05, 0, 70])
-    #plt.minorticks_on()
-    #plt.xticks(np.arange(Start_Fe, End_Fe+0.05, x_tik))
-    #plt.yticks(np.arange(0, 70, 10))
-    plt.plot(xaxis_1, xaxis_1**2.0-xaxis_1, label = "title goes here", ls = '-')
-    #plt.legend(prop = {'family' : 'serif'})
-    p = p+1
-
-if Plots[len(Plots)-1] != 0:
-    RFxticklabels = Rel_flux.get_xticklabels()
-    plt.setp(RFxticklabels, visible=False)
-if Plots[len(Plots)-1] != 1:
-    RSxticklabels = Resid.get_xticklabels()
-    plt.setp(RSxticklabels, visible=False)
-if Plots[len(Plots)-1] != 2:
-    SBxticklabels = SpecBin.get_xticklabels()
-    plt.setp(SBxticklabels, visible=False)
-if Plots[len(Plots)-1] != 3:
-    AGxticklabels = Age.get_xticklabels()
-    plt.setp(AGxticklabels, visible=False)
-if Plots[len(Plots)-1] != 4:
-    DLxticklabels = Delta.get_xticklabels()
-    plt.setp(DLxticklabels, visible=False)
-
-
-
-plt.show()
-
-
-"""
 

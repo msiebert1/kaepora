@@ -57,8 +57,8 @@ def make_name(SN_Array):
 	avg_mb=np.average(mb)
 	avg_bminusv=np.average(bminusv)
 
-	f_name1='composite,'+str(min_phase)+'.'+str(max_phase)+'.'+str(min_red)+'.'+str(max_red)+'.'+str(min_dm15)+'.'+str(max_dm15)+'.'+str(min_mb)+'.'+str(max_mb)+'.'+str(min_bminusv)+'.'+str(max_bminusv)
-	f_name2='--'+str(avg_phase)+'.'+str(avg_red)+'.'+str(avg_dm15)+'.'+str(avg_mb)+'.'+str(avg_bminusv)+'--'+str(len(SN_Array))+'SNe'
+	f_name1='composite,'+str("%.2f" % min_phase)+'.'+str("%.2f" % max_phase)+'.'+str("%.2f" % min_red)+'.'+str("%.2f" % max_red)+'.'+str("%.2f" % min_dm15)+'.'+str("%.2f" % max_dm15)+'.'+str("%.2f" % min_mb)+'.'+str("%.2f" % max_mb)+'.'+str("%.2f" % min_bminusv)+'.'+str("%.2f" % max_bminusv)
+	f_name2='--'+str("%.2f" % avg_phase)+'.'+str("%.2f" % avg_red)+'.'+str("%.2f" % avg_dm15)+'.'+str("%.2f" % avg_mb)+'.'+str("%.2f" % avg_bminusv)+'--'+str(len(SN_Array))+'SNe'
 	f_name=f_name1+f_name2
 	return f_name
 

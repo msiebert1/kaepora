@@ -72,26 +72,25 @@ NOTE:Currently only has SN_name, B, and V values for purposes of Dereddening due
 #deredshift the spectra
 #deredden to host galaxy
 
-def dered(z,sne,snname,wave,flux):
+def dered(sne,snname,wave,flux):
     for j in range(len(sne)):#go through list of SN parameters
         sn = sne[j][0]
         if sn in snname:#SN with parameter matches the path
             b = sne[j][1].astype(float)
             v = sne[j][2].astype(float)
             bv = b-v
-            r = v/bv
 #            print "B(%s)-V(%s)=%s"%(b,v,bv)
 #            print "R(v) =",r
             #or use fm07 model
             #test1 = spectra_data[i][:,1] * ex.reddening(spectra_data[i][:,0],ebv = bv, model='ccm89')
             #test2 = spectra_data[i][:,1] * ex.reddening(spectra_data[i][:,0],ebv = bv, model='od94')
             flux *= ex.reddening(wave,ebv = bv, r_v = 3.1, model='f99')
-            wave /= (1+z)
+#            wave /= (1+z)
 
             #print "de-reddened by host galaxy\n",flux*ex.reddening(wave,ebv = 0, r_v = r, model='f99')
             #host *= ex.reddening(wave,ebv = bv, r_v = r, model='f99')
 
-    return [wave,flux]
+    return [flux]
 
 
 ##############################################################################################################################################
@@ -171,8 +170,8 @@ def compprep(spectrum,sn_name,z,source):
 
     newdata = []
 
-    new_spectrum = dered(z, sne, sn_name, old_wave, old_flux)
-    new_wave = new_spectrum[0]
+    new_spectrum = dered(sne, sn_name, old_flux)
+    new_wave = wave/(1.+z)
     new_flux = new_spectrum[1]
     new_var  = genivar(new_wave, new_flux) #variance
     #var = new_flux*0+1

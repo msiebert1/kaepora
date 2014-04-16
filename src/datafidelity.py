@@ -119,18 +119,59 @@ def wsmooth(x,window_len=75,window='hanning'):
 
 ############################################################################
 #
+# Function to add sky over a wavelength range
+#
+def addsky(wavelength, flux, error, med_error, sky = 'kecksky.fits'):
+
+    # Open kecksky spectrum from fits file and create arrays
+    sky = pyfits.open('kecksky.fits')
+    
+    crval = sky[0].header['CRVAL1']
+    delta = sky[0].header['CDELT1']
+    skyflux = sky[0].data[0]
+    start = crval - ceil(0.5*len(skyflux)*delta)
+    stop = crval + ceil(0.5*len(skyflux)*delta)
+    skywave = [(start+delta*i) for i in range(len(skyflux))]
+
+    # Find region of overlap between sky flux and the error array
+    good = np.where((wavelength >= skywave[0]) & (wavelength <= skywave[-1]))
+
+    # Interpolate sky flux over this overlap region
+    spline_rep = interpolate.splrep(skywave, skyflux)
+    add_flux = interpolate.splev(wavelength[good], spline_rep)    
+
+    # Scale sky and update flux to add
+    scale = 285*med_error
+    add_flux = scale*add_flux
+
+    # Add sky flux to the error
+    new_error = error
+    new_error[good] = error[good] + add_flux
+
+    return new_error
+
+############################################################################
+#
 # Function to generate variance for files that are missing this data
 #
 ## Function genivar() generates an inverse variance spectrum.
 ## Required inputs are an array of wavelengths (wavelength) and an array of corresponding fluxes (flux)
-## Optional inputs are velocity of smoothing (vexp) [default 0.005] and number of sigma (nsig) [default 5.0]
-## genivar(wavelength, flux, float vexp = 0.005, float nsig = 5.0)
+## Optional inputs are an array of flux error (varflux) [default = 0], velocity of smoothing (vexp) [default 0.005] and number of sigma (nsig) [default 5.0]
+#
+## Supernovae with error arrays should pass these arrays to genivar as the varflux input
+## Those without this array should not pass anything, and simply use the wavelength and flux input
+#
+## genivar(wavelength, flux, varflux = 0, vexp = 0.005, nsig = 5.0)
 #
 
-def genivar(wavelength, flux, vexp = 0.0008, nsig = 3.0):
-    
-    # Create variance from sky spectrum (Will add additional code here)
-    varflux = np.ones(len(wavelength)) # Place holder
+def genivar(wavelength, flux, varflux = 0, vexp = 0.0008, nsig = 3.0):
+
+    # Check to see if it has a variance already
+    try:
+        if varflux == 0:
+            varflux = np.ones(len(wavelength))
+    except ValueError:
+        pass
     
     # Smooth original flux
     new_flux = gsmooth(wavelength, flux, varflux, vexp, nsig)
@@ -140,8 +181,25 @@ def genivar(wavelength, flux, vexp = 0.0008, nsig = 3.0):
     
     # Smooth noise to find the variance
     sm_error = gsmooth(wavelength, error, varflux, vexp, nsig)
-    
-    ivar = 1/(sm_error**2)
+
+    # Test wavelength ranges for kecksky overlap
+    test1 = np.where((wavelength >= 6000) & (wavelength <= 7000))
+    test2 = np.where((wavelength >= 6000) & (wavelength <= 7000))
+    test3 = np.where((wavelength >= 7000) & (wavelength <= 8000))
+    if len(test1[0]) > 40:
+        med_err = 1.8*np.median(sm_error[test1])
+        sm_error_new = addsky(wavelength, flux, sm_error, med_err)
+    elif len(test2[0]) > 40:
+        med_err = 1.8*np.median(sm_error[test2])
+        sm_error_new = addsky(wavelength, flux, sm_error, med_err)
+    elif len(test3[0]) > 40:
+        med_err = 1.8*np.median(sm_error[test3])
+        sm_error_new = addsky(wavelength, flux, sm_error, med_err)
+    else:
+        sm_error_new = sm_error
+        
+    # Inverse variance
+    ivar = 1/(sm_error_new**2)
     
     # Return generated variance
     return ivar
