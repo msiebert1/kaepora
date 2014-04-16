@@ -41,15 +41,6 @@ for n in range(queries):
     else:
         d["composite{0}".format(n+1)] = composite.main(sys.argv[n+2])
 
-#This makes, shows, and saves a quick comparison plot...we can probably get rid of this when plotting.main works.
-lowindex  = np.where(d["composite1"].wavelength == composite.find_nearest(d["composite1"].wavelength, wmin))
-highindex = np.where(d["composite1"].wavelength == composite.find_nearest(d["composite1"].wavelength, wmax))
-#for n in range(queries):
-#    plt.plot(d["composite{0}".format(n+1)].wavelength[lowindex[0]:highindex[0]], d["composite{0}".format(n+1)].flux[lowindex[0]:highindex[0]])
-#plt.savefig('../plots/' + plot_name + '.png')
-#print 'Plot saved as: ' + plot_name
-#plt.show()
-
 #Read whatever you sasved the table as, iterates over however many composites you used.
 #This is how you have to address things if you want to iterate over queries.
 #The n+1 makes the first item composite1, not composite0.
@@ -86,9 +77,6 @@ for n in range(queries):
 ##################
 
 Relative_Flux   = plot_array #plots all given composites
-#Technically, the variances are not the residuals. Plotting them is useful, but it's mislabeled here.
-## Do you want to plot the variance or the residual? The residual is something else that can be plotted. (4/13)
-###We should be able to plot both. I've created two separate arrays, and they both print just fine on this end. (also 4/13)
 Variance        = variance_array # Check it out! Variances plot now.
 Residuals       = residual_array # Check it out! Residuals plot now.
 Spectra_Bin     = [] 
@@ -100,10 +88,11 @@ Redshift        = []
 Names           = name_array
 Show_Data       = [Relative_Flux,Variance,Residuals,Spectra_Bin,Age,Delta,Redshift]
 
-## Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift, Variance
-##                   0              1          2            3    4      5         6
+## Available Plots:  Relative Flux, Variances, Residuals, Spectra/Bin, Age, Delta, Redshift
+##                   0              1          2          3            4    5      6
 # the plots you want to create
-# All of these worked for me. Test with your own queries.
+
+# All of these worked for me. Test with your own queries. (Sam, 4/16)
 Plots        = [0,1,2] 
 
 image_title  = "../plots/" + str(sys.argv[1]) + "_composites.png"
