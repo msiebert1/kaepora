@@ -246,6 +246,9 @@ def average(SN_Array, template, medmean):
 
 
 """
+###This doesn't work. I don't know what it's supposed to do, but it ruins everything.
+###The output from this is not what we want to plot. (Sam 4/16)
+
 # Bootstrap code, bootstrap the spectra selected to make a composite spectrum
 def bootstrap(SN_Array):
     
