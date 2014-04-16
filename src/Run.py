@@ -3,76 +3,115 @@ import Plotting
 from astropy.table import Table
 import matplotlib.pyplot as plt
 import numpy as np
-#import targeted
+import sys
+import time
+#import bootstrap
 """
 Here's the main function that anyone can use to run some analysis.
 
-The first line runs the composite program.
-This grabs the selected data from SNe.db.
-Change the input to composite.main to whatever you want your database query to be.
-This is the code that outputs a text file of data for later use.
-It also shows/saves a basic plot of the composite data and associated errors.
+It iterates through a loop based on how many queries were entered
+Each one gets its data saved and the composite spectrum returned
+Then all of the composites that were created get plotted
 
 The next section sets up the plots to be used, and then plots using Plotting.py
-Right now it doesn't work...but it will
+Right now it doesn't work all the time...but it will
 
 More can be added as our programs evolve
 
-Here are a few parameters you should set beforehand.
+There are a few parameters you should set beforehand.
 plot_name is where the plot showing both composite spectra together will be saved.
 wmin and wmax define the boundary of the plot.
 """
+queries = int(sys.argv[1])
 
+#Now the file name of the plot is labeled by time of creation, but you can personalize it if you want.
+#Or rename it once it's been saved.
+plot_name = str(queries) + '_composite_comparison, ' + (time.strftime("%H,%M,%S"))
+wmin = 3000
+wmax = 10000
 
-
-#This part works just fine
-#composite_full = composite.main("SELECT * FROM Supernovae WHERE Redshift > 0 AND Phase > -100")
-"""
-Here we set the queries that get used to find the spectra for compositing.
-We only want to select spectra that have data for both redshift and phase, so both of them need to be in the query.
-But you can change the values to whatever you want, and add more parameters.
-"""
-composite1 = composite.main("SELECT * FROM Supernovae WHERE Redshift > -100 AND Phase BETWEEN -3 AND 3 AND Velocity < -12")
-composite2 = composite.main("SELECT * FROM Supernovae WHERE Redshift > -100 AND Phase BETWEEN -3 and 3 AND Velocity > -12")
-
-avgphase = (composite1.phase + composite2.phase)/2
-avgred = (composite1.redshift + composite2.redshift)/2
-
-plot_name = '2_composite_comparison, ' + 'avgphase, ' + str(avgphase) + ', avgred, ' + str(avgred)
-wmin = 4000
-wmax = 7000
+d={}
+for n in range(queries):
+    if len(sys.argv) == queries+3:
+        d["composite{0}".format(n+1)] = composite.main(sys.argv[n+2], sys.argv[queries+2])
+    if len(sys.argv) == queries+4:
+        d["composite{0}".format(n+1)] = composite.main(sys.argv[n+2], sys.argv[queries+2], sys.argv[queries+3])
+    if len(sys.argv) == queries+5:
+        d["composite{0}".format(n+1)] = composite.main(sys.argv[n+2], sys.argv[queries+2], sys.argv[queries+3], sys.argv[queries+4])
+    else:
+        d["composite{0}".format(n+1)] = composite.main(sys.argv[n+2])
 
 #This makes, shows, and saves a quick comparison plot...we can probably get rid of this when plotting.main works.
-lowindex = np.where(composite1.wavelength == composite.find_nearest(composite1.wavelength, wmin))
-highindex = np.where(composite1.wavelength == composite.find_nearest(composite1.wavelength, wmax))
-factor = np.mean(composite1.flux[lowindex[0]:highindex[0]]/composite2.flux[lowindex[0]:highindex[0]])
-plt.plot(composite1.wavelength[lowindex[0]:highindex[0]], composite1.flux[lowindex[0]:highindex[0]])
-plt.plot(composite2.wavelength[lowindex[0]:highindex[0]], factor * composite2.flux[lowindex[0]:highindex[0]])
-plt.savefig('../plots/' + plot_name + '.png')
-plt.show()
+lowindex  = np.where(d["composite1"].wavelength == composite.find_nearest(d["composite1"].wavelength, wmin))
+highindex = np.where(d["composite1"].wavelength == composite.find_nearest(d["composite1"].wavelength, wmax))
+#for n in range(queries):
+#    plt.plot(d["composite{0}".format(n+1)].wavelength[lowindex[0]:highindex[0]], d["composite{0}".format(n+1)].flux[lowindex[0]:highindex[0]])
+#plt.savefig('../plots/' + plot_name + '.png')
+#print 'Plot saved as: ' + plot_name
+#plt.show()
 
-#Read whatever you sasved the table as
-Data = Table.read(composite1.savedname, format='ascii')
+#Read whatever you sasved the table as, iterates over however many composites you used.
+#This is how you have to address things if you want to iterate over queries.
+#The n+1 makes the first item composite1, not composite0.
+for n in range(queries):
+    d["data{0}".format(n+1)]         = Table.read(d["composite{0}".format(n+1)].savedname, format='ascii')
+    d["wavelengths{0}".format(n+1)]  = np.array([d["data{0}".format(n+1)]["Wavelength"]])
+    d["fluxes{0}".format(n+1)]       = np.array([d["data{0}".format(n+1)]["Flux"]])
+    d["variances{0}".format(n+1)]    = np.array([d["data{0}".format(n+1)]["Variance"]])
+    
 
-#Checking to see how the table reads..right now it has a header that might be screwing things up.
-print Data
+# From now on, list the data you want to plot as [ Xdata, Ydata, Xdata_2, Ydata_2]
+#This chunk will create an array that's the right length for however many queries you used.
+plot_array     = []
+name_array     = []
+residual_array = []
+variance_array = []
+for n in range(queries):
+    plot_array.append(d["wavelengths{0}".format(n+1)])
+    plot_array.append(d["fluxes{0}".format(n+1)])
+    residual_array.append(d["wavelengths{0}".format(n+1)])
+    residual_list = abs(np.array([d["fluxes{0}".format(n+1)]-d["fluxes1"]]))
+    residual_array.append(residual_list)
+    variance_array.append(d["wavelengths{0}".format(n+1)])
+    variance_array.append(d["variances{0}".format(n+1)])
+    name_array.append("composite{0}".format(n+1))
+    name_array.append(" ")
+    
+##################
+#If you want to use custom names for your composites,
+#fill out and uncomment this next line
+#name_array = ["composite1name", " ", "composite2name", " ", etc]
+##################
 
-#To be honest, I'm not sure entirely how this works.
-#Can someone who worked on this piece of code work with it?
-Relative_Flux = [Data["Wavelength"], Data["Flux"], composite1.name]  # Want to plot a composite of multiple spectrum
-Residuals     = [Data["Wavelength"], Data["Variance"], composite1.name]
-Spectra_Bin   = []
-Age           = []
-Delta         = []
-Redshift      = [] 
-Show_Data     = [Relative_Flux,Residuals]
-image_title  = "../plots/Composite_Spectrum_plotted.png"            # Name the image (with location)
-title        = "Composite Spectrum" 
+Relative_Flux   = plot_array #plots all given composites
+#Technically, the variances are not the residuals. Plotting them is useful, but it's mislabeled here.
+## Do you want to plot the variance or the residual? The residual is something else that can be plotted. (4/13)
+###We should be able to plot both. I've created two separate arrays, and they both print just fine on this end. (also 4/13)
+Residuals       = residual_array # This is giving nan values when it's normalized, I'm not sure why
+Spectra_Bin     = [] 
+Age             = [] 
+Delta           = [] 
+Redshift        = []
+# Can name_array puhttp://cosmo2014.uchicago.edu/t an empty "  " space between each associated data name
+# yes
+#Names           = ["Carbon Positive", "","Carbon Negative",""] # the names corresponding to each composite go here
+## If you want custom names ^^^, uncomment and use line 83, for consistency.
+##Otherwise it'll default to just labeling composites in order.
+Names           = name_array
+Show_Data       = [Relative_Flux, Residuals, Spectra_Bin, Age , Delta , Redshift]
 
-# Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift, Multiple Spectrum, Stacked Spectrum
-#                   0              1          2            3    4      5         6,                 7
-Plots = [0] # the plots you want to create
+## Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift
+##                   0              1          2            3    4      5         
+# the plots you want to create
+Plots        = [0,1] 
 
+image_title  = "../plots/" + str(sys.argv[1]) + "_composites.png"
+print "Plot saved as: " + image_title
+title        = "Composite Spectra Comparison"	
 # The following line will plot the data
+<<<<<<< HEAD
 #It's commented out until it works...
 Plotting.main(Show_Data , Plots, image_title , title)
+=======
+Plotting.main(Show_Data , Plots , image_title , title, Names)
+>>>>>>> 9381a6f916691e8b782228e862e14a86c711f45d
