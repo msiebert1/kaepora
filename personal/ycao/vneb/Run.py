@@ -43,7 +43,7 @@ def loadPara(parafile):
     return names,vnebs,verrs
 
 def vsamples(vmin,vmax):
-    allnames,allvnebs,allverrs = loadPara("../nebular.dat")
+    allnames,allvnebs,allverrs = loadPara("nebular.dat")
     names = []
     vnebs = []
     for vneb,name in zip(allvnebs,allnames):
@@ -113,13 +113,13 @@ plt.xlim(4000,8000)
 plt.ylim(0, 1.0e-15)
 #plt.ylim()
 plt.fill_between(xaxis_1, comp_data1+rms_data1, comp_data1-rms_data1, color = 'cyan')        
-plt.plot(xaxis_1, comp_data1, label = "Composite1",color = 'b')
-plt.plot(xaxis_1, comp_data1+rms_data1, label = "+ RMS1",color = 'g',ls = '-')
-plt.plot(xaxis_1, comp_data1-rms_data1, label = "- RMS1",color = 'g',ls = '-')
+plt.plot(xaxis_1, comp_data1, label = "Composite-Blue",color = 'b')
+plt.plot(xaxis_1, comp_data1+rms_data1, label = "+ RMS-Blue",color = 'g',ls = '-')
+plt.plot(xaxis_1, comp_data1-rms_data1, label = "- RMS-Blue",color = 'g',ls = '-')
 plt.fill_between(xaxis_2, comp_data2+rms_data2, comp_data2-rms_data2, color = 'orange')        
-plt.plot(xaxis_2, comp_data2, label = "Composite2",color = 'r')
-plt.plot(xaxis_2, comp_data2+rms_data2, label = "+ RMS2",color = 'y')
-plt.plot(xaxis_2, comp_data2-rms_data2, label = "- RMS2",color = 'y')
+plt.plot(xaxis_2, comp_data2, label = "Composite-Red",color = 'r')
+plt.plot(xaxis_2, comp_data2+rms_data2, label = "+ RMS-Red",color = 'y')
+plt.plot(xaxis_2, comp_data2-rms_data2, label = "- RMS-Red",color = 'y')
 plt.legend(prop = {'family' : 'serif'})
 RFxticklabels = Rel_flux.get_xticklabels() 
 
@@ -130,14 +130,14 @@ Resid = plt.subplot(gs[1], sharex = Rel_flux)
 plt.xlim(4000,8000)
 plt.ylim(0, 1.1e-34**0.5)
 plt.ylabel('Residuals', fontdict = font)
-plt.plot(xaxis_1, rms_data1, label = "RMS of residuals1", ls = '-')
-plt.plot(xaxis_2, rms_data2, label = "RMS of residuals2", ls = '-')
+plt.plot(xaxis_1, rms_data1, label = "RMS of residuals1", color = 'b',ls = '-')
+plt.plot(xaxis_2, rms_data2, label = "RMS of residuals2", color = 'r',ls = '-')
+plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
+RSxticklabels = Resid.get_xticklabels()
 
 plot_name = 'vnebula'
 # plt.savefig('plots/' + plot_name + '.png')
 plt.savefig(plot_name + '.png')
-RSxticklabels = Resid.get_xticklabels() 
-
 plt.show()
 
 

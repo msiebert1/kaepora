@@ -35,7 +35,9 @@ class Parameters:
 #Connect to database
 #change this address to whereever you locally stored the SNe.db
 #We should all be using the same save location, since there's a .gitignore now
-con = sq3.connect('../SNe.db')
+path = '../../../../../SNe.db'
+print path
+con = sq3.connect(path)
 cur = con.cursor()
 
 #Pulls in all columns from the database for the selected query
@@ -48,20 +50,21 @@ def grab(sql_input, Full_query):
             SN           = supernova()
             SN.filename  = row[0]
             SN.name      = row[1]
-	    SN.source    = row[2]
+            SN.source    = row[2]
             SN.redshift  = row[3]
-	    SN.phase     = row[4]
+            SN.phase     = row[4]
             SN.minwave   = row[5]
             SN.maxwave   = row[6]
-	    SN.dm15      = row[7]
-	    SN.m_b       = row[8]
-	    SN.B_minus_v = row[9]
-	    SN.velocity  = row[10]
-	    SN.morph     = row[11]
-	    SN.carbon    = row[12]
-	    SN.SNR       = row[13]
-	    interp       = msg.unpackb(row[14])
-	    SN.interp    = interp
+            SN.dm15      = row[7]
+            SN.m_b       = row[8]
+            SN.B_minus_v = row[9]
+            SN.velocity  = row[10]
+            SN.morph     = row[11]
+            SN.carbon    = row[12]
+            SN.gasrich   = row[13]
+            SN.SNR       = row[14]
+            interp       = msg.unpackb(row[15])
+            SN.interp    = interp
 	    try:
 		SN.wavelength = SN.interp[0,:]
 		SN.flux       = SN.interp[1,:]
