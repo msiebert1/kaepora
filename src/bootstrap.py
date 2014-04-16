@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import InterpolatedUnivariateSpline
 from scipy.special import erf
 
+"""
 rootdir = '/Users/rickyccy/Documents/Urbana-Champaign/Courses/ASTR596_Spring2014/astr596/personal/RickyChue/personal/MalloryConlon/Galaxy/'
 
 filename = open(rootdir + 'MaxSpectra.dat', 'r').read()
@@ -19,13 +20,13 @@ list = [0] * num    # Files to be input
 
 for i in range(1, new_num):
     list[i - 1] = list_long[i].split()[1]
-
+"""
 spec = [0] * num    # Input the wavelength and flux.
 
 
 for i in range(num):
     #spec[i] = np.loadtxt(list[i], unpack = True, usecols = (0, 1,))
-    spec[i][0] = 
+    spec[i][0] = 1
 
 num_arr = np.arange(0, num, 1)
 

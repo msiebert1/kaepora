@@ -78,7 +78,7 @@ def grab(sql_input, Full_query):
 
     #cut the array down to be more manageable
     #Used mostly in testing, if you want the full array of whatever you're looking at, comment this line out
-    #SN_Array = SN_Array[0:100]
+    #SN_Array = SN_Array[0:10]
     
     #Within the interpolated spectra there are a lot of 'NaN' values
     #Now they become zeros so things work right
@@ -243,20 +243,51 @@ def average(SN_Array, template, medmean):
         template.name = "Composite Spectrum"
         return template
 
+
+
+# Bootstrap code, bootstrap the spectra selected to make a composite spectrum
+def bootstrap(SN_Array):
+    
+    num = len(SN_Array)   # The number of spectra required in the SQL query
+    num_arr = np.arange(0, num, 1)  # Create a numpy array from 0 to number of spectra.
+
+    tries = int(raw_input("Enter number of bootstraps: "))  # Number of bootstraps.
+
+    sel_spec = [0] * tries  # Array for the bootstraped spectra
+
+    for i in range(tries):
+        sel_spec[i] = np.floor(np.random.uniform(0, num, num)).astype(int)
+
+        # Create an array to store up the bootstraped spectra.
+        spec_name = [0] * len(sel_spec[i])
+
+        for m in range(len(sel_spec[i])):
+            spec_name[m] = SN_Array[sel_spec[i][m]]
+
+    return spec_name
+
+
+
+
 def main(Full_query, showplot = 0, medmean = 1, save_file = 'y'):
-    SN_Array = []
+    SN_Array_2 = []
     
     #Accept SQL query as input and then grab what we need
     print "SQL Query:", Full_query
     sql_input = Full_query
 
-    SN_Array = grab(sql_input, Full_query)
+    SN_Array_2 = grab(sql_input, Full_query)
     
+    ### I inserted the function bootstrap in this composite code. (by Ricky, Apr 16, 2014)
+    SN_Array = bootstrap(SN_Array_2)
+    
+    """
 <<<<<<< HEAD
 =======
     #bootstrap.main(SN_Array)
     
 >>>>>>> 9381a6f916691e8b782228e862e14a86c711f45d
+    """
     #finds the longest SN we have for our initial template
     lengths = []
     for SN in SN_Array:
