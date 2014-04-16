@@ -109,7 +109,8 @@ Plots        = [0]
 
 image_title  = "../plots/" + str(sys.argv[1]) + "_composites.png"
 print "Plot saved as: " + image_title
-title        = "Composite Spectra Comparison"	
+title        = "Composite Spectra Comparison"
+Plotting.main(Show_Data, Plots, image_title, title, Names)
 # The following line will plot the data
 #<<<<<<< HEAD
 #It's commented out until it works...

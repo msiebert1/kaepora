@@ -14,6 +14,7 @@ import msgpack as msg
 import msgpack_numpy as mn
 from scipy.optimize import leastsq
 import file_name
+###When bootstrap works right, uncomment this.
 #import bootstrap
 
 np.set_printoptions(threshold=np.nan)
@@ -244,7 +245,7 @@ def average(SN_Array, template, medmean):
         return template
 
 
-
+"""
 # Bootstrap code, bootstrap the spectra selected to make a composite spectrum
 def bootstrap(SN_Array):
     
@@ -266,28 +267,26 @@ def bootstrap(SN_Array):
 
     return spec_name
 
-
+"""
 
 
 def main(Full_query, showplot = 0, medmean = 1, save_file = 'y'):
-    SN_Array_2 = []
+    SN_Array = []
     
     #Accept SQL query as input and then grab what we need
     print "SQL Query:", Full_query
     sql_input = Full_query
 
-    SN_Array_2 = grab(sql_input, Full_query)
+    SN_Array = grab(sql_input, Full_query)
     
     ### I inserted the function bootstrap in this composite code. (by Ricky, Apr 16, 2014)
-    SN_Array = bootstrap(SN_Array_2)
-    
-    """
-<<<<<<< HEAD
-=======
-    #bootstrap.main(SN_Array)
-    
->>>>>>> 9381a6f916691e8b782228e862e14a86c711f45d
-    """
+    ###I took it back out because it ruined the array and plotted some nonsense.
+    ###The function you added above looks nothing like bootstrap.py.
+    ###The plan was to call your piece of code from within this one, not add something that doesn't work.
+    #SN_Array = bootstrap(SN_Array_2) <---- This is bad.
+    ###The call should look like this, and bootstrap.py should have a main() function to call.
+    #SN_Array = bootstrap.main(SN_Array) <----- This is better
+
     #finds the longest SN we have for our initial template
     lengths = []
     for SN in SN_Array:
