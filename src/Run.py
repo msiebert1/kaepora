@@ -76,7 +76,8 @@ for n in range(queries):
     variance_array.append(d["variances{0}".format(n+1)])
     name_array.append("composite{0}".format(n+1))
     name_array.append(" ")
-    
+  
+#print residual_array # this array has zeros for values on the xaxis (wavelength)?    
 ##################
 #If you want to use custom names for your composites,
 #fill out and uncomment this next line
@@ -87,6 +88,7 @@ Relative_Flux   = plot_array #plots all given composites
 #Technically, the variances are not the residuals. Plotting them is useful, but it's mislabeled here.
 ## Do you want to plot the variance or the residual? The residual is something else that can be plotted. (4/13)
 ###We should be able to plot both. I've created two separate arrays, and they both print just fine on this end. (also 4/13)
+Variance        = []
 Residuals       = residual_array # This is giving nan values when it's normalized, I'm not sure why
 Spectra_Bin     = [] 
 Age             = [] 
@@ -98,12 +100,12 @@ Redshift        = []
 ## If you want custom names ^^^, uncomment and use line 83, for consistency.
 ##Otherwise it'll default to just labeling composites in order.
 Names           = name_array
-Show_Data       = [Relative_Flux, Residuals, Spectra_Bin, Age , Delta , Redshift]
+Show_Data       = [Relative_Flux,Variance,Residuals,Spectra_Bin,Age,Delta,Redshift]
 
-## Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift
-##                   0              1          2            3    4      5         
-# the plots you want to create
-Plots        = [0,1] 
+## Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift, Variance
+##                   0              1          2            3    4      5         6
+# the plots you want to create 
+Plots        = [0] 
 
 image_title  = "../plots/" + str(sys.argv[1]) + "_composites.png"
 print "Plot saved as: " + image_title
