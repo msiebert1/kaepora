@@ -229,7 +229,7 @@ def main(Show_Data , Plots , image_title , title, Names):
 		#There's something wrong with the dimensionality of x and y here
 		#I added the extra [0]s because the arrays were 3 dimensional somehow, so now they're both 1-D
 		#But they're still full of 'nan' so the plot gets messed up. But it runs through.
-                plt.plot(RS[j][0], RS[j+1][0][0], label = "RMS of residuals", ls = '-')
+                plt.plot(RS[j], RS[j+1], label = "RMS of residuals", ls = '-')
         #plt.plot(RS[0], RS[1], label = "RMS of residuals", ls = '-')
         RSxticklabels = Resid.get_xticklabels()
         if max(stacked) == 2:
