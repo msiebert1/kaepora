@@ -61,7 +61,7 @@ for n in range(queries):
     plot_array.append(d["wavelengths{0}".format(n+1)])
     plot_array.append(d["fluxes{0}".format(n+1)])
     residual_array.append(d["wavelengths{0}".format(n+1)][0])
-    residual_list = abs(np.array([d["fluxes{0}".format(n+1)]-d["fluxes1"]]))
+    residual_list = np.array([d["fluxes{0}".format(n+1)]-d["fluxes1"]])
     residual_array.append(residual_list[0][0])
     variance_array.append(d["wavelengths{0}".format(n+1)][0])
     variance_array.append(d["variances{0}".format(n+1)][0])
