@@ -49,6 +49,8 @@ for n in range(queries):
     d["wavelengths{0}".format(n+1)]  = np.array([d["data{0}".format(n+1)]["Wavelength"]])
     d["fluxes{0}".format(n+1)]       = np.array([d["data{0}".format(n+1)]["Flux"]])
     d["variances{0}".format(n+1)]    = np.array([d["data{0}".format(n+1)]["Variance"]])
+    d["ages{0}".format(n+1)]         = np.array([d["data{0}".format(n+1)]["Age"]])
+    d["dm15s{0}".format(n+1)]        = np.array([d["data{0}".format(n+1)]["Dm_15s"]])
     
 
 # From now on, list the data you want to plot as [ Xdata, Ydata, Xdata_2, Ydata_2]
@@ -57,6 +59,8 @@ plot_array     = []
 name_array     = []
 residual_array = []
 variance_array = []
+age_array      = []
+dm15_array     = []
 for n in range(queries):
     plot_array.append(d["wavelengths{0}".format(n+1)])
     plot_array.append(d["fluxes{0}".format(n+1)])
@@ -65,6 +69,10 @@ for n in range(queries):
     residual_array.append(residual_list[0][0])
     variance_array.append(d["wavelengths{0}".format(n+1)][0])
     variance_array.append(d["variances{0}".format(n+1)][0])
+    age_array.append(d["wavelengths{0}".format(n+1)][0])
+    age_array.append(d["ages{0}".format(n+1)][0])
+    dm15_array.append(d["wavelengths{0}".format(n+1)][0])
+    dm15_array.append(d["dm15s{0}".format(n+1)][0])
     name_array.append("composite{0}".format(n+1))
     name_array.append(" ")
 
@@ -80,8 +88,8 @@ Relative_Flux   = plot_array #plots all given composites
 Variance        = variance_array # Check it out! Variances plot now.
 Residuals       = residual_array # Check it out! Residuals plot now.
 Spectra_Bin     = [] 
-Age             = [] 
-Delta           = [] 
+Age             = age_array 
+Delta           = dm15_array
 Redshift        = []
 ## If you want custom names, uncomment and use line 83, for consistency.
 ##Otherwise it'll default to just labeling composites in order.
@@ -93,7 +101,7 @@ Show_Data       = [Relative_Flux,Variance,Residuals,Spectra_Bin,Age,Delta,Redshi
 # the plots you want to create
 
 # All of these worked for me. Test with your own queries. (Sam, 4/16)
-Plots        = [0,1,2] 
+Plots        = [0,1,2,4,5] 
 
 image_title  = "../plots/" + str(sys.argv[1]) + "_composites.png"
 print "Plot saved as: " + image_title
