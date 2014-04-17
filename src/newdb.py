@@ -142,15 +142,19 @@ def build_gas_dict():
                 gas_dict[ents[0]] = ents[1]
     return gas_dict
 
-#find data for carbon pos/neg supernova
-with open('../data/info_files/wk4_carbon_pos.txt') as f1:
-    cpos = f1.readlines()
-    cleancpos = [x.strip() for x in cpos]
-    posout = filter(None, cleancpos)
-with open('../data/info_files/wk4_carbon_neg.txt') as f2:
-    cneg = f2.readlines()
-    cleancneg = [x.strip() for x in cneg]
-    negout = filter(None, cleancneg)
+def build_carbon_dict():
+    """
+    Builds a dictionary of the form {sn_name: carbon }
+    """
+    with open('../data/info_files/carbon_presence') as f:
+        txt = f.readlines()
+        clean = [x.strip() for x in txt]
+        carbon_dict = {}
+        for entry in clean:
+            ents = entry.split()
+            if ents:
+                carbon_dict[ents[0]] = ents[1]
+    return carbon_dict
 
 #build necessary dictionaries
 sndict, date_dict = read_cfa_info('../data/spectra/cfa/cfasnIa_param.dat',
@@ -168,7 +172,7 @@ con.execute("""CREATE TABLE IF NOT EXISTS Supernovae (Filename
                     TEXT PRIMARY KEY, SN Text, Source Text, Redshift REAL,
                     Phase REAL, MinWave REAL, MaxWave REAL, Dm15 REAL,
                     M_B REAL, B_mMinusV_m REAL, Velocity REAL,
-                    Morphology INTEGER, Carbon INTEGER, GasRich INTEGER, snr REAL,
+                    Morphology INTEGER, Carbon TEXT, GasRich INTEGER, snr REAL,
                     Interpolated_Spectra BLOB)""")
 
 #change this depending on where script is
@@ -263,10 +267,14 @@ for path, subdirs, files in os.walk(root):
                 bad_files.append(name)
                 interp_spec, sig_noise = None, None
 
-            if sn_name in negout:
-                carbon = 0
-            elif sn_name in posout:
-                carbon = 1
+            if sn_name == 'SNF20080909-030':
+                carbon = carbon_dict['2008s5']
+            elif sn_name == 'SNF20080514-002':
+                carbon = carbon_dict['2008s1']
+            elif sn_name = 'SNF20071021-000':
+                carbon = carbon_dict['2007s1']
+            elif sn_name in carbon_dict:
+                carbon_dict = carbon_dict[sn_name]
             else:
                 carbon = None
 
