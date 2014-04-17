@@ -163,7 +163,7 @@ def addsky(wavelength, flux, error, med_error, sky = 'kecksky.fits'):
 ## genivar(wavelength, flux, float vexp = 0.005, float nsig = 5.0)
 #
 
-def genivar(wavelength, flux, varflux = 0, vexp = 0.0008, nsig = 3.0):
+def genivar(wavelength, flux, varflux = 0, vexp = 0.0008, nsig = 5.0):
 
     # Check to see if it has a variance already
     try:
@@ -210,30 +210,28 @@ def genivar(wavelength, flux, varflux = 0, vexp = 0.0008, nsig = 3.0):
 # Optional inputs are the upper and lower limits for the ratio
 # Syntax is clip(flux_array, upper = 1.7, lower = 0.5)
 
-def clip(wavelength, flux, upper = 1.9, lower = 0.1):
-    import matplotlib.pyplot as plt
-    #Clip any bad data and replace it with the smoothed value.  Fine tune the ratio limits to cut more (ratio closer to one) or less (ratio farther from one) data
+def clip(wave, flux, ivar):
+    # Create an array of all ones
+    var = np.ones(len(flux), float)
     
-    new_flux = np.zeros(len(flux))
-    clipped_points = []
+    # Create 2 smoothed fluxes, of varying vexp
+    sflux = df.gsmooth(wave, flux, var, 0.002)
     
-    smooth_flux = wsmooth(flux)
-    ratio = flux/smooth_flux
-    
-    for i in range(len(ratio)):
-        if ratio[i] > upper:
-            new_flux[i] = smooth_flux[i]
-            clipped_points.append(i)
-        elif ratio[i] < lower:
-            new_flux[i] = smooth_flux[i]
-            clipped_points.append(i)
-        else:
-            new_flux[i] = flux[i]
+    # Take the difference of the two fluxes and smooth
+    err = abs(flux - sflux)  
+    serr = df.gsmooth(wave, err, var, 0.008)
 
-    plt.plot(wavelength,flux)
-    plt.plot(wavelength, new_flux)
-    plt.show()
-    return new_flux, clipped_points
+    # Find the wavelengths that need to be clipped (omitting 5800-6000 region)
+    bad_wave = wave[np.where((err/serr > 4) & ((wave < 5800.0) | (wave > 6000.0)))]
+
+    # Find indices for general clipping
+    bad = np.array([], int)
+    for i in range(len(bad_wave)):
+        bad = np.append(bad, np.where(abs(wave - bad_wave[i]) < 8))
+
+    # Set ivar to 0 for those points and return
+    ivar[bad] = 0
+    return ivar
 
 
 ############################################################################

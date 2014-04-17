@@ -12,29 +12,34 @@ def clip(wave, flux, ivar):
     
     # Take the difference of the two fluxes and smooth
     err = abs(flux - sflux)
-    serr = df.gsmooth(wave, err, var, 0.0008)
+  
+    serr = df.gsmooth(wave, err, var, 0.008)
+
+    plt.plot(wave, sflux, 'r')
 
     # Find the wavelengths that need to be clipped (omitting 5800-6000 region)
-    bad_wave = wave[np.where((err/serr > 3.5) & ((wave < 5800.0) | (wave > 6000.0)))]
+    bad_wave = wave[np.where((err/serr > 4) & ((wave < 5800.0) | (wave > 6000.0)))]
 
-    # Find indices for wavelengths and surrounding wavelengths to clip
-    bad2 = np.array([], int)
+    # Find indices for general clipping
+    bad = np.array([], int)
     for i in range(len(bad_wave)):
-        bad2 = np.append(bad2, np.where(abs(wave-bad_wave[i]) < 8))
+        bad = np.append(bad, np.where(abs(wave - bad_wave[i]) < 8))
 
     # Set ivar to 0 for those points and return
-    ivar[bad2] = 0
+    ivar[bad] = 0
     return ivar
 
-SN = np.genfromtxt('sn1995bd-19960125.23-fast.flm')
+#SN = np.genfromtxt('../../data/spectra/bsnip/sn2004bz-20040613.453-ui.flm')
+SN = np.genfromtxt('sn1996C-19960217.48-fast.flm')
 
 wavelength = SN[:, 0]
 flux = SN[:, 1]
-error = SN[:, 2]
 
-ivar = df.genivar(wavelength, flux, error)
+plt.plot(wavelength, flux)
 
-ivar_new = clip(wavelength, flux, ivar)
+ivar = df.genivar(wavelength, flux)
 
-plt.plot(wavelength, ivar_new)
+ivar_new, flux_new = fullclip(wavelength, flux, ivar)
+
+plt.plot(wavelength, flux_new)
 plt.show()
