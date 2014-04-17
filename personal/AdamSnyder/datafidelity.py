@@ -136,10 +136,12 @@ def addsky(wavelength, flux, error, med_error, sky = 'kecksky.fits'):
     stop = crval + ceil(0.5*len(skyflux)*delta)
     skywave = [(start+delta*i) for i in range(len(skyflux))]
 
-    # Add interpolate / add placeholders
-
+    # Find wavelength overlap
     good = np.where((wavelength >= skywave[0]) & (wavelength <= skywave[-1]))
-    
+
+    if len(good[0]) == 0:
+        return error
+
     spline_rep = interpolate.splrep(skywave, skyflux)
     add_flux = interpolate.splev(wavelength[good], spline_rep)    
 
@@ -182,7 +184,7 @@ def genivar(wavelength, flux, varflux = 0, vexp = 0.0008, nsig = 5.0):
     sm_error = gsmooth(wavelength, error, varflux, vexp, nsig)
 
     # Test wavelength ranges for kecksky overlap
-    test1 = np.where((wavelength >= 6000) & (wavelength <= 7000))
+    test1 = np.where((wavelength >= 5000) & (wavelength <= 6000))
     test2 = np.where((wavelength >= 6000) & (wavelength <= 7000))
     test3 = np.where((wavelength >= 7000) & (wavelength <= 8000))
     if len(test1[0]) > 40:
@@ -215,11 +217,11 @@ def clip(wave, flux, ivar):
     var = np.ones(len(flux), float)
     
     # Create 2 smoothed fluxes, of varying vexp
-    sflux = df.gsmooth(wave, flux, var, 0.002)
+    sflux = gsmooth(wave, flux, var, 0.002)
     
     # Take the difference of the two fluxes and smooth
     err = abs(flux - sflux)  
-    serr = df.gsmooth(wave, err, var, 0.008)
+    serr = gsmooth(wave, err, var, 0.008)
 
     # Find the wavelengths that need to be clipped (omitting 5800-6000 region)
     bad_wave = wave[np.where((err/serr > 4) & ((wave < 5800.0) | (wave > 6000.0)))]
