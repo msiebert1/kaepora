@@ -90,7 +90,7 @@ def dered(sne,snname,wave,flux):
             #print "de-reddened by host galaxy\n",flux*ex.reddening(wave,ebv = 0, r_v = r, model='f99')
             #host *= ex.reddening(wave,ebv = bv, r_v = r, model='f99')
 
-    return [flux]
+    return flux
 
 
 ##############################################################################################################################################
@@ -170,9 +170,9 @@ def compprep(spectrum,sn_name,z,source):
 
     newdata = []
 
-    new_spectrum = dered(sne, sn_name, old_flux)
-    new_wave = wave/(1.+z)
-    new_flux = new_spectrum[1]
+    new_spectrum = dered(sne, sn_name, old_wave, old_flux)
+    new_wave = old_wave/(1.+z)
+    new_flux = new_spectrum
     new_var  = genivar(new_wave, new_flux) #variance
     #var = new_flux*0+1
     newdata = Interpo(new_wave, new_flux, new_var) # Do the interpolation

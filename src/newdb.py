@@ -146,14 +146,15 @@ def build_carbon_dict():
     """
     Builds a dictionary of the form {sn_name: carbon }
     """
-    with open('../data/info_files/carbon_presence') as f:
+    with open('../data/info_files/carbon_presence.txt') as f:
         txt = f.readlines()
         clean = [x.strip() for x in txt]
         carbon_dict = {}
         for entry in clean:
-            ents = entry.split()
-            if ents:
-                carbon_dict[ents[0]] = ents[1]
+            if not entry.startswith('#'):
+                ents = entry.split()
+                if ents:
+                    carbon_dict[ents[0]] = ents[1]
     return carbon_dict
 
 #build necessary dictionaries
@@ -162,7 +163,7 @@ sndict, date_dict = read_cfa_info('../data/spectra/cfa/cfasnIa_param.dat',
 morph_dict = build_morph_dict()
 vel_dict = build_vel_dict()
 gas_dict = build_gas_dict()
-
+carbon_dict = build_carbon_dict()
 ts = time.clock()
 con = sq3.connect('SNe.db')
 
@@ -271,7 +272,7 @@ for path, subdirs, files in os.walk(root):
                 carbon = carbon_dict['2008s5']
             elif sn_name == 'SNF20080514-002':
                 carbon = carbon_dict['2008s1']
-            elif sn_name = 'SNF20071021-000':
+            elif sn_name == 'SNF20071021-000':
                 carbon = carbon_dict['2007s1']
             elif sn_name in carbon_dict:
                 carbon_dict = carbon_dict[sn_name]

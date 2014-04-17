@@ -25,29 +25,29 @@ import pyfits
 ## Syntax: new_y_array = gsmooth(x_array, y_array, var_y, vexp = 0.01, nsig = 5.0)
 
 def gsmooth(x_array, y_array, var_y, vexp = 0.005, nsig = 5.0):
-    
+
     # Check for non-zero variance points, and set to 1E-20
     for i in range(len(var_y)):
         if var_y[i] == 0:
             var_y[i] = 1E-20
-    
+
     # Output y-array
     new_y = np.zeros(len(x_array), float)
-    
+
     # Loop over y-array elements
     for i in range(len(x_array)):
-        
+
         # Construct a Gaussian of sigma = vexp*x_array[i]
         gaussian = np.zeros(len(x_array), float)
         sigma = vexp*x_array[i]
-        
+
         # Restrict range to +/- nsig sigma
         sigrange = np.nonzero(abs(x_array-x_array[i]) <= nsig*sigma)
         gaussian[sigrange] = (1/(sigma*sqrt(2*pi)))*np.exp(-0.5*((x_array[sigrange]-x_array[i])/sigma)**2)
-        
+
         # Multiply Gaussian by 1 / variance
         W_lambda = gaussian / var_y
-        
+
         # Perform a weighted sum to give smoothed y value at x_array[i]
         W0 = np.sum(W_lambda)
         W1 = np.sum(W_lambda*y_array)
@@ -64,60 +64,60 @@ def gsmooth(x_array, y_array, var_y, vexp = 0.005, nsig = 5.0):
 
 def wsmooth(x,window_len=75,window='hanning'):
     """smooth the data using a window with requested size.
-        
+
         This method is based on the convolution of a scaled window with the signal.
         The signal is prepared by introducing reflected copies of the signal
         (with the window size) in both ends so that transient parts are minimized
         in the begining and end part of the output signal.
-        
+
         input:
         x: the input signal
         window_len: the dimension of the smoothing window; should be an odd integer
         window: the type of window from 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'
         flat window will produce a moving average smoothing.
-        
+
         output:
         the smoothed signal
-        
+
         example:
-        
+
         t=linspace(-2,2,0.1)
         x=sin(t)+randn(len(t))*0.1
         y=smooth(x)
-        
+
         see also:
-        
+
         np.hanning, np.hamming, np.bartlett, np.blackman, np.convolve
         scipy.signal.lfilter
-        
+
         TODO: the window parameter could be the window itself if an array instead of a string
         NOTE: length(output) != length(input), to correct this: return y[(window_len/2):-(window_len/2)] instead of just y.
         """
-    
+
     if x.ndim != 1:
         raise ValueError, "smooth only accepts 1 dimension arrays."
-    
+
     if x.size < window_len:
         raise ValueError, "Input vector needs to be bigger than window size."
-    
-    
+
+
     if window_len<3:
         return x
-    
-    
+
+
     if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
         raise ValueError, "Window needs to be 'flat', 'hanning', 'hamming', 'bartlett', or 'blackman'"
-    
-    
+
+
     s=np.r_[x[window_len-1:0:-1],x,x[-1:-window_len:-1]]
     #print(len(s))
     if window == 'flat': #moving average
         w=np.ones(window_len,'d')
     else:
         w=eval('np.'+window+'(window_len)')
-    
+
     y=np.convolve(w/w.sum(),s,mode='valid')
-    
+
     return y[(window_len/2):-(window_len/2)]
 
 ############################################################################
@@ -127,8 +127,8 @@ def wsmooth(x,window_len=75,window='hanning'):
 def addsky(wavelength, flux, error, med_error, sky = 'kecksky.fits'):
 
     # Open kecksky spectrum from fits file and create arrays
-    sky = pyfits.open('kecksky.fits')
-    
+    sky = pyfits.open('kecksky.fits', ignore_missing_end =True)
+
     crval = sky[0].header['CRVAL1']
     delta = sky[0].header['CDELT1']
     skyflux = sky[0].data[0]
@@ -139,9 +139,9 @@ def addsky(wavelength, flux, error, med_error, sky = 'kecksky.fits'):
     # Add interpolate / add placeholders
 
     good = np.where((wavelength >= skywave[0]) & (wavelength <= skywave[-1]))
-    
+
     spline_rep = interpolate.splrep(skywave, skyflux)
-    add_flux = interpolate.splev(wavelength[good], spline_rep)    
+    add_flux = interpolate.splev(wavelength[good], spline_rep)
 
     # Scale sky
     scale = 285*med_error
@@ -171,13 +171,13 @@ def genivar(wavelength, flux, varflux = 0, vexp = 0.0008, nsig = 5.0):
             varflux = np.ones(len(wavelength))
     except ValueError:
         pass
-    
+
     # Smooth original flux
     new_flux = gsmooth(wavelength, flux, varflux, vexp, nsig)
-    
+
     # Generate absolute value of the noise from original flux
     error = abs(flux - new_flux)
-    
+
     # Smooth noise to find the variance
     sm_error = gsmooth(wavelength, error, varflux, vexp, nsig)
 
@@ -196,10 +196,10 @@ def genivar(wavelength, flux, varflux = 0, vexp = 0.0008, nsig = 5.0):
         sm_error_new = addsky(wavelength, flux, sm_error, med_err)
     else:
         sm_error_new = sm_error
-        
+
     # Inverse variance
     ivar = 1/(sm_error_new**2)
-    
+
     # Return generated variance
     return ivar
 
@@ -213,12 +213,12 @@ def genivar(wavelength, flux, varflux = 0, vexp = 0.0008, nsig = 5.0):
 def clip(wave, flux, ivar):
     # Create an array of all ones
     var = np.ones(len(flux), float)
-    
+
     # Create 2 smoothed fluxes, of varying vexp
     sflux = df.gsmooth(wave, flux, var, 0.002)
-    
+
     # Take the difference of the two fluxes and smooth
-    err = abs(flux - sflux)  
+    err = abs(flux - sflux)
     serr = df.gsmooth(wave, err, var, 0.008)
 
     # Find the wavelengths that need to be clipped (omitting 5800-6000 region)
@@ -282,7 +282,7 @@ def telluric_flag(wavelength, flux, limit=0.5):
 def update_ivar(wavelength, flux, ivar):
 
     import matplotlib.pyplot as plt
-    
+
 #Determine the clipped indices
 
     telluric_clip = telluric_flag(wavelength, flux)
