@@ -58,76 +58,12 @@ def gsmooth(x_array, y_array, var_y, vexp = 0.005, nsig = 5.0):
 
 ############################################################################
 #
-## Function wsmooth() smooths data by convolving input data with a window of specified size
-## Optional inputs are window length (window_len) and window type (window)
-## Syntax: new_flux_array = wsmooth(flux_array, window_len=17, window='hanning')
-
-def wsmooth(x,window_len=75,window='hanning'):
-    """smooth the data using a window with requested size.
-        
-        This method is based on the convolution of a scaled window with the signal.
-        The signal is prepared by introducing reflected copies of the signal
-        (with the window size) in both ends so that transient parts are minimized
-        in the begining and end part of the output signal.
-        
-        input:
-        x: the input signal
-        window_len: the dimension of the smoothing window; should be an odd integer
-        window: the type of window from 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'
-        flat window will produce a moving average smoothing.
-        
-        output:
-        the smoothed signal
-        
-        example:
-        
-        t=linspace(-2,2,0.1)
-        x=sin(t)+randn(len(t))*0.1
-        y=smooth(x)
-        
-        see also:
-        
-        np.hanning, np.hamming, np.bartlett, np.blackman, np.convolve
-        scipy.signal.lfilter
-        
-        TODO: the window parameter could be the window itself if an array instead of a string
-        NOTE: length(output) != length(input), to correct this: return y[(window_len/2):-(window_len/2)] instead of just y.
-        """
-    
-    if x.ndim != 1:
-        raise ValueError, "smooth only accepts 1 dimension arrays."
-    
-    if x.size < window_len:
-        raise ValueError, "Input vector needs to be bigger than window size."
-    
-    
-    if window_len<3:
-        return x
-    
-    
-    if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
-        raise ValueError, "Window needs to be 'flat', 'hanning', 'hamming', 'bartlett', or 'blackman'"
-    
-    
-    s=np.r_[x[window_len-1:0:-1],x,x[-1:-window_len:-1]]
-    #print(len(s))
-    if window == 'flat': #moving average
-        w=np.ones(window_len,'d')
-    else:
-        w=eval('np.'+window+'(window_len)')
-    
-    y=np.convolve(w/w.sum(),s,mode='valid')
-    
-    return y[(window_len/2):-(window_len/2)]
-
-############################################################################
-#
 # Function to add sky over a wavelength range
 #
-def addsky(wavelength, flux, error, med_error, sky = 'kecksky.fits'):
+def addsky(wavelength, flux, error, med_error):
 
     # Open kecksky spectrum from fits file and create arrays
-    sky = pyfits.open('kecksky.fits')
+    sky = pyfits.open('../personal/AdamSnyder/kecksky.fits')
     
     crval = sky[0].header['CRVAL1']
     delta = sky[0].header['CDELT1']
@@ -231,75 +167,4 @@ def clip(wave, flux, ivar):
 
     # Set ivar to 0 for those points and return
     ivar[bad] = 0
-    return ivar
-
-
-############################################################################
-#
-# Function telluric_flag() scans data for telluric lines and flags any
-# of the indices that have telluric contamination
-# Required inputs are an array of wavelengths and an array of fluxes
-# Optional input is the limit for flagging. As the limit approaches 1, the
-# amount of clipping increases.
-# Syntax is telluric_flag(wavelength_array,flux_array, limit = 0.9)
-
-def telluric_flag(wavelength, flux, limit=0.5):
-    import matplotlib.pyplot as plt
-    telluric_lines = np.loadtxt('../../../personal/malloryconlon/Data_fidelity/telluric_lines.txt')
-
-    mi = telluric_lines[:,0]
-    ma = telluric_lines[:,1]
-
-    new_flux = wsmooth(flux)
-
-    ratio = flux/new_flux
-    telluric_clip = []
-
-#Look at the flux/smoothed flux ratios for a given telluric absorption range as defined by the min and max arrays. If the ratio is less than the given condition, clip and replace with the smoothed flux value.
-
-    for i in range(len(wavelength)):
-        for j in range(len(mi)):
-            if wavelength[i] > mi[j]:
-                if wavelength[i] < ma[j]:
-                    if ratio[i] < limit:
-                        telluric_clip.append(i)
-
-    plt.plot(wavelength,flux)
-    plt.plot(wavelength[telluric_clip],flux[telluric_clip],'rD')
-    plt.show()
-
-#Return the indices of telluric absorption
-    return telluric_clip
-
-############################################################################
-#
-# Function update_variance() uses the returns from the telluric_flag and clip
-# functions to update the inverse variance spectrum
-# Required inputs are an array of wavelengths, an array of fluxes, and the
-# inverse variance array
-# Syntax is update_variance(wavelength_array,flux_array, variance_array)
-
-def update_ivar(wavelength, flux, ivar):
-
-    import matplotlib.pyplot as plt
-    
-#Determine the clipped indices
-
-    telluric_clip = telluric_flag(wavelength, flux)
-
-
-    for i in range(len(clipped_points)):
-            index = clipped_points[i]
-            ivar[index] = 0
-
-
-    for j in range(len(telluric_clip)):
-        index = telluric_clip[j]
-        ivar[index] = 0
-
-    plt.plot(wavelength,flux)
-    plt.plot(wavelength, ivar)
-    plt.show()
-
-    #Return the updated inverse variance spectrum
     return ivar
