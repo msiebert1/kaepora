@@ -6,6 +6,7 @@ import msgpack as msg
 import msgpack_numpy as mn
 import prep
 import os
+import re
 import math
 import time
 
@@ -155,7 +156,8 @@ def build_carbon_dict():
             if not entry.startswith('#'):
                 ents = entry.split()
                 if ents:
-                    carbon_dict[ents[0]] = ents[1]
+                    carbon_dict[ents[0].lower()] = ents[1]
+    print carbon_dict
     return carbon_dict
 
 #build necessary dictionaries
@@ -177,15 +179,52 @@ con.execute("""CREATE TABLE IF NOT EXISTS Supernovae (Filename
                     Morphology INTEGER, Carbon TEXT, GasRich INTEGER, snr REAL,
                     Interpolated_Spectra BLOB)""")
 
+#read all bsnip to find corrected
+corr_list = []
+allspec = []
+for paths, subdirs, files in os.walk('../data/spectra/bsnip'):
+    for name in files:
+        if name.endswith('.flm'):
+            allspec.append(name)
+            if 'corrected' in name:
+                corr_list.append(name)
+clean1 = [re.sub('\-corrected.flm', '', x) for x in corr_list]
+clean2 = [re.sub('\.flm', '', x) for x in allspec]
+#find files that have both corrected and raw
+res = set(clean1).intersection(set(clean2))
+#have_both contains files to ignore
+have_both = []
+for s in res:
+    s += '.flm'
+    have_both.append(s)
+
 #change this depending on where script is
 root = '../data/spectra'
 bad_files = []
 bad_interp = []
 shiftless = []
 bsnip_vals = read_bsnip_data('obj_info_table.txt')
+
+#ignore bad files
+spectra_ignore = ['sn1994T-19940612.25-mmt.flm',
+                                'sn2000dn-20001006.25-fast.flm',
+                                'sn2006bt-20060502.33-fast.flm',
+                                'sn2006bt-20060503.33-fast.flm',
+                                'SN06mr_061113_g01_BAA_IM.dat',
+                                'SN07af_070310_g01_BAA_IM.dat',
+                                'SN07ai_070310_g01_BAA_IM.dat',
+                                'SN07ai_070312_g01_BAA_IM.dat',
+                                'SN07al_070313_g01_BAA_IM.dat']
+
 print "Adding information to table"
 for path, subdirs, files in os.walk(root):
     for name in files:
+
+        if name in spectra_ignore or name in have_both:
+            continue
+
+        #ignore bsnip raw when corrected exists
+
         f = os.path.join(path, name)
         if f.endswith('.flm') or f.endswith('.dat'):
             if 'cfasnIa' in f:
@@ -268,21 +307,26 @@ for path, subdirs, files in os.walk(root):
             try:
                 interp_spec, sig_noise = prep.compprep(spectra, sn_name, redshift, source)
             except:
-                raise #this line raises the error, so far we know that the error is based off of receiving bad redshifts
+                raise
                 print "Interp failed"
                 bad_interp.append(name)
                 bad_files.append(name)
                 interp_spec, sig_noise = None, None
 
-            if sn_name == 'SNF20080909-030':
-                carbon = carbon_dict['2008s5']
-            elif sn_name == 'SNF20080514-002':
-                carbon = carbon_dict['2008s1']
-            elif sn_name == 'SNF20071021-000':
-                carbon = carbon_dict['2007s1']
-            elif sn_name in carbon_dict:
-                carbon_dict = carbon_dict[sn_name]
-            else:
+            print sn_name
+            try:
+                if sn_name == 'SNF20080909-030':
+                    carbon = carbon_dict['2008s5']
+                elif sn_name == 'SNF20080514-002':
+                    carbon = carbon_dict['2008s1']
+                elif sn_name == 'SNF20071021-000':
+                    carbon = carbon_dict['2007s1']
+                elif sn_name in carbon_dict:
+                    carbon_dict = carbon_dict[sn_name]
+                else:
+                    carbon = None
+            except:
+                print sn_name, 'cause a bad carbon lookup with file', name
                 carbon = None
 
             if sn_name in morph_dict:
