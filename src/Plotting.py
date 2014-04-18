@@ -53,7 +53,7 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
     Height =           [6,             2,         2,           2,   2,     2,        2]
     
     h = []
-
+    
     for m in Plots:
         h.append(Height[m])
 
@@ -158,20 +158,21 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
 # in scaling (I think) was caused by calculating rows 
 # verses colums. So, I changed the file renaming and added .T
 #############################################################
-    def Scaling(data):
+    def Scaling(data, medvalue):
         scaled = []
         #still getting an error here, which might be causing the 'nan'
         #both data.max() and data.min() are 0.0, which is a problem.
         #print max(data), min(data)
         #scaled = (data-min(data))/(max(data)-min(data))
-        scaled = (data)/(max(data)-min(data))
+        #scaled = (data)/(max(data))
+        scaled = (data)/(medvalue)
         return scaled
 #############################################################
 # residual: Takes the data (Y values?) and subracts it from
 # the composite. 
 #############################################################
     """
-    def residual(comp, data): # WHAT IS DATA IN THIS?
+    def residual(comp, data):
         return comp - data
     """
 #############################################################
@@ -180,9 +181,9 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
 #############################################################    
     def Composite(RF,RS,Names):
         plt.ylabel('Relative, f$_{\lambda}$', fontdict = font)
-        plt.axis([3000, 10100, 0, 1])
+        plt.axis([xmin, xmax, 0, max(RFmax)])
         plt.minorticks_on()
-        plt.yticks(np.arange(0, 1.1, 0.2))
+        #plt.yticks(np.arange(0, 1.1, 0.2))
        
         for k in range(len_RF):
             if k % 2 == 0:
@@ -213,7 +214,7 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
     def Variance(VA):
         Variance = plt.subplot(gs[p], sharex = Rel_flux)
         plt.ylabel('Variance', fontdict = font)
-        plt.yticks(np.arange(0, 0.9, 0.2))
+        #plt.yticks(np.arange(0, 0.9, 0.2))
 
         for k in range(len_VA):
             if k % 2 == 0:
@@ -229,14 +230,14 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
     def Residual(RS):
         Resid = plt.subplot(gs[p], sharex = Rel_flux)
         plt.ylabel('Residuals', fontdict = font)
-        plt.yticks(np.arange(0, 0.9, 0.2))
+        #plt.yticks(np.arange(0, 0.9, 0.2))
         
         for j in range(len_RS):
             if j % 2 == 0:		
 		#There's something wrong with the dimensionality of x and y here
 		#I added the extra [0]s because the arrays were 3 dimensional somehow, so now they're both 1-D
 		#But they're still full of 'nan' so the plot gets messed up. But it runs through.
-                plt.plot(RS[j], RS[j+1], label = "RMS of residuals", ls = '-')
+                plt.plot(RF[j], RF[j+1]-RF[1], label = "RMS of residuals", ls = '-')
         #plt.plot(RS[0], RS[1], label = "RMS of residuals", ls = '-')
         RSxticklabels = Resid.get_xticklabels()
         if max(stacked) == 2:
@@ -250,7 +251,7 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
     def SpecBin(SB):
         SpecBin = plt.subplot(gs[p], sharex = Rel_flux)
         plt.ylabel('Spectra/Bin', fontdict = font)
-        plt.yticks(np.arange(0, 0.9, 0.2))
+        #plt.yticks(np.arange(0, 0.9, 0.2))
         
         for k in range(len_SB):
             if k % 2 == 0:
@@ -267,7 +268,7 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
     def Age(AG):
         Age = plt.subplot(gs[p], sharex = Rel_flux)
         plt.ylabel('Age [d]', fontdict = font)
-        plt.yticks(np.arange(0, 0.9, 0.2))
+        #plt.yticks(np.arange(0, 0.9, 0.2))
         
         for k in range(len_AG):
             if k % 2 == 0:
@@ -284,7 +285,7 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
     def Delta(DE):
         Delta = plt.subplot(gs[p], sharex = Rel_flux)
         plt.ylabel('$\Delta$', fontdict = font)
-        plt.yticks(np.arange(0, 0.9, 0.2))
+        #plt.yticks(np.arange(0, 0.9, 0.2))
         
         for k in range(len_DE):
             if k % 2 == 0:
@@ -301,7 +302,7 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
     def Redshift(RE):
         Redshift = plt.subplot(gs[p], sharex = Rel_flux)
         plt.ylabel('Redshift', fontdict = font)
-        plt.yticks(np.arange(0, 0.9, 0.2))
+        #plt.yticks(np.arange(0, 0.9, 0.2))
         
         for k in range(len_RE):
             if k % 2 == 0:
@@ -354,14 +355,25 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
 # What does this section do? I was having problems with it
 # so I've temporarily commented it out. 
 #############################################################
-
-#I commented this out because the scaling was causing issues.
-#Now it runs through and the residuals actually plot which is good
-#But...it's not scaled. Is that bad? (4/13) - Sam
-    ""
+    
+    for j in range(len_RF):
+        if j % 2 != 0:
+            print median(RF[j])
+            print median(RF[j-1])
+            RFtrunc = []
+            for i in range(len(RF[j-1])):
+                if (RF[j-1][i] >= 4500) & (RF[j-1][i] <= 7000):
+                    #print RF[j-1][i]
+                    #print RF[j][i]
+                    RFtrunc.append(RF[j][i])
+            RF[j] = Scaling(RF[j], median(RFtrunc))
+    
+    """
     for j in range(len_RF):
         if j % 2 != 0:
             RF[j] = Scaling(RF[j])
+    """
+    """
     for j in range(len_VA):
         if j % 2 != 0:
             VA[j] = Scaling(VA[j])
@@ -380,7 +392,43 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
     for j in range(len_SB):
         if j % 2 != 0:
             RD[j] = Scaling(RD[j])
-    ""
+    """
+    
+    RFmax = []
+    
+    """
+    VAmax = []
+    RSmax = []
+    SBmax = []
+    AGmax = []
+    DEmax = []
+    RDmax = []
+    """
+    
+    for j in range(len_RF):
+        if j % 2 != 0:
+            RFmax.append(max(RF[j])[0])
+    
+    """
+    for j in range(len_VA):
+        if j % 2 != 0:
+            VAmax.append(max(VA[j])[0])
+    for j in range(len_RS):
+        if j % 2 != 0:
+            RSmax.append(max(RS[j])[0])
+    for j in range(len_SB):
+        if j % 2 != 0:
+            SBmax.append(max(SB[j])[0])
+    for j in range(len_AG):
+        if j % 2 != 0:
+            AGmax.append(max(AG[j])[0])
+    for j in range(len_DE):
+        if j % 2 != 0:
+            DEmax.append(max(DE[j])[0])
+    for j in range(len_SB):
+        if j % 2 != 0:
+            RDmax.append(max(RD[j])[0])
+    """
 	    
     """
     # Commented out for the time being because we're only given a single array
@@ -415,7 +463,7 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
 #############################################################
     plt.figure(num = 1, dpi = 100, figsize = [6, np.sum(h)], facecolor = 'w')
     gs = gridspec.GridSpec(len(Plots), 1, height_ratios = h, hspace = 0.001)
-    
+
     p = 0
     Rel_flux = plt.subplot(gs[p])
     plt.title(title, fontdict = font)
@@ -449,10 +497,10 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
         Redshift(RD)
         p = p+1
 
-    # Regardless of what is plotted, we label the Xaxis and save the plot image         
+    # Regardless of what is plotted, we label the Xaxis and save the plot image
+    plt.xlim(xmin, xmax)       
     plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
-    plt.axis([xmin,xmax,0,1])
-    #plt.axis([3000, 10100, 0, 1])    
+    #plt.axis([xmin, xmax, 0, max(RFmax)])    
     plt.savefig(image_title, dpi = 600, facecolor='w', edgecolor='w', pad_inches = 0.1) # CHANGE dpi = 600
     print "Plotting complete..."    
     
