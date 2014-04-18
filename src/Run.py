@@ -101,9 +101,12 @@ Show_Data       = [Relative_Flux,Variance,Residuals,Spectra_Bin,Age,Delta,Redshi
 # the plots you want to create
 
 # All of these worked for me. Test with your own queries. (Sam, 4/16)
+# Choose the plot range and plot type!
+xmin         = 3000 
+xmax         = 10100
 Plots        = [0,1,2,4,5] 
 
 image_title  = "../plots/" + str(sys.argv[1]) + "_composites.png"
 print "Plot saved as: " + image_title
 title        = "Composite Spectra Comparison"
-Plotting.main(Show_Data, Plots, image_title, title, Names)
+Plotting.main(Show_Data, Plots, image_title, title, Names, xmin,xmax)

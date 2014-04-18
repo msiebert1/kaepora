@@ -43,7 +43,7 @@ import random # new import so that colors in fill_between are random
 #
 ###########################################
 
-def main(Show_Data , Plots , image_title , title, Names):
+def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
 #############################################################
 # Set the height of each figure
 #############################################################
@@ -451,7 +451,8 @@ def main(Show_Data , Plots , image_title , title, Names):
 
     # Regardless of what is plotted, we label the Xaxis and save the plot image         
     plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
-    plt.axis([3000, 10100, 0, 1])    
+    plt.axis([xmin,xmax,0,1])
+    #plt.axis([3000, 10100, 0, 1])    
     plt.savefig(image_title, dpi = 600, facecolor='w', edgecolor='w', pad_inches = 0.1) # CHANGE dpi = 600
     print "Plotting complete..."    
     
