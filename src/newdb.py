@@ -157,7 +157,6 @@ def build_carbon_dict():
                 ents = entry.split()
                 if ents:
                     carbon_dict[ents[0].lower()] = ents[1]
-    print carbon_dict
     return carbon_dict
 
 #build necessary dictionaries
@@ -313,7 +312,10 @@ for path, subdirs, files in os.walk(root):
                 bad_files.append(name)
                 interp_spec, sig_noise = None, None
 
-            print sn_name
+            try:
+                print carbon_dict[sn_name]
+            except:
+                pass
             try:
                 if sn_name == 'SNF20080909-030':
                     carbon = carbon_dict['2008s5']
