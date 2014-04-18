@@ -136,7 +136,9 @@ def genivar(wavelength, flux, varflux = 0, vexp = 0.0008, nsig = 5.0):
         if varflux == 0:
             varflux = np.ones(len(wavelength))
     except ValueError:
-        pass
+        ivar = 1 / (varflux**2)
+        ivar_new = clip(wavelength, flux, ivar)
+        return ivar_new
     
     # Smooth original flux
     new_flux = gsmooth(wavelength, flux, varflux, vexp, nsig)
