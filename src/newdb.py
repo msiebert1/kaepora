@@ -6,6 +6,7 @@ import msgpack as msg
 import msgpack_numpy as mn
 import prep
 import os
+import math
 import time
 
 mn.patch()
@@ -180,6 +181,7 @@ con.execute("""CREATE TABLE IF NOT EXISTS Supernovae (Filename
 root = '../data/spectra'
 bad_files = []
 bad_interp = []
+shiftless = []
 bsnip_vals = read_bsnip_data('obj_info_table.txt')
 print "Adding information to table"
 for path, subdirs, files in os.walk(root):
@@ -210,7 +212,7 @@ for path, subdirs, files in os.walk(root):
             #csp source
             if 'csp' in f:
                 source = 'csp'
-                redshift = info[2]
+                redshift = float(info[2])
                 phase = float(info[4]) - float(info[3])
                 Dm15 = None
                 m_b = None
@@ -219,7 +221,7 @@ for path, subdirs, files in os.walk(root):
             #cfa spectra
             elif 'cfa' in f:
                 source = 'cfa'
-                redshift = sn_cfa[0]
+                redshift = float(sn_cfa[0])
                 if  sn_cfa[1] == '99999.9':
                     phase = None
                 else:
@@ -248,6 +250,10 @@ for path, subdirs, files in os.walk(root):
                 c = 299792.458
                 source = 'bsnip'
                 data = bsnip_vals[sn_name.lower()]
+                if math.isnan(data[0]):
+                    #skippy shitty redshiftless spectra
+                    shiftless.append(name)
+                    continue
                 redshift = data[0]/c
                 phase = None
                 Dm15 = None
@@ -262,7 +268,7 @@ for path, subdirs, files in os.walk(root):
             try:
                 interp_spec, sig_noise = prep.compprep(spectra, sn_name, redshift, source)
             except:
-                raise
+                raise #this line raises the error, so far we know that the error is based off of receiving bad redshifts
                 print "Interp failed"
                 bad_interp.append(name)
                 bad_files.append(name)
@@ -308,4 +314,5 @@ con.commit()
 te = time.clock()
 print 'bad files', bad_files, len(bad_files)
 print 'bad interps', bad_interp, len(bad_interp)
+print 'no available redshift', shiftless
 print te - ts
