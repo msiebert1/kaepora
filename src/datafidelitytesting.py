@@ -12,7 +12,5 @@ flux = SN[:, 1]
 
 ivar = df.genivar(wavelength, flux)
 
-ivar_new = df.clip(wavelength, flux, ivar)
-
-plt.plot(wavelength, flux)
+plt.plot(wavelength, ivar)
 plt.show()
