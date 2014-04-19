@@ -216,6 +216,7 @@ spectra_ignore = ['sn1994T-19940612.25-mmt.flm',
                                 'SN07al_070313_g01_BAA_IM.dat']
 
 print "Adding information to table"
+count = 1
 for path, subdirs, files in os.walk(root):
     for name in files:
 
@@ -238,6 +239,9 @@ for path, subdirs, files in os.walk(root):
             except:
                 bad_files.append(f)
                 continue
+            print  count, sn_name
+
+            count += 1
 
             #finds cfa data for particular sn if applicable
             if 'cfa' in f:
@@ -312,23 +316,15 @@ for path, subdirs, files in os.walk(root):
                 bad_files.append(name)
                 interp_spec, sig_noise = None, None
 
-            try:
-                print carbon_dict[sn_name]
-            except:
-                pass
-            try:
-                if sn_name == 'SNF20080909-030':
-                    carbon = carbon_dict['2008s5']
-                elif sn_name == 'SNF20080514-002':
-                    carbon = carbon_dict['2008s1']
-                elif sn_name == 'SNF20071021-000':
-                    carbon = carbon_dict['2007s1']
-                elif sn_name in carbon_dict:
-                    carbon_dict = carbon_dict[sn_name]
-                else:
-                    carbon = None
-            except:
-                print sn_name, 'cause a bad carbon lookup with file', name
+            if sn_name in carbon_dict:
+                carbon = carbon_dict[sn_name]
+            elif sn_name == 'SNF20080909-030':
+                carbon = carbon_dict['2008s5']
+            elif sn_name == 'SNF20080514-002':
+                carbon = carbon_dict['2008s1']
+            elif sn_name == 'SNF20071021-000':
+                carbon = carbon_dict['2007s1']
+            else:
                 carbon = None
 
             if sn_name in morph_dict:
