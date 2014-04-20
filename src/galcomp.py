@@ -77,23 +77,23 @@ def run():
 	if 1 in params:
 		range=input('Select redshift range: [xmin,xmax]')
 		query += 'redshift BETWEEN ' + str(range[0]) + ' AND ' + str(range[1]) + ' AND '
-		name+=',redshift:['+str(range[0])+','+str(range[1])+']'		
+		name+=',redshift['+str(range[0])+','+str(range[1])+']'		
 	if 2 in params:
 		range=input('Select phase range: [xmin,xmax]')
 		query += 'Phase BETWEEN ' + str(range[0]) + ' AND ' + str(range[1]) + ' AND '
-		name+=',phase:['+str(range[0])+','+str(range[1])+']'
+		name+=',phase['+str(range[0])+','+str(range[1])+']'
 	if 3 in params:
 		range=input('Select Dm15 range: [xmin,xmax]')
 		query += 'Dm15 BETWEEN ' + str(range[0]) + ' AND ' + str(range[1]) + ' AND '
-		name+=',dm15:['+str(range[0])+','+str(range[1])+']'
+		name+=',dm15['+str(range[0])+','+str(range[1])+']'
 	if 4 in params:
 		range=input('Select M_B range: [xmin,xmax]')
 		query += 'M_B BETWEEN ' + str(range[0]) + ' AND ' + str(range[1]) + ' AND '
-		name+=',M_B:['+str(range[0])+','+str(range[1])+']'
+		name+=',M_B['+str(range[0])+','+str(range[1])+']'
 	if 5 in params:
 		range=input('Select B_mMinusV_m range: [xmin,xmax]')
 		query += 'B_mMinusV_m BETWEEN ' + str(range[0]) + ' AND ' + str(range[1]) + ' AND '
-		name+=',B_m-V_m:['+str(range[0])+','+str(range[1])+']'
+		name+=',B_m-V_m['+str(range[0])+','+str(range[1])+']'
 
 	query += 'Morphology='
 
