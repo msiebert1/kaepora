@@ -40,8 +40,6 @@ def main(queries,plot_name,labels,xmin,xmax):
 			d["composite{0}".format(n+1)] = composite.main(queries[n+2], queries[num+2], queries[num+3], queries[num+4])
 		else:
 			d["composite{0}".format(n+1)] = composite.main(queries[n+2])
-			
-	print d["composite{0}".format(2)].redshift
 
 	#Read whatever you sasved the table as, iterates over however many composites you used.
 	#This is how you have to address things if you want to iterate over queries.
