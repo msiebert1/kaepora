@@ -77,65 +77,38 @@ def run():
 	if 1 in params:
 		range=input('Select redshift range: [xmin,xmax]')
 		query += 'redshift BETWEEN ' + str(range[0]) + ' AND ' + str(range[1]) + ' AND '
-		name+=',redshift;['+str(range[i])+','+str(range[+1])+']'		
+		name+=',redshift:['+str(range[0])+','+str(range[1])+']'		
 	if 2 in params:
 		range=input('Select phase range: [xmin,xmax]')
 		query += 'Phase BETWEEN ' + str(range[0]) + ' AND ' + str(range[1]) + ' AND '
-		name+=',phase;['+str(range[0])+','+str(range[1])+']'
+		name+=',phase:['+str(range[0])+','+str(range[1])+']'
 	if 3 in params:
 		range=input('Select Dm15 range: [xmin,xmax]')
 		query += 'Dm15 BETWEEN ' + str(range[0]) + ' AND ' + str(range[1]) + ' AND '
-		name+=',dm15;['+str(range[0])+','+str(range[1])+']'
+		name+=',dm15:['+str(range[0])+','+str(range[1])+']'
 	if 4 in params:
 		range=input('Select M_B range: [xmin,xmax]')
 		query += 'M_B BETWEEN ' + str(range[0]) + ' AND ' + str(range[1]) + ' AND '
-		name+=',M_B;['+str(range[0])+','+str(range[1])+']'
+		name+=',M_B:['+str(range[0])+','+str(range[1])+']'
 	if 5 in params:
 		range=input('Select B_mMinusV_m range: [xmin,xmax]')
 		query += 'B_mMinusV_m BETWEEN ' + str(range[0]) + ' AND ' + str(range[1]) + ' AND '
-		name+=',B_m-V_m;['+str(range[0])+','+str(range[1])+']'
+		name+=',B_m-V_m:['+str(range[0])+','+str(range[1])+']'
 
 	query += 'Morphology='
 
-	composites=[]
 	queries=[]
-	"""
-	for host in morph:
-		composites.append(composite.main(query+str(host)))
-		"""
-		
 	queries.append(sys.argv)
-	queries.append(str(len(composites)))
+	queries.append(str(len(morph)))
 	for host in morph:
 		queries.append(query+str(host))
 
 	#labels=['SpiralA,','SpiralAB','SpiralB','SpiralBC','SpiralC','SpiralCD']
 	#scales=composite.find_scales(composites,composites[0].flux,composites[0].ivar)
-	
-	"""
-	sumphase=0
-	sumred=0
-	tot=0
-	for comp in composites:
-		sumphase += comp.phase
-		sumred += comp.redshift
-		tot += 1
-		
-	avgphase=sumphase/tot
-	avgred=sumred/tot
-	"""
 		
 	plot_name = name # + ',avgphase-' + str("%.2f" % avgphase) + ',avgred-' + str("%.2f" % avgred)
-	wmin = 0
-	wmax = 100000
-	for comp in composites:
-		SN=comp
-		if (SN.minwave > wmin):
-			wmin=SN.minwave
-		if (SN.maxwave < wmax):
-			wmax=SN.maxwave
 	
-	galrun.main(queries,plot_name,labels,wmin,wmax)
+	galrun.main(queries,plot_name,labels)
 	
 cont=0
 while(cont==0):
