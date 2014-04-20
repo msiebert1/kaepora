@@ -22,7 +22,7 @@ There are a few parameters you should set beforehand.
 plot_name is where the plot showing both composite spectra together will be saved.
 wmin and wmax define the boundary of the plot.
 """
-def main(queries,plot_name,labels,xmin,xmax):
+def main(queries,plot_name,labels):
 	num = int(queries[1])
 	#Now the file name of the plot is labeled by time of creation, but you can personalize it if you want.
 	#Or rename it once it's been saved.
@@ -40,6 +40,15 @@ def main(queries,plot_name,labels,xmin,xmax):
 			d["composite{0}".format(n+1)] = composite.main(queries[n+2], queries[num+2], queries[num+3], queries[num+4])
 		else:
 			d["composite{0}".format(n+1)] = composite.main(queries[n+2])
+			
+	xmin =0
+	xmax=100000
+	for n in range(num):
+		SN=d["composite{0}".format(n+1)]
+		if (SN.minwave > xmin):
+			xmin=SN.minwave
+		if (SN.maxwave < xmax):
+			xmax=SN.maxwave
 
 	#Read whatever you sasved the table as, iterates over however many composites you used.
 	#This is how you have to address things if you want to iterate over queries.
