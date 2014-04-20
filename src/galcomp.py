@@ -35,7 +35,6 @@ We only want to select spectra that have data for both redshift and phase, so bo
 But you can change the values to whatever you want, and add more parameters.
 """
 def run():
-	names_array=[]
 	name='Composite_comparison'
 	morph=input('Morphologies: (E=1,E/S0=2,S0=3,S0a=4,Sa=5,Sab=6,Sb=7,Sbc=8,Sc=9,Scd=10,Sd/Irr=11)')
 	labels=[]
@@ -100,19 +99,20 @@ def run():
 
 	composites=[]
 	queries=[]
+	"""
 	for host in morph:
 		composites.append(composite.main(query+str(host)))
+		"""
 		
 	queries.append(sys.argv)
 	queries.append(str(len(composites)))
 	for host in morph:
 		queries.append(query+str(host))
-		
-	print queries
 
 	#labels=['SpiralA,','SpiralAB','SpiralB','SpiralBC','SpiralC','SpiralCD']
-	scales=composite.find_scales(composites,composites[0].flux,composites[0].ivar)
-
+	#scales=composite.find_scales(composites,composites[0].flux,composites[0].ivar)
+	
+	"""
 	sumphase=0
 	sumred=0
 	tot=0
@@ -123,9 +123,9 @@ def run():
 		
 	avgphase=sumphase/tot
 	avgred=sumred/tot
+	"""
 		
-	plot_name = name + ',avgphase-' + str("%.2f" % avgphase) + ',avgred-' + str("%.2f" % avgred)
-	names_array.append(plot_name)
+	plot_name = name # + ',avgphase-' + str("%.2f" % avgphase) + ',avgred-' + str("%.2f" % avgred)
 	wmin = 0
 	wmax = 100000
 	for comp in composites:
@@ -135,7 +135,7 @@ def run():
 		if (SN.maxwave < wmax):
 			wmax=SN.maxwave
 	
-	galrun.main(queries,plot_name,wmin,wmax)
+	galrun.main(queries,plot_name,labels,wmin,wmax)
 	
 cont=0
 while(cont==0):

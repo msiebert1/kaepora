@@ -22,9 +22,8 @@ There are a few parameters you should set beforehand.
 plot_name is where the plot showing both composite spectra together will be saved.
 wmin and wmax define the boundary of the plot.
 """
-def main(queries,plot_name,xmin,xmax):
+def main(queries,plot_name,labels,xmin,xmax):
 	num = int(queries[1])
-
 	#Now the file name of the plot is labeled by time of creation, but you can personalize it if you want.
 	#Or rename it once it's been saved.
 	#plot_name = str(queries) + '_composite_comparison, ' + (time.strftime("%H,%M,%S"))
@@ -41,6 +40,8 @@ def main(queries,plot_name,xmin,xmax):
 			d["composite{0}".format(n+1)] = composite.main(queries[n+2], queries[num+2], queries[num+3], queries[num+4])
 		else:
 			d["composite{0}".format(n+1)] = composite.main(queries[n+2])
+			
+	print d["composite{0}".format(2)].redshift
 
 	#Read whatever you sasved the table as, iterates over however many composites you used.
 	#This is how you have to address things if you want to iterate over queries.
@@ -74,7 +75,7 @@ def main(queries,plot_name,xmin,xmax):
 		age_array.append(d["ages{0}".format(n+1)][0])
 		dm15_array.append(d["wavelengths{0}".format(n+1)][0])
 		dm15_array.append(d["dm15s{0}".format(n+1)][0])
-		name_array.append("composite{0}".format(n+1))
+		name_array.append(labels[n])
 		name_array.append(" ")
 
 	#print variance_array # there were some problems with dimensionality, fixed now.
@@ -103,9 +104,7 @@ def main(queries,plot_name,xmin,xmax):
 
 	# All of these worked for me. Test with your own queries. (Sam, 4/16)
 	# Choose the plot range and plot type!
-	xmin         = 3000 
-	xmax         = 10100
-	Plots        = [0,1,2,4,5] 
+	Plots        = [0] 
 
 	image_title  = "../plots/" + plot_name + "_composites.png"
 	title        = plot_name
