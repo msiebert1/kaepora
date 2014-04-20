@@ -429,7 +429,53 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
         if j % 2 != 0:
             RDmax.append(max(RD[j])[0])
     """
-	    
+#############################################################
+#remove_extremes will remove the peaks and dips from plotting
+#############################################################
+    """
+    def remove_extremes(data):
+        delete = []
+        for i in range(len(data[1])):
+            if (data[1][i] == 0):
+                delete.append(i)
+        for j in range(len(delete)):
+            del data[0][delete[len(delete)-1-j]]
+            del data[1][delete[len(delete)-1-j]]
+        #will_cut = []
+    
+        bad     = []
+        maximum = max(data[1])
+        minimum = min(data[1])
+        length  = len(data[1]) 
+        
+        will_cut = data[1]
+        length = len(will_cut) 
+        will_cut = will_cut.sort()
+        #sorted(will_cut)
+        print will_cut
+        print "last value in stream ", will_cut[-1]
+        new_max = will_cut[-1]*.95
+        print "first value in stream ", will_cut[0]
+        new_min = will_cut[0]*.05
+        
+        new_max = math.ceil(maximum*.90)
+        new_min = math.floor(minimum*.10)
+        print maximum
+        print "Maximum :", new_max
+        print "Minimum :", new_min        
+        for i in range(length):
+            if (data[1][i] > new_max) or (data[1][i] < new_min):
+                bad.append(i)
+                print len(bad)
+        for j in range(len(bad)):
+            del data[0][bad[len(bad)-1-j]]
+            del data[1][bad[len(bad)-1-j]]
+        
+        return data
+    print "Length of RF before cut :", len(RF[0])
+    RF = remove_extremes(RF)
+    print "Length of RF after cut  :", len(RF[0])  
+    """
     """
     # Commented out for the time being because we're only given a single array
     source = (np.array(RF[1])).T
@@ -520,4 +566,39 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
 #############################################################                  
 
     plt.show()
+
+
+    #Will implement once testing is complete
+    """
+    def remove_extremes(data):
+        new_data = []
+        bad      = []
+        new_data = data
+        length = len(data) #do i need it?
+        sort(data[1])
+        new_max = data[1][-1]*.95
+        new_min = data[1][0]*.05
+        for i in range(length):
+            if (new_data[1][i] > new_max) or (new_data[1][i] < new_min):
+                bad.append(i)
+        for j in range(len(bad)):
+            del new_data[0][bad[len(bad)-1-j]]
+            del new_data[1][bad[len(bad)-1-j]]
+        return new_data
+        
+        
+        def chop_data(d,p):
+	delete = []	#temporary variable to track which indices to remove
+
+	for i in range(len(d)):
+		if d[i][0][0] > wave_min or d[i][-1][0] < wave_max:
+			delete.append(i)
+			#print "\nwaves #",i,":",data_pos[i][:,0]
+			#print "from path:",path_pos[i],"does not make the cut"
+	for i in range(len(delete)):
+		#print "remove",d[delete[len(delete)-1-i]]
+		del d[delete[len(delete)-1-i]]	#have to remove from end of array to account for moving indexes
+		del p[delete[len(delete)-1-i]]
+		#print d[delete[len(delete)-1-i]]
+      """
 
