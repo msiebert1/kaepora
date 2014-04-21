@@ -109,7 +109,7 @@ plot_name = str(queries) + '_composite_comparison, ' + (time.strftime("%H,%M,%S"
 image_title  = "../plots/" + plot_name + ".png"
 
 # Want a custom saved image name? Uncomment this next line...but leave the one above alone.
-#image_title  = "../plots/" + "TITLE GOES HERE" + ".png"
+image_title  = "../plots/" + "Test_Extremes" + ".png"
 print "Plot saved as: " + image_title
 
 #Next line is the header on your plot

@@ -358,8 +358,8 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
     
     for j in range(len_RF):
         if j % 2 != 0:
-            print median(RF[j])
-            print median(RF[j-1])
+            #print median(RF[j])
+            #print median(RF[j-1])
             RFtrunc = []
             for i in range(len(RF[j-1])):
                 if (RF[j-1][i] >= 4500) & (RF[j-1][i] <= 7000):
@@ -432,71 +432,34 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
 #############################################################
 #remove_extremes will remove the peaks and dips from plotting
 #############################################################
-    """
+    """    
     def remove_extremes(data):
-        delete = []
-        for i in range(len(data[1])):
-            if (data[1][i] == 0):
-                delete.append(i)
-        for j in range(len(delete)):
-            del data[0][delete[len(delete)-1-j]]
-            del data[1][delete[len(delete)-1-j]]
-        #will_cut = []
-    
-        bad     = []
-        maximum = max(data[1])
-        minimum = min(data[1])
-        length  = len(data[1]) 
-        
-        will_cut = data[1]
-        length = len(will_cut) 
-        will_cut = will_cut.sort()
-        #sorted(will_cut)
-        print will_cut
-        print "last value in stream ", will_cut[-1]
-        new_max = will_cut[-1]*.95
-        print "first value in stream ", will_cut[0]
-        new_min = will_cut[0]*.05
-        
-        new_max = math.ceil(maximum*.90)
-        new_min = math.floor(minimum*.10)
-        print maximum
-        print "Maximum :", new_max
-        print "Minimum :", new_min        
+        original = []
+        bad      = []
+        bad_2    = []
+        original = data        
+        #data[np.argsort(data[:,1])]
+        data = np.sort(data,1)
+        length = len(data[0])
+        new_max = np.int_(floor(length*.95))
+        new_min = np.int_(ceil(length*.05))
         for i in range(length):
-            if (data[1][i] > new_max) or (data[1][i] < new_min):
+            if (original[1][i] <= data[1][new_min]):
                 bad.append(i)
-                print len(bad)
-        for j in range(len(bad)):
-            del data[0][bad[len(bad)-1-j]]
-            del data[1][bad[len(bad)-1-j]]
-        
-        return data
-    print "Length of RF before cut :", len(RF[0])
+        for j in range(length):
+            if (original[1][j] >= data[1][new_max]):
+                bad_2.append(j)
+        for k in range(len(bad)):
+            del original[0][bad[len(bad)-1-k]]
+            del original[1][bad[len(bad)-1-k]]
+        for m in range(len(bad_2)):
+            del original[0][bad_2[len(bad_2)-1-m]]
+            del original[1][bad_2[len(bad_2)-1-m]]
+        return original
+    
+    print len(RF[0])
     RF = remove_extremes(RF)
-    print "Length of RF after cut  :", len(RF[0])  
-    """
-    """
-    # Commented out for the time being because we're only given a single array
-    source = (np.array(RF[1])).T
-
-    sbins = []
-    guess = []
-    print source
-    
-    if len(source) !=1:
-        for m in range(len(source)):
-            comp, cov = optimize.leastsq(residual, guess[m], args = (source[m]), full_output = False)
-            comp.append(comp[0])
-            sbins.append(len(source[m]))
-        else:
-            comp_data = RF[1]
-        
-    delta_data = []     # difference from the mean value
-    
-    for m in range(len(RF[1])):   # finds difference between composite data and interpolated data sets
-        delta_data.append(comp-RF[1][m]) 
-        rms_data = np.sqrt(np.mean(np.square(delta_data), axis = 0))    # finds root-mean-square of differences at each wavelength within overlap
+    print len(RF[0])
     """
 #############################################################
 # The following section sets up the plotting figure information. 
@@ -542,7 +505,7 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
     if 6 in Plots:
         Redshift(RD)
         p = p+1
-
+        
     # Regardless of what is plotted, we label the Xaxis and save the plot image
     plt.xlim(xmin, xmax)       
     plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
@@ -567,6 +530,74 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
 
     plt.show()
 
+
+    """
+        data[1] = np.sort(data[1])
+        print data[1]
+        delete = []
+        for i in range(len(data[1])):
+            if (data[1][i] == 0):
+                delete.append(i)
+        for j in range(len(delete)):
+            del data[0][delete[len(delete)-1-j]]
+            del data[1][delete[len(delete)-1-j]]
+        #will_cut = []
+    
+        bad     = []
+        maximum = max(data[1])
+        minimum = min(data[1])
+        length  = len(data[1]) 
+        
+        will_cut = data[1]
+        length = len(will_cut) 
+        will_cut = will_cut.sort()
+        #sorted(will_cut)
+        print will_cut
+        print "last value in stream ", will_cut[-1]
+        new_max = will_cut[-1]*.95
+        print "first value in stream ", will_cut[0]
+        new_min = will_cut[0]*.05
+        
+        new_max = math.ceil(maximum*.90)
+        new_min = math.floor(minimum*.10)
+        print maximum
+        print "Maximum :", new_max
+        print "Minimum :", new_min        
+        for i in range(length):
+            if (data[1][i] > new_max) or (data[1][i] < new_min):
+                bad.append(i)
+                print len(bad)
+        for j in range(len(bad)):
+            del data[0][bad[len(bad)-1-j]]
+            del data[1][bad[len(bad)-1-j]]
+        
+        return data
+    print "Length of RF before cut :", len(RF[0])
+    print "Length of RF after cut  :", len(RF[0])  
+    """
+    
+    """
+    # Commented out for the time being because we're only given a single array
+    source = (np.array(RF[1])).T
+
+    sbins = []
+    guess = []
+    print source
+    
+    if len(source) !=1:
+        for m in range(len(source)):
+            comp, cov = optimize.leastsq(residual, guess[m], args = (source[m]), full_output = False)
+            comp.append(comp[0])
+            sbins.append(len(source[m]))
+        else:
+            comp_data = RF[1]
+        
+    delta_data = []     # difference from the mean value
+    
+    for m in range(len(RF[1])):   # finds difference between composite data and interpolated data sets
+        delta_data.append(comp-RF[1][m]) 
+        rms_data = np.sqrt(np.mean(np.square(delta_data), axis = 0))    # finds root-mean-square of differences at each wavelength within overlap
+    """
 
     #Will implement once testing is complete
     """
