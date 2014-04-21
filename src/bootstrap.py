@@ -7,7 +7,31 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import InterpolatedUnivariateSpline
 from scipy.special import erf
 
+
+def main(SN_Array):
+    
+    num = len(SN_Array)   # The number of spectra required in the SQL query
+    num_arr = np.arange(0, num, 1)  # Create a numpy array from 0 to number of spectra.
+    
+    sel_spec = np.floor(np.random.uniform(0, num, num)).astype(int)
+    
+    # Create an array to store up the bootstraped spectra.
+    spec_name = [0] * len(sel_spec)
+        
+    for m in range(len(sel_spec)):
+        spec_name[m] = SN_Array[sel_spec[m]]
+    
+    return spec_name
+
 """
+    
+    #tries = int(raw_input("Enter number of bootstraps: "))  # Number of bootstraps.
+    
+    #sel_spec = [0] * tries  # Array for the bootstraped spectra
+    
+    #for i in range(tries):
+    #sel_spec[i] = np.floor(np.random.uniform(0, num, num)).astype(int)
+    
 rootdir = '/Users/rickyccy/Documents/Urbana-Champaign/Courses/ASTR596_Spring2014/astr596/personal/RickyChue/personal/MalloryConlon/Galaxy/'
 
 filename = open(rootdir + 'MaxSpectra.dat', 'r').read()
@@ -20,7 +44,7 @@ list = [0] * num    # Files to be input
 
 for i in range(1, new_num):
     list[i - 1] = list_long[i].split()[1]
-"""
+
 spec = [0] * num    # Input the wavelength and flux.
 
 
@@ -87,7 +111,7 @@ for i in range(len(low_arr)):
     outfile.write(str(file[0][0][i]) + '\t' + str(scaled_comp[i]) + '\t' + str(low_arr[i]) + '\t' + str(up_arr[i]) + '\n')
 
 outfile.close()
-
+"""
 """
 plt.plot(file[0][0], low_arr, color = 'r')
 plt.plot(file[0][0], scaled_comp, color = 'b')
