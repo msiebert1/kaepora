@@ -80,8 +80,8 @@ for n in range(queries):
 
 ##################
 #If you want to use custom names for your composites,
-#fill out and uncomment this next line
-#name_array = ["composite1name", " ", "composite2name", " ", etc]
+#fill out and uncomment this next line (you need to have spaces between each name)
+#name_array = ["name 1", " ", "name2", " ", etc]
 ##################
 
 Relative_Flux   = plot_array #plots all given composites
@@ -106,7 +106,13 @@ xmin         = 3000
 xmax         = 10100
 Plots        = [0,1,2,4,5] 
 
-image_title  = "../plots/" + str(sys.argv[1]) + "_composites.png"
+image_title  = "../plots/" + plot_name + ".png"
+#################
+# Want a custom saved image name? Uncomment this next line.
+#image_title  = "../plots/" + "TITLE GOES HERE" + ".png"
+#################
+
 print "Plot saved as: " + image_title
-title        = "Composite Spectra Comparison"
+#Next line is the header on your plot
+title        = "Insert Title Here"
 Plotting.main(Show_Data, Plots, image_title, title, Names, xmin,xmax)

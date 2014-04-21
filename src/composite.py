@@ -246,13 +246,20 @@ def average(SN_Array, template, medmean):
 # This is supposed to get rid of lists where there are no dm15 values
 # The same logic will eventually be applied to phase and other single-value parameters that may be missing from some spectra
 # It...doesn't work.
+	"""
         for i in range(len(dm15s)):
             #print dm15s[i]
             if sum(dm15s[i]) == 0:
                 #print "all zeros here"
                 np.delete(dm15s, i, 1)
                 np.delete(dm15_ivars, i, 1)
-        if len(dm15_ivars)==len(ivars):
+		
+	#uh..this crashes my computer. don't use this bit.
+	dm15s = dm15s[(dm15s != 0)-1]
+	dm15_ivars = dm15_ivars[(dm15s != 0)-1]
+	print dm15_ivars
+	"""
+	if len(dm15_ivars)==len(ivars):
             print "No rows were removed :("
 ############        
         if medmean == 1:
