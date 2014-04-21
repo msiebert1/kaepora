@@ -137,8 +137,7 @@ def genivar(wavelength, flux, varflux = 0, vexp = 0.0008, nsig = 5.0):
             varflux = np.ones(len(wavelength))
     except ValueError:
         ivar = 1 / (varflux**2)
-        ivar_new = clip(wavelength, flux, ivar)
-        return ivar_new
+        return ivar
     
     # Smooth original flux
     new_flux = gsmooth(wavelength, flux, varflux, vexp, nsig)
@@ -167,9 +166,6 @@ def genivar(wavelength, flux, varflux = 0, vexp = 0.0008, nsig = 5.0):
         
     # Inverse variance
     ivar = 1/(sm_error_new**2)
-
-    # Clip points corresponding to absorption lines / cosmic rays
-    ivar_new = clip(wavelength, flux, ivar)
     
     # Return generated variance
-    return ivar_new
+    return ivar
