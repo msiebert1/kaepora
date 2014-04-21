@@ -1,5 +1,6 @@
 # Host-galaxy morphology as reported in NED. 
 # Retrieved from http://www.cfa.harvard.edu/supernova/CfA3/snmorph.txt
+# Additionally galaxy morphology retrieved from the SIMBAD database: http://simbad.u-strasbg.fr/simbad/
 # Morphology translation:  
 # 1,2,3,4,5,6,7,8,9,10,11 = E,E/S0,S0,S0a,Sa,Sab,Sb,Sbc,Sc,Scd,Sd/Irr
 # 0 = N/A

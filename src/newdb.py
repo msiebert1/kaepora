@@ -6,6 +6,8 @@ import msgpack as msg
 import msgpack_numpy as mn
 import prep
 import os
+import re
+import math
 import time
 
 mn.patch()
@@ -142,15 +144,20 @@ def build_gas_dict():
                 gas_dict[ents[0]] = ents[1]
     return gas_dict
 
-#find data for carbon pos/neg supernova
-with open('../data/info_files/wk4_carbon_pos.txt') as f1:
-    cpos = f1.readlines()
-    cleancpos = [x.strip() for x in cpos]
-    posout = filter(None, cleancpos)
-with open('../data/info_files/wk4_carbon_neg.txt') as f2:
-    cneg = f2.readlines()
-    cleancneg = [x.strip() for x in cneg]
-    negout = filter(None, cleancneg)
+def build_carbon_dict():
+    """
+    Builds a dictionary of the form {sn_name: carbon }
+    """
+    with open('../data/info_files/carbon_presence.txt') as f:
+        txt = f.readlines()
+        clean = [x.strip() for x in txt]
+        carbon_dict = {}
+        for entry in clean:
+            if not entry.startswith('#'):
+                ents = entry.split()
+                if ents:
+                    carbon_dict[ents[0].lower()] = ents[1]
+    return carbon_dict
 
 #build necessary dictionaries
 sndict, date_dict = read_cfa_info('../data/spectra/cfa/cfasnIa_param.dat',
@@ -158,7 +165,7 @@ sndict, date_dict = read_cfa_info('../data/spectra/cfa/cfasnIa_param.dat',
 morph_dict = build_morph_dict()
 vel_dict = build_vel_dict()
 gas_dict = build_gas_dict()
-
+carbon_dict = build_carbon_dict()
 ts = time.clock()
 con = sq3.connect('SNe.db')
 
@@ -168,17 +175,56 @@ con.execute("""CREATE TABLE IF NOT EXISTS Supernovae (Filename
                     TEXT PRIMARY KEY, SN Text, Source Text, Redshift REAL,
                     Phase REAL, MinWave REAL, MaxWave REAL, Dm15 REAL,
                     M_B REAL, B_mMinusV_m REAL, Velocity REAL,
-                    Morphology INTEGER, Carbon INTEGER, GasRich INTEGER, snr REAL,
+                    Morphology INTEGER, Carbon TEXT, GasRich INTEGER, snr REAL,
                     Interpolated_Spectra BLOB)""")
+
+#read all bsnip to find corrected
+corr_list = []
+allspec = []
+for paths, subdirs, files in os.walk('../data/spectra/bsnip'):
+    for name in files:
+        if name.endswith('.flm'):
+            allspec.append(name)
+            if 'corrected' in name:
+                corr_list.append(name)
+clean1 = [re.sub('\-corrected.flm', '', x) for x in corr_list]
+clean2 = [re.sub('\.flm', '', x) for x in allspec]
+#find files that have both corrected and raw
+res = set(clean1).intersection(set(clean2))
+#have_both contains files to ignore
+have_both = []
+for s in res:
+    s += '.flm'
+    have_both.append(s)
 
 #change this depending on where script is
 root = '../data/spectra'
 bad_files = []
 bad_interp = []
+shiftless = []
 bsnip_vals = read_bsnip_data('obj_info_table.txt')
+
+#ignore bad files
+spectra_ignore = ['sn1994T-19940612.25-mmt.flm',
+                                'sn2000dn-20001006.25-fast.flm',
+                                'sn2006bt-20060502.33-fast.flm',
+                                'sn2006bt-20060503.33-fast.flm',
+                                'SN06mr_061113_g01_BAA_IM.dat',
+                                'SN07af_070310_g01_BAA_IM.dat',
+                                'SN07ai_070310_g01_BAA_IM.dat',
+                                'SN07ai_070312_g01_BAA_IM.dat',
+                                'SN07al_070313_g01_BAA_IM.dat']
+
 print "Adding information to table"
+count = 1
 for path, subdirs, files in os.walk(root):
     for name in files:
+
+        if name in spectra_ignore or name in have_both:
+            continue
+
+        #ignore bsnip raw when corrected exists
+
         f = os.path.join(path, name)
         if f.endswith('.flm') or f.endswith('.dat'):
             if 'cfasnIa' in f:
@@ -193,6 +239,9 @@ for path, subdirs, files in os.walk(root):
             except:
                 bad_files.append(f)
                 continue
+            print  count, sn_name
+
+            count += 1
 
             #finds cfa data for particular sn if applicable
             if 'cfa' in f:
@@ -205,7 +254,7 @@ for path, subdirs, files in os.walk(root):
             #csp source
             if 'csp' in f:
                 source = 'csp'
-                redshift = info[2]
+                redshift = float(info[2])
                 phase = float(info[4]) - float(info[3])
                 Dm15 = None
                 m_b = None
@@ -214,7 +263,7 @@ for path, subdirs, files in os.walk(root):
             #cfa spectra
             elif 'cfa' in f:
                 source = 'cfa'
-                redshift = sn_cfa[0]
+                redshift = float(sn_cfa[0])
                 if  sn_cfa[1] == '99999.9':
                     phase = None
                 else:
@@ -243,6 +292,10 @@ for path, subdirs, files in os.walk(root):
                 c = 299792.458
                 source = 'bsnip'
                 data = bsnip_vals[sn_name.lower()]
+                if math.isnan(data[0]):
+                    #skippy shitty redshiftless spectra
+                    shiftless.append(name)
+                    continue
                 redshift = data[0]/c
                 phase = None
                 Dm15 = None
@@ -263,10 +316,14 @@ for path, subdirs, files in os.walk(root):
                 bad_files.append(name)
                 interp_spec, sig_noise = None, None
 
-            if sn_name in negout:
-                carbon = 0
-            elif sn_name in posout:
-                carbon = 1
+            if sn_name in carbon_dict:
+                carbon = carbon_dict[sn_name]
+            elif sn_name == 'SNF20080909-030':
+                carbon = carbon_dict['2008s5']
+            elif sn_name == 'SNF20080514-002':
+                carbon = carbon_dict['2008s1']
+            elif sn_name == 'SNF20071021-000':
+                carbon = carbon_dict['2007s1']
             else:
                 carbon = None
 
@@ -299,4 +356,5 @@ con.commit()
 te = time.clock()
 print 'bad files', bad_files, len(bad_files)
 print 'bad interps', bad_interp, len(bad_interp)
+print 'no available redshift', shiftless
 print te - ts

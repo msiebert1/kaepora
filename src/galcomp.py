@@ -4,6 +4,7 @@ from astropy.table import Table
 import matplotlib.pyplot as plt
 import numpy as np
 import sys
+import galrun
 #import targeted
 """
 Here's the main function that anyone can use to run some analysis.
@@ -76,57 +77,49 @@ def run():
 	if 1 in params:
 		range=input('Select redshift range: [xmin,xmax]')
 		query += 'redshift BETWEEN ' + str(range[0]) + ' AND ' + str(range[1]) + ' AND '
-		name+=',redshift;['+str(range[0])+','+str(range[1])+']'
+		name+=',redshift['+str(range[0])+','+str(range[1])+']'		
 	if 2 in params:
 		range=input('Select phase range: [xmin,xmax]')
 		query += 'Phase BETWEEN ' + str(range[0]) + ' AND ' + str(range[1]) + ' AND '
-		name+=',phase;['+str(range[0])+','+str(range[1])+']'
+		name+=',phase['+str(range[0])+','+str(range[1])+']'
 	if 3 in params:
 		range=input('Select Dm15 range: [xmin,xmax]')
 		query += 'Dm15 BETWEEN ' + str(range[0]) + ' AND ' + str(range[1]) + ' AND '
-		name+=',dm15;['+str(range[0])+','+str(range[1])+']'
+		name+=',dm15['+str(range[0])+','+str(range[1])+']'
 	if 4 in params:
 		range=input('Select M_B range: [xmin,xmax]')
 		query += 'M_B BETWEEN ' + str(range[0]) + ' AND ' + str(range[1]) + ' AND '
-		name+=',M_B;['+str(range[0])+','+str(range[1])+']'
+		name+=',M_B['+str(range[0])+','+str(range[1])+']'
 	if 5 in params:
 		range=input('Select B_mMinusV_m range: [xmin,xmax]')
 		query += 'B_mMinusV_m BETWEEN ' + str(range[0]) + ' AND ' + str(range[1]) + ' AND '
-		name+=',B_m-V_m;['+str(range[0])+','+str(range[1])+']'
+		name+=',B_m-V_m['+str(range[0])+','+str(range[1])+']'
 
 	query += 'Morphology='
 
-	print query
-	composites=[]
-	num = len(morph)
+	queries=[]
+	queries.append(sys.argv)
+	queries.append(str(len(morph)))
 	for host in morph:
-		composites.append(composite.main(query+str(host)))
+		queries.append(query+str(host))
 
 	#labels=['SpiralA,','SpiralAB','SpiralB','SpiralBC','SpiralC','SpiralCD']
-	scales=composite.find_scales(composites,composites[0].flux,composites[0].ivar)
-
-	sumphase=0
-	sumred=0
-	tot=0
-	for comp in composites:
-		sumphase += comp.phase
-		sumred += comp.redshift
-		tot += 1
+	#scales=composite.find_scales(composites,composites[0].flux,composites[0].ivar)
 		
-	avgphase=sumphase/tot
-	avgred=sumred/tot
-		
-	plot_name = name + ',avgphase-' + str("%.2f" % avgphase) + ',avgred-' + str("%.2f" % avgred)
-	wmin = 0
-	wmax = 100000
-	for comp in composites:
-		SN=comp
-		if (SN.minwave > wmin):
-			wmin=SN.minwave
-		if (SN.maxwave < wmax):
-			wmax=SN.maxwave
+	plot_name = name # + ',avgphase-' + str("%.2f" % avgphase) + ',avgred-' + str("%.2f" % avgred)
+	
+	galrun.main(queries,plot_name,labels)
+	
+cont=0
+while(cont==0):
+	run()
+	if (raw_input('Make another query? (y/n)') == 'y'):
+		cont=0
+	else:
+		cont +=1
+	
 
-
+	"""
 	#This makes, shows, and saves a quick comparison plot...we can probably get rid of this when plotting.main works.
 	#lowindex = np.where(composites[0].wavelength == composite.find_nearest(composites[0].wavelength, wmin))
 	#highindex = np.where(composite[0].wavelength == composite.find_nearest(composites[0].wavelength, wmax))
@@ -140,40 +133,9 @@ def run():
 	plt.xlabel('Wavelength')
 	plt.ylabel('Flux')
 	plt.xlim(wmin,wmax)
+	plt.ylim(bottom=0)
 	#[lowindex[0]:highindex[0]]
 	legend=plt.legend(loc='upper right')
 	plt.savefig('../plots/' + plot_name + '.png')
 	plt.show()
-
-	#Read whatever you sasved the table as
-	Data = Table.read(composites[0].savedname, format='ascii')
-
-	#Checking to see how the table reads..right now it has a header that might be screwing things up.
-	#print Data
-
-	#To be honest, I'm not sure entirely how this works.
-	#Can someone who worked on this piece of code work with it?
-	Relative_Flux = [Data["Wavelength"], Data["Flux"], composites[0].name]  # Want to plot a composite of multiple spectrum
-	Residuals     = [Data["Wavelength"], Data["Variance"], composites[0].name]
-	Spectra_Bin   = []
-	Age           = []
-	Delta         = []
-	Redshift      = [] 
-	Show_Data     = [Relative_Flux,Residuals]
-	image_title  = "../plots/Composite_Spectrum_plotted.png"            # Name the image (with location)
-	title        = "Composite Spectrum" 
-
-	# Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift, Multiple Spectrum, Stacked Spectrum
-	#                   0              1          2            3    4      5         6,                 7
-	Plots = [0] # the plots you want to create
-
-	# The following line will plot the data
-	#It's commented out until it works...
-	#Plotting.main(Show_Data , Plots, image_title , title)
-cont=0
-while(cont==0):
-	run()
-	if (raw_input('Make another query? (y/n)') == 'y'):
-		cont=0
-	else:
-		cont +=1
+	"""

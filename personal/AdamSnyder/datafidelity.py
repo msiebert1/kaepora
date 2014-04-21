@@ -58,73 +58,9 @@ def gsmooth(x_array, y_array, var_y, vexp = 0.005, nsig = 5.0):
 
 ############################################################################
 #
-## Function wsmooth() smooths data by convolving input data with a window of specified size
-## Optional inputs are window length (window_len) and window type (window)
-## Syntax: new_flux_array = wsmooth(flux_array, window_len=17, window='hanning')
-
-def wsmooth(x,window_len=75,window='hanning'):
-    """smooth the data using a window with requested size.
-        
-        This method is based on the convolution of a scaled window with the signal.
-        The signal is prepared by introducing reflected copies of the signal
-        (with the window size) in both ends so that transient parts are minimized
-        in the begining and end part of the output signal.
-        
-        input:
-        x: the input signal
-        window_len: the dimension of the smoothing window; should be an odd integer
-        window: the type of window from 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'
-        flat window will produce a moving average smoothing.
-        
-        output:
-        the smoothed signal
-        
-        example:
-        
-        t=linspace(-2,2,0.1)
-        x=sin(t)+randn(len(t))*0.1
-        y=smooth(x)
-        
-        see also:
-        
-        np.hanning, np.hamming, np.bartlett, np.blackman, np.convolve
-        scipy.signal.lfilter
-        
-        TODO: the window parameter could be the window itself if an array instead of a string
-        NOTE: length(output) != length(input), to correct this: return y[(window_len/2):-(window_len/2)] instead of just y.
-        """
-    
-    if x.ndim != 1:
-        raise ValueError, "smooth only accepts 1 dimension arrays."
-    
-    if x.size < window_len:
-        raise ValueError, "Input vector needs to be bigger than window size."
-    
-    
-    if window_len<3:
-        return x
-    
-    
-    if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
-        raise ValueError, "Window needs to be 'flat', 'hanning', 'hamming', 'bartlett', or 'blackman'"
-    
-    
-    s=np.r_[x[window_len-1:0:-1],x,x[-1:-window_len:-1]]
-    #print(len(s))
-    if window == 'flat': #moving average
-        w=np.ones(window_len,'d')
-    else:
-        w=eval('np.'+window+'(window_len)')
-    
-    y=np.convolve(w/w.sum(),s,mode='valid')
-    
-    return y[(window_len/2):-(window_len/2)]
-
-############################################################################
-#
 # Function to add sky over a wavelength range
 #
-def addsky(wavelength, flux, error, med_error, sky = 'kecksky.fits'):
+def addsky(wavelength, flux, error, med_error):
 
     # Open kecksky spectrum from fits file and create arrays
     sky = pyfits.open('kecksky.fits')
@@ -136,10 +72,12 @@ def addsky(wavelength, flux, error, med_error, sky = 'kecksky.fits'):
     stop = crval + ceil(0.5*len(skyflux)*delta)
     skywave = [(start+delta*i) for i in range(len(skyflux))]
 
-    # Add interpolate / add placeholders
-
+    # Find wavelength overlap
     good = np.where((wavelength >= skywave[0]) & (wavelength <= skywave[-1]))
-    
+
+    if len(good[0]) == 0:
+        return error
+
     spline_rep = interpolate.splrep(skywave, skyflux)
     add_flux = interpolate.splev(wavelength[good], spline_rep)    
 
@@ -163,14 +101,16 @@ def addsky(wavelength, flux, error, med_error, sky = 'kecksky.fits'):
 ## genivar(wavelength, flux, float vexp = 0.005, float nsig = 5.0)
 #
 
-def genivar(wavelength, flux, varflux = 0, vexp = 0.0008, nsig = 3.0):
+def genivar(wavelength, flux, varflux = 0, vexp = 0.0008, nsig = 5.0):
 
     # Check to see if it has a variance already
     try:
         if varflux == 0:
             varflux = np.ones(len(wavelength))
     except ValueError:
-        pass
+        ivar = 1 / (varflux**2)
+        ivar_new = clip(wavelength, flux, ivar)
+        return ivar_new
     
     # Smooth original flux
     new_flux = gsmooth(wavelength, flux, varflux, vexp, nsig)
@@ -182,7 +122,7 @@ def genivar(wavelength, flux, varflux = 0, vexp = 0.0008, nsig = 3.0):
     sm_error = gsmooth(wavelength, error, varflux, vexp, nsig)
 
     # Test wavelength ranges for kecksky overlap
-    test1 = np.where((wavelength >= 6000) & (wavelength <= 7000))
+    test1 = np.where((wavelength >= 5000) & (wavelength <= 6000))
     test2 = np.where((wavelength >= 6000) & (wavelength <= 7000))
     test3 = np.where((wavelength >= 7000) & (wavelength <= 8000))
     if len(test1[0]) > 40:
@@ -210,100 +150,25 @@ def genivar(wavelength, flux, varflux = 0, vexp = 0.0008, nsig = 3.0):
 # Optional inputs are the upper and lower limits for the ratio
 # Syntax is clip(flux_array, upper = 1.7, lower = 0.5)
 
-def clip(wavelength, flux, upper = 1.9, lower = 0.1):
-    import matplotlib.pyplot as plt
-    #Clip any bad data and replace it with the smoothed value.  Fine tune the ratio limits to cut more (ratio closer to one) or less (ratio farther from one) data
+def clip(wave, flux, ivar):
+    # Create an array of all ones
+    var = np.ones(len(flux), float)
     
-    new_flux = np.zeros(len(flux))
-    clipped_points = []
+    # Create 2 smoothed fluxes, of varying vexp
+    sflux = gsmooth(wave, flux, var, 0.002)
     
-    smooth_flux = wsmooth(flux)
-    ratio = flux/smooth_flux
-    
-    for i in range(len(ratio)):
-        if ratio[i] > upper:
-            new_flux[i] = smooth_flux[i]
-            clipped_points.append(i)
-        elif ratio[i] < lower:
-            new_flux[i] = smooth_flux[i]
-            clipped_points.append(i)
-        else:
-            new_flux[i] = flux[i]
+    # Take the difference of the two fluxes and smooth
+    err = abs(flux - sflux)  
+    serr = gsmooth(wave, err, var, 0.008)
 
-    plt.plot(wavelength,flux)
-    plt.plot(wavelength, new_flux)
-    plt.show()
-    return new_flux, clipped_points
+    # Find the wavelengths that need to be clipped (omitting 5800-6000 region)
+    bad_wave = wave[np.where((err/serr > 4) & ((wave < 5800.0) | (wave > 6000.0)))]
 
+    # Find indices for general clipping
+    bad = np.array([], int)
+    for i in range(len(bad_wave)):
+        bad = np.append(bad, np.where(abs(wave - bad_wave[i]) < 8))
 
-############################################################################
-#
-# Function telluric_flag() scans data for telluric lines and flags any
-# of the indices that have telluric contamination
-# Required inputs are an array of wavelengths and an array of fluxes
-# Optional input is the limit for flagging. As the limit approaches 1, the
-# amount of clipping increases.
-# Syntax is telluric_flag(wavelength_array,flux_array, limit = 0.9)
-
-def telluric_flag(wavelength, flux, limit=0.5):
-    import matplotlib.pyplot as plt
-    telluric_lines = np.loadtxt('../../../personal/malloryconlon/Data_fidelity/telluric_lines.txt')
-
-    mi = telluric_lines[:,0]
-    ma = telluric_lines[:,1]
-
-    new_flux = wsmooth(flux)
-
-    ratio = flux/new_flux
-    telluric_clip = []
-
-#Look at the flux/smoothed flux ratios for a given telluric absorption range as defined by the min and max arrays. If the ratio is less than the given condition, clip and replace with the smoothed flux value.
-
-    for i in range(len(wavelength)):
-        for j in range(len(mi)):
-            if wavelength[i] > mi[j]:
-                if wavelength[i] < ma[j]:
-                    if ratio[i] < limit:
-                        telluric_clip.append(i)
-
-    plt.plot(wavelength,flux)
-    plt.plot(wavelength[telluric_clip],flux[telluric_clip],'rD')
-    plt.show()
-
-#Return the indices of telluric absorption
-    return telluric_clip
-
-############################################################################
-#
-# Function update_variance() uses the returns from the telluric_flag and clip
-# functions to update the inverse variance spectrum
-# Required inputs are an array of wavelengths, an array of fluxes, and the
-# inverse variance array
-# Syntax is update_variance(wavelength_array,flux_array, variance_array)
-
-def update_ivar(wavelength, flux, ivar):
-
-    import matplotlib.pyplot as plt
-    
-#Determine the clipped indices
-
-    telluric_clip = telluric_flag(wavelength, flux)
-
-
-    for i in range(len(clipped_points)):
-            index = clipped_points[i]
-            ivar[index] = 0
-
-
-    for j in range(len(telluric_clip)):
-        index = telluric_clip[j]
-        ivar[index] = 0
-
-    plt.plot(wavelength,flux)
-    plt.plot(wavelength, ivar)
-    plt.show()
-
-    #Return the updated inverse variance spectrum
+    # Set ivar to 0 for those points and return
+    ivar[bad] = 0
     return ivar
-
-

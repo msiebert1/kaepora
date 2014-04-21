@@ -64,16 +64,40 @@ def vcomp(vmin,vmax):
 
     selection = " ".join(('SELECT * FROM Supernovae WHERE',
                       'SN IN', snnames,
-                      'AND Phase > 150 AND snr > 2.0',
+                      'AND Phase > 100 AND snr > 2.0',
                       'GROUP BY SN')) 
 
     print selection
     comp = composite.main(selection)
     return comp
 
+def vearly(vmin,vmax):
 
+    names,vnebs = vsamples(vmin,vmax)
+
+    snnames = str(names)
+    import string
+    snnames = string.replace(snnames,'[','(')
+    snnames = string.replace(snnames,']',')')
+
+
+    selection = " ".join(('SELECT * FROM Supernovae WHERE',
+                      'SN IN', snnames, 
+                      'AND Phase < 100 AND snr > 2.0',                     
+                      'GROUP BY SN')) 
+
+    print selection
+    early = composite.main(selection)
+    return early
+ 
+   
 composite1 = vcomp(-5000,0)
-composite2 = vcomp(0,5000)
+composite2 = vcomp (0,5000)
+composite3 = vcomp(0,1000)
+composite4 = vcomp(1000,5000)
+
+#composite1 = vcomp(-5000,5000)
+#composite2 = vearly(-5000,5000)
 
 wmin = 3500
 wmax = 8000
@@ -100,18 +124,27 @@ font = {'family' : 'serif',
         
 xaxis_1 = composite1.wavelength
 xaxis_2 = composite2.wavelength
+#xaxis_3 = composite3.wavelength
+#xaxis_4 = composite4.wavelength
+
 comp_data1 = composite1.flux
 comp_data2 = composite2.flux
+#comp_data3 = composite3.flux
+#comp_data4 = composite4.flux
+
 rms_data1 = composite1.ivar ** 0.5
 rms_data2 = composite2.ivar ** 0.5
+#rms_data3 = composite1.ivar ** 0.5
+#rms_data4 = composite2.ivar ** 0.5
 
 # The composite spectra plotting
 Rel_flux = plt.subplot(gs[0])
 plt.ylabel('Relative, f$_{\lambda}$', fontdict = font)
 plt.minorticks_on()
 plt.xlim(4000,8000)
-plt.ylim(0, 1.0e-15)
-#plt.ylim()
+#plt.ylim(0, 1.0e+15)
+
+# The following is for two bins
 plt.fill_between(xaxis_1, comp_data1+rms_data1, comp_data1-rms_data1, color = 'cyan')        
 plt.plot(xaxis_1, comp_data1, label = "Composite-Blue",color = 'b')
 plt.plot(xaxis_1, comp_data1+rms_data1, label = "+ RMS-Blue",color = 'g',ls = '-')
@@ -120,6 +153,13 @@ plt.fill_between(xaxis_2, comp_data2+rms_data2, comp_data2-rms_data2, color = 'o
 plt.plot(xaxis_2, comp_data2, label = "Composite-Red",color = 'r')
 plt.plot(xaxis_2, comp_data2+rms_data2, label = "+ RMS-Red",color = 'y')
 plt.plot(xaxis_2, comp_data2-rms_data2, label = "- RMS-Red",color = 'y')
+
+# The following is for four bins (No residual)
+"""plt.plot(xaxis_1, comp_data1, label = "v$_{neb}$<-1000")
+plt.plot(xaxis_2, comp_data2, label = "-1000<v$_{neb}$<0")
+plt.plot(xaxis_3, comp_data3, label = "0<v$_{neb}$<1000")
+plt.plot(xaxis_4, comp_data4, label = "v$_{neb}$>1000")"""
+
 plt.legend(prop = {'family' : 'serif'})
 RFxticklabels = Rel_flux.get_xticklabels() 
 
@@ -132,6 +172,8 @@ plt.ylim(0, 1.1e-34**0.5)
 plt.ylabel('Residuals', fontdict = font)
 plt.plot(xaxis_1, rms_data1, label = "RMS of residuals1", color = 'b',ls = '-')
 plt.plot(xaxis_2, rms_data2, label = "RMS of residuals2", color = 'r',ls = '-')
+#plt.plot(xaxis_3, rms_data3, label = "RMS of residuals3",color = 'g',ls = '-')
+#plt.plot(xaxis_4, rms_data4, label = "RMS of residuals4",color = 'y',ls = '-')
 plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
 RSxticklabels = Resid.get_xticklabels()
 

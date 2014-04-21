@@ -43,7 +43,7 @@ import random # new import so that colors in fill_between are random
 #
 ###########################################
 
-def main(Show_Data , Plots , image_title , title, Names):
+def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
 #############################################################
 # Set the height of each figure
 #############################################################
@@ -53,7 +53,7 @@ def main(Show_Data , Plots , image_title , title, Names):
     Height =           [6,             2,         2,           2,   2,     2,        2]
     
     h = []
-
+    
     for m in Plots:
         h.append(Height[m])
 
@@ -158,20 +158,21 @@ def main(Show_Data , Plots , image_title , title, Names):
 # in scaling (I think) was caused by calculating rows 
 # verses colums. So, I changed the file renaming and added .T
 #############################################################
-    def Scaling(data):
+    def Scaling(data, medvalue):
         scaled = []
         #still getting an error here, which might be causing the 'nan'
         #both data.max() and data.min() are 0.0, which is a problem.
         #print max(data), min(data)
         #scaled = (data-min(data))/(max(data)-min(data))
-        scaled = (data)/(max(data)-min(data))
+        #scaled = (data)/(max(data))
+        scaled = (data)/(medvalue)
         return scaled
 #############################################################
 # residual: Takes the data (Y values?) and subracts it from
 # the composite. 
 #############################################################
     """
-    def residual(comp, data): # WHAT IS DATA IN THIS?
+    def residual(comp, data):
         return comp - data
     """
 #############################################################
@@ -180,9 +181,9 @@ def main(Show_Data , Plots , image_title , title, Names):
 #############################################################    
     def Composite(RF,RS,Names):
         plt.ylabel('Relative, f$_{\lambda}$', fontdict = font)
-        plt.axis([3000, 10100, 0, 1])
+        plt.axis([xmin, xmax, 0, max(RFmax)])
         plt.minorticks_on()
-        plt.yticks(np.arange(0, 1.1, 0.2))
+        #plt.yticks(np.arange(0, 1.1, 0.2))
        
         for k in range(len_RF):
             if k % 2 == 0:
@@ -213,7 +214,7 @@ def main(Show_Data , Plots , image_title , title, Names):
     def Variance(VA):
         Variance = plt.subplot(gs[p], sharex = Rel_flux)
         plt.ylabel('Variance', fontdict = font)
-        plt.yticks(np.arange(0, 0.9, 0.2))
+        #plt.yticks(np.arange(0, 0.9, 0.2))
 
         for k in range(len_VA):
             if k % 2 == 0:
@@ -229,14 +230,14 @@ def main(Show_Data , Plots , image_title , title, Names):
     def Residual(RS):
         Resid = plt.subplot(gs[p], sharex = Rel_flux)
         plt.ylabel('Residuals', fontdict = font)
-        plt.yticks(np.arange(0, 0.9, 0.2))
+        #plt.yticks(np.arange(0, 0.9, 0.2))
         
         for j in range(len_RS):
             if j % 2 == 0:		
 		#There's something wrong with the dimensionality of x and y here
 		#I added the extra [0]s because the arrays were 3 dimensional somehow, so now they're both 1-D
 		#But they're still full of 'nan' so the plot gets messed up. But it runs through.
-                plt.plot(RS[j], RS[j+1], label = "RMS of residuals", ls = '-')
+                plt.plot(RF[j], RF[j+1]-RF[1], label = "RMS of residuals", ls = '-')
         #plt.plot(RS[0], RS[1], label = "RMS of residuals", ls = '-')
         RSxticklabels = Resid.get_xticklabels()
         if max(stacked) == 2:
@@ -250,7 +251,7 @@ def main(Show_Data , Plots , image_title , title, Names):
     def SpecBin(SB):
         SpecBin = plt.subplot(gs[p], sharex = Rel_flux)
         plt.ylabel('Spectra/Bin', fontdict = font)
-        plt.yticks(np.arange(0, 0.9, 0.2))
+        #plt.yticks(np.arange(0, 0.9, 0.2))
         
         for k in range(len_SB):
             if k % 2 == 0:
@@ -267,7 +268,7 @@ def main(Show_Data , Plots , image_title , title, Names):
     def Age(AG):
         Age = plt.subplot(gs[p], sharex = Rel_flux)
         plt.ylabel('Age [d]', fontdict = font)
-        plt.yticks(np.arange(0, 0.9, 0.2))
+        #plt.yticks(np.arange(0, 0.9, 0.2))
         
         for k in range(len_AG):
             if k % 2 == 0:
@@ -284,7 +285,7 @@ def main(Show_Data , Plots , image_title , title, Names):
     def Delta(DE):
         Delta = plt.subplot(gs[p], sharex = Rel_flux)
         plt.ylabel('$\Delta$', fontdict = font)
-        plt.yticks(np.arange(0, 0.9, 0.2))
+        #plt.yticks(np.arange(0, 0.9, 0.2))
         
         for k in range(len_DE):
             if k % 2 == 0:
@@ -301,7 +302,7 @@ def main(Show_Data , Plots , image_title , title, Names):
     def Redshift(RE):
         Redshift = plt.subplot(gs[p], sharex = Rel_flux)
         plt.ylabel('Redshift', fontdict = font)
-        plt.yticks(np.arange(0, 0.9, 0.2))
+        #plt.yticks(np.arange(0, 0.9, 0.2))
         
         for k in range(len_RE):
             if k % 2 == 0:
@@ -354,14 +355,25 @@ def main(Show_Data , Plots , image_title , title, Names):
 # What does this section do? I was having problems with it
 # so I've temporarily commented it out. 
 #############################################################
-
-#I commented this out because the scaling was causing issues.
-#Now it runs through and the residuals actually plot which is good
-#But...it's not scaled. Is that bad? (4/13) - Sam
-    ""
+    
+    for j in range(len_RF):
+        if j % 2 != 0:
+            #print median(RF[j])
+            #print median(RF[j-1])
+            RFtrunc = []
+            for i in range(len(RF[j-1])):
+                if (RF[j-1][i] >= 4500) & (RF[j-1][i] <= 7000):
+                    #print RF[j-1][i]
+                    #print RF[j][i]
+                    RFtrunc.append(RF[j][i])
+            RF[j] = Scaling(RF[j], median(RFtrunc))
+    
+    """
     for j in range(len_RF):
         if j % 2 != 0:
             RF[j] = Scaling(RF[j])
+    """
+    """
     for j in range(len_VA):
         if j % 2 != 0:
             VA[j] = Scaling(VA[j])
@@ -380,29 +392,74 @@ def main(Show_Data , Plots , image_title , title, Names):
     for j in range(len_SB):
         if j % 2 != 0:
             RD[j] = Scaling(RD[j])
-    ""
-	    
     """
-    # Commented out for the time being because we're only given a single array
-    source = (np.array(RF[1])).T
-
-    sbins = []
-    guess = []
-    print source
     
-    if len(source) !=1:
-        for m in range(len(source)):
-            comp, cov = optimize.leastsq(residual, guess[m], args = (source[m]), full_output = False)
-            comp.append(comp[0])
-            sbins.append(len(source[m]))
-        else:
-            comp_data = RF[1]
-        
-    delta_data = []     # difference from the mean value
+    RFmax = []
     
-    for m in range(len(RF[1])):   # finds difference between composite data and interpolated data sets
-        delta_data.append(comp-RF[1][m]) 
-        rms_data = np.sqrt(np.mean(np.square(delta_data), axis = 0))    # finds root-mean-square of differences at each wavelength within overlap
+    """
+    VAmax = []
+    RSmax = []
+    SBmax = []
+    AGmax = []
+    DEmax = []
+    RDmax = []
+    """
+    
+    for j in range(len_RF):
+        if j % 2 != 0:
+            RFmax.append(max(RF[j])[0])
+    
+    """
+    for j in range(len_VA):
+        if j % 2 != 0:
+            VAmax.append(max(VA[j])[0])
+    for j in range(len_RS):
+        if j % 2 != 0:
+            RSmax.append(max(RS[j])[0])
+    for j in range(len_SB):
+        if j % 2 != 0:
+            SBmax.append(max(SB[j])[0])
+    for j in range(len_AG):
+        if j % 2 != 0:
+            AGmax.append(max(AG[j])[0])
+    for j in range(len_DE):
+        if j % 2 != 0:
+            DEmax.append(max(DE[j])[0])
+    for j in range(len_SB):
+        if j % 2 != 0:
+            RDmax.append(max(RD[j])[0])
+    """
+#############################################################
+#remove_extremes will remove the peaks and dips from plotting
+#############################################################
+    """    
+    def remove_extremes(data):
+        original = []
+        bad      = []
+        bad_2    = []
+        original = data        
+        #data[np.argsort(data[:,1])]
+        data = np.sort(data,1)
+        length = len(data[0])
+        new_max = np.int_(floor(length*.95))
+        new_min = np.int_(ceil(length*.05))
+        for i in range(length):
+            if (original[1][i] <= data[1][new_min]):
+                bad.append(i)
+        for j in range(length):
+            if (original[1][j] >= data[1][new_max]):
+                bad_2.append(j)
+        for k in range(len(bad)):
+            del original[0][bad[len(bad)-1-k]]
+            del original[1][bad[len(bad)-1-k]]
+        for m in range(len(bad_2)):
+            del original[0][bad_2[len(bad_2)-1-m]]
+            del original[1][bad_2[len(bad_2)-1-m]]
+        return original
+    
+    print len(RF[0])
+    RF = remove_extremes(RF)
+    print len(RF[0])
     """
 #############################################################
 # The following section sets up the plotting figure information. 
@@ -415,7 +472,7 @@ def main(Show_Data , Plots , image_title , title, Names):
 #############################################################
     plt.figure(num = 1, dpi = 100, figsize = [6, np.sum(h)], facecolor = 'w')
     gs = gridspec.GridSpec(len(Plots), 1, height_ratios = h, hspace = 0.001)
-    
+
     p = 0
     Rel_flux = plt.subplot(gs[p])
     plt.title(title, fontdict = font)
@@ -448,10 +505,11 @@ def main(Show_Data , Plots , image_title , title, Names):
     if 6 in Plots:
         Redshift(RD)
         p = p+1
-
-    # Regardless of what is plotted, we label the Xaxis and save the plot image         
+        
+    # Regardless of what is plotted, we label the Xaxis and save the plot image
+    plt.xlim(xmin, xmax)       
     plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
-    plt.axis([3000, 10100, 0, 1])    
+    #plt.axis([xmin, xmax, 0, max(RFmax)])    
     plt.savefig(image_title, dpi = 600, facecolor='w', edgecolor='w', pad_inches = 0.1) # CHANGE dpi = 600
     print "Plotting complete..."    
     
@@ -471,4 +529,107 @@ def main(Show_Data , Plots , image_title , title, Names):
 #############################################################                  
 
     plt.show()
+
+
+    """
+        data[1] = np.sort(data[1])
+        print data[1]
+        delete = []
+        for i in range(len(data[1])):
+            if (data[1][i] == 0):
+                delete.append(i)
+        for j in range(len(delete)):
+            del data[0][delete[len(delete)-1-j]]
+            del data[1][delete[len(delete)-1-j]]
+        #will_cut = []
+    
+        bad     = []
+        maximum = max(data[1])
+        minimum = min(data[1])
+        length  = len(data[1]) 
+        
+        will_cut = data[1]
+        length = len(will_cut) 
+        will_cut = will_cut.sort()
+        #sorted(will_cut)
+        print will_cut
+        print "last value in stream ", will_cut[-1]
+        new_max = will_cut[-1]*.95
+        print "first value in stream ", will_cut[0]
+        new_min = will_cut[0]*.05
+        
+        new_max = math.ceil(maximum*.90)
+        new_min = math.floor(minimum*.10)
+        print maximum
+        print "Maximum :", new_max
+        print "Minimum :", new_min        
+        for i in range(length):
+            if (data[1][i] > new_max) or (data[1][i] < new_min):
+                bad.append(i)
+                print len(bad)
+        for j in range(len(bad)):
+            del data[0][bad[len(bad)-1-j]]
+            del data[1][bad[len(bad)-1-j]]
+        
+        return data
+    print "Length of RF before cut :", len(RF[0])
+    print "Length of RF after cut  :", len(RF[0])  
+    """
+    
+    """
+    # Commented out for the time being because we're only given a single array
+    source = (np.array(RF[1])).T
+
+    sbins = []
+    guess = []
+    print source
+    
+    if len(source) !=1:
+        for m in range(len(source)):
+            comp, cov = optimize.leastsq(residual, guess[m], args = (source[m]), full_output = False)
+            comp.append(comp[0])
+            sbins.append(len(source[m]))
+        else:
+            comp_data = RF[1]
+        
+    delta_data = []     # difference from the mean value
+    
+    for m in range(len(RF[1])):   # finds difference between composite data and interpolated data sets
+        delta_data.append(comp-RF[1][m]) 
+        rms_data = np.sqrt(np.mean(np.square(delta_data), axis = 0))    # finds root-mean-square of differences at each wavelength within overlap
+    """
+
+    #Will implement once testing is complete
+    """
+    def remove_extremes(data):
+        new_data = []
+        bad      = []
+        new_data = data
+        length = len(data) #do i need it?
+        sort(data[1])
+        new_max = data[1][-1]*.95
+        new_min = data[1][0]*.05
+        for i in range(length):
+            if (new_data[1][i] > new_max) or (new_data[1][i] < new_min):
+                bad.append(i)
+        for j in range(len(bad)):
+            del new_data[0][bad[len(bad)-1-j]]
+            del new_data[1][bad[len(bad)-1-j]]
+        return new_data
+        
+        
+        def chop_data(d,p):
+	delete = []	#temporary variable to track which indices to remove
+
+	for i in range(len(d)):
+		if d[i][0][0] > wave_min or d[i][-1][0] < wave_max:
+			delete.append(i)
+			#print "\nwaves #",i,":",data_pos[i][:,0]
+			#print "from path:",path_pos[i],"does not make the cut"
+	for i in range(len(delete)):
+		#print "remove",d[delete[len(delete)-1-i]]
+		del d[delete[len(delete)-1-i]]	#have to remove from end of array to account for moving indexes
+		del p[delete[len(delete)-1-i]]
+		#print d[delete[len(delete)-1-i]]
+      """
 

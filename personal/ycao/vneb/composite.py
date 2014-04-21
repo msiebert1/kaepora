@@ -226,7 +226,7 @@ def average(SN_Array, template):
         template.ivar = 1/np.sum(ivars, axis=0)
 	template.redshift = sum(reds)/len(reds)
 	template.phase = sum(phases)/len(phases)
-	template.velocity = sum(vels)/len(vels)
+#	template.velocity = sum(vels)/len(vels)
 	template.ivar[no_data] = 0
 	template.name = "Composite Spectrum"
 	return template
