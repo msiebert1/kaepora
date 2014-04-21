@@ -93,8 +93,8 @@ def vearly(vmin,vmax):
    
 composite1 = vcomp(-5000,0)
 composite2 = vcomp (0,5000)
-#composite3 = vcomp(0,1000)
-#composite4 = vcomp(1000,5000)
+composite3 = vcomp(0,1000)
+composite4 = vcomp(1000,5000)
 
 #composite1 = vcomp(-5000,5000)
 #composite2 = vearly(-5000,5000)
