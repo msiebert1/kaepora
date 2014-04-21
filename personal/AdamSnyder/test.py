@@ -8,21 +8,14 @@ from astropy.table import Table
 import msgpack as msg
 import msgpack_numpy as mn
 from scipy.optimize import leastsq
+import datafidelity as df
 
-class supernova(object):
-    """Attributes can be added"""
+SN = np.genfromtxt('../../data/spectra/cfa/sn1994ae/sn1994ae-19941129.51-fast.flm')
 
-con = sq3.connect('../../data/SNe.db')
-cur = con.cursor()
-i = 0
+wavelength = SN[:,0]
+flux = SN[:,1]
+error = SN[:,2]
+ivar = df.genivar(wavelength, flux, error)
 
-SN_Array = []
-cur.execute('SELECT * FROM Supernovae WHERE Phase BETWEEN -3 AND 3 AND Velocity BETWEEN -12 AND -8')
-for row in cur:
-    SN = supernova()
-    SN.filename = row[0]
-    interp = msg.unpackb(row[15])
-    SN.interp = interp
-    print interp
-
-print "done"
+plt.plot(wavelength, ivar)
+plt.show()

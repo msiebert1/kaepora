@@ -63,7 +63,7 @@ def gsmooth(x_array, y_array, var_y, vexp = 0.005, nsig = 5.0):
 def addsky(wavelength, flux, error, med_error):
 
     # Open kecksky spectrum from fits file and create arrays
-    sky = pyfits.open('../personal/AdamSnyder/kecksky.fits')
+    sky = pyfits.open('kecksky.fits')
     
     crval = sky[0].header['CRVAL1']
     delta = sky[0].header['CDELT1']
@@ -108,7 +108,9 @@ def genivar(wavelength, flux, varflux = 0, vexp = 0.0008, nsig = 5.0):
         if varflux == 0:
             varflux = np.ones(len(wavelength))
     except ValueError:
-        pass
+        ivar = 1 / (varflux**2)
+        ivar_new = clip(wavelength, flux, ivar)
+        return ivar_new
     
     # Smooth original flux
     new_flux = gsmooth(wavelength, flux, varflux, vexp, nsig)

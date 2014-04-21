@@ -84,23 +84,24 @@ def grab(sql_input, Full_query):
     #Within the interpolated spectra there are a lot of 'NaN' values
     #Now they become zeros so things work right
     for SN in SN_Array:
-	SN.age = np.array(SN.flux)
-	SN.dm15_array = np.array(SN.flux)
+        SN.age = np.array(SN.flux)
+        SN.dm15_array = np.array(SN.flux)
         for i in range(len(SN.flux)):
             if np.isnan(SN.flux[i]):
                 SN.flux[i] = 0
             if np.isnan(SN.ivar[i]):
                 SN.ivar[i] = 0
-	    if np.isnan(SN.age[i]):
-		SN.age[i]  = 0
-	    if np.isnan(SN.dm15_array[i]):
-		SN.dm15_array[i] = 0
-	    if SN.age[i] != 0:
-		SN.age[i] = SN.phase
-	    if SN.dm15_array[i] != 0:
-		SN.dm15_array[i] = SN.dm15
-	    if np.isnan(SN.dm15_array[i]):
-		SN.dm15_array[i] = 0
+            if np.isnan(SN.age[i]):
+                SN.age[i]  = 0
+            if np.isnan(SN.dm15_array[i]):
+                SN.dm15_array[i] = 0
+            if SN.age[i] != 0:
+                SN.age[i] = SN.phase
+            if SN.dm15_array[i] != 0:
+                SN.dm15_array[i] = SN.dm15
+            if np.isnan(SN.dm15_array[i]):
+                SN.dm15_array[i] = 0
+        #print SN.filename
     #Here we clean up the data we pulled
     #Some supernovae are missing important data, so we just get rid of them
     #This can take a very long time if you have more than 500 spectra
@@ -200,25 +201,25 @@ def average(SN_Array, template, medmean):
         fluxes = []
         ivars  = []
         reds = []
-	ages = []
+        ages = []
         for SN in SN_Array:
             if len(fluxes) == 0:
                 fluxes = np.array([SN.flux])
                 ivars  = np.array([SN.ivar])
                 reds   = np.array([SN.redshift])
                 phases = np.array([SN.phase])
-		ages   = np.array([SN.age])
+                ages   = np.array([SN.age])
                 vels   = np.array([SN.velocity])
-		dm15s  = np.array([SN.dm15_array])
+                dm15s  = np.array([SN.dm15_array])
             else:
                 try:
                     fluxes = np.append(fluxes, np.array([SN.flux]), axis=0)
                     ivars  = np.append(ivars, np.array([SN.ivar]), axis=0)
                     reds   = np.append(reds, np.array([SN.redshift]), axis = 0)
                     phases = np.append(phases, np.array([SN.phase]), axis = 0)
-		    ages   = np.append(ages, np.array([SN.age]), axis = 0)
+                    ages   = np.append(ages, np.array([SN.age]), axis = 0)
                     vels   = np.append(vels, np.array([SN.velocity]), axis = 0)
-		    dm15s  = np.append(dm15s, np.array([SN.dm15_array]), axis = 0)
+                    dm15s  = np.append(dm15s, np.array([SN.dm15_array]), axis = 0)
                 except ValueError:
                     print "This should never happen!"
         #Make flux/ivar mask so we can average for pixels where everything has 0 ivar
@@ -231,8 +232,8 @@ def average(SN_Array, template, medmean):
         #Add in flux/ivar mask
         fluxes = np.append(fluxes, np.array([flux_mask]), axis=0)
         ivars  = np.append(ivars, np.array([ivar_mask]), axis=0)
-	ages   = np.append(ages, np.array([flux_mask]), axis=0)
-	dm15s  = np.append(dm15s, np.array([flux_mask]), axis=0)
+        ages   = np.append(ages, np.array([flux_mask]), axis=0)
+        dm15s  = np.append(dm15s, np.array([flux_mask]), axis=0)
 
         #The way this was done before was actually creating a single value array...
         #This keeps them intact correctly.
@@ -240,15 +241,35 @@ def average(SN_Array, template, medmean):
         phases    = [phase for phase in phases if phase != None]
         vels      = [vel for vel in vels if vel != None]
         vels      = [vel for vel in vels if vel != -99.0]
-        
+        dm15_ivars = np.array(ivars)
+############
+# This is supposed to get rid of lists where there are no dm15 values
+# The same logic will eventually be applied to phase and other single-value parameters that may be missing from some spectra
+# It...doesn't work.
+	"""
+        for i in range(len(dm15s)):
+            #print dm15s[i]
+            if sum(dm15s[i]) == 0:
+                #print "all zeros here"
+                np.delete(dm15s, i, 1)
+                np.delete(dm15_ivars, i, 1)
+		
+	#uh..this crashes my computer. don't use this bit.
+	dm15s = dm15s[(dm15s != 0)-1]
+	dm15_ivars = dm15_ivars[(dm15s != 0)-1]
+	print dm15_ivars
+	"""
+	if len(dm15_ivars)==len(ivars):
+            print "No rows were removed :("
+############        
         if medmean == 1:
             template.flux = np.average(fluxes, weights=ivars, axis=0)
-	    template.age  = np.average(ages, weights=ivars, axis=0)
-	    template.dm15s = np.average(dm15s, weights=ivars, axis=0)
+            template.age  = np.average(ages, weights=ivars, axis=0)
+            template.dm15s = np.average(dm15s, weights=dm15_ivars, axis=0)
         if medmean == 2:
             template.flux = np.median(fluxes, axis=0)
-	    template.age  = np.median(ages, axis=0)
-	    template.dm15s = np.median(dm15s, axis=0)
+            template.age  = np.median(ages, axis=0)
+            template.dm15s = np.median(dm15s, axis=0)
         template.ivar = 1/np.sum(ivars, axis=0)
         try:
             template.redshift = sum(reds)/len(reds)

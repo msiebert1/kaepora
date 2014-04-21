@@ -157,7 +157,6 @@ def compprep(spectrum,sn_name,z,source):
     #old_var  = spectrum[:,2]  #errors
     old_var = genivar(old_wave, old_flux) #variance
     snr = getsnr(old_flux, old_var)
-    print 'S/N ratio', sn_name, snr
 
     if source == 'cfa' : # choosing source dataset
 #        z = ReadParam()
