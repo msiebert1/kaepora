@@ -432,17 +432,23 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
 #############################################################
 #remove_extremes will remove the peaks and dips from plotting
 #############################################################
-    """    
+    """
     def remove_extremes(data):
         original = []
         bad      = []
         bad_2    = []
-        original = data        
+        original = data  
+        new_array= []
         #data[np.argsort(data[:,1])]
         data = np.sort(data,1)
         length = len(data[0])
         new_max = np.int_(floor(length*.95))
         new_min = np.int_(ceil(length*.05))
+        for i in range(new_min,new_max):
+                new_array[0].append(data[0][i])
+                new_array[1].append(data[1][i])
+        print new_array
+           
         for i in range(length):
             if (original[1][i] <= data[1][new_min]):
                 bad.append(i)
@@ -455,6 +461,7 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
         for m in range(len(bad_2)):
             del original[0][bad_2[len(bad_2)-1-m]]
             del original[1][bad_2[len(bad_2)-1-m]]
+        
         return original
     
     print len(RF[0])
