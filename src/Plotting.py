@@ -312,7 +312,28 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
             plt.setp(Zxticklabels, visible=True)
         else:
             plt.setp(Zxticklabels, visible=False)
+#############################################################
+#remove_extremes will remove the peaks and dips from plotting
+#############################################################
+    def remove_extremes(data):
+        # sort the data array by the flux
+        sortedArray = sorted(zip(data[0],data[1]), key = operator.itemgetter(1))
 
+        # find the length of the array data. locate 95% and 05% indice
+        length = len(data[0])
+        newMax = np.int_(floor(length*.95))
+        newMin = np.int_(ceil(length*.05))
+        
+        # cut the sorted array down to the remaining 5-95% range
+        chopArray = []
+        for i in range(newMin,newMax):
+            chopArray.append(sortedArray[i])
+            # sort by wavelength of the chopped array
+        orderArray = sorted(chopArray, key = operator.itemgetter(0))
+        # unzip the array. make it a single 2D array
+        final = zip(*orderArray)
+        return final
+    
 #############################################################
 # The following function will take all the data sets to build  
 # the composite spectrum and lay each one over the next. 
@@ -367,7 +388,8 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
                     #print RF[j][i]
                     RFtrunc.append(RF[j][i])
             RF[j] = Scaling(RF[j], median(RFtrunc))
-    
+    #Not implemented until it can be fully tested
+    RF = remove_extremes(RF) 
     """
     for j in range(len_RF):
         if j % 2 != 0:
@@ -429,30 +451,7 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
         if j % 2 != 0:
             RDmax.append(max(RD[j])[0])
     """
-#############################################################
-#remove_extremes will remove the peaks and dips from plotting
-#############################################################
-    def remove_extremes(data):
-        # sort the data array by the flux
-        sortedArray = sorted(zip(data[0],data[1]), key = operator.itemgetter(1))
 
-        # find the length of the array data. locate 95% and 05% indice
-        length = len(data[0])
-        newMax = np.int_(floor(length*.95))
-        newMin = np.int_(ceil(length*.05))
-        
-        # cut the sorted array down to the remaining 5-95% range
-        chopArray = []
-        for i in range(newMin,newMax):
-            chopArray.append(sortedArray[i])
-            # sort by wavelength of the chopped array
-        orderArray = sorted(chopArray, key = operator.itemgetter(0))
-        # unzip the array. make it a single 2D array
-        final = zip(*orderArray)
-        return final
-    # Not implemented until it can be fully tested
-    # RF = remove_extremes(RF) 
-    
 #############################################################
 # The following section sets up the plotting figure information. 
 # it sets the size, color, title. 
