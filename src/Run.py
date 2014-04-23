@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 import time
-#import bootstrap
 """
 Here's the main function that anyone can use to run some analysis.
 
@@ -46,8 +45,8 @@ for n in range(queries):
     d["wavelengths{0}".format(n+1)]  = np.array([d["data{0}".format(n+1)]["Wavelength"]])
     d["fluxes{0}".format(n+1)]       = np.array([d["data{0}".format(n+1)]["Flux"]])
     d["variances{0}".format(n+1)]    = np.array([d["data{0}".format(n+1)]["Variance"]])
-    d["ages{0}".format(n+1)]         = np.array([d["data{0}".format(n+1)]["Age"]])
-    d["dm15s{0}".format(n+1)]        = np.array([d["data{0}".format(n+1)]["Dm_15s"]])
+    #d["ages{0}".format(n+1)]         = np.array([d["data{0}".format(n+1)]["Age"]])
+    #d["dm15s{0}".format(n+1)]        = np.array([d["data{0}".format(n+1)]["Dm_15s"]])
     
 
 #This chunk will create an array that's the right length for however many queries you used.
@@ -65,10 +64,10 @@ for n in range(queries):
     residual_array.append(residual_list[0][0])
     variance_array.append(d["wavelengths{0}".format(n+1)][0])
     variance_array.append(d["variances{0}".format(n+1)][0])
-    age_array.append(d["wavelengths{0}".format(n+1)][0])
-    age_array.append(d["ages{0}".format(n+1)][0])
-    dm15_array.append(d["wavelengths{0}".format(n+1)][0])
-    dm15_array.append(d["dm15s{0}".format(n+1)][0])
+    #age_array.append(d["wavelengths{0}".format(n+1)][0])
+    #age_array.append(d["ages{0}".format(n+1)][0])
+    #dm15_array.append(d["wavelengths{0}".format(n+1)][0])
+    #dm15_array.append(d["dm15s{0}".format(n+1)][0])
     name_array.append("composite{0}".format(n+1))
     name_array.append(" ")
 

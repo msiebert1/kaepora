@@ -90,6 +90,9 @@ def grab(sql_input, Full_query):
                 SN.flux[i] = 0
             if np.isnan(SN.ivar[i]):
                 SN.ivar[i] = 0
+	    SN.dm15s = np.zeros(len(SN.flux))
+	    if SN.flux[i] != 0:
+		SN.dm15s[i] = SN.dm15
     #Here we clean up the data we pulled
     #Some supernovae are missing important data, so we just get rid of them
     #This can take a very long time if you have more than 500 spectra
@@ -196,6 +199,7 @@ def average(SN_Array, template, medmean):
                 reds   = np.array([SN.redshift])
                 phases = np.array([SN.phase])
                 vels   = np.array([SN.velocity])
+		dm15s  = np.array([SN.dm15s])
             else:
                 try:
                     fluxes = np.append(fluxes, np.array([SN.flux]), axis=0)
@@ -203,6 +207,7 @@ def average(SN_Array, template, medmean):
                     reds   = np.append(reds, np.array([SN.redshift]), axis = 0)
                     phases = np.append(phases, np.array([SN.phase]), axis = 0)
                     vels   = np.append(vels, np.array([SN.velocity]), axis = 0)
+		    dm15s  = np.append(dm15s, np.array([SN.dm15s]), axis = 0)
                 except ValueError:
                     print "This should never happen!"
 
@@ -226,6 +231,8 @@ def average(SN_Array, template, medmean):
         
         if medmean == 1:
             template.flux = np.average(fluxes, weights=ivars, axis=0)
+	    template.phase = np.average(phases, axis=0)
+	    template.dm15s = np.average(dm15s, axis=0)
         if medmean == 2:
             template.flux = np.median(fluxes, axis=0)
         template.ivar = 1/np.sum(ivars, axis=0)
@@ -465,7 +472,7 @@ def main(Full_query, showplot = 0, medmean = 1, save_file = 'y'):
             plt.show()
         #Either writes data to file, or returns it to user
         #This part is still in progress
-        table = Table([template.wavelength, template.flux, template.ivar], names = ('Wavelength', 'Flux', 'Variance'))
+        table = Table([template.wavelength, template.flux, template.ivar, template.phase, template.dm15], names = ('Wavelength', 'Flux', 'Variance', 'Age', 'Dm_15s'))
         if save_file=='y':
             table.write(template.savedname,format='ascii')
             return template

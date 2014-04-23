@@ -114,7 +114,7 @@ import sqlite3 as sq3
 que_num = int(sys.argv[1])
 
 #connect to the database
-con = sq3.connect('SNe.db')
+con = sq3.connect('../data/SNe.db')
 
 #create a cursor object to execute commands
 cur_header = con.cursor()
