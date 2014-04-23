@@ -7,7 +7,7 @@ from pylab import *
 import matplotlib.gridspec as gridspec
 import scipy.optimize as optimize
 import random # new import so that colors in fill_between are random
-
+import operator
 # Eventually do scaling by choice
 # naming
 # rms data
@@ -432,42 +432,27 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
 #############################################################
 #remove_extremes will remove the peaks and dips from plotting
 #############################################################
-    """
     def remove_extremes(data):
-        original = []
-        bad      = []
-        bad_2    = []
-        original = data  
-        new_array= []
-        #data[np.argsort(data[:,1])]
-        data = np.sort(data,1)
+        # sort the data array by the flux
+        sortedArray = sorted(zip(data[0],data[1]), key = operator.itemgetter(1))
+
+        # find the length of the array data. locate 95% and 05% indice
         length = len(data[0])
-        new_max = np.int_(floor(length*.95))
-        new_min = np.int_(ceil(length*.05))
-        for i in range(new_min,new_max):
-                new_array[0].append(data[0][i])
-                new_array[1].append(data[1][i])
-        print new_array
-           
-        for i in range(length):
-            if (original[1][i] <= data[1][new_min]):
-                bad.append(i)
-        for j in range(length):
-            if (original[1][j] >= data[1][new_max]):
-                bad_2.append(j)
-        for k in range(len(bad)):
-            del original[0][bad[len(bad)-1-k]]
-            del original[1][bad[len(bad)-1-k]]
-        for m in range(len(bad_2)):
-            del original[0][bad_2[len(bad_2)-1-m]]
-            del original[1][bad_2[len(bad_2)-1-m]]
+        newMax = np.int_(floor(length*.95))
+        newMin = np.int_(ceil(length*.05))
         
-        return original
+        # cut the sorted array down to the remaining 5-95% range
+        chopArray = []
+        for i in range(newMin,newMax):
+            chopArray.append(sortedArray[i])
+            # sort by wavelength of the chopped array
+        orderArray = sorted(chopArray, key = operator.itemgetter(0))
+        # unzip the array. make it a single 2D array
+        final = zip(*orderArray)
+        return final
+    # Not implemented until it can be fully tested
+    # RF = remove_extremes(RF) 
     
-    print len(RF[0])
-    RF = remove_extremes(RF)
-    print len(RF[0])
-    """
 #############################################################
 # The following section sets up the plotting figure information. 
 # it sets the size, color, title. 
