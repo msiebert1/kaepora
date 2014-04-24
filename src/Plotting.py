@@ -315,9 +315,9 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
 #############################################################
 #remove_extremes will remove the peaks and dips from plotting
 #############################################################
-    def remove_extremes(data):
+    def remove_extremes(dataX,dataY):
         # sort the data array by the flux
-        sortedArray = sorted(zip(data[0],data[1]), key = operator.itemgetter(1))
+        sortedArray = sorted(zip(dataX,dataY), key = operator.itemgetter(1))
 
         # find the length of the array data. locate 95% and 05% indice
         length = len(data[0])
@@ -430,8 +430,52 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
     for j in range(len_RF):
         if j % 2 != 0:
             RFmax.append(max(RF[j])[0])
-    #RF = remove_extremes(RF) 
-    #len_RF = len(RF)
+    # The following code is to remove extreme data points
+    # the random peaks and dips. This will not be 
+    # implemented until composite.py works again
+    """
+    for k in range(len_RF):
+	if j % 2 != 0:
+	    combinArray_RF = []
+	    combinArray_RF = remove_extremes(RF[k],RF[k+1])
+	    RF[k].append(combinArray_RF[0])
+	    RF[k+1].append(combinArray_RF[1])
+
+    for k in range(len_RS):
+	if j % 2 != 0:
+	    combinArray_RS = []
+ 	    combinArray_RS = remove_extremes(RS[k],RS[k+1])
+	    RS[k].append(combinArray_RS[0])
+	    RS[k+1].append(combinArray_RS[1])
+
+    for k in range(len_SB):
+	if j % 2 != 0:
+	    combinArray_SB = []
+	    combinArray_SB = remove_extremes(SB[k],SB[k+1])
+	    SB[k].append(combinArray_SB[0])
+	    SB[k+1].append(combinArray_SB[1])
+
+    for k in range(len_AG):
+	if j % 2 != 0:
+	    combinArray_AG = []
+ 	    combinArray_AG = remove_extremes(AG[k],AG[k+1])
+	    AG[k].append(combinArray_AG[0])
+	    AG[k+1].append(combinArray_AG[1])
+    
+    for k in range(len_DE):
+	if j % 2 != 0:
+	    combinArray_DE = []
+	    combinArray_DE = remove_extremes(DE[k],DE[k+1])
+	    DE[k].append(combinArray_DE[0])
+	    DE[k+1].append(combinArray_DE[1])
+
+    for k in range(len_RD):
+	if j % 2 != 0:
+	    combinArray_RD = []
+ 	    combinArray_RD = remove_extremes(RD[k],RD[k+1])
+	    RD[k].append(combinArray_RD[0])
+	    RD[k+1].append(combinArray_RD[1])
+    """
     """
     for j in range(len_VA):
         if j % 2 != 0:
