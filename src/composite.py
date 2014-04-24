@@ -31,9 +31,6 @@ compare_spectrum = []
 
 class supernova(object):
     """Attributes can be added"""
-    
-class Parameters:
-    """Are we still using this?"""
 
 #Connect to database
 #change this address to whereever you locally stored the SNe.db
@@ -114,20 +111,6 @@ def grab(sql_input, Full_query):
     print len(SN_Array), "spectra remain"
     return SN_Array
 
-
-"""
-#This is something that could be implemented in the future
-#Only keeps one per supernova at max light. Condition can be changed later.
-for SN in full_array:
-    for row in max_light:
-        if SN.filename in row[1]:
-            SN_Array.append(SN)
-            SN.age = row[2]
-            SN.ages = np.zeros(len(SN.wavelength))
-            SN.ages.fill(SN.age)
-            #print SN.age
-print len(SN_Array)
-"""
 
 #gets as close as possible to matching the compare spectrum wavelength values
 def find_nearest(array,value):
@@ -290,33 +273,6 @@ def average(SN_Array, template, medmean):
         return template
 
 
-"""
-###This doesn't work. I don't know what it's supposed to do, but it ruins everything.
-###The output from this is not what we want to plot. (Sam 4/16)
-
-# Bootstrap code, bootstrap the spectra selected to make a composite spectrum
-def bootstrap(SN_Array):
-    
-    num = len(SN_Array)   # The number of spectra required in the SQL query
-    num_arr = np.arange(0, num, 1)  # Create a numpy array from 0 to number of spectra.
-
-    tries = int(raw_input("Enter number of bootstraps: "))  # Number of bootstraps.
-
-    sel_spec = [0] * tries  # Array for the bootstraped spectra
-
-    for i in range(tries):
-        sel_spec[i] = np.floor(np.random.uniform(0, num, num)).astype(int)
-
-        # Create an array to store up the bootstraped spectra.
-        spec_name = [0] * len(sel_spec[i])
-
-        for m in range(len(sel_spec[i])):
-            spec_name[m] = SN_Array[sel_spec[i][m]]
-
-    return spec_name
-
-"""
-
 
 def main(Full_query, showplot = 0, medmean = 1, save_file = 'y'):
     SN_Array = []
@@ -326,16 +282,6 @@ def main(Full_query, showplot = 0, medmean = 1, save_file = 'y'):
     sql_input = Full_query
 
     SN_Array = grab(sql_input, Full_query)
-    
-    
-    ### I inserted the function bootstrap in this composite code. (by Ricky, Apr 16, 2014)
-    ###I took it back out because it ruined the array and plotted some nonsense.
-    ###The function you added above looks nothing like bootstrap.py.
-    ###The plan was to call your piece of code from within this one, not add something that doesn't work.
-    #SN_Array = bootstrap(SN_Array_2) <---- This is bad.
-    ###The call should look like this, and bootstrap.py should have a main() function to call.
-    #SN_Array = bootstrap.main(SN_Array) <----- This is better
-
 
     opt = str(raw_input("Do you want to do bootstrapping? (y/n) "))
     if opt == 'n':
