@@ -430,8 +430,8 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
     for j in range(len_RF):
         if j % 2 != 0:
             RFmax.append(max(RF[j])[0])
-    RF = remove_extremes(RF) 
-    len_RF = len(RF)
+    #RF = remove_extremes(RF) 
+    #len_RF = len(RF)
     """
     for j in range(len_VA):
         if j % 2 != 0:
