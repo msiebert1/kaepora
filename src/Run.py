@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 import time
-#import bootstrap
 """
 Here's the main function that anyone can use to run some analysis.
 
@@ -14,21 +13,18 @@ Each one gets its data saved and the composite spectrum returned
 Then all of the composites that were created get plotted
 
 The next section sets up the plots to be used, and then plots using Plotting.py
-Right now it doesn't work all the time...but it will
+It mostly works at this point
 
 More can be added as our programs evolve
 
 There are a few parameters you should set beforehand.
-plot_name is where the plot showing both composite spectra together will be saved.
-wmin and wmax define the boundary of the plot.
+plot_name is where the plot showing all composite spectra together will be saved.
+title is the header on your plot
+name_array is the list of legend labels
+xmin and xmax define the boundary of the plot.
+Plots actually defines which plots get shown
 """
 queries = int(sys.argv[1])
-
-#Now the file name of the plot is labeled by time of creation, but you can personalize it if you want.
-#Or rename it once it's been saved.
-plot_name = str(queries) + '_composite_comparison, ' + (time.strftime("%H,%M,%S"))
-wmin = 3000
-wmax = 10000
 
 d={}
 for n in range(queries):
@@ -49,11 +45,10 @@ for n in range(queries):
     d["wavelengths{0}".format(n+1)]  = np.array([d["data{0}".format(n+1)]["Wavelength"]])
     d["fluxes{0}".format(n+1)]       = np.array([d["data{0}".format(n+1)]["Flux"]])
     d["variances{0}".format(n+1)]    = np.array([d["data{0}".format(n+1)]["Variance"]])
-    d["ages{0}".format(n+1)]         = np.array([d["data{0}".format(n+1)]["Age"]])
-    d["dm15s{0}".format(n+1)]        = np.array([d["data{0}".format(n+1)]["Dm_15s"]])
+    #d["ages{0}".format(n+1)]         = np.array([d["data{0}".format(n+1)]["Age"]])
+    #d["dm15s{0}".format(n+1)]        = np.array([d["data{0}".format(n+1)]["Dm_15s"]])
     
 
-# From now on, list the data you want to plot as [ Xdata, Ydata, Xdata_2, Ydata_2]
 #This chunk will create an array that's the right length for however many queries you used.
 plot_array     = []
 name_array     = []
@@ -69,20 +64,21 @@ for n in range(queries):
     residual_array.append(residual_list[0][0])
     variance_array.append(d["wavelengths{0}".format(n+1)][0])
     variance_array.append(d["variances{0}".format(n+1)][0])
-    age_array.append(d["wavelengths{0}".format(n+1)][0])
-    age_array.append(d["ages{0}".format(n+1)][0])
-    dm15_array.append(d["wavelengths{0}".format(n+1)][0])
-    dm15_array.append(d["dm15s{0}".format(n+1)][0])
+    #age_array.append(d["wavelengths{0}".format(n+1)][0])
+    #age_array.append(d["ages{0}".format(n+1)][0])
+    #dm15_array.append(d["wavelengths{0}".format(n+1)][0])
+    #dm15_array.append(d["dm15s{0}".format(n+1)][0])
     name_array.append("composite{0}".format(n+1))
     name_array.append(" ")
 
-#print variance_array # there were some problems with dimensionality, fixed now.
 
-##################
+#################
+#Names of each line are, by default, composite1, composite2, etc.
+#This is what shows up in the plot legend.
 #If you want to use custom names for your composites,
-#fill out and uncomment this next line
-#name_array = ["composite1name", " ", "composite2name", " ", etc]
-##################
+#fill out and uncomment this next line (you need to have spaces between each name)
+#name_array = ["name 1", " ", "name2", " ", etc]
+#################
 
 Relative_Flux   = plot_array #plots all given composites
 Variance        = variance_array # Check it out! Variances plot now.
@@ -99,14 +95,24 @@ Show_Data       = [Relative_Flux,Variance,Residuals,Spectra_Bin,Age,Delta,Redshi
 ## Available Plots:  Relative Flux, Variances, Residuals, Spectra/Bin, Age, Delta, Redshift
 ##                   0              1          2          3            4    5      6
 # the plots you want to create
-
-# All of these worked for me. Test with your own queries. (Sam, 4/16)
 # Choose the plot range and plot type!
 xmin         = 3000 
 xmax         = 10100
 Plots        = [0,1,2,4,5] 
 
-image_title  = "../plots/" + str(sys.argv[1]) + "_composites.png"
+#################
+#Now the file name of the plot is labeled by time of creation, but you can personalize it if you want.
+#Or rename it once it's been saved.
+
+plot_name = str(queries) + '_composite_comparison, ' + (time.strftime("%H,%M,%S"))
+image_title  = "../plots/" + plot_name + ".png"
+
+# Want a custom saved image name? Uncomment this next line...but leave the one above alone.
+#image_title  = "../plots/" + "Custome Title" + ".png"
 print "Plot saved as: " + image_title
-title        = "Composite Spectra Comparison"
+
+#Next line is the header on your plot
+title        = "Insert Title Here"
+################
+
 Plotting.main(Show_Data, Plots, image_title, title, Names, xmin,xmax)

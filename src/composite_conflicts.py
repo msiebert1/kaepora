@@ -74,7 +74,6 @@ def grab(sql_input, Full_query):
                 continue
             full_array.append(SN)
             SN_Array.append(SN)
-            # print SN.filename
         else:
             print "Invalid query...more support will come"
     print len(SN_Array), "spectra found"
@@ -86,24 +85,14 @@ def grab(sql_input, Full_query):
     #Within the interpolated spectra there are a lot of 'NaN' values
     #Now they become zeros so things work right
     for SN in SN_Array:
-        SN.age = np.array(SN.flux)
-        SN.dm15_array = np.array(SN.flux)
         for i in range(len(SN.flux)):
             if np.isnan(SN.flux[i]):
                 SN.flux[i] = 0
             if np.isnan(SN.ivar[i]):
                 SN.ivar[i] = 0
-            if np.isnan(SN.age[i]):
-                SN.age[i]  = 0
-            if np.isnan(SN.dm15_array[i]):
-                SN.dm15_array[i] = 0
-            if SN.age[i] != 0:
-                SN.age[i] = SN.phase
-            if SN.dm15_array[i] != 0:
-                SN.dm15_array[i] = SN.dm15
-            if np.isnan(SN.dm15_array[i]):
-                SN.dm15_array[i] = 0
-        #print SN.filename
+	    SN.dm15s = np.zeros(len(SN.flux))
+	    if SN.flux[i] != 0:
+		SN.dm15s[i] = SN.dm15
     #Here we clean up the data we pulled
     #Some supernovae are missing important data, so we just get rid of them
     #This can take a very long time if you have more than 500 spectra
@@ -203,27 +192,25 @@ def average(SN_Array, template, medmean):
         fluxes = []
         ivars  = []
         reds = []
-        ages = []
         for SN in SN_Array:
             if len(fluxes) == 0:
                 fluxes = np.array([SN.flux])
                 ivars  = np.array([SN.ivar])
                 reds   = np.array([SN.redshift])
                 phases = np.array([SN.phase])
-                ages   = np.array([SN.age])
                 vels   = np.array([SN.velocity])
-                dm15s  = np.array([SN.dm15_array])
+		dm15s  = np.array([SN.dm15s])
             else:
                 try:
                     fluxes = np.append(fluxes, np.array([SN.flux]), axis=0)
                     ivars  = np.append(ivars, np.array([SN.ivar]), axis=0)
                     reds   = np.append(reds, np.array([SN.redshift]), axis = 0)
                     phases = np.append(phases, np.array([SN.phase]), axis = 0)
-                    ages   = np.append(ages, np.array([SN.age]), axis = 0)
                     vels   = np.append(vels, np.array([SN.velocity]), axis = 0)
-                    dm15s  = np.append(dm15s, np.array([SN.dm15_array]), axis = 0)
+		    dm15s  = np.append(dm15s, np.array([SN.dm15s]), axis = 0)
                 except ValueError:
                     print "This should never happen!"
+
         #Make flux/ivar mask so we can average for pixels where everything has 0 ivar
         flux_mask = np.zeros(len(fluxes[0,:]))
         ivar_mask = np.zeros(len(fluxes[0,:]))
@@ -234,8 +221,6 @@ def average(SN_Array, template, medmean):
         #Add in flux/ivar mask
         fluxes = np.append(fluxes, np.array([flux_mask]), axis=0)
         ivars  = np.append(ivars, np.array([ivar_mask]), axis=0)
-        ages   = np.append(ages, np.array([flux_mask]), axis=0)
-        dm15s  = np.append(dm15s, np.array([flux_mask]), axis=0)
 
         #The way this was done before was actually creating a single value array...
         #This keeps them intact correctly.
@@ -243,35 +228,13 @@ def average(SN_Array, template, medmean):
         phases    = [phase for phase in phases if phase != None]
         vels      = [vel for vel in vels if vel != None]
         vels      = [vel for vel in vels if vel != -99.0]
-        dm15_ivars = np.array(ivars)
-############
-# This is supposed to get rid of lists where there are no dm15 values
-# The same logic will eventually be applied to phase and other single-value parameters that may be missing from some spectra
-# It...doesn't work.
-	"""
-        for i in range(len(dm15s)):
-            #print dm15s[i]
-            if sum(dm15s[i]) == 0:
-                #print "all zeros here"
-                np.delete(dm15s, i, 1)
-                np.delete(dm15_ivars, i, 1)
-		
-	#uh..this crashes my computer. don't use this bit.
-	dm15s = dm15s[(dm15s != 0)-1]
-	dm15_ivars = dm15_ivars[(dm15s != 0)-1]
-	print dm15_ivars
-	"""
-	if len(dm15_ivars)==len(ivars):
-            print "No rows were removed :("
-############        
+        
         if medmean == 1:
             template.flux = np.average(fluxes, weights=ivars, axis=0)
-            template.age  = np.average(ages, weights=ivars, axis=0)
-            template.dm15s = np.average(dm15s, weights=dm15_ivars, axis=0)
+	    template.phase = np.average(phases, axis=0)
+	    template.dm15s = np.average(dm15s, axis=0)
         if medmean == 2:
             template.flux = np.median(fluxes, axis=0)
-            template.age  = np.median(ages, axis=0)
-            template.dm15s = np.median(dm15s, axis=0)
         template.ivar = 1/np.sum(ivars, axis=0)
         try:
             template.redshift = sum(reds)/len(reds)
@@ -319,14 +282,13 @@ def bootstrap(SN_Array):
 
 
 def main(Full_query, showplot = 0, medmean = 1, save_file = 'y'):
-    SN_Array = []
+    SN_Array2 = []
     
     #Accept SQL query as input and then grab what we need
     print "SQL Query:", Full_query
     sql_input = Full_query
 
-    SN_Array = grab(sql_input, Full_query)
-    
+    SN_Array2 = grab(sql_input, Full_query)
     
     ### I inserted the function bootstrap in this composite code. (by Ricky, Apr 16, 2014)
     ###I took it back out because it ruined the array and plotted some nonsense.
@@ -334,12 +296,13 @@ def main(Full_query, showplot = 0, medmean = 1, save_file = 'y'):
     ###The plan was to call your piece of code from within this one, not add something that doesn't work.
     #SN_Array = bootstrap(SN_Array_2) <---- This is bad.
     ###The call should look like this, and bootstrap.py should have a main() function to call.
-    #SN_Array = bootstrap.main(SN_Array) <----- This is better
-
-
+    
     opt = str(raw_input("Do you want to do bootstrapping? (y/n) "))
-    if opt == 'n':
-	#finds the longest SN we have for our initial template
+    
+    if (opt == 'n'):
+    
+        SN_Array = SN_Array2
+        #finds the longest SN we have for our initial template
         lengths = []
         for SN in SN_Array:
             lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
@@ -349,7 +312,6 @@ def main(Full_query, showplot = 0, medmean = 1, save_file = 'y'):
         except IndexError:
             print "No spectra found"
             exit()
-        
     
         #scales data, makes a composite, and splices in non-overlapping data
         #Here is where we set our wavelength range for the final plot
@@ -357,13 +319,13 @@ def main(Full_query, showplot = 0, medmean = 1, save_file = 'y'):
         wmax    = 7500
         wavemin = composite.minwave
         wavemax = composite.maxwave
-    
+
         #finds range of useable data
         good     = np.where(len(np.where(((wavemin <= wmin) & (wavemax >= wmax)) > 100)))
         template = supernova()
         template = SN_Array[good[0]]
         template = composite
-        
+    
         #Starts our main loop
         i = 0
         n_start = 0
@@ -371,15 +333,14 @@ def main(Full_query, showplot = 0, medmean = 1, save_file = 'y'):
         scales  = []
         while (n_start != n_end):
             n_start = len([x for x in scales if x>0])
-            scales   = []       
+            scales   = []
             scales   = find_scales(SN_Array, template.flux, template.ivar)
             n_scale  = len([x for x in scales if x>0])
             SN_Array = scale_data(SN_Array, scales)
             template = average(SN_Array, template, medmean)
             n_end    = n_scale
             n_start  = n_end
-            
-            
+        
         print "Done."
         print "Average redshift =", template.redshift
         print "Average phase =", template.phase
@@ -389,24 +350,25 @@ def main(Full_query, showplot = 0, medmean = 1, save_file = 'y'):
         template.savedname = f_name + '.dat'
         lowindex  = np.where(template.wavelength == find_nearest(template.wavelength, wmin))
         highindex = np.where(template.wavelength == find_nearest(template.wavelength, wmax))
-        
+    
         #This plots the individual composite just so you can see how it 
         if int(showplot) == 1:
             plt.plot(template.wavelength[lowindex[0]:highindex[0]], template.flux[lowindex[0]:highindex[0]])
             plt.plot(template.wavelength[lowindex[0]:highindex[0]], template.ivar[lowindex[0]:highindex[0]])
-        
+    
             #This saves it, if you want to.
             plt.savefig('../plots/' + f_name + '.png')
             plt.show()
         #Either writes data to file, or returns it to user
         #This part is still in progress
-        table = Table([template.wavelength, template.flux, template.ivar, template.age, template.dm15s], names = ('Wavelength', 'Flux', 'Variance', 'Age', 'Dm_15s'))
+        table = Table([template.wavelength, template.flux, template.ivar], names = ('Wavelength', 'Flux', 'Variance'))
         if save_file=='y':
-                    table.write(template.savedname,format='ascii')
-                    return template
+            table.write(template.savedname,format='ascii')
+            return template
         else:
-                    return template
-    if opt == 'y':
+            return template
+                        
+    if (opt == 'y'):
         tries = int(raw_input("Enter number of bootstraps: "))  # Number of bootstraps.
         
         boot_flux = []
@@ -414,12 +376,13 @@ def main(Full_query, showplot = 0, medmean = 1, save_file = 'y'):
         
         
         for j in range(tries):
-            SN_Array2 = bootstrap.main(SN_Array)
+            SN_Array = bootstrap.main(SN_Array2)
+            #SN_Array = SN_Array2
             #finds the longest SN we have for our initial template
             lengths = []
-            for SN in SN_Array2:
+            for SN in SN_Array:
                 lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
-            temp = [SN for SN in SN_Array2 if len(SN.flux[np.where(SN.flux!=0)]) == max(lengths)]
+            temp = [SN for SN in SN_Array if len(SN.flux[np.where(SN.flux!=0)]) == max(lengths)]
             try:
                 composite = temp[0]
             except IndexError:
@@ -436,7 +399,7 @@ def main(Full_query, showplot = 0, medmean = 1, save_file = 'y'):
             #finds range of useable data
             good     = np.where(len(np.where(((wavemin <= wmin) & (wavemax >= wmax)) > 100)))
             template = supernova()
-            template = SN_Array2[good[0]]
+            template = SN_Array[good[0]]
             template = composite
         
             #Starts our main loop
@@ -447,10 +410,10 @@ def main(Full_query, showplot = 0, medmean = 1, save_file = 'y'):
             while (n_start != n_end):
                 n_start = len([x for x in scales if x>0])
                 scales   = []
-                scales   = find_scales(SN_Array2, template.flux, template.ivar)
+                scales   = find_scales(SN_Array, template.flux, template.ivar)
                 n_scale  = len([x for x in scales if x>0])
-                SN_Array2 = scale_data(SN_Array2, scales)
-                template = average(SN_Array2, template, medmean)
+                SN_Array = scale_data(SN_Array, scales)
+                template = average(SN_Array, template, medmean)
                 n_end    = n_scale
                 n_start  = n_end
             
@@ -497,7 +460,7 @@ def main(Full_query, showplot = 0, medmean = 1, save_file = 'y'):
         plt.close()
                 
                 #print median[lowindex[0]:highindex[0]]
-        f_name = "../plots/" + file_name.make_name(SN_Array2)
+        f_name = "../plots/" + file_name.make_name(SN_Array)
         template.savedname = f_name + '.dat'
         #This plots the individual composite just so you can see how it
         if int(showplot) == 1:
@@ -509,12 +472,41 @@ def main(Full_query, showplot = 0, medmean = 1, save_file = 'y'):
             plt.show()
         #Either writes data to file, or returns it to user
         #This part is still in progress
-	print template.phase
-        table = Table([template.wavelength, template.flux, template.ivar, template.age, template.dm15s], names = ('Wavelength', 'Flux', 'Variance', 'Age', 'Dm_15s'))
+        table = Table([template.wavelength, template.flux, template.ivar, template.phase, template.dm15], names = ('Wavelength', 'Flux', 'Variance', 'Age', 'Dm_15s'))
         if save_file=='y':
             table.write(template.savedname,format='ascii')
             return template
         else:
             return template
-if __name__ == "__main__":
-    main()
+        
+        """
+        print "Done."
+        print "Average redshift =", template.redshift
+        print "Average phase =", template.phase
+        print "Average velocity =", template.velocity
+        #This next line creates a unique filename for each run based on the sample set used
+        f_name = "../plots/" + file_name.make_name(SN_Array)
+        template.savedname = f_name + '.dat'
+        lowindex  = np.where(template.wavelength == find_nearest(template.wavelength, wmin))
+        highindex = np.where(template.wavelength == find_nearest(template.wavelength, wmax))
+        
+        #This plots the individual composite just so you can see how it
+        if int(showplot) == 1:
+            plt.plot(template.wavelength[lowindex[0]:highindex[0]], template.flux[lowindex[0]:highindex[0]])
+            plt.plot(template.wavelength[lowindex[0]:highindex[0]], template.ivar[lowindex[0]:highindex[0]])
+            
+            #This saves it, if you want to.
+            plt.savefig('../plots/' + f_name + '.png')
+            plt.show()
+        #Either writes data to file, or returns it to user
+        #This part is still in progress
+        table = Table([template.wavelength, template.flux, template.ivar], names = ('Wavelength', 'Flux', 'Variance'))
+        if save_file=='y':
+            table.write(template.savedname,format='ascii')
+            return template
+        else:
+            return template
+        """
+                        
+    if __name__ == "__main__":
+        main()
