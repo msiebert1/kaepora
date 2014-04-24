@@ -35,43 +35,58 @@ We only want to select spectra that have data for both redshift and phase, so bo
 But you can change the values to whatever you want, and add more parameters.
 """
 def run():
-	name='Composite_comparison'
-	morph=input('Morphologies: (E=1,E/S0=2,S0=3,S0a=4,Sa=5,Sab=6,Sb=7,Sbc=8,Sc=9,Scd=10,Sd/Irr=11)')
+	name='Composite_comparison,'
+	num=input('Number of queries: ')
+	morph_range=[]
+	i=0
+	while (i<num):
+		morph=input('Select morphology range: (E=1,E/S0=2,S0=3,S0a=4,Sa=5,Sab=6,Sb=7,Sbc=8,Sc=9,Scd=10,Sd/Irr=11)')
+		morph_range.append(morph)
+		i+=1
+	
 	labels=[]
-	if 1 in morph:
-		labels.append('Elliptical')
-		name+=',E'
-	if 2 in morph:
-		labels.append('Elliptical/S0')
-		name+=',E&S0'
-	if 3 in morph:
-		labels.append('S0')
-		name+=',S0'
-	if 4 in morph:
-		labels.append('S0a')
-		name+=',S0a'
-	if 5 in morph:
-		labels.append('SpiralA')
-		name+=',SA'
-	if 6 in morph:
-		labels.append('SpiralAB')
-		name+=',SAB'
-	if 7 in morph:
-		labels.append('SpiralB')
-		name+=',SB'
-	if 8 in morph:
-		labels.append('SpiralBC')
-		name+=',SBC'
-	if 9 in morph:
-		labels.append('SpiralC')
-		name+=',SC'
-	if 10 in morph:
-		labels.append('SprialCD')
-		name+=',SCD'
-	if 11 in morph:
-		labels.append('SprialD/Irr')
-		name+=',SD&Irr'
-		
+	for morph in morph_range:
+		label=''
+		n=''
+		if morph[0] <= 1 <= morph[1]:
+			label+=',E'
+			n+=',E'
+		if morph[0] <= 2 <= morph[1]:
+			label+=',E&S0'
+			n+=',E&S0'
+		if morph[0] <= 3 <= morph[1]:
+			label+=',S0'
+			n+=',S0'
+		if morph[0] <= 4 <= morph[1]:
+			label+=',S0a'
+			n+=',S0a'
+		if morph[0] <= 5 <= morph[1]:
+			label+=',SA'
+			n+=',SA'
+		if morph[0] <= 6 <= morph[1]:
+			label+=',SAB'
+			n+=',SAB'
+		if morph[0] <= 7 <= morph[1]:
+			label+=',SB'
+			n+=',SB'
+		if morph[0] <= 8 <= morph[1]:
+			label+=',SBC'
+			n+=',SBC'
+		if morph[0] <= 9 <= morph[1]:
+			label+=',SC'
+			n+=',SC'
+		if morph[0] <= 10 <= morph[1]:
+			label+=',SCD'
+			n+=',SCD'
+		if morph[0] <= 11 <= morph[1]:
+			label+=',SD&Irr'
+			n+=',SD&Irr'
+		n=n[1:]
+		n='['+n+']'
+		label=label[1:]
+		labels.append(label)
+		name+=n
+	
 	params=input('Select parameters: (Redshift=1,Phase=2,Dm15=3,M_B=4,B_mMinusV_m=5)')
 	query='SELECT * FROM Supernovae Where '
 	if 1 in params:
@@ -95,20 +110,22 @@ def run():
 		query += 'B_mMinusV_m BETWEEN ' + str(range[0]) + ' AND ' + str(range[1]) + ' AND '
 		name+=',B_m-V_m['+str(range[0])+','+str(range[1])+']'
 
-	query += 'Morphology='
+	query += 'Morphology '
 
 	queries=[]
 	queries.append(sys.argv)
-	queries.append(str(len(morph)))
-	for host in morph:
-		queries.append(query+str(host))
+	queries.append(str(num))
+	for morph in morph_range:
+		queries.append(query + ' BETWEEN ' + str(morph[0]) + ' AND ' + str(morph[1]))
 
 	#labels=['SpiralA,','SpiralAB','SpiralB','SpiralBC','SpiralC','SpiralCD']
 	#scales=composite.find_scales(composites,composites[0].flux,composites[0].ivar)
 		
 	plot_name = name # + ',avgphase-' + str("%.2f" % avgphase) + ',avgred-' + str("%.2f" % avgred)
 	
-	galrun.main(queries,plot_name,labels)
+	plots=input('Choose plots: (RelFlux=0,Var=1,Res=2,Sp/Bin=3,Age=4,Delta=5,Red=6)')
+	
+	galrun.main(queries,plot_name,plots,labels)
 	
 cont=0
 while(cont==0):
@@ -118,24 +135,3 @@ while(cont==0):
 	else:
 		cont +=1
 	
-
-	"""
-	#This makes, shows, and saves a quick comparison plot...we can probably get rid of this when plotting.main works.
-	#lowindex = np.where(composites[0].wavelength == composite.find_nearest(composites[0].wavelength, wmin))
-	#highindex = np.where(composite[0].wavelength == composite.find_nearest(composites[0].wavelength, wmax))
-
-	plt.figure(1)
-	i=0
-	for comp in composites:
-		plt.plot(comp.wavelength, scales[i]*comp.flux,label=labels[i])
-		i+=1
-	plt.title(plot_name)
-	plt.xlabel('Wavelength')
-	plt.ylabel('Flux')
-	plt.xlim(wmin,wmax)
-	plt.ylim(bottom=0)
-	#[lowindex[0]:highindex[0]]
-	legend=plt.legend(loc='upper right')
-	plt.savefig('../plots/' + plot_name + '.png')
-	plt.show()
-	"""
