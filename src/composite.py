@@ -185,8 +185,11 @@ def average(SN_Array, template, medmean):
         #print fluxes, errors
         fluxes = []
         ivars  = []
-        reds = []
-        ages = []
+        reds   = []
+        phases = []
+        ages   = []
+        vels   = []
+        dm15s  = []
         for SN in SN_Array:
             if len(fluxes) == 0:
                 fluxes = np.array([SN.flux])
@@ -217,15 +220,20 @@ def average(SN_Array, template, medmean):
         #Add in flux/ivar mask
         fluxes = np.append(fluxes, np.array([flux_mask]), axis=0)
         ivars  = np.append(ivars, np.array([ivar_mask]), axis=0)
+        reds   = np.append(reds, np.array([flux_mask]), axis=0)
+        phases = np.append(phases, np.array([flux_mask]), axis=0)
         ages   = np.append(ages, np.array([flux_mask]), axis=0)
+        vels   = np.append(vels, np.array([flux_mask]), axis=0)
         dm15s  = np.append(dm15s, np.array([flux_mask]), axis=0)
 
         #The way this was done before was actually creating a single value array...
         #This keeps them intact correctly.
         reds      = [red for red in reds if red != None]
         phases    = [phase for phase in phases if phase != None]
+        ages      = [age for age in ages if age != None]
         vels      = [vel for vel in vels if vel != None]
         vels      = [vel for vel in vels if vel != -99.0]
+        dm15s     = [dm15 for dm15 in dm15s if dm15 != None]
         dm15_ivars = np.array(ivars)
 ############
 # This is supposed to get rid of lists where there are no dm15 values
@@ -248,13 +256,17 @@ def average(SN_Array, template, medmean):
             print "No rows were removed :("
 ############        
         if medmean == 1:
-            template.flux = np.average(fluxes, weights=ivars, axis=0)
-            template.age  = np.average(ages, weights=ivars, axis=0)
-            template.dm15s = np.average(dm15s, weights=dm15_ivars, axis=0)
+            template.flux  = np.average(fluxes, weights=ivars, axis=0)
+            template.phase = np.average(phases, weights=ivars, axis=0)
+            template.age   = np.average(ages, weights=ivars, axis=0)
+            template.vel   = np.average(vels, weights=ivars, axis=0)
+            template.dm15  = np.average(dm15s, weights=dm15_ivars, axis=0)
         if medmean == 2:
-            template.flux = np.median(fluxes, axis=0)
-            template.age  = np.median(ages, axis=0)
-            template.dm15s = np.median(dm15s, axis=0)
+            template.flux  = np.median(fluxes, axis=0)
+            template.phase = np.median(phases, axis=0)
+            template.age   = np.median(ages, axis=0)
+            template.vel   = np.median(vels, axis=0)
+            template.dm15  = np.median(dm15s, axis=0)
         template.ivar = 1/np.sum(ivars, axis=0)
         try:
             template.redshift = sum(reds)/len(reds)
@@ -346,7 +358,7 @@ def main(Full_query, showplot = 0, medmean = 1, save_file = 'y'):
             plt.show()
         #Either writes data to file, or returns it to user
         #This part is still in progress
-        table = Table([template.wavelength, template.flux, template.ivar, template.age, template.dm15s], names = ('Wavelength', 'Flux', 'Variance', 'Age', 'Dm_15s'))
+        table = Table([template.wavelength, template.flux, template.ivar, template.age, template.vel, template.dm15], names = ('Wavelength', 'Flux', 'Variance', 'Age', 'Velocity', 'Dm_15'))
         if save_file=='y':
                     table.write(template.savedname,format='ascii')
                     return template
