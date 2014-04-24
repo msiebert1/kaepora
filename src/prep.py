@@ -107,6 +107,7 @@ For the spectra that does not cover the whole range of specified wavelength,
 we output the outside values as NAN
 """
 
+from datafidelity import *  # Get variance from the datafidelity outcome
 
 def Interpo (wave, flux, variance) :
     wave_min = 1500
@@ -131,11 +132,14 @@ def Interpo (wave, flux, variance) :
     inter_flux = inter.splev(wavelength, influx)	#fits b-spline over wavelength range
     inter_var  = inter.splev(wavelength, invar)   # doing the same with errors
 
+    new_inter_var = clip(wavelength, inter_flux, inter_var) #clip bad points in flux
+    new_inter_var[new_inter_var < 0] = 0 #make sure there are no negative points!
+
     missing_data = np.where((wavelength < lower) | (wavelength > upper))
     inter_flux[missing_data] = float('NaN')  # set the bad values to NaN !!!
-    inter_var[missing_data] =  float('NaN')
+    new_inter_var[missing_data] =  float('NaN')
 
-    output = np.array([wavelength, inter_flux, inter_var]) # put the interpolated data into the new table
+    output = np.array([wavelength, inter_flux, new_inter_var]) # put the interpolated data into the new table
 
     return output # return new table
 
@@ -147,8 +151,6 @@ def getsnr(flux, ivar) :
     snr = flux/(np.divide(1.0, sqvar))
     snr_med = np.median(snr)
     return snr_med
-
-from datafidelity import *  # Get variance from the datafidelity outcome
 
 
 def compprep(spectrum,sn_name,z,source):
