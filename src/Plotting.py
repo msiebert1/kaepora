@@ -389,7 +389,7 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
                     RFtrunc.append(RF[j][i])
             RF[j] = Scaling(RF[j], median(RFtrunc))
     #Not implemented until it can be fully tested
-    RF = remove_extremes(RF) 
+    
     """
     for j in range(len_RF):
         if j % 2 != 0:
@@ -430,7 +430,7 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
     for j in range(len_RF):
         if j % 2 != 0:
             RFmax.append(max(RF[j])[0])
-    
+    RF = remove_extremes(RF) 
     """
     for j in range(len_VA):
         if j % 2 != 0:
