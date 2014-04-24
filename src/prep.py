@@ -154,8 +154,11 @@ from datafidelity import *  # Get variance from the datafidelity outcome
 def compprep(spectrum,sn_name,z,source):
     old_wave = spectrum[:,0]	    #wavelengths
     old_flux = spectrum[:,1] 	#fluxes
-    #old_var  = spectrum[:,2]  #errors
-    old_var = genivar(old_wave, old_flux) #variance
+    try:
+        old_error = spectrum[:, 2] # check if supernovae has error array
+    except IndexError:
+        old_error = np.array([0]) # if not, set default
+    old_var = genivar(old_wave, old_flux, old_error) #variance
     snr = getsnr(old_flux, old_var)
 
     if source == 'cfa' : # choosing source dataset
@@ -172,7 +175,8 @@ def compprep(spectrum,sn_name,z,source):
     new_spectrum = dered(sne, sn_name, old_wave, old_flux)
     new_wave = old_wave/(1.+z)
     new_flux = new_spectrum
-    new_var  = genivar(new_wave, new_flux) #variance
+    new_error = old_error # Placeholder if it needs to be changed
+    new_var  = genivar(new_wave, new_flux, new_error) #variance
     #var = new_flux*0+1
     newdata = Interpo(new_wave, new_flux, new_var) # Do the interpolation
 #    print 'new spectra',newdata
