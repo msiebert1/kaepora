@@ -129,13 +129,12 @@ def addsky(wavelength, flux, error, med_error):
 ## genivar(wavelength, flux, float vexp = 0.005, float nsig = 5.0)
 #
 
-def genivar(wavelength, flux, varflux = 0, vexp = 0.0008, nsig = 5.0):
+def genivar(wavelength, flux, varflux = np.array([0]), vexp = 0.0008, nsig = 5.0):
 
     # Check to see if it has a variance already
-    try:
-        if varflux == 0:
-            varflux = np.ones(len(wavelength))
-    except ValueError:
+    if len(np.where(varflux == 0)[0]) > 0:
+        varflux = np.ones(len(wavelength))
+    else:
         ivar = 1 / (varflux**2)
         return ivar
     

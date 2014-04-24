@@ -58,6 +58,34 @@ def gsmooth(x_array, y_array, var_y, vexp = 0.005, nsig = 5.0):
 
 ############################################################################
 #
+# Function clip() tries to identify absorption lines and cosmic rays
+# Required input is wavelength, flux and inverse variance arrays
+
+def clip(wave, flux, ivar, scale = 4, spread = 8):
+    # Create an array of all ones
+    var = np.ones(len(flux), float)
+    
+    # Create 2 smoothed fluxes, of varying vexp
+    sflux = gsmooth(wave, flux, var, 0.002)
+    
+    # Take the difference of the two fluxes and smooth
+    err = abs(flux - sflux)  
+    serr = gsmooth(wave, err, var, 0.008)
+
+    # Find the wavelengths that need to be clipped (omitting 5800-6000 region)
+    bad_wave = wave[np.where((err/serr > scale) & ((wave < 5800.0) | (wave > 6000.0)))]
+
+    # Find indices for general clipping
+    bad = np.array([], int)
+    for i in range(len(bad_wave)):
+        bad = np.append(bad, np.where(abs(wave - bad_wave[i]) < spread))
+
+    # Set ivar to 0 for those points and return
+    ivar[bad] = 0
+    return ivar
+
+############################################################################
+#
 # Function to add sky over a wavelength range
 #
 def addsky(wavelength, flux, error, med_error):
@@ -101,16 +129,14 @@ def addsky(wavelength, flux, error, med_error):
 ## genivar(wavelength, flux, float vexp = 0.005, float nsig = 5.0)
 #
 
-def genivar(wavelength, flux, varflux = 0, vexp = 0.0008, nsig = 5.0):
+def genivar(wavelength, flux, varflux = np.array([0]), vexp = 0.0008, nsig = 5.0):
 
-    # Check to see if it has a variance already
-    try:
-        if varflux == 0:
-            varflux = np.ones(len(wavelength))
-    except ValueError:
+    # Check to see if it has a variance already, or if there are zeroes
+    if len(np.where(varflux == 0)[0]) > 0:
+        varflux = np.ones(len(wavelength))
+    else:
         ivar = 1 / (varflux**2)
-        ivar_new = clip(wavelength, flux, ivar)
-        return ivar_new
+        return ivar
     
     # Smooth original flux
     new_flux = gsmooth(wavelength, flux, varflux, vexp, nsig)
@@ -141,34 +167,4 @@ def genivar(wavelength, flux, varflux = 0, vexp = 0.0008, nsig = 5.0):
     ivar = 1/(sm_error_new**2)
     
     # Return generated variance
-    return ivar
-
-############################################################################
-#
-# Function clip() scans data and clips any bad points
-# Required input is an array of fluxes
-# Optional inputs are the upper and lower limits for the ratio
-# Syntax is clip(flux_array, upper = 1.7, lower = 0.5)
-
-def clip(wave, flux, ivar):
-    # Create an array of all ones
-    var = np.ones(len(flux), float)
-    
-    # Create 2 smoothed fluxes, of varying vexp
-    sflux = gsmooth(wave, flux, var, 0.002)
-    
-    # Take the difference of the two fluxes and smooth
-    err = abs(flux - sflux)  
-    serr = gsmooth(wave, err, var, 0.008)
-
-    # Find the wavelengths that need to be clipped (omitting 5800-6000 region)
-    bad_wave = wave[np.where((err/serr > 4) & ((wave < 5800.0) | (wave > 6000.0)))]
-
-    # Find indices for general clipping
-    bad = np.array([], int)
-    for i in range(len(bad_wave)):
-        bad = np.append(bad, np.where(abs(wave - bad_wave[i]) < 8))
-
-    # Set ivar to 0 for those points and return
-    ivar[bad] = 0
     return ivar

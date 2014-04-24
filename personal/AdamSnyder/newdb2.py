@@ -207,6 +207,8 @@ bsnip_vals = read_bsnip_data('obj_info_table.txt')
 #ignore bad files
 spectra_ignore = ['sn1994T-19940612.25-mmt.flm',
                                 'sn2000dn-20001006.25-fast.flm',
+                                'sn1996ai-19960620.17-fast.flm',
+                                'sn1994T-19940612.25-mmt.flm',
                                 'sn2006bt-20060502.33-fast.flm',
                                 'sn2006bt-20060503.33-fast.flm',
                                 'SN06mr_061113_g01_BAA_IM.dat',

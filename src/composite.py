@@ -73,6 +73,7 @@ def grab(sql_input, Full_query):
                 continue
             full_array.append(SN)
             SN_Array.append(SN)
+            # print SN.filename
         else:
             print "Invalid query...more support will come"
     print len(SN_Array), "spectra found"
