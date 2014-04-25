@@ -85,6 +85,8 @@ def grab(sql_input, Full_query):
     for SN in SN_Array:
         SN.age = np.array(SN.flux)
         SN.dm15_array = np.array(SN.flux)
+	SN.red_array  = np.array(SN.flux)
+	SN.vel        = np.array(SN.flux)
         for i in range(len(SN.flux)):
             if np.isnan(SN.flux[i]):
                 SN.flux[i] = 0
@@ -100,6 +102,15 @@ def grab(sql_input, Full_query):
                 SN.dm15_array[i] = SN.dm15
             if np.isnan(SN.dm15_array[i]):
                 SN.dm15_array[i] = 0
+	    if SN.red_array[i] != 0:
+		SN.red_array[i] = SN.redshift	    
+	    if np.isnan(SN.red_array[i]):
+		SN.red_array[i] = 0
+	    if SN.vel[i] != 0:
+		SN.vel[i] = SN.velocity
+	    if np.isnan(SN.vel[i]):
+		SN.vel[i] = 0
+
         #print SN.filename
     #Here we clean up the data we pulled
     #Some supernovae are missing important data, so we just get rid of them
@@ -194,19 +205,19 @@ def average(SN_Array, template, medmean):
             if len(fluxes) == 0:
                 fluxes = np.array([SN.flux])
                 ivars  = np.array([SN.ivar])
-                reds   = np.array([SN.redshift])
+                reds   = np.array([SN.red_array])
                 phases = np.array([SN.phase])
                 ages   = np.array([SN.age])
-                vels   = np.array([SN.velocity])
+                vels   = np.array([SN.vel])
                 dm15s  = np.array([SN.dm15_array])
             else:
                 try:
                     fluxes = np.append(fluxes, np.array([SN.flux]), axis=0)
                     ivars  = np.append(ivars, np.array([SN.ivar]), axis=0)
-                    reds   = np.append(reds, np.array([SN.redshift]), axis = 0)
+                    reds   = np.append(reds, np.array([SN.red_array]), axis = 0)
                     phases = np.append(phases, np.array([SN.phase]), axis = 0)
                     ages   = np.append(ages, np.array([SN.age]), axis = 0)
-                    vels   = np.append(vels, np.array([SN.velocity]), axis = 0)
+                    vels   = np.append(vels, np.array([SN.vel]), axis = 0)
                     dm15s  = np.append(dm15s, np.array([SN.dm15_array]), axis = 0)
                 except ValueError:
                     print "This should never happen!"
@@ -221,7 +232,7 @@ def average(SN_Array, template, medmean):
         fluxes = np.append(fluxes, np.array([flux_mask]), axis=0)
         ivars  = np.append(ivars, np.array([ivar_mask]), axis=0)
         reds   = np.append(reds, np.array([flux_mask]), axis=0)
-        phases = np.append(phases, np.array([flux_mask]), axis=0)
+        #phases = np.append(phases, np.array([flux_mask]), axis=0)
         ages   = np.append(ages, np.array([flux_mask]), axis=0)
         vels   = np.append(vels, np.array([flux_mask]), axis=0)
         dm15s  = np.append(dm15s, np.array([flux_mask]), axis=0)
@@ -231,8 +242,8 @@ def average(SN_Array, template, medmean):
         reds      = [red for red in reds if red != None]
         phases    = [phase for phase in phases if phase != None]
         ages      = [age for age in ages if age != None]
-        vels      = [vel for vel in vels if vel != None]
-        vels      = [vel for vel in vels if vel != -99.0]
+        #vels      = [vel for vel in vels if vel != None]
+        #vels      = [vel for vel in vels if vel != -99.0]
         dm15s     = [dm15 for dm15 in dm15s if dm15 != None]
         dm15_ivars = np.array(ivars)
 ############
@@ -257,21 +268,23 @@ def average(SN_Array, template, medmean):
 ############        
         if medmean == 1:
             template.flux  = np.average(fluxes, weights=ivars, axis=0)
-            template.phase = np.average(phases, weights=ivars, axis=0)
+            #template.phase = np.average(phases, weights=ivars, axis=0)
             template.age   = np.average(ages, weights=ivars, axis=0)
             template.vel   = np.average(vels, weights=ivars, axis=0)
             template.dm15  = np.average(dm15s, weights=dm15_ivars, axis=0)
+	    template.red_array = np.average(reds, weights = ivars, axis=0)
         if medmean == 2:
             template.flux  = np.median(fluxes, axis=0)
             template.phase = np.median(phases, axis=0)
             template.age   = np.median(ages, axis=0)
             template.vel   = np.median(vels, axis=0)
             template.dm15  = np.median(dm15s, axis=0)
+	    template.red_array = np.median(reds, axis=0)
         template.ivar = 1/np.sum(ivars, axis=0)
-        try:
-            template.redshift = sum(reds)/len(reds)
-        except ZeroDivisionError:
-            template.redshift = "No redshift data"
+        #try:
+        #    template.redshift = sum(reds)/len(reds)
+        #except ZeroDivisionError:
+        #    template.redshift = "No redshift data"
         try:
             template.phase = sum(phases)/len(phases)
         except ZeroDivisionError:
@@ -343,7 +356,9 @@ def main(Full_query, showplot = 0, medmean = 1, save_file = 'y'):
         print "Average phase =", template.phase
         print "Average velocity =", template.velocity
         #This next line creates a unique filename for each run based on the sample set used
-        f_name = "../plots/" + file_name.make_name(SN_Array)
+	#### file_name.py needs to be adjusted
+        #f_name = "../plots/" + file_name.make_name(SN_Array)
+	f_name = "../plots/" + "Test_composite"
         template.savedname = f_name + '.dat'
         lowindex  = np.where(template.wavelength == find_nearest(template.wavelength, wmin))
         highindex = np.where(template.wavelength == find_nearest(template.wavelength, wmax))

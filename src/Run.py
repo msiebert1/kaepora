@@ -46,7 +46,8 @@ for n in range(queries):
     d["fluxes{0}".format(n+1)]       = np.array([d["data{0}".format(n+1)]["Flux"]])
     d["variances{0}".format(n+1)]    = np.array([d["data{0}".format(n+1)]["Variance"]])
     d["ages{0}".format(n+1)]         = np.array([d["data{0}".format(n+1)]["Age"]])
-    d["dm15s{0}".format(n+1)]        = np.array([d["data{0}".format(n+1)]["Dm_15s"]])
+    d["dm15s{0}".format(n+1)]        = np.array([d["data{0}".format(n+1)]["Dm_15"]])
+    d["vels{0}".format(n+1)]         = np.array([d["data{0}".format(n+1)]["Velocity"]])
     
 
 #This chunk will create an array that's the right length for however many queries you used.
@@ -56,6 +57,7 @@ residual_array = []
 variance_array = []
 age_array      = []
 dm15_array     = []
+vel_array      = []
 for n in range(queries):
     plot_array.append(d["wavelengths{0}".format(n+1)])
     plot_array.append(d["fluxes{0}".format(n+1)])
@@ -68,6 +70,8 @@ for n in range(queries):
     age_array.append(d["ages{0}".format(n+1)][0])
     dm15_array.append(d["wavelengths{0}".format(n+1)][0])
     dm15_array.append(d["dm15s{0}".format(n+1)][0])
+    vel_array.append(d["wavelengths{0}".format(n+1)][0])
+    vel_array.append(d["vels{0}".format(n+1)][0])
     name_array.append("composite{0}".format(n+1))
     name_array.append(" ")
 
