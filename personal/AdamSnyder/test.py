@@ -12,51 +12,93 @@ import scipy.interpolate as inter
 import math
 from datafidelity import *  # Get variance from the datafidelity outcome
 
-def Interpo (wave, flux, variance) :
-    wave_min = 1500
-    wave_max = 12000
-    dw = 2
+mn.patch()
 
-    #wavelength = np.linspace(wave_min,wave_max,(wave_max-wave_min)/pix+1)
-    wavelength = np.arange(math.ceil(wave_min), math.floor(wave_max), dtype=int, step=dw) #creates N equally spaced wavelength values
-    inter_flux = []
-    inter_var  = []
-    output     = []
+#Sets up some lists for later
+SN_Array = []
+full_array = []
 
-    lower = wave[0] # Find the area where interpolation is valid
-    upper = wave[-1]
+def grab(sql_input, Full_query):
+    print "Collecting data..."
+    SN_Array = []
+    cur.execute(sql_input)
+    for row in cur:
+        if 1 == 1:
+            SN           = supernova()
+            SN.filename  = row[0]
+            SN.name      = row[1]
+            SN.source    = row[2]
+            SN.redshift  = row[3]
+            SN.phase     = row[4]
+            SN.minwave   = row[5]
+            SN.maxwave   = row[6]
+            SN.dm15      = row[7]
+            SN.m_b       = row[8]
+            SN.B_minus_v = row[9]
+            SN.velocity  = row[10]
+            SN.morph     = row[11]
+            SN.carbon    = row[12]
+            SN.GasRich   = row[13]
+            SN.SNR       = row[14]
+            interp       = msg.unpackb(row[15])
+            SN.interp    = interp
+            try:
+                SN.wavelength = SN.interp[0,:]
+                SN.flux       = SN.interp[1,:]
+                SN.ivar       = SN.interp[2,:]
+            except TypeError:
+                continue
+            full_array.append(SN)
+            SN_Array.append(SN)
+            # print SN.filename
+        else:
+            print "Invalid query...more support will come"
+    print len(SN_Array), "spectra found"
 
-    good_data = np.where((wave >= lower) & (wave <= upper))	#creates an array of wavelength values between minimum and maximum wavelengths from new spectrum
+    #cut the array down to be more manageable
+    #Used mostly in testing, if you want the full array of whatever you're looking at, comment this line out
+    #SN_Array = SN_Array[0:10]
+    
+    #Within the interpolated spectra there are a lot of 'NaN' values
+    #Now they become zeros so things work right
+    for SN in SN_Array:
+        SN.age = np.array(SN.flux)
+        SN.dm15_array = np.array(SN.flux)
+        for i in range(len(SN.flux)):
+            if np.isnan(SN.flux[i]):
+                SN.flux[i] = 0
+            if np.isnan(SN.ivar[i]):
+                SN.ivar[i] = 0
+            if np.isnan(SN.age[i]):
+                SN.age[i]  = 0
+            if np.isnan(SN.dm15_array[i]):
+                SN.dm15_array[i] = 0
+            if SN.age[i] != 0:
+                SN.age[i] = SN.phase
+            if SN.dm15_array[i] != 0:
+                SN.dm15_array[i] = SN.dm15
+            if np.isnan(SN.dm15_array[i]):
+                SN.dm15_array[i] = 0
+        #print SN.filename
+    #Here we clean up the data we pulled
+    #Some supernovae are missing important data, so we just get rid of them
+    #This can take a very long time if you have more than 500 spectra
+    SN_Array = [SN for SN in SN_Array if hasattr(SN, 'wavelength')]
+    SN_Array = [SN for SN in SN_Array if hasattr(SN, 'ivar')]
+    SN_Array = [SN for SN in SN_Array if SN.phase != None]
+    SN_Array = [SN for SN in SN_Array if SN.redshift != None]
+    print len(SN_Array), "spectra remain"
+    return SN_Array
 
-    influx = inter.splrep(wave[good_data], flux[good_data])	#creates b-spline from new spectrum
+sql_input = 'Stuff'
+X = []
+Y = []
 
-    invar  = inter.splrep(wave[good_data], variance[good_data]) # doing the same with the errors
+SN_Array = grab(sql_input, sql_input)
 
-    inter_flux = inter.splev(wavelength, influx)	#fits b-spline over wavelength range
-    inter_var  = inter.splev(wavelength, invar)   # doing the same with errors
+for SN in SN_Array:
+    X.append(SN.B_minus_v)
+    Y.append(SN.velocity)
 
-    new_inter_var = clip(wavelength, inter_flux, inter_var)
-    new_inter_var[new_inter_var < 0] = 0
-
-    missing_data = np.where((wavelength < lower) | (wavelength > upper))
-    inter_flux[missing_data] = float('NaN')  # set the bad values to NaN !!!
-    new_inter_var[missing_data] =  float('NaN')
-
-    output = np.array([wavelength, inter_flux, new_inter_var]) # put the interpolated data into the new table
-
-    return output # return new table
-
-SN = np.genfromtxt('../../data/spectra/bsnip/sn2002ha-20021102-ui-corrected.flm')
-
-wavelength = SN[:,0]
-flux = SN[:,1]
-try:
-    error = SN[:,2]
-except IndexError:
-    error = np.array([0])
-ivar = genivar(wavelength, flux, error)
-
-newdata = Interpo(wavelength, flux, ivar)
-
-plt.plot(newdata[0,:], newdata[1,:])
+plt.plot(X, Y)
 plt.show()

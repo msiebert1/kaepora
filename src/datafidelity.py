@@ -125,7 +125,7 @@ def addsky(wavelength, flux, error, med_error):
 #
 ## Function genivar() generates an inverse variance spectrum.
 ## Required inputs are an array of wavelengths (wavelength) and an array of corresponding fluxes (flux)
-## Optional inputs are velocity of smoothing (vexp) [default 0.005] and number of sigma (nsig) [default 5.0]
+## Optional inputs are velocity of smoothing (vexp) [default 0.0008] and number of sigma (nsig) [default 5.0]
 ## genivar(wavelength, flux, float vexp = 0.005, float nsig = 5.0)
 #
 

@@ -107,6 +107,7 @@ For the spectra that does not cover the whole range of specified wavelength,
 we output the outside values as NAN
 """
 
+from datafidelity import *  # Get variance from the datafidelity outcome
 
 def Interpo (wave, flux, variance) :
     wave_min = 1500
@@ -131,11 +132,14 @@ def Interpo (wave, flux, variance) :
     inter_flux = inter.splev(wavelength, influx)	#fits b-spline over wavelength range
     inter_var  = inter.splev(wavelength, invar)   # doing the same with errors
 
+    new_inter_var = clip(wavelength, inter_flux, inter_var) #clip bad points in flux
+    new_inter_var[new_inter_var < 0] = 0 #make sure there are no negative points!
+
     missing_data = np.where((wavelength < lower) | (wavelength > upper))
     inter_flux[missing_data] = float('NaN')  # set the bad values to NaN !!!
-    inter_var[missing_data] =  float('NaN')
+    new_inter_var[missing_data] =  float('NaN')
 
-    output = np.array([wavelength, inter_flux, inter_var]) # put the interpolated data into the new table
+    output = np.array([wavelength, inter_flux, new_inter_var]) # put the interpolated data into the new table
 
     return output # return new table
 
@@ -148,14 +152,15 @@ def getsnr(flux, ivar) :
     snr_med = np.median(snr)
     return snr_med
 
-from datafidelity import *  # Get variance from the datafidelity outcome
-
 
 def compprep(spectrum,sn_name,z,source):
     old_wave = spectrum[:,0]	    #wavelengths
     old_flux = spectrum[:,1] 	#fluxes
-    #old_var  = spectrum[:,2]  #errors
-    old_var = genivar(old_wave, old_flux) #variance
+    try:
+        old_error = spectrum[:, 2] # check if supernovae has error array
+    except IndexError:
+        old_error = np.array([0]) # if not, set default
+    old_var = genivar(old_wave, old_flux, old_error) #variance
     snr = getsnr(old_flux, old_var)
 
     if source == 'cfa' : # choosing source dataset
@@ -172,7 +177,8 @@ def compprep(spectrum,sn_name,z,source):
     new_spectrum = dered(sne, sn_name, old_wave, old_flux)
     new_wave = old_wave/(1.+z)
     new_flux = new_spectrum
-    new_var  = genivar(new_wave, new_flux) #variance
+    new_error = old_error # Placeholder if it needs to be changed
+    new_var  = genivar(new_wave, new_flux, new_error) #variance
     #var = new_flux*0+1
     newdata = Interpo(new_wave, new_flux, new_var) # Do the interpolation
 #    print 'new spectra',newdata

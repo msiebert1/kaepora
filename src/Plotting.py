@@ -315,9 +315,9 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
 #############################################################
 #remove_extremes will remove the peaks and dips from plotting
 #############################################################
-    def remove_extremes(data):
+    def remove_extremes(dataX,dataY):
         # sort the data array by the flux
-        sortedArray = sorted(zip(data[0],data[1]), key = operator.itemgetter(1))
+        sortedArray = sorted(zip(dataX,dataY), key = operator.itemgetter(1))
 
         # find the length of the array data. locate 95% and 05% indice
         length = len(data[0])
@@ -350,19 +350,25 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
         plt.minorticks_on()
         plt.legend(prop = {'family' : 'serif'})        
         plt.savefig('multi-spectrum plot.png', dpi = 100, facecolor='w', edgecolor='w', pad_inches = 0.1)
+        """
 #############################################################
 # The following function stacks all the data sets used to  
 # build the composite spectrum. This will appear on a 
 # separate figure.
 #############################################################  
-    def Stacked(RF,rms_data): 
-       plt.figure(num = 3, dpi = 100, figsize = [8, 4*len(RF[1])], facecolor = 'w')
-       plt.plot(RF[0], RF[1][0])
-       plt.annotate(str(Names[0]), xy = (max(RF[0]), max(RF[1][0])), xytext = (-10, 0), textcoords = 'offset points', fontsize = 8, family  = 'serif', weight = 'bold', ha = 'right')
-       buffer = (max(RF[1][0])-min(RF[1][0]))/2.0
-       for m in range(len(RF[1])-1):
-            plt.plot(RF[0], RF[1][m+1]+(m+1)*(1+buffer))
-            plt.annotate(str(Names[m+1]), xy = (max(RF[0]), max(RF[1][m+1])+(m+1)*(1+buffer)), xytext = (-10, 0), textcoords = 'offset points', fontsize = 8, family  = 'serif', weight = 'bold', ha = 'right')
+    """  
+    # Commented out till testing is complete.
+    def Stacked(RF): 
+       len_RF = 2
+       plt.figure(num = 2, dpi = 100, figsize = [8, 4*len(RF[1])], facecolor = 'w')
+       plt.plot(RF[0], RF[1])
+       #plt.annotate(str(Names[0]), xy = (max(RF[0]), max(RF[1][0])), xytext = (-10, 0), textcoords = 'offset points', fontsize = 8, family  = 'serif', weight = 'bold', ha = 'right')
+       buffer = (max(RF[1])-min(RF[1]))/2.0
+       for m in range(len_RF-1):
+           if m % 2 == 0:
+               plt.plot(RF[m], RF[m+1]+(m+1)*(1+buffer))
+               #plt.annotate(str(Names[m+1]), xy = (max(RF[0]), max(RF[1][m+1])+(m+1)*(1+buffer)), xytext = (-10, 0), textcoords = 'offset points', fontsize = 8, family  = 'serif', weight = 'bold', ha = 'right')
+       
        plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
        plt.ylabel('Relative, f$_{\lambda}$', fontdict = font)
        plt.minorticks_on()
@@ -389,7 +395,7 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
                     RFtrunc.append(RF[j][i])
             RF[j] = Scaling(RF[j], median(RFtrunc))
     #Not implemented until it can be fully tested
-    RF = remove_extremes(RF) 
+    
     """
     for j in range(len_RF):
         if j % 2 != 0:
@@ -430,7 +436,52 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
     for j in range(len_RF):
         if j % 2 != 0:
             RFmax.append(max(RF[j])[0])
+    # The following code is to remove extreme data points
+    # the random peaks and dips. This will not be 
+    # implemented until composite.py works again
+    """
+    for k in range(len_RF):
+	if j % 2 != 0:
+	    combinArray_RF = []
+	    combinArray_RF = remove_extremes(RF[k],RF[k+1])
+	    RF[k].append(combinArray_RF[0])
+	    RF[k+1].append(combinArray_RF[1])
+
+    for k in range(len_RS):
+	if j % 2 != 0:
+	    combinArray_RS = []
+ 	    combinArray_RS = remove_extremes(RS[k],RS[k+1])
+	    RS[k].append(combinArray_RS[0])
+	    RS[k+1].append(combinArray_RS[1])
+
+    for k in range(len_SB):
+	if j % 2 != 0:
+	    combinArray_SB = []
+	    combinArray_SB = remove_extremes(SB[k],SB[k+1])
+	    SB[k].append(combinArray_SB[0])
+	    SB[k+1].append(combinArray_SB[1])
+
+    for k in range(len_AG):
+	if j % 2 != 0:
+	    combinArray_AG = []
+ 	    combinArray_AG = remove_extremes(AG[k],AG[k+1])
+	    AG[k].append(combinArray_AG[0])
+	    AG[k+1].append(combinArray_AG[1])
     
+    for k in range(len_DE):
+	if j % 2 != 0:
+	    combinArray_DE = []
+	    combinArray_DE = remove_extremes(DE[k],DE[k+1])
+	    DE[k].append(combinArray_DE[0])
+	    DE[k+1].append(combinArray_DE[1])
+
+    for k in range(len_RD):
+	if j % 2 != 0:
+	    combinArray_RD = []
+ 	    combinArray_RD = remove_extremes(RD[k],RD[k+1])
+	    RD[k].append(combinArray_RD[0])
+	    RD[k+1].append(combinArray_RD[1])
+    """
     """
     for j in range(len_VA):
         if j % 2 != 0:
@@ -496,7 +547,11 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
     if 6 in Plots:
         Redshift(RD)
         p = p+1
-        
+    """ # Initiate stacked plot
+    if 7 in Plots:
+        Stacked(RF)
+        p = p+1
+    """   
     # Regardless of what is plotted, we label the Xaxis and save the plot image
     plt.xlim(xmin, xmax)       
     plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)

@@ -31,9 +31,6 @@ compare_spectrum = []
 
 class supernova(object):
     """Attributes can be added"""
-    
-class Parameters:
-    """Are we still using this?"""
 
 #Connect to database
 #change this address to whereever you locally stored the SNe.db
@@ -88,6 +85,8 @@ def grab(sql_input, Full_query):
     for SN in SN_Array:
         SN.age = np.array(SN.flux)
         SN.dm15_array = np.array(SN.flux)
+	SN.red_array  = np.array(SN.flux)
+	SN.vel        = np.array(SN.flux)
         for i in range(len(SN.flux)):
             if np.isnan(SN.flux[i]):
                 SN.flux[i] = 0
@@ -103,6 +102,15 @@ def grab(sql_input, Full_query):
                 SN.dm15_array[i] = SN.dm15
             if np.isnan(SN.dm15_array[i]):
                 SN.dm15_array[i] = 0
+	    if SN.red_array[i] != 0:
+		SN.red_array[i] = SN.redshift	    
+	    if np.isnan(SN.red_array[i]):
+		SN.red_array[i] = 0
+	    if SN.vel[i] != 0:
+		SN.vel[i] = SN.velocity
+	    if np.isnan(SN.vel[i]):
+		SN.vel[i] = 0
+
         #print SN.filename
     #Here we clean up the data we pulled
     #Some supernovae are missing important data, so we just get rid of them
@@ -114,20 +122,6 @@ def grab(sql_input, Full_query):
     print len(SN_Array), "spectra remain"
     return SN_Array
 
-
-"""
-#This is something that could be implemented in the future
-#Only keeps one per supernova at max light. Condition can be changed later.
-for SN in full_array:
-    for row in max_light:
-        if SN.filename in row[1]:
-            SN_Array.append(SN)
-            SN.age = row[2]
-            SN.ages = np.zeros(len(SN.wavelength))
-            SN.ages.fill(SN.age)
-            #print SN.age
-print len(SN_Array)
-"""
 
 #gets as close as possible to matching the compare spectrum wavelength values
 def find_nearest(array,value):
@@ -202,25 +196,28 @@ def average(SN_Array, template, medmean):
         #print fluxes, errors
         fluxes = []
         ivars  = []
-        reds = []
-        ages = []
+        reds   = []
+        phases = []
+        ages   = []
+        vels   = []
+        dm15s  = []
         for SN in SN_Array:
             if len(fluxes) == 0:
                 fluxes = np.array([SN.flux])
                 ivars  = np.array([SN.ivar])
-                reds   = np.array([SN.redshift])
+                reds   = np.array([SN.red_array])
                 phases = np.array([SN.phase])
                 ages   = np.array([SN.age])
-                vels   = np.array([SN.velocity])
+                vels   = np.array([SN.vel])
                 dm15s  = np.array([SN.dm15_array])
             else:
                 try:
                     fluxes = np.append(fluxes, np.array([SN.flux]), axis=0)
                     ivars  = np.append(ivars, np.array([SN.ivar]), axis=0)
-                    reds   = np.append(reds, np.array([SN.redshift]), axis = 0)
+                    reds   = np.append(reds, np.array([SN.red_array]), axis = 0)
                     phases = np.append(phases, np.array([SN.phase]), axis = 0)
                     ages   = np.append(ages, np.array([SN.age]), axis = 0)
-                    vels   = np.append(vels, np.array([SN.velocity]), axis = 0)
+                    vels   = np.append(vels, np.array([SN.vel]), axis = 0)
                     dm15s  = np.append(dm15s, np.array([SN.dm15_array]), axis = 0)
                 except ValueError:
                     print "This should never happen!"
@@ -234,15 +231,20 @@ def average(SN_Array, template, medmean):
         #Add in flux/ivar mask
         fluxes = np.append(fluxes, np.array([flux_mask]), axis=0)
         ivars  = np.append(ivars, np.array([ivar_mask]), axis=0)
+        reds   = np.append(reds, np.array([flux_mask]), axis=0)
+        #phases = np.append(phases, np.array([flux_mask]), axis=0)
         ages   = np.append(ages, np.array([flux_mask]), axis=0)
+        vels   = np.append(vels, np.array([flux_mask]), axis=0)
         dm15s  = np.append(dm15s, np.array([flux_mask]), axis=0)
 
         #The way this was done before was actually creating a single value array...
         #This keeps them intact correctly.
         reds      = [red for red in reds if red != None]
         phases    = [phase for phase in phases if phase != None]
-        vels      = [vel for vel in vels if vel != None]
-        vels      = [vel for vel in vels if vel != -99.0]
+        ages      = [age for age in ages if age != None]
+        #vels      = [vel for vel in vels if vel != None]
+        #vels      = [vel for vel in vels if vel != -99.0]
+        dm15s     = [dm15 for dm15 in dm15s if dm15 != None]
         dm15_ivars = np.array(ivars)
 ############
 # This is supposed to get rid of lists where there are no dm15 values
@@ -265,18 +267,24 @@ def average(SN_Array, template, medmean):
             print "No rows were removed :("
 ############        
         if medmean == 1:
-            template.flux = np.average(fluxes, weights=ivars, axis=0)
-            template.age  = np.average(ages, weights=ivars, axis=0)
-            template.dm15s = np.average(dm15s, weights=dm15_ivars, axis=0)
+            template.flux  = np.average(fluxes, weights=ivars, axis=0)
+            #template.phase = np.average(phases, weights=ivars, axis=0)
+            template.age   = np.average(ages, weights=ivars, axis=0)
+            template.vel   = np.average(vels, weights=ivars, axis=0)
+            template.dm15  = np.average(dm15s, weights=dm15_ivars, axis=0)
+	    template.red_array = np.average(reds, weights = ivars, axis=0)
         if medmean == 2:
-            template.flux = np.median(fluxes, axis=0)
-            template.age  = np.median(ages, axis=0)
-            template.dm15s = np.median(dm15s, axis=0)
+            template.flux  = np.median(fluxes, axis=0)
+            template.phase = np.median(phases, axis=0)
+            template.age   = np.median(ages, axis=0)
+            template.vel   = np.median(vels, axis=0)
+            template.dm15  = np.median(dm15s, axis=0)
+	    template.red_array = np.median(reds, axis=0)
         template.ivar = 1/np.sum(ivars, axis=0)
-        try:
-            template.redshift = sum(reds)/len(reds)
-        except ZeroDivisionError:
-            template.redshift = "No redshift data"
+        #try:
+        #    template.redshift = sum(reds)/len(reds)
+        #except ZeroDivisionError:
+        #    template.redshift = "No redshift data"
         try:
             template.phase = sum(phases)/len(phases)
         except ZeroDivisionError:
@@ -290,33 +298,6 @@ def average(SN_Array, template, medmean):
         return template
 
 
-"""
-###This doesn't work. I don't know what it's supposed to do, but it ruins everything.
-###The output from this is not what we want to plot. (Sam 4/16)
-
-# Bootstrap code, bootstrap the spectra selected to make a composite spectrum
-def bootstrap(SN_Array):
-    
-    num = len(SN_Array)   # The number of spectra required in the SQL query
-    num_arr = np.arange(0, num, 1)  # Create a numpy array from 0 to number of spectra.
-
-    tries = int(raw_input("Enter number of bootstraps: "))  # Number of bootstraps.
-
-    sel_spec = [0] * tries  # Array for the bootstraped spectra
-
-    for i in range(tries):
-        sel_spec[i] = np.floor(np.random.uniform(0, num, num)).astype(int)
-
-        # Create an array to store up the bootstraped spectra.
-        spec_name = [0] * len(sel_spec[i])
-
-        for m in range(len(sel_spec[i])):
-            spec_name[m] = SN_Array[sel_spec[i][m]]
-
-    return spec_name
-
-"""
-
 
 def main(Full_query, showplot = 0, medmean = 1, save_file = 'y'):
     SN_Array = []
@@ -326,16 +307,6 @@ def main(Full_query, showplot = 0, medmean = 1, save_file = 'y'):
     sql_input = Full_query
 
     SN_Array = grab(sql_input, Full_query)
-    
-    
-    ### I inserted the function bootstrap in this composite code. (by Ricky, Apr 16, 2014)
-    ###I took it back out because it ruined the array and plotted some nonsense.
-    ###The function you added above looks nothing like bootstrap.py.
-    ###The plan was to call your piece of code from within this one, not add something that doesn't work.
-    #SN_Array = bootstrap(SN_Array_2) <---- This is bad.
-    ###The call should look like this, and bootstrap.py should have a main() function to call.
-    #SN_Array = bootstrap.main(SN_Array) <----- This is better
-
 
     opt = str(raw_input("Do you want to do bootstrapping? (y/n) "))
     if opt == 'n':
@@ -385,7 +356,9 @@ def main(Full_query, showplot = 0, medmean = 1, save_file = 'y'):
         print "Average phase =", template.phase
         print "Average velocity =", template.velocity
         #This next line creates a unique filename for each run based on the sample set used
-        f_name = "../plots/" + file_name.make_name(SN_Array)
+	#### file_name.py needs to be adjusted
+        #f_name = "../plots/" + file_name.make_name(SN_Array)
+	f_name = "../plots/" + "Test_composite"
         template.savedname = f_name + '.dat'
         lowindex  = np.where(template.wavelength == find_nearest(template.wavelength, wmin))
         highindex = np.where(template.wavelength == find_nearest(template.wavelength, wmax))
@@ -400,7 +373,7 @@ def main(Full_query, showplot = 0, medmean = 1, save_file = 'y'):
             plt.show()
         #Either writes data to file, or returns it to user
         #This part is still in progress
-        table = Table([template.wavelength, template.flux, template.ivar, template.age, template.dm15s], names = ('Wavelength', 'Flux', 'Variance', 'Age', 'Dm_15s'))
+        table = Table([template.wavelength, template.flux, template.ivar, template.age, template.vel, template.dm15], names = ('Wavelength', 'Flux', 'Variance', 'Age', 'Velocity', 'Dm_15'))
         if save_file=='y':
                     table.write(template.savedname,format='ascii')
                     return template
