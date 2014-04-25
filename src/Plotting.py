@@ -50,7 +50,7 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
     print "Begin plotting..."
     # Available Plots:  Relative Flux,Variance, Residuals, Spectra/Bin, Age, Delta, Redshift, Stacked  
     #                   0              1          2            3         4      5     6         7
-    Height =           [6,             2,         2,           2,        2,     2,    2,        0]
+    Height =           [6,             2,         2,           2,        2,     2,    2] #,        0] # Uncomment to run stacked
     
     h = []
     
