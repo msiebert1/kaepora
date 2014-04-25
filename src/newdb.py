@@ -11,8 +11,10 @@ import math
 import time
 
 mn.patch()
+global c
+c = 299792.458
 
-def read_cfa_or_bsnip(fname):
+def read_cfa_or_bsnip_or_uv(fname):
     """
     Returns a numpy array with spectra from a cfa or bsnip source
     """
@@ -58,26 +60,45 @@ def read_cfa_info(data_file, dates_file):
     return sndict, date_dict
 
 def read_bsnip_data(data_file):
-    #  Supernova Name (1)
-    #  SNID (Sub)Type (2)
-    #  Host Galaxy
-    #  Host Morphology (3)
-    #  Heliocentric Redshift, cz (km/s) (4)
-    #  Milky Way Reddening, E(B-V) (mag) (5)
-    #  UT date of discovery
-    with open(data_file) as data:
-        data = pd.read_fwf('obj_info_table.txt', names=('SN name', 'Type',
-                'Host Galaxy', 'Host Morphology', 'Redshift', 'Reddening',
-                'Discovery Date'), colspecs=((0,10),(10,17),(17,51),(51,58),
-                (58,63),(63,69),(69,97)))
-        dmat = data.as_matrix()
-        bsnip_dict = {}
-        for line in dmat:
-            key = line[0].split()[1].lower()
-            rs = line[4]
-            vals = [rs]
-            bsnip_dict[key] = vals
-        return bsnip_dict
+    """
+    Returns a dict keyed on 'snname-longdate' ie. 1989a-19890427
+    """
+    data1 = pd.read_fwf('../data/info_files/obj_info_table.txt', names=('SN name', 'Type',
+                                      'Host Galaxy', 'Host Morphology', 'Redshift', 'Reddening',
+                                      'Discovery Date'), colspecs=((0,10),(10,17),(17,51),(51,58),
+                                      (58,63),(63,69),(69,97)))
+
+    data2 = pd.read_fwf('../data/info_files/spec_info_table.txt', names=('SN name', 'Year',
+                                      'Month', 'Day', 'MJD of Spectrum', 'Phase of Spectrum',),
+                                      colspecs=((0,9),(10,15),(15,18),(18,25),
+                                      (25,36),(37,43)))
+    dmat1 = data1.as_matrix()
+    dmat2 = data2.as_matrix()
+    dmat2 = dmat2.tolist()
+    #format month as '04' instead of '4'
+    #do the same for day (5.000 -> 05.000)
+    for line in dmat2:
+        if line[2] < 10:
+            line[2] = ''.join(['0',str(line[2])])
+        if line[3] < 10:
+            line[3] = ''.join(['0', str(line[3])])
+    for line in dmat2:
+        fulldate = ''.join([str(line[1]), str(line[2]), str(line[3])[:2]])
+        line.append(fulldate)
+
+    bsnip_dict_rs = {}
+    bsnip_dict = {}
+    #split matrix lines to populate dicts
+    for line in dmat1:
+        key = line[0].split()[1].lower()
+        rs = line[4]
+        bsnip_dict_rs[key] = rs
+    for line in dmat2:
+        key1 = line[0].split()[1].lower()
+        key2 = line[len(line)-1]
+        full_key = key1+'-'+key2
+        bsnip_dict[full_key] = [key1, bsnip_dict_rs[key1], line[len(line)-2]]
+    return bsnip_dict
 
 def find_SN(fname, source=None, csplist=None):
     """
@@ -159,9 +180,27 @@ def build_carbon_dict():
                     carbon_dict[ents[0].lower()] = ents[1]
     return carbon_dict
 
+def build_redshift_dict(bsnipdict, cfadict):
+    rsd = {}
+    for item in cfadict:
+        rsd[item] = cfadict[item][0]
+    for item in bsnipdict:
+        if bsnipdict[item][0] not in rsd:
+            rsd[item] = bsnipdict[item][1]/c
+    return rsd
+
+def is_number(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
+
 #build necessary dictionaries
 sndict, date_dict = read_cfa_info('../data/spectra/cfa/cfasnIa_param.dat',
                                                        '../data/spectra/cfa/cfasnIa_mjdspec.dat')
+bsnip_vals = read_bsnip_data('obj_info_table.txt')
+rsd = build_redshift_dict(bsnip_vals, sndict)
 morph_dict = build_morph_dict()
 vel_dict = build_vel_dict()
 gas_dict = build_gas_dict()
@@ -202,28 +241,34 @@ root = '../data/spectra'
 bad_files = []
 bad_interp = []
 shiftless = []
-bsnip_vals = read_bsnip_data('obj_info_table.txt')
 
 #ignore bad files
-spectra_ignore = ['sn1994T-19940612.25-mmt.flm',
-                                'sn2000dn-20001006.25-fast.flm',
-                                'sn2006bt-20060502.33-fast.flm',
-                                'sn2006bt-20060503.33-fast.flm',
+spectra_ignore = [
                                 'SN06mr_061113_g01_BAA_IM.dat',
                                 'SN07af_070310_g01_BAA_IM.dat',
                                 'SN07ai_070310_g01_BAA_IM.dat',
+                                'SN07af_070310_g01_BAA_IM.dat',
                                 'SN07ai_070312_g01_BAA_IM.dat',
-                                'SN07al_070313_g01_BAA_IM.dat']
-
+                                'sn1996ai-19960620.17-fast.flm',
+                                'sn1994T-19940612.25-mmt.flm',
+                                'sn1994T-19940613.19-fast.flm',
+                                'sn2000dn-20001006.25-fast.flm',
+                                'sn2006bt-20060502.33-fast.flm',
+                                'sn2006bt-20060503.33-fast.flm',
+                                'sn1994Q-19940612.32-mmt.flm',
+                                'sn2006H-20060206.21-fast.flm',
+                                'sn2002dj-20020614.17-fast.flm',
+                                'sn1999ek-19991030.47-fast.flm',
+                                'sn2003cq-20030408.26-fast.flm',
+                                'sn1996ai-19960620.17-fast.flm',
+                                ]
 print "Adding information to table"
 count = 1
 for path, subdirs, files in os.walk(root):
     for name in files:
-
+        #ignore bad spectra and uncorrected where corrected exist
         if name in spectra_ignore or name in have_both:
             continue
-
-        #ignore bsnip raw when corrected exists
 
         f = os.path.join(path, name)
         if f.endswith('.flm') or f.endswith('.dat'):
@@ -234,25 +279,28 @@ for path, subdirs, files in os.walk(root):
                     spectra, info = read_csp(f)
                     sn_name = find_SN(name, 'csp', info)
                 else:
-                    spectra = read_cfa_or_bsnip(f)
+                    spectra = read_cfa_or_bsnip_or_uv(f)
                     sn_name = find_SN(name)
             except:
                 bad_files.append(f)
                 continue
-            print  count, sn_name
 
+            print  count, sn_name
             count += 1
 
-            #finds cfa data for particular sn if applicable
-            if 'cfa' in f:
+            if 'other' in f:
+                print 'not doing other folder yet'
+                continue
+
+            elif 'cfa' in f:
                 if 'sn2011' not in name:
                     sn_cfa = sndict[sn_name]
                 else:
                     snd = None
                     sn_cfa = [None] * 14
-
             #csp source
             if 'csp' in f:
+                print f
                 source = 'csp'
                 redshift = float(info[2])
                 phase = float(info[4]) - float(info[3])
@@ -260,8 +308,20 @@ for path, subdirs, files in os.walk(root):
                 m_b = None
                 bm_vm = None
 
+            #uv source
+            elif 'uv' in path:
+                print f
+                #remove the continue once compprep in prep.py supports uv spectra
+                continue
+                source = 'uv'
+                if name in rsd:
+                    redshift = rsd[name]
+                else:
+                    redshift = None
+
             #cfa spectra
             elif 'cfa' in f:
+                print f
                 source = 'cfa'
                 redshift = float(sn_cfa[0])
                 if  sn_cfa[1] == '99999.9':
@@ -288,16 +348,29 @@ for path, subdirs, files in os.walk(root):
                     bm_vm = sn_cfa[11]
 
             #bsnip spectra
-            else:
-                c = 299792.458
+            elif 'bsnip' in f:
                 source = 'bsnip'
-                data = bsnip_vals[sn_name.lower()]
-                if math.isnan(data[0]):
+                """
+                certain files have words in their name that cause the
+                split to be misalligned from the typical splits.
+                """
+                if is_number(name.split('-')[1][:8]):
+                    longdate = name.split('-')[1][:8]
+                else:
+                    longdate = name.split('-')[2][:8]
+
+                data = bsnip_vals[sn_name.lower()+'-'+longdate]
+                print f
+                if math.isnan(data[1]):
                     #skippy shitty redshiftless spectra
                     shiftless.append(name)
                     continue
-                redshift = data[0]/c
-                phase = None
+                redshift = data[1]/c
+                #if phase exists, add to db
+                if not math.isnan(data[2]):
+                    phase = data[2]
+                else:
+                    phase = None
                 Dm15 = None
                 m_b = None
                 bm_vm = None
