@@ -48,9 +48,9 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
 # Set the height of each figure
 #############################################################
     print "Begin plotting..."
-    # Available Plots:  Relative Flux,Variance, Residuals, Spectra/Bin, Age, Delta, Redshift,  
-    #                   0              1          2            3    4      5         6
-    Height =           [6,             2,         2,           2,   2,     2,        2]
+    # Available Plots:  Relative Flux,Variance, Residuals, Spectra/Bin, Age, Delta, Redshift, Stacked  
+    #                   0              1          2            3         4      5     6         7
+    Height =           [6,             2,         2,           2,        2,     2,    2,        0]
     
     h = []
     
@@ -438,7 +438,7 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
             RFmax.append(max(RF[j])[0])
     # The following code is to remove extreme data points
     # the random peaks and dips. This will not be 
-    # implemented until composite.py works again
+    # implemented until code can be run :(
     """
     for k in range(len_RF):
 	if j % 2 != 0:
@@ -577,51 +577,6 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
     plt.show()
 
 
-    """
-        data[1] = np.sort(data[1])
-        print data[1]
-        delete = []
-        for i in range(len(data[1])):
-            if (data[1][i] == 0):
-                delete.append(i)
-        for j in range(len(delete)):
-            del data[0][delete[len(delete)-1-j]]
-            del data[1][delete[len(delete)-1-j]]
-        #will_cut = []
-    
-        bad     = []
-        maximum = max(data[1])
-        minimum = min(data[1])
-        length  = len(data[1]) 
-        
-        will_cut = data[1]
-        length = len(will_cut) 
-        will_cut = will_cut.sort()
-        #sorted(will_cut)
-        print will_cut
-        print "last value in stream ", will_cut[-1]
-        new_max = will_cut[-1]*.95
-        print "first value in stream ", will_cut[0]
-        new_min = will_cut[0]*.05
-        
-        new_max = math.ceil(maximum*.90)
-        new_min = math.floor(minimum*.10)
-        print maximum
-        print "Maximum :", new_max
-        print "Minimum :", new_min        
-        for i in range(length):
-            if (data[1][i] > new_max) or (data[1][i] < new_min):
-                bad.append(i)
-                print len(bad)
-        for j in range(len(bad)):
-            del data[0][bad[len(bad)-1-j]]
-            del data[1][bad[len(bad)-1-j]]
-        
-        return data
-    print "Length of RF before cut :", len(RF[0])
-    print "Length of RF after cut  :", len(RF[0])  
-    """
-    
     """
     # Commented out for the time being because we're only given a single array
     source = (np.array(RF[1])).T
