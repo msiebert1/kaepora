@@ -181,13 +181,14 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
 #############################################################    
     def Composite(RF,RS,Names):
         plt.ylabel('Relative, f$_{\lambda}$', fontdict = font)
-        plt.axis([xmin, xmax, 0, max(RFmax)])
-        plt.minorticks_on()
+        #plt.axis([xmin, xmax, 0, max(RFmax)])
+        #plt.minorticks_on()
         #plt.yticks(np.arange(0, 1.1, 0.2))
        
         for k in range(len_RF):
             if k % 2 == 0:
-                plt.plot(RF[k], RF[k+1], label = Names[k] )
+                good = np.where(VA[k+1] != 0)
+                plt.plot(RF[k][good], RF[k+1][good], label = Names[k] )
                 #plt.plot(RF[k], RF[k+1], color = random.choice(['g', 'r', 'c', 'm', 'y', 'k']), label = Names[k] )
                 #plt.fill_between(RF[k], RF[k+1] + RS[k+1], RF[k+1] - RS[k+1], facecolor = random.choice(['g', 'r', 'c', 'm', 'y', 'k']),alpha=0.5)                
                 #plt.plot(RF[k], RF[k+1] + RS[1], label = "+ RMS")
@@ -214,11 +215,14 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
     def Variance(VA):
         Variance = plt.subplot(gs[p], sharex = Rel_flux)
         plt.ylabel('Variance', fontdict = font)
-        #plt.yticks(np.arange(0, 0.9, 0.2))
+        plt.yscale('log')
+        #plt.axis([xmin, xmax, 1e-35, 1e-30])
+        #plt.yticks(np.arange(1e-33, 1e-29))
 
         for k in range(len_VA):
             if k % 2 == 0:
-                plt.plot(VA[k], VA[k+1], label = "Variance", ls = '-')
+                good = np.where(VA[k+1] != 0)
+                plt.plot(VA[k][good], VA[k+1][good], label = "Variance", ls = '-')
         VAxticklabels = Variance.get_xticklabels()
         if max(stacked) == 1:            
             plt.setp(VAxticklabels, visible=True)
@@ -232,12 +236,13 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
         plt.ylabel('Residuals', fontdict = font)
         #plt.yticks(np.arange(0, 0.9, 0.2))
         
-        for j in range(len_RS):
-            if j % 2 == 0:		
+        for k in range(len_RS):
+            if k % 2 == 0:
+                good = np.where(VA[k+1] != 0)
 		#There's something wrong with the dimensionality of x and y here
 		#I added the extra [0]s because the arrays were 3 dimensional somehow, so now they're both 1-D
 		#But they're still full of 'nan' so the plot gets messed up. But it runs through.
-                plt.plot(RF[j], RF[j+1]-RF[1], label = "RMS of residuals", ls = '-')
+                plt.plot(RF[k][good], RF[k+1][good]-RF[1][good], label = "RMS of residuals", ls = '-')
         #plt.plot(RS[0], RS[1], label = "RMS of residuals", ls = '-')
         RSxticklabels = Resid.get_xticklabels()
         if max(stacked) == 2:
@@ -255,7 +260,8 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
         
         for k in range(len_SB):
             if k % 2 == 0:
-                plt.plot(SB[k], SB[k+1], label = "Spectra per Bin", ls = '-')
+                good = np.where(VA[k+1] != 0)
+                plt.plot(SB[k][good], SB[k+1][good], label = "Spectra per Bin", ls = '-')
         SBxticklabels = SpecBin.get_xticklabels()        
         if max(stacked) == 3:
             plt.setp(SBxticklabels, visible=True)
@@ -272,7 +278,8 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
         
         for k in range(len_AG):
             if k % 2 == 0:
-                plt.plot(AG[k], AG[k+1], label = "Age", ls = '-')
+                good = np.where(VA[k+1] != 0)
+                plt.plot(AG[k][good], AG[k+1][good], label = "Age", ls = '-')
         AGxticklabels = Age.get_xticklabels()        
         if max(stacked) == 4:
             plt.setp(AGxticklabels, visible=True)
@@ -284,12 +291,13 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
 #############################################################              
     def Delta(DE):
         Delta = plt.subplot(gs[p], sharex = Rel_flux)
-        plt.ylabel('$\Delta$', fontdict = font)
+        plt.ylabel('$\Delta$m$_{15}$', fontdict = font)
         #plt.yticks(np.arange(0, 0.9, 0.2))
         
         for k in range(len_DE):
             if k % 2 == 0:
-                plt.plot(DE[k], DE[k+1], label = "Delta", ls = '-')
+                good = np.where(VA[k+1] != 0)
+                plt.plot(DE[k][good], DE[k+1][good], label = "Delta", ls = '-')
         DLxticklabels = Delta.get_xticklabels()
         if max(stacked) == 5:            
             plt.setp(DLxticklabels, visible=True)
@@ -306,7 +314,8 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
         
         for k in range(len_RE):
             if k % 2 == 0:
-                plt.plot(RE[k], RE[k+1], label = "Redshift", ls = '-')
+                good = np.where(VA[k+1] != 0)
+                plt.plot(RE[k][good], RE[k+1][good], label = "Redshift", ls = '-')
         Zxticklabels = Redshift.get_xticklabels()        
         if max(stacked) == 6:            
             plt.setp(Zxticklabels, visible=True)
@@ -553,7 +562,7 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
         p = p+1
     """   
     # Regardless of what is plotted, we label the Xaxis and save the plot image
-    plt.xlim(xmin, xmax)       
+    #plt.xlim(xmin, xmax)       
     plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
     #plt.axis([xmin, xmax, 0, max(RFmax)])    
     plt.savefig(image_title, dpi = 600, facecolor='w', edgecolor='w', pad_inches = 0.1) # CHANGE dpi = 600
