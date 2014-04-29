@@ -1,6 +1,6 @@
 import os
-import glob
-from specutils import extinction as ex
+#import glob
+#from specutils import extinction as ex
 #import astroquery
 #from astroquery.ned import Ned
 #from astroquery.irsa_dust import IrsaDust
@@ -10,9 +10,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.interpolate as inter
 import math
-from datafidelity import *  # Get variance from the datafidelity outcome
+#from datafidelity import *  # Get variance from the datafidelity outcome
+import msgpack as msg
+import msgpack_numpy as mn
+import sqlite3 as sq3
 
 mn.patch()
+
+class supernova():
+    """stuff"""
 
 #Sets up some lists for later
 SN_Array = []
@@ -83,6 +89,7 @@ def grab(sql_input, Full_query):
     #Here we clean up the data we pulled
     #Some supernovae are missing important data, so we just get rid of them
     #This can take a very long time if you have more than 500 spectra
+    SN_Array = [SN for SN in SN_Array if hasattr(SN, 'velocity')]
     SN_Array = [SN for SN in SN_Array if hasattr(SN, 'wavelength')]
     SN_Array = [SN for SN in SN_Array if hasattr(SN, 'ivar')]
     SN_Array = [SN for SN in SN_Array if SN.phase != None]
@@ -90,15 +97,17 @@ def grab(sql_input, Full_query):
     print len(SN_Array), "spectra remain"
     return SN_Array
 
-sql_input = 'Stuff'
+con = sq3.connect('..\..\data\SNe.db')
+cur = con.cursor()
+sql_input = 'SELECT * FROM Supernovae WHERE B_mMinusV_m BETWEEN -0.2 AND 0.0 AND Velocity BETWEEN -20 AND -2'
 X = []
 Y = []
 
 SN_Array = grab(sql_input, sql_input)
 
 for SN in SN_Array:
-    X.append(SN.B_minus_v)
-    Y.append(SN.velocity)
+    Y.append(SN.B_minus_v)
+    X.append(SN.velocity)
 
-plt.plot(X, Y)
+plt.scatter(X, Y)
 plt.show()
