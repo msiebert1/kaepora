@@ -89,9 +89,9 @@ for n in range(queries):
 #################
 
 Relative_Flux   = plot_array #plots all given composites
-Variance        = variance_array # Check it out! Variances plot now.
-Residuals       = residual_array # Check it out! Residuals plot now.
-Spectra_Bin     = [] 
+Variance        = variance_array
+Residuals       = residual_array
+Spectra_Bin     = [] #This could take some work, I'll get to it
 Age             = age_array 
 Delta           = dm15_array
 Redshift        = red_array

@@ -17,6 +17,7 @@ from scipy.special import erf
 import file_name
 ###When bootstrap works right, uncomment this.
 import bootstrap
+import time
 
 np.set_printoptions(threshold=np.nan)
 mn.patch()
@@ -88,6 +89,7 @@ def grab(sql_input, Full_query):
 	SN.red_array  = np.array(SN.flux)
 	SN.vel        = np.array(SN.flux)
         for i in range(len(SN.flux)):
+	    #Check for NaN
             if np.isnan(SN.flux[i]):
                 SN.flux[i] = 0
             if np.isnan(SN.ivar[i]):
@@ -96,29 +98,41 @@ def grab(sql_input, Full_query):
                 SN.phase_array[i]  = 0
             if np.isnan(SN.dm15_array[i]):
                 SN.dm15_array[i] = 0
+	    if np.isnan(SN.red_array[i]):
+		SN.red_array[i] = 0
+	    if np.isnan(SN.vel[i]):
+		SN.vel[i] = 0
+		
+	    #Check for None
+	    if SN.phase_array[i] == None:
+		SN.phase_array[i] = 0
+	    if SN.dm15_array[i] == None:
+		SN.dm15_array[i] = 0
+	    if SN.red_array[i] == None:
+		SN.red_array[i] = 0
+	    if SN.vel[i] == None:
+		SN.vel[i] = 0
+	    
+	    #Set nonzero values to correct ones
             if SN.phase_array[i] != 0:
                 SN.phase_array[i] = SN.phase
             if SN.dm15_array[i] != 0:
                 SN.dm15_array[i] = SN.dm15
-            if np.isnan(SN.dm15_array[i]):
-                SN.dm15_array[i] = 0
 	    if SN.red_array[i] != 0:
 		SN.red_array[i] = SN.redshift
-	    if np.isnan(SN.red_array[i]):
-		SN.red_array[i] = 0
 	    if SN.vel[i] != 0:
 		SN.vel[i] = SN.velocity
-	    if np.isnan(SN.vel[i]):
-		SN.vel[i] = 0
 
         #print SN.filename
     #Here we clean up the data we pulled
     #Some supernovae are missing important data, so we just get rid of them
     #This can take a very long time if you have more than 500 spectra
+    """
     SN_Array = [SN for SN in SN_Array if hasattr(SN, 'wavelength')]
     SN_Array = [SN for SN in SN_Array if hasattr(SN, 'ivar')]
     SN_Array = [SN for SN in SN_Array if SN.phase != None]
     SN_Array = [SN for SN in SN_Array if SN.redshift != None]
+    """
     print len(SN_Array), "spectra remain"
     return SN_Array
 
@@ -235,6 +249,9 @@ def average(SN_Array, template, medmean):
 	
         ivar_mask[no_data] = 1
 	dm15_mask[no_dm15] = 1
+	
+	#Right now all of our spectra have redshift data, so a mask is unnecessary
+	#One day that might change?
 	red_mask[:]  = 1
 	
         dm15_ivars = np.array(ivars)
@@ -261,18 +278,14 @@ def average(SN_Array, template, medmean):
         #vels      = [vel for vel in vels if vel != -99.0]
         dm15s     = [dm15 for dm15 in dm15s if dm15 != None]
 
-	print len(np.array(reds))
-	print len(red_ivars)
         if medmean == 1:
             template.flux  = np.average(fluxes, weights=ivars, axis=0)
-            #template.phase = np.average(phases, weights=ivars, axis=0)
             template.phase_array   = np.average(ages, weights=ivars, axis=0)
             template.vel   = np.average(vels, weights=ivars, axis=0)
             template.dm15  = np.average(dm15s, weights=dm15_ivars, axis=0)
 	    template.red_array = np.average(np.array(reds), weights = red_ivars, axis=0)
         if medmean == 2:
             template.flux  = np.median(fluxes, axis=0)
-            template.phase = np.median(phases, axis=0)
             template.phase_array   = np.median(ages, axis=0)
             template.vel   = np.median(vels, axis=0)
             template.dm15  = np.median(dm15s, axis=0)
@@ -353,9 +366,10 @@ def main(Full_query, showplot = 0, medmean = 1, save_file = 'y'):
         #print "Average phase =", template.phase
         #print "Average velocity =", template.velocity
         #This next line creates a unique filename for each run based on the sample set used
+	
 	#### file_name.py needs to be adjusted
         #f_name = "../plots/" + file_name.make_name(SN_Array)
-	f_name = "../plots/" + "Test_composite"
+	f_name = "../plots/" + "Test_composite" + (time.strftime("%H,%M,%S"))
         template.savedname = f_name + '.dat'
         lowindex  = np.where(template.wavelength == find_nearest(template.wavelength, wmin))
         highindex = np.where(template.wavelength == find_nearest(template.wavelength, wmax))
