@@ -562,7 +562,7 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
         p = p+1
     """   
     # Regardless of what is plotted, we label the Xaxis and save the plot image
-    #plt.xlim(xmin, xmax)       
+    plt.xlim(xmin, xmax)       
     plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
     #plt.axis([xmin, xmax, 0, max(RFmax)])    
     plt.savefig(image_title, dpi = 600, facecolor='w', edgecolor='w', pad_inches = 0.1) # CHANGE dpi = 600
