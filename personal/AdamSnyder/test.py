@@ -65,6 +65,10 @@ def grab(sql_input, Full_query):
     #Used mostly in testing, if you want the full array of whatever you're looking at, comment this line out
     #SN_Array = SN_Array[0:10]
     
+    #For your testing purposes, and really making this particular plot in general, cleaning up the array is unnecessary
+    #All spectra will have the two things we need, because that's what our query wanted.
+    #The rest of this stuff was used in compositing, but we don't need it here.
+    """
     #Within the interpolated spectra there are a lot of 'NaN' values
     #Now they become zeros so things work right
     for SN in SN_Array:
@@ -94,6 +98,7 @@ def grab(sql_input, Full_query):
     SN_Array = [SN for SN in SN_Array if hasattr(SN, 'ivar')]
     SN_Array = [SN for SN in SN_Array if SN.phase != None]
     SN_Array = [SN for SN in SN_Array if SN.redshift != None]
+    """
     print len(SN_Array), "spectra remain"
     return SN_Array
 
@@ -109,5 +114,9 @@ for SN in SN_Array:
     Y.append(SN.B_minus_v)
     X.append(SN.velocity)
 
-plt.scatter(X, Y)
+fit = np.polyfit(X,Y,1)
+fit_fn = np.poly1d(fit)
+plt.plot(X,Y, 'bo', X, fit_fn(X), '--k')
+
+#plt.scatter(X, Y)
 plt.show()
