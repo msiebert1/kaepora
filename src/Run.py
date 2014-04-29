@@ -106,7 +106,7 @@ Show_Data       = [Relative_Flux,Variance,Residuals,Spectra_Bin,Age,Delta,Redshi
 # Choose the plot range and plot type!
 xmin         = 3000 
 xmax         = 10100
-Plots        = [0,1,2,4,5] 
+Plots        = [0,1,2,4,5,6] 
 
 #################
 #Now the file name of the plot is labeled by time of creation, but you can personalize it if you want.
