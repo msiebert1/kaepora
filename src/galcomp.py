@@ -5,36 +5,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 import galrun
-#import targeted
-"""
-Here's the main function that anyone can use to run some analysis.
 
-The first line runs the composite program.
-This grabs the selected data from SNe.db.
-Change the input to composite.main to whatever you want your database query to be.
-This is the code that outputs a text file of data for later use.
-It also shows/saves a basic plot of the composite data and associated errors.
-
-The next section sets up the plots to be used, and then plots using Plotting.py
-Right now it doesn't work...but it will
-
-More can be added as our programs evolve
-
-Here are a few parameters you should set beforehand.
-plot_name is where the plot showing both composite spectra together will be saved.
-wmin and wmax define the boundary of the plot.
-"""
-
-
-
-#This part works just fine
-#composite_full = composite.main("SELECT * FROM Supernovae WHERE Redshift > 0 AND Phase > -100")
-"""
-Here we set the queries that get used to find the spectra for compositing.
-We only want to select spectra that have data for both redshift and phase, so both of them need to be in the query.
-But you can change the values to whatever you want, and add more parameters.
-"""
 def run():
+	#Allows user to build queries, and starts with selecting the morphologies to use.
 	name='Composite_comparison,'
 	num=input('Number of queries: ')
 	morph_range=[]
@@ -87,6 +60,7 @@ def run():
 		labels.append(label)
 		name+=n
 	
+	#Choose parameters to constrain query, will use same constraints on each range of morphologies
 	params=input('Select parameters: (Redshift=1,Phase=2,Dm15=3,M_B=4,B_mMinusV_m=5)')
 	query='SELECT * FROM Supernovae Where '
 	if 1 in params:
@@ -112,43 +86,18 @@ def run():
 
 	query += 'Morphology '
 
+	#builds input to galrun.py
 	queries=[]
 	queries.append(sys.argv)
 	queries.append(str(num))
 	for morph in morph_range:
 		queries.append(query + ' BETWEEN ' + str(morph[0]) + ' AND ' + str(morph[1]))
 
-	#labels=['SpiralA,','SpiralAB','SpiralB','SpiralBC','SpiralC','SpiralCD']
 	#scales=composite.find_scales(composites,composites[0].flux,composites[0].ivar)
 		
 	plot_name = name # + ',avgphase-' + str("%.2f" % avgphase) + ',avgred-' + str("%.2f" % avgred)
 	
 	plots=input('Choose plots: (RelFlux=0,Var=1,Res=2,Sp/Bin=3,Age=4,Delta=5,Red=6,Multi Spec=6,Stack Spec=7)')
-	
-	"""
-	composites=[]
-	for query in queries:
-		composites.append(composite.main(query))
-	
-	scales=composite.find_scales(composites,composites[0].flux,composites[0].ivar)
-	composites=composite.scale_data(composites,scales)
-	
-	xmin=0
-	xmax=10000000
-	for comp in composites:
-		SN=comp
-		if (SN.minwave>xmin):
-			xmin=SN.minwave
-		if (SN.maxwave<xmax):
-			xmax=SN.maxwave
-		
-	plt.figure()
-	for comp in composites:
-		plt.plot(comp.wavelength,comp.flux)
-	plt.xlim(xmin,xmax)
-	legend=plt.legend(loc='upper right')
-	plt.show()
-	"""
 	
 	galrun.main(queries,plot_name,plots,labels)
 	
