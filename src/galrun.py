@@ -41,15 +41,7 @@ def main(queries,plot_name,plots,labels):
 		else:
 			d["composite{0}".format(n+1)] = composite.main(queries[n+2])
 			
-	xmin =0
-	xmax=100000
-	for n in range(num):
-		SN=d["composite{0}".format(n+1)]
-		if (SN.minwave > xmin):
-			xmin=SN.minwave
-		if (SN.maxwave < xmax):
-			xmax=SN.maxwave
-
+		
 	#Read whatever you sasved the table as, iterates over however many composites you used.
 	#This is how you have to address things if you want to iterate over queries.
 	#The n+1 makes the first item composite1, not composite0.
@@ -59,8 +51,24 @@ def main(queries,plot_name,plots,labels):
 		d["fluxes{0}".format(n+1)]       = np.array([d["data{0}".format(n+1)]["Flux"]])
 		d["variances{0}".format(n+1)]    = np.array([d["data{0}".format(n+1)]["Variance"]])
 		d["ages{0}".format(n+1)]         = np.array([d["data{0}".format(n+1)]["Age"]])
-		d["dm15s{0}".format(n+1)]        = np.array([d["data{0}".format(n+1)]["Dm_15s"]])
-		
+		d["dm15s{0}".format(n+1)]        = np.array([d["data{0}".format(n+1)]["Dm_15"]])
+		d["vels{0}".format(n+1)]         = np.array([d["data{0}".format(n+1)]["Velocity"]])
+		d["reds{0}".format(n+1)]         = np.array([d["data{0}".format(n+1)]["Redshift"]])
+
+	xmin =0
+	xmax=100000
+	for n in range(num):
+		wave=d["wavelengths{0}".format(n+1)][0]
+		flux=d["fluxes{0}".format(n+1)][0]
+		good=np.where(flux!=0)
+		lo_wave=wave[good][0]
+		hi_wave=wave[good][len(wave[good])-1]
+		print lo_wave,hi_wave
+		if(lo_wave>xmin):
+			xmin=lo_wave
+		if(hi_wave<xmax):
+			xmax=hi_wave
+			
 
 	# From now on, list the data you want to plot as [ Xdata, Ydata, Xdata_2, Ydata_2]
 	#This chunk will create an array that's the right length for however many queries you used.
@@ -70,6 +78,8 @@ def main(queries,plot_name,plots,labels):
 	variance_array = []
 	age_array      = []
 	dm15_array     = []
+	vel_array      = []
+	red_array      = []
 	for n in range(num):
 		plot_array.append(d["wavelengths{0}".format(n+1)])
 		plot_array.append(d["fluxes{0}".format(n+1)])
@@ -82,6 +92,10 @@ def main(queries,plot_name,plots,labels):
 		age_array.append(d["ages{0}".format(n+1)][0])
 		dm15_array.append(d["wavelengths{0}".format(n+1)][0])
 		dm15_array.append(d["dm15s{0}".format(n+1)][0])
+		vel_array.append(d["wavelengths{0}".format(n+1)][0])
+		vel_array.append(d["vels{0}".format(n+1)][0])
+		red_array.append(d["wavelengths{0}".format(n+1)][0])
+		red_array.append(d["reds{0}".format(n+1)][0])
 		name_array.append(labels[n])
 		name_array.append(" ")
 
@@ -99,14 +113,14 @@ def main(queries,plot_name,plots,labels):
 	Spectra_Bin     = [] 
 	Age             = age_array 
 	Delta           = dm15_array
-	Redshift        = []
+	Redshift        = red_array
 	## If you want custom names, uncomment and use line 83, for consistency.
 	##Otherwise it'll default to just labeling composites in order.
 	Names           = name_array
 	Show_Data       = [Relative_Flux,Variance,Residuals,Spectra_Bin,Age,Delta,Redshift]
 
-	## Available Plots:  Relative Flux, Variances, Residuals, Spectra/Bin, Age, Delta, Redshift
-	##                   0              1          2          3            4    5      6
+	## Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift, Multiple Spectrum, Stacked Spectrum
+	##                   0              1          2            3    4      5         6,                 7              
 	# the plots you want to create
 
 	# All of these worked for me. Test with your own queries. (Sam, 4/16)
@@ -115,4 +129,4 @@ def main(queries,plot_name,plots,labels):
 
 	image_title  = "../plots/" + plot_name + ".png"
 	title        = plot_name
-	Plotting.main(Show_Data, Plots, image_title, title, Names, xmin,xmax)
+	Plotting.main(Show_Data=Show_Data, Plots=Plots, image_title=image_title, title=title, Names=Names,xmin= xmin,xmax=xmax)

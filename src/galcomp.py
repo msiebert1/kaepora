@@ -123,7 +123,32 @@ def run():
 		
 	plot_name = name # + ',avgphase-' + str("%.2f" % avgphase) + ',avgred-' + str("%.2f" % avgred)
 	
-	plots=input('Choose plots: (RelFlux=0,Var=1,Res=2,Sp/Bin=3,Age=4,Delta=5,Red=6)')
+	plots=input('Choose plots: (RelFlux=0,Var=1,Res=2,Sp/Bin=3,Age=4,Delta=5,Red=6,Multi Spec=6,Stack Spec=7)')
+	
+	"""
+	composites=[]
+	for query in queries:
+		composites.append(composite.main(query))
+	
+	scales=composite.find_scales(composites,composites[0].flux,composites[0].ivar)
+	composites=composite.scale_data(composites,scales)
+	
+	xmin=0
+	xmax=10000000
+	for comp in composites:
+		SN=comp
+		if (SN.minwave>xmin):
+			xmin=SN.minwave
+		if (SN.maxwave<xmax):
+			xmax=SN.maxwave
+		
+	plt.figure()
+	for comp in composites:
+		plt.plot(comp.wavelength,comp.flux)
+	plt.xlim(xmin,xmax)
+	legend=plt.legend(loc='upper right')
+	plt.show()
+	"""
 	
 	galrun.main(queries,plot_name,plots,labels)
 	
