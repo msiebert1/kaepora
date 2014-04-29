@@ -83,7 +83,7 @@ def grab(sql_input, Full_query):
     #Within the interpolated spectra there are a lot of 'NaN' values
     #Now they become zeros so things work right
     for SN in SN_Array:
-        SN.age = np.array(SN.flux)
+        SN.phase_array = np.array(SN.flux)
         SN.dm15_array = np.array(SN.flux)
 	SN.red_array  = np.array(SN.flux)
 	SN.vel        = np.array(SN.flux)
@@ -92,12 +92,12 @@ def grab(sql_input, Full_query):
                 SN.flux[i] = 0
             if np.isnan(SN.ivar[i]):
                 SN.ivar[i] = 0
-            if np.isnan(SN.age[i]):
-                SN.age[i]  = 0
+            if np.isnan(SN.phase_array[i]):
+                SN.phase_array[i]  = 0
             if np.isnan(SN.dm15_array[i]):
                 SN.dm15_array[i] = 0
-            if SN.age[i] != 0:
-                SN.age[i] = SN.phase
+            if SN.phase_array[i] != 0:
+                SN.phase_array[i] = SN.phase
             if SN.dm15_array[i] != 0:
                 SN.dm15_array[i] = SN.dm15
             if np.isnan(SN.dm15_array[i]):
@@ -207,7 +207,7 @@ def average(SN_Array, template, medmean):
                 ivars  = np.array([SN.ivar])
                 reds   = np.array([SN.red_array])
                 phases = np.array([SN.phase])
-                ages   = np.array([SN.age])
+                ages   = np.array([SN.phase_array])
                 vels   = np.array([SN.vel])
                 dm15s  = np.array([SN.dm15_array])
             else:
@@ -216,18 +216,31 @@ def average(SN_Array, template, medmean):
                     ivars  = np.append(ivars, np.array([SN.ivar]), axis=0)
                     reds   = np.append(reds, np.array([SN.red_array]), axis = 0)
                     phases = np.append(phases, np.array([SN.phase]), axis = 0)
-                    ages   = np.append(ages, np.array([SN.age]), axis = 0)
+                    ages   = np.append(ages, np.array([SN.phase_array]), axis = 0)
                     vels   = np.append(vels, np.array([SN.vel]), axis = 0)
                     dm15s  = np.append(dm15s, np.array([SN.dm15_array]), axis = 0)
                 except ValueError:
                     print "This should never happen!"
-        #Make flux/ivar mask so we can average for pixels where everything has 0 ivar
+
+        #Adding masks for every parameter for consistency and zero compensation
         flux_mask = np.zeros(len(fluxes[0,:]))
         ivar_mask = np.zeros(len(fluxes[0,:]))
+	dm15_mask = np.zeros(len(dm15s[0,:]))
+	red_mask  = np.zeros(len(reds[0,:]))
+	
         have_data = np.where(np.sum(ivars, axis = 0)>0)
         no_data   = np.where(np.sum(ivars, axis = 0)==0)
+	no_dm15   = np.where(np.sum(dm15s, axis = 0)==0)
+	no_reds   = np.where(np.sum(reds, axis = 0)==0)
+	
         ivar_mask[no_data] = 1
-
+	dm15_mask[no_dm15] = 1
+	red_mask[:]  = 1
+	
+        dm15_ivars = np.array(ivars)
+	red_ivars  = np.array(ivars)
+	
+	
         #Add in flux/ivar mask
         fluxes = np.append(fluxes, np.array([flux_mask]), axis=0)
         ivars  = np.append(ivars, np.array([ivar_mask]), axis=0)
@@ -235,7 +248,9 @@ def average(SN_Array, template, medmean):
         #phases = np.append(phases, np.array([flux_mask]), axis=0)
         ages   = np.append(ages, np.array([flux_mask]), axis=0)
         vels   = np.append(vels, np.array([flux_mask]), axis=0)
-        dm15s  = np.append(dm15s, np.array([flux_mask]), axis=0)
+        dm15s  = np.append(dm15s, np.array([dm15_mask]), axis=0)
+	dm15_ivars = np.append(dm15_ivars, np.array([dm15_mask]), axis=0)
+	red_ivars  = np.append(red_ivars, np.array([red_mask]), axis=0)
 
         #The way this was done before was actually creating a single value array...
         #This keeps them intact correctly.
@@ -245,38 +260,20 @@ def average(SN_Array, template, medmean):
         #vels      = [vel for vel in vels if vel != None]
         #vels      = [vel for vel in vels if vel != -99.0]
         dm15s     = [dm15 for dm15 in dm15s if dm15 != None]
-        dm15_ivars = np.array(ivars)
-############
-# This is supposed to get rid of lists where there are no dm15 values
-# The same logic will eventually be applied to phase and other single-value parameters that may be missing from some spectra
-# It...doesn't work.
-	"""
-        for i in range(len(dm15s)):
-            #print dm15s[i]
-            if sum(dm15s[i]) == 0:
-                #print "all zeros here"
-                np.delete(dm15s, i, 1)
-                np.delete(dm15_ivars, i, 1)
 
-	#uh..this crashes my computer. don't use this bit.
-	dm15s = dm15s[(dm15s != 0)-1]
-	dm15_ivars = dm15_ivars[(dm15s != 0)-1]
-	print dm15_ivars
-	"""
-	if len(dm15_ivars)==len(ivars):
-            print "No rows were removed :("
-############
+	print len(np.array(reds))
+	print len(red_ivars)
         if medmean == 1:
             template.flux  = np.average(fluxes, weights=ivars, axis=0)
             #template.phase = np.average(phases, weights=ivars, axis=0)
-            template.age   = np.average(ages, weights=ivars, axis=0)
+            template.phase_array   = np.average(ages, weights=ivars, axis=0)
             template.vel   = np.average(vels, weights=ivars, axis=0)
             template.dm15  = np.average(dm15s, weights=dm15_ivars, axis=0)
-	    template.red_array = np.average(reds, weights = ivars, axis=0)
+	    template.red_array = np.average(np.array(reds), weights = red_ivars, axis=0)
         if medmean == 2:
             template.flux  = np.median(fluxes, axis=0)
             template.phase = np.median(phases, axis=0)
-            template.age   = np.median(ages, axis=0)
+            template.phase_array   = np.median(ages, axis=0)
             template.vel   = np.median(vels, axis=0)
             template.dm15  = np.median(dm15s, axis=0)
 	    template.red_array = np.median(reds, axis=0)
@@ -352,8 +349,8 @@ def main(Full_query, showplot = 0, medmean = 1, save_file = 'y'):
 
 
         print "Done."
-        print "Average redshift =", template.redshift
-        print "Average phase =", template.phase
+        #print "Average redshift =", template.redshift
+        #print "Average phase =", template.phase
         #print "Average velocity =", template.velocity
         #This next line creates a unique filename for each run based on the sample set used
 	#### file_name.py needs to be adjusted
@@ -373,7 +370,7 @@ def main(Full_query, showplot = 0, medmean = 1, save_file = 'y'):
             plt.show()
         #Either writes data to file, or returns it to user
         #This part is still in progress
-        table = Table([template.wavelength, template.flux, template.ivar, template.age, template.vel, template.dm15], names = ('Wavelength', 'Flux', 'Variance', 'Age', 'Velocity', 'Dm_15'))
+        table = Table([template.wavelength, template.flux, template.ivar, template.phase_array, template.vel, template.dm15, template.red_array], names = ('Wavelength', 'Flux', 'Variance', 'Age', 'Velocity', 'Dm_15', 'Redshift'))
         if save_file=='y':
                     table.write(template.savedname,format='ascii')
                     return template
@@ -483,7 +480,7 @@ def main(Full_query, showplot = 0, medmean = 1, save_file = 'y'):
         #Either writes data to file, or returns it to user
         #This part is still in progress
 	print template.phase
-        table = Table([template.wavelength, template.flux, template.ivar, template.age, template.dm15s], names = ('Wavelength', 'Flux', 'Variance', 'Age', 'Dm_15s'))
+        table = Table([template.wavelength, template.flux, template.ivar, template.phase_array, template.dm15s], names = ('Wavelength', 'Flux', 'Variance', 'Age', 'Dm_15s'))
         if save_file=='y':
             table.write(template.savedname,format='ascii')
             return template

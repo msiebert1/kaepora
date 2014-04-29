@@ -48,6 +48,7 @@ for n in range(queries):
     d["ages{0}".format(n+1)]         = np.array([d["data{0}".format(n+1)]["Age"]])
     d["dm15s{0}".format(n+1)]        = np.array([d["data{0}".format(n+1)]["Dm_15"]])
     d["vels{0}".format(n+1)]         = np.array([d["data{0}".format(n+1)]["Velocity"]])
+    d["reds{0}".format(n+1)]         = np.array([d["data{0}".format(n+1)]["Redshift"]])
     
 
 #This chunk will create an array that's the right length for however many queries you used.
@@ -58,6 +59,7 @@ variance_array = []
 age_array      = []
 dm15_array     = []
 vel_array      = []
+red_array      = []
 for n in range(queries):
     plot_array.append(d["wavelengths{0}".format(n+1)])
     plot_array.append(d["fluxes{0}".format(n+1)])
@@ -72,6 +74,8 @@ for n in range(queries):
     dm15_array.append(d["dm15s{0}".format(n+1)][0])
     vel_array.append(d["wavelengths{0}".format(n+1)][0])
     vel_array.append(d["vels{0}".format(n+1)][0])
+    red_array.append(d["wavelengths{0}".format(n+1)][0])
+    red_array.append(d["reds{0}".format(n+1)][0])
     name_array.append("composite{0}".format(n+1))
     name_array.append(" ")
 
@@ -90,7 +94,7 @@ Residuals       = residual_array # Check it out! Residuals plot now.
 Spectra_Bin     = [] 
 Age             = age_array 
 Delta           = dm15_array
-Redshift        = []
+Redshift        = red_array
 ## If you want custom names, uncomment and use line 83, for consistency.
 ##Otherwise it'll default to just labeling composites in order.
 Names           = name_array
