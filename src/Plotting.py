@@ -307,15 +307,15 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
 # The following function will fill a smaller plot that shows  
 # the redshift with respect to wavelength(?).
 #############################################################              
-    def Redshift(RE):
+    def Redshift(RD):
         Redshift = plt.subplot(gs[p], sharex = Rel_flux)
         plt.ylabel('Redshift', fontdict = font)
         #plt.yticks(np.arange(0, 0.9, 0.2))
         
-        for k in range(len_RE):
+        for k in range(len_RD):
             if k % 2 == 0:
                 good = np.where(VA[k+1] != 0)
-                plt.plot(RE[k][good], RE[k+1][good], label = "Redshift", ls = '-')
+                plt.plot(RD[k][good], RD[k+1][good], label = "Redshift", ls = '-')
         Zxticklabels = Redshift.get_xticklabels()        
         if max(stacked) == 6:            
             plt.setp(Zxticklabels, visible=True)
