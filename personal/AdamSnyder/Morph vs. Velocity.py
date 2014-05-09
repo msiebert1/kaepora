@@ -79,11 +79,11 @@ def findunique(SN_Array):
 # Connect to database
 con = sq3.connect('..\..\data\SNe.db')
 cur = con.cursor()
-sql_input = 'SELECT * FROM Supernovae WHERE B_mMinusV_m < 0.0 AND Velocity > -20 AND Phase BETWEEN -2 AND 2 AND Dm15 BETWEEN 1.0 AND 1.5'
+sql_input = 'SELECT * FROM Supernovae WHERE Morphology BETWEEN 1 AND 11 AND Velocity > -20 AND Phase BETWEEN -3 AND 3 AND Dm15 BETWEEN 1.0 AND 1.5'
 X = []
 Y = []
-high_bv = []
-low_bv = []
+high_morph = []
+low_morph = []
 high_vel = []
 low_vel = []
 
@@ -98,42 +98,35 @@ for i in range(len(unique_SN)):
 print len(SN_Array)
 
 for SN in SN_Array:
-    Y.append(SN.B_minus_v)
+    Y.append(SN.morph)
     X.append(SN.velocity)
-    print SN.carbon
     if SN.velocity <= -12:
         high_vel.append(SN.velocity)
-        high_bv.append(SN.B_minus_v)
+        high_morph.append(SN.morph)
     elif SN.velocity > -12:
         low_vel.append(SN.velocity)
-        low_bv.append(SN.B_minus_v)
-
-avg_high_bv = np.mean(high_bv)
-avg_low_bv = np.mean(low_bv)
+        low_morph.append(SN.morph)
 
 print len(high_vel), len(low_vel)
-print avg_high_bv, avg_low_bv
 
 # Create figure
 fig = plt.figure()
-plt.title('Color vs. Si II line Velocity')
-plt.ylabel('Observed B - V [mag]')
-plt.xlabel(r'$v_\mathrm{abs}$ (Si II $\lambda 6355$) [$10^3$ km/s]')
+plt.title('Galaxy Morphology vs. Si II line Velocity')
+plt.ylabel(r'$v_\mathrm{abs}$ (Si II $\lambda 6355$) [$10^3$ km/s]')
+plt.xlabel(r'Host Galaxy Morphology')
 
 # Create best fit line
-fit = np.polyfit(X,Y,1)
-fit_fn = np.poly1d(fit)
-fit_label = 'B-V = {0:.4f} {1:.4f} x (v / 10^3 km/s)'.format(fit[1], fit[0])
+#fit = np.polyfit(X,Y,1)
+#fit_fn = np.poly1d(fit)
+#fit_label = 'B-V = {0:.4f} {1:.4f} x (v / 10^3 km/s)'.format(fit[1], fit[0])
 
 #calculate Pearson correlation coefficient
-correlation = np.corrcoef(X,Y)[0, 1]
-print "Correlation coefficient is", correlation
+#correlation = np.corrcoef(X,Y)[0, 1]
+#print correlation
 
-plt.gca().invert_xaxis()
-plt.plot(high_vel, high_bv, 'ro', low_vel, low_bv, 'bo')
-plt.plot(X, fit_fn(X), '-', label=fit_label)
-plt.legend(loc='lower right')
-plt.savefig('color-velocity-scatter.png')
+plt.gca().invert_yaxis()
+plt.plot(high_morph, high_vel, 'ro', low_morph, low_vel, 'bo')
+plt.savefig('morph-velocity-scatter.png')
 
 #plt.scatter(X, Y)
 plt.show()
