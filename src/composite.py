@@ -92,15 +92,10 @@ def grab(sql_input, Full_query):
 	    #Check for NaN
             if np.isnan(SN.flux[i]):
                 SN.flux[i] = 0
-            if np.isnan(SN.ivar[i]):
                 SN.ivar[i] = 0
-            if np.isnan(SN.phase_array[i]):
                 SN.phase_array[i]  = 0
-            if np.isnan(SN.dm15_array[i]):
                 SN.dm15_array[i] = 0
-	    if np.isnan(SN.red_array[i]):
 		SN.red_array[i] = 0
-	    if np.isnan(SN.vel[i]):
 		SN.vel[i] = 0
 		
 	    #Check for None
@@ -309,7 +304,7 @@ def average(SN_Array, template, medmean):
 
 
 
-def main(Full_query, showplot = 0, medmean = 1, save_file = 'y'):
+def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'y'):
     SN_Array = []
 
     #Accept SQL query as input and then grab what we need
@@ -318,7 +313,10 @@ def main(Full_query, showplot = 0, medmean = 1, save_file = 'y'):
 
     SN_Array = grab(sql_input, Full_query)
 
-    opt = str(raw_input("Do you want to do bootstrapping? (y/n) "))
+    #opt = str(raw_input("Do you want to do bootstrapping? (y/n) "))
+    if opt == 'y':
+	bootstrap.main(SN_Array)
+
     if opt == 'n':
 	#finds the longest SN we have for our initial template
         lengths = []
@@ -390,115 +388,6 @@ def main(Full_query, showplot = 0, medmean = 1, save_file = 'y'):
                     return template
         else:
                     return template
-    if opt == 'y':
-        tries = int(raw_input("Enter number of bootstraps: "))  # Number of bootstraps.
 
-        boot_flux = []
-        boot_flux_unscaled = [0] * tries
-
-
-        for j in range(tries):
-            SN_Array2 = bootstrap.main(SN_Array)
-            #finds the longest SN we have for our initial template
-            lengths = []
-            for SN in SN_Array2:
-                lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
-            temp = [SN for SN in SN_Array2 if len(SN.flux[np.where(SN.flux!=0)]) == max(lengths)]
-            try:
-                composite = temp[0]
-            except IndexError:
-                print "No spectra found"
-                exit()
-
-            #scales data, makes a composite, and splices in non-overlapping data
-            #Here is where we set our wavelength range for the final plot
-            wmin    = 4000
-            wmax    = 7500
-            wavemin = composite.minwave
-            wavemax = composite.maxwave
-
-            #finds range of useable data
-            good     = np.where(len(np.where(((wavemin <= wmin) & (wavemax >= wmax)) > 100)))
-            template = supernova()
-            template = SN_Array2[good[0]]
-            template = composite
-
-            #Starts our main loop
-            i = 0
-            n_start = 0
-            n_end   = 1
-            scales  = []
-            while (n_start != n_end):
-                n_start = len([x for x in scales if x>0])
-                scales   = []
-                scales   = find_scales(SN_Array2, template.flux, template.ivar)
-                n_scale  = len([x for x in scales if x>0])
-                SN_Array2 = scale_data(SN_Array2, scales)
-                template = average(SN_Array2, template, medmean)
-                n_end    = n_scale
-                n_start  = n_end
-
-
-            boot_flux_unscaled[j] = template.flux[np.where(template.wavelength == wmin)[0]:np.where(template.wavelength == wmax)[0]]
-
-            boot_flux.append(np.divide(boot_flux_unscaled[j], np.median(boot_flux_unscaled[j])))
-
-
-
-
-        ### 16th and 84th percentile of the spectrum (for scatter plot)
-        percentile = erf(1/np.sqrt(2.))
-
-        low_pc = 0.5 - percentile / 2.
-        up_pc = 0.5 + percentile / 2.
-
-        ### The 16th and 84th percentile index
-        low_ind = np.round(tries * low_pc).astype(int)
-        up_ind = np.round(tries * up_pc).astype(int)
-
-        ### Sort the fluxes in each wavelength, and put the 16th and 84th percentile fluxes into two arrays
-        median = np.median(boot_flux, axis = 0)     ### Median of the spectrum (for scaling)
-        low_arr = np.divide(np.sort(boot_flux, axis = 0)[low_ind - 1], median)
-        up_arr = np.divide(np.sort(boot_flux, axis = 0)[up_ind - 1], median)
-
-            #for j in range(np.sort(boot_flux, axis = 0)[low_ind - 1].size):
-            #print j, median[j], aaaa[j], low_arr[j], up_arr[j]
-
-        lowindex  = np.where(template.wavelength == find_nearest(template.wavelength, wmin))
-        highindex = np.where(template.wavelength == find_nearest(template.wavelength, wmax))
-
-            #print low_arr[lowindex[0]:highindex[0]]
-
-        plt.plot(template.wavelength[lowindex[0]:highindex[0]], low_arr)
-        plt.plot(template.wavelength[lowindex[0]:highindex[0]], up_arr)
-        print low_arr
-        print up_arr
-
-        minflux = np.min(low_arr) * 0.9
-        maxflux = np.max(up_arr) * 1.1
-        plt.ylim((minflux, maxflux))
-        plt.show()
-        plt.close()
-
-                #print median[lowindex[0]:highindex[0]]
-        f_name = "../plots/" + file_name.make_name(SN_Array2)
-        template.savedname = f_name + '.dat'
-        #This plots the individual composite just so you can see how it
-        if int(showplot) == 1:
-            plt.plot(template.wavelength[lowindex[0]:highindex[0]], template.flux[lowindex[0]:highindex[0]])
-            plt.plot(template.wavelength[lowindex[0]:highindex[0]], template.ivar[lowindex[0]:highindex[0]])
-
-            #This saves it, if you want to.
-            plt.savefig('../plots/' + f_name + '.png')
-            plt.show()
-        #Either writes data to file, or returns it to user
-        #This part is still in progress
-	print template.phase
-        table = Table([template.wavelength, template.flux, template.ivar, template.phase_array, template.dm15s], names = ('Wavelength', 'Flux', 'Variance', 'Age', 'Dm_15s'))
-        if save_file=='y':
-            table.write(template.savedname,format='ascii')
-            return template
-        else:
-            return template
 if __name__ == "__main__":
     main()
