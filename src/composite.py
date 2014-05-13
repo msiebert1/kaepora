@@ -43,11 +43,9 @@ def grab(sql_input):
         SN           = supernova()
         SN.filename  = row[0]
         SN.name      = row[1]
-	print SN.name
         SN.source    = row[2]
         SN.redshift  = row[3]
         SN.phase     = row[4]
-	print SN.phase
         SN.minwave   = row[5]
         SN.maxwave   = row[6]
         SN.dm15      = row[7]
@@ -68,10 +66,10 @@ def grab(sql_input):
             continue
         full_array.append(SN)
         SN_Array.append(SN)
-	for i in range(len(SN_Array)-1):
-	    if SN_Array[i].name == SN_Array[i-1].name:
-		if abs(SN_Array[i].phase) < abs(SN_Array[i-1].phase):
-		    del SN_Array[i-1]
+        for i in range(len(SN_Array)-1):
+            if SN_Array[i].name == SN_Array[i-1].name:
+                if abs(SN_Array[i].phase) < abs(SN_Array[i-1].phase):
+                    del SN_Array[i-1]
     print len(SN_Array), "spectra found"
 
     #Within the interpolated spectra there are a lot of 'NaN' values
@@ -182,6 +180,9 @@ def scale_data(SN_Array, scales):
             #print "Scaled at factor ", scales[i]
         else:
             SN_Array[i].ivar = np.zeros(len(SN_Array[i].ivar))
+        plt.plot(SN_Array[i].wavelength, SN_Array[i].flux)
+    print "Displaying scaled spectra..."
+    plt.show()
     return SN_Array
 
 #averages with weights of the inverse variances in the spectra
@@ -272,7 +273,7 @@ def average(SN_Array, template, medmean):
 
 
 
-def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'y'):
+def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
     SN_Array = []
 
     #Accept SQL query as input and then grab what we need
@@ -343,7 +344,9 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'y'):
             plt.savefig('../plots/' + f_name + '.png')
             plt.show()
         table = Table([template.wavelength, template.flux, template.ivar, template.phase_array, template.vel, template.dm15, template.red_array], names = ('Wavelength', 'Flux', 'Variance', 'Age', 'Velocity', 'Dm_15', 'Redshift'))
-        return table
+        if save_file == 'y':
+	    table.write(template.savedname, format='ascii')
+	return table
 
 if __name__ == "__main__":
     main()
