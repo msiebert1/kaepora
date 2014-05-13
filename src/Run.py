@@ -41,14 +41,14 @@ for n in range(queries):
 #This is how you have to address things if you want to iterate over queries.
 #The n+1 makes the first item composite1, not composite0.
 for n in range(queries):
-    d["data{0}".format(n+1)]         = Table.read(d["composite{0}".format(n+1)].savedname, format='ascii')
-    d["wavelengths{0}".format(n+1)]  = np.array([d["data{0}".format(n+1)]["Wavelength"]])
-    d["fluxes{0}".format(n+1)]       = np.array([d["data{0}".format(n+1)]["Flux"]])
-    d["variances{0}".format(n+1)]    = np.array([d["data{0}".format(n+1)]["Variance"]])
-    d["ages{0}".format(n+1)]         = np.array([d["data{0}".format(n+1)]["Age"]])
-    d["dm15s{0}".format(n+1)]        = np.array([d["data{0}".format(n+1)]["Dm_15"]])
-    d["vels{0}".format(n+1)]         = np.array([d["data{0}".format(n+1)]["Velocity"]])
-    d["reds{0}".format(n+1)]         = np.array([d["data{0}".format(n+1)]["Redshift"]])
+    #d["data{0}".format(n+1)]         = Table.read(d["composite{0}".format(n+1)].savedname, format='ascii')
+    d["wavelengths{0}".format(n+1)]  = np.array([d["composite{0}".format(n+1)]["Wavelength"]])
+    d["fluxes{0}".format(n+1)]       = np.array([d["composite{0}".format(n+1)]["Flux"]])
+    d["variances{0}".format(n+1)]    = np.array([d["composite{0}".format(n+1)]["Variance"]])
+    d["ages{0}".format(n+1)]         = np.array([d["composite{0}".format(n+1)]["Age"]])
+    d["dm15s{0}".format(n+1)]        = np.array([d["composite{0}".format(n+1)]["Dm_15"]])
+    d["vels{0}".format(n+1)]         = np.array([d["composite{0}".format(n+1)]["Velocity"]])
+    d["reds{0}".format(n+1)]         = np.array([d["composite{0}".format(n+1)]["Redshift"]])
     
 
 #This chunk will create an array that's the right length for however many queries you used.

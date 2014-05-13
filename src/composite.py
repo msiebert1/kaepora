@@ -384,10 +384,10 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'y'):
         #This part is still in progress
         table = Table([template.wavelength, template.flux, template.ivar, template.phase_array, template.vel, template.dm15, template.red_array], names = ('Wavelength', 'Flux', 'Variance', 'Age', 'Velocity', 'Dm_15', 'Redshift'))
         if save_file=='y':
-                    table.write(template.savedname,format='ascii')
-                    return template
+                    #table.write(template.savedname,format='ascii')
+                    return table
         else:
-                    return template
+                    return table
 
 if __name__ == "__main__":
     main()
