@@ -271,7 +271,15 @@ def average(SN_Array, template, medmean):
         template.name = "Composite Spectrum"
         return template
 
-
+def do_things(SN_Array, template, scales, medmean):
+        n_start = len([x for x in scales if x>0])
+        scales   = []
+        scales   = find_scales(SN_Array, template.flux, template.ivar)
+        n_scale  = len([x for x in scales if x>0])
+        SN_Array = scale_data(SN_Array, scales)
+        template = average(SN_Array, template, medmean)
+        n_end    = n_scale
+	return n_start, n_end, SN_Array, template, scales
 
 def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
     SN_Array = []
@@ -316,14 +324,8 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
         n_end   = 1
         scales  = []
         while (n_start != n_end):
-            n_start = len([x for x in scales if x>0])
-            scales   = []
-            scales   = find_scales(SN_Array, template.flux, template.ivar)
-            n_scale  = len([x for x in scales if x>0])
-            SN_Array = scale_data(SN_Array, scales)
-            template = average(SN_Array, template, medmean)
-            n_end    = n_scale
-            n_start  = n_end
+	    n_start, n_end, SN_Array, template, scales = do_things(SN_Array, template, scales, medmean)
+	n_start, n_end, SN_Array, template, scales = do_things(SN_Array, template, scales, medmean)
 
 
         print "Done."
