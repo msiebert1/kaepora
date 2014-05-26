@@ -4,16 +4,17 @@ import Plotting
 from astropy.table import Table
 import matplotlib.pyplot as plt
 import numpy as np
-import prep
 
 import sqlite3 as sq3
 from scipy import interpolate as intp
 import math
 import msgpack as msg
 import msgpack_numpy as mn
+from prep import *
+from datafidelity import *
 
 """
-*Mean't to be used from src folder
+*Meant to be used from src folder
 
 This code is designed to check each spectra file, one by one, given a particular source,
 by plotting the original and the interpolated spectra together, along with the 
@@ -63,7 +64,8 @@ SOURCE		which source data is being looked at(bsnip,cfa,etc.)
 FILENAMES	path to the spectra files
 FILES		truncated path list to match the data being looked at
 DATA		data from the spectra files
-LIST		holds n column list that has the filenames, comment on errors
+BADLIST		holds filename that has problems
+BADCOMMENT	holds the comment associated with the bad file
 
 START		index started at
 END		index ended at
@@ -80,16 +82,13 @@ while (True):
 		break
 
 #accounts for different file organizations for sources
-if source == 'bsnip':
+if source == 'bsnip' or source == 'uv':
 	path = "../data/spectra/"+source+"/*.flm"
 if source == 'cfa':
 	path = "../data/spectra/"+source+"/*/*.flm"
-if source == 'csp':
+if source == 'csp' or source == 'other':
 	path = "../data/spectra/"+source+"/*.dat"
-if source == 'other':
-	path = "../data/spectra/"+source+"/*.dat"
-if source == 'uv':
-	path = "../data/spectra/"+source+"/*.flm"
+
 
 #read in all filenames to extract data from 
 filenames = glob.glob(path)
@@ -164,20 +163,73 @@ MAIN LOOP CHECKLIST:
 """
 files = []
 
+
+########
+#right now generating varience for all...implement check to see if file already has it (too lazy right now)
+#######
 #main loop, see MAIN LOOP CHECKLIST above for breakdown
+offset = start
 for i in range(len(filenames)):
 	if (i >= start):
 		try:
 			###checks that correct data files are appended 
 			###when taking into account the index offset
 			##print i,filenames[i]
+
+			#gets wave and flux from current file
 			data.append((np.loadtxt(filenames[i])))
+			#keeps track of files looking at (due to index offset)
 			files.append(filenames[i])
+			#separate wave/flux/error for easier manipulation
+			orig_wave = data[i-offset][:,0]
+			orig_flux = data[i-offset][:,1]
+			try:
+				# check if data has error array
+				orig_error = data[i-offset][:,2] 
+		   	except IndexError:
+				# if not, set default
+				orig_error = np.array([0])
+
+			##get invar, to use in interp, and separate wave/flux/errors
+			invar = genivar(orig_wave,orig_flux)
+			interp = Interpo(orig_wave,orig_flux,invar)
+			interp_wave = interp[0]
+			interp_flux = interp[1]
+			interp_error = interp[2]
+
+			##plotting orig, interp, var
+
+
+			Relative_Flux = [orig_wave, orig_flux, interp_wave, interp_flux]  # Want to plot a composite of multiple spectrum
+			Variance = invar
+			Residuals     = []
+			Spectra_Bin   = []
+			Age           = []
+			Delta         = []
+			Redshift      = [] 
+			Show_Data     = [Relative_Flux,Variance,Residuals,Spectra_Bin,Age,Delta,Redshift]
+			image_title   = source,i            # Name the image (with location)
+			title         = "(>^.^)> <(^.^<) ^(^.^)v v(^.^)^" 
+			#
+			## Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift, Multiple Spectrum, Stacked Spectrum
+			##                   0              1          2            3    4      5         6,                 7
+			####################################^should be varience?...
+			name_array = ["original", " ", "interpolated", " "]
+			Names = name_array
+			Plots = [0,1] # the plots you want to create
+			#
+			## The following line will plot the data
+			#
+			xmin         = 1500 
+			xmax         = 12000
+			Plotting.main(Show_Data , Plots , image_title , title, Names,xmin,xmax)
+			
 
 		except ValueError:
 			print "found bad file! at index:",i
 			badlist.append(filenames[i])
 			badcomment.append("bad file")
+			offset += 1
 
 
 ###checks to make sure the right data is being looked at
