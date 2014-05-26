@@ -102,7 +102,7 @@ filenames = glob.glob(path)
 #from the beginning every time you run the program
 while (True):
 	print "valid index range: 0 to",(len(filenames)-1)
-	start = int(raw_input("Please select what index you would like to start at:\n"))
+	start = int(raw_input("Please select what index you would like to start at\n:"))
 	if (start < 0 and start > (len(filenames)-1)):
 		print "\ninvalid index"
 	else:
@@ -222,19 +222,21 @@ for i in range(len(filenames)):
 			xmax         = 12000
 			#still figuring out how to get this to work properly
 			#Plotting.main(Show_Data , Plots , image_title , title, Names,xmin,xmax)
-			
-			comment = str(raw_input("Please comment on this spectra as follows:\n\n[enter](blank input) - plot is fine(don't add to list)\n'comment'(telluric, spikes, etc...)will save the observed problem into a list along with the file\n'q' or 'quit' to stop here and save any errors made into a file'
+			print "pretend that something plotted"
+
+			comment = str(raw_input("Please comment on this spectra\n([enter](blank) = no error, 'q' or 'quit' to stop)\n:"))
 			#no error, don't record anything
 			if comment == '':
-			
+				print "nothing to see here"
+				print "move along, move along"
 			#done checking, record ending index and stop loop
-			else if comment == 'q' or comment = 'quit':
+			elif comment == 'q' or comment == 'quit':
 				end = i
 				break
 			#comment made, record it and the file to respective lists
 			else:
 				badfile.append(filenames[i])
-				badcomment.appent(comment)
+				badcomment.append(comment)
 				
 				
 		
@@ -245,7 +247,8 @@ for i in range(len(filenames)):
 			#can't read file ->messes up indexing and this corrects for this
 			offset += 1
 
-
+if end == -1:
+	end = len(filenames)-1
 ###checks to make sure the right data is being looked at
 ##print "looking at",files[0],"with wave vals:\n",data[0][:,0]	#all wavelengths of data at index 0
 ##print "looking at",files[0],"with flux vals:\n",data[0][:,1]	#all flux values of data at index 0
@@ -257,8 +260,9 @@ for i in range(len(filenames)):
 ############
 ##QUITTING##
 ############
-badlist =  Table(badfile,badlist)
+badlist =  Table([badfile,badcomment])
 badlist_filename = source,"_",start,"_",end
+print badlist_filename
 print badlist
 #ascii.write(badlist,badlist_filename)
 
