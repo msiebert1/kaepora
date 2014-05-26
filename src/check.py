@@ -2,6 +2,7 @@ import glob
 import composite
 import Plotting
 from astropy.table import Table
+from astropy.io import ascii
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -64,7 +65,7 @@ SOURCE		which source data is being looked at(bsnip,cfa,etc.)
 FILENAMES	path to the spectra files
 FILES		truncated path list to match the data being looked at
 DATA		data from the spectra files
-BADLIST		holds filename that has problems
+BADFILE		holds filename that has problems
 BADCOMMENT	holds the comment associated with the bad file
 
 START		index started at
@@ -124,7 +125,7 @@ for i in range(len(filenames)):
 data = []
 wave = []
 flux = []
-badlist = []
+badfile = []
 badcomment = []
 interp = []
 invar = []
@@ -145,29 +146,26 @@ MAIN LOOP CHECKLIST:
 	[]get inverse varience values INVAR
 	[]plot ORIG and INTERP data 
 	 with INVAR
-	[]Observe and Comment(for BADLIST and BADCOMMENT):
+	[]Observe and Comment(for BADFILE and BADCOMMENT):
 		[][enter](blank input)
 		 	plot is fine(don't add to list)
 		[]type comment(telluric, spikes, clipping, etc...)
-		 	add FILES[i] to BADLIST and 
+		 	add FILES[i] to BADFILE and 
 			keyboard input to BADCOMMENT
 		[]'q' or 'quit' to end, saves ending index to END
 	[x]Continues onto next file if not quitting
 
 	if quitting:
-		[]combine BADLIST and BADCOMMENT into 2-column list
+		[]combine BADFILE and BADCOMMENT into 2-column list
 		[]save list to txt file in format: 
 		('SOURCE_'+'START'+'_'+'END')
 		ex. ('cfa_0_200.txt')
 
 """
 files = []
-
-
-########
-#right now generating varience for all...implement check to see if file already has it (too lazy right now)
-#######
-#main loop, see MAIN LOOP CHECKLIST above for breakdown
+#############
+##MAIN LOOP## see MAIN LOOP CHECKLIST above for breakdown
+#############
 offset = start
 for i in range(len(filenames)):
 	if (i >= start):
@@ -209,7 +207,7 @@ for i in range(len(filenames)):
 			Redshift      = [] 
 			Show_Data     = [Relative_Flux,Variance,Residuals,Spectra_Bin,Age,Delta,Redshift]
 			image_title   = source,i            # Name the image (with location)
-			title         = "(>^.^)> <(^.^<) ^(^.^)v v(^.^)^" 
+			title         = "checking",filenames[i]
 			#
 			## Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift, Multiple Spectrum, Stacked Spectrum
 			##                   0              1          2            3    4      5         6,                 7
@@ -222,13 +220,29 @@ for i in range(len(filenames)):
 			#
 			xmin         = 1500 
 			xmax         = 12000
-			Plotting.main(Show_Data , Plots , image_title , title, Names,xmin,xmax)
+			#still figuring out how to get this to work properly
+			#Plotting.main(Show_Data , Plots , image_title , title, Names,xmin,xmax)
 			
-
+			comment = str(raw_input("Please comment on this spectra as follows:\n\n[enter](blank input) - plot is fine(don't add to list)\n'comment'(telluric, spikes, etc...)will save the observed problem into a list along with the file\n'q' or 'quit' to stop here and save any errors made into a file'
+			#no error, don't record anything
+			if comment == '':
+			
+			#done checking, record ending index and stop loop
+			else if comment == 'q' or comment = 'quit':
+				end = i
+				break
+			#comment made, record it and the file to respective lists
+			else:
+				badfile.append(filenames[i])
+				badcomment.appent(comment)
+				
+				
+		
 		except ValueError:
 			print "found bad file! at index:",i
-			badlist.append(filenames[i])
+			badfile.append(filenames[i])
 			badcomment.append("bad file")
+			#can't read file ->messes up indexing and this corrects for this
 			offset += 1
 
 
@@ -238,9 +252,13 @@ for i in range(len(filenames)):
 
 ###double-check to make sure right number of data are appended
 ##print len(filenames),"- starting index",start,"=",len(data)
-##print badlist,badcomment
+##print badfile,badcomment
 
-
-
-
+############
+##QUITTING##
+############
+badlist =  Table(badfile,badlist)
+badlist_filename = source,"_",start,"_",end
+print badlist
+#ascii.write(badlist,badlist_filename)
 
