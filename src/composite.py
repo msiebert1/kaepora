@@ -185,6 +185,39 @@ def scale_data(SN_Array, scales):
     plt.show()
     return SN_Array
 
+
+#########
+#Here's the new scale function that I'm trying
+#Based on some code that Brian sent me
+#I think it works the way it's designed to at the moment
+#But I think it might not be what we want.
+#It fits the spectra to each other...
+#but instead of scaling them while remaining the same shape,
+#they all get fitted to a single curve
+#So they end up identical...
+#bad, right?
+##########
+
+def new_scale_func(SN_Array, template):
+    for SN in SN_Array:
+        data = np.array([template.flux, SN.flux])
+        source  = data.T
+        #print source
+        guess = 4
+        datas = []
+        for m in range(len(source)):
+            comp2, cov2 = leastsq(residual, guess, args=(source[m]), full_output=False)
+            datas.append(comp2[0])
+        #print datas
+        scales = [x for x in datas if x != 0]
+        SN.flux = datas
+        plt.plot(SN.wavelength, SN.flux)
+    plt.show()
+    return SN_Array, scales
+    
+def residual(comp, data):
+    return comp-data
+
 #averages with weights of the inverse variances in the spectra
 def average(SN_Array, template, medmean):
         print "Averaging..."
@@ -274,12 +307,13 @@ def average(SN_Array, template, medmean):
 def do_things(SN_Array, template, scales, medmean):
         n_start = len([x for x in scales if x>0])
         scales   = []
-        scales   = find_scales(SN_Array, template.flux, template.ivar)
+        SN_Array, scales = new_scale_func(SN_Array, template)
+        #scales   = find_scales(SN_Array, template.flux, template.ivar)
         n_scale  = len([x for x in scales if x>0])
-        SN_Array = scale_data(SN_Array, scales)
+        #SN_Array = scale_data(SN_Array, scales)
         template = average(SN_Array, template, medmean)
         n_end    = n_scale
-	return n_start, n_end, SN_Array, template, scales
+        return n_start, n_end, SN_Array, template, scales
 
 def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
     SN_Array = []
@@ -303,8 +337,6 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
             print "No spectra found"
             exit()
 
-
-
         #Here is where we set our wavelength range for the final plot
         wmin    = 4000
         wmax    = 7500
@@ -324,8 +356,8 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
         n_end   = 1
         scales  = []
         while (n_start != n_end):
-	    n_start, n_end, SN_Array, template, scales = do_things(SN_Array, template, scales, medmean)
-	n_start, n_end, SN_Array, template, scales = do_things(SN_Array, template, scales, medmean)
+            n_start, n_end, SN_Array, template, scales = do_things(SN_Array, template, scales, medmean)
+        n_start, n_end, SN_Array, template, scales = do_things(SN_Array, template, scales, medmean)
 
 
         print "Done."
@@ -347,8 +379,8 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
             plt.show()
         table = Table([template.wavelength, template.flux, template.ivar, template.phase_array, template.vel, template.dm15, template.red_array], names = ('Wavelength', 'Flux', 'Variance', 'Age', 'Velocity', 'Dm_15', 'Redshift'))
         if save_file == 'y':
-	    table.write(template.savedname, format='ascii')
-	return table
+            table.write(template.savedname, format='ascii')
+        return table
 
 if __name__ == "__main__":
     main()
