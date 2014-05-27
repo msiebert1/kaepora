@@ -102,25 +102,28 @@ filenames = glob.glob(path)
 #from the beginning every time you run the program
 while (True):
 	print "valid index range: 0 to",(len(filenames)-1)
-	start = int(raw_input("Please select what index you would like to start at\n:"))
-	if (start < 0 and start > (len(filenames)-1)):
-		print "\ninvalid index"
-	else:
-		print "starting at index:",start		
-		break
+	try:
+		start = int(raw_input("Please select what index you would like to start at?(-1 for list)\n:"))
+		if start == -1:
+			step = int(raw_input("Please enter step size(how many spectra per [enter])\n:"))
+			print "PRESS [ENTER] TO SHOW NEXT",step,"(q to quit)"
+			for j in range(len(filenames)):
+				if source == 'cfa':
+					print j,filenames[j].split('/')[5]
+				else:
+					print j,filenames[j].split('/')[4]
+				if (j % step == 0):
+					flag = raw_input();
+					if flag == 'q':
+						break
+		if (start < 0 or start > (len(filenames)-1)):
+			print "INDEX OUT OF RANGE\n"
+		else:
+			print "starting at index:",start		
+			break
+	except ValueError:
+		print "NOT AN INTEGER\n"
 
-"""
-#trims filenames so that cuts out the path and leaves only the file
-for i in range(len(filenames)):
-	if source == 'cfa':
-		filenames[i] = filenames[i].split('/')[5]
-	else:
-		filenames[i] = filenames[i].split('/')[4]
-
-###checks that all filenames were correctly split
-##for files in filenames:
-##	print files
-"""
 
 data = []
 wave = []
@@ -134,7 +137,7 @@ end = -1
 """
 [ ] - need to implement
 [x] - implemented
-
+[!] - implemented but needs work
 MAIN LOOP CHECKLIST:
 
 	For each spectra file:
@@ -142,17 +145,17 @@ MAIN LOOP CHECKLIST:
 	[x]read data at index (from START)
 	[x]except value error for bad file
 	[x]make sure FILE lines up with DATA
-	[]create separate interpolated data INTERP
-	[]get inverse varience values INVAR
-	[]plot ORIG and INTERP data 
+	[x]create separate interpolated data INTERP
+	[x]get inverse varience values INVAR
+	[!]plot ORIG and INTERP data 
 	 with INVAR
-	[]Observe and Comment(for BADFILE and BADCOMMENT):
-		[][enter](blank input)
+	[x]Observe and Comment(for BADFILE and BADCOMMENT):
+		[x][enter](blank input)
 		 	plot is fine(don't add to list)
-		[]type comment(telluric, spikes, clipping, etc...)
+		[x]type comment(telluric, spikes, clipping, etc...)
 		 	add FILES[i] to BADFILE and 
 			keyboard input to BADCOMMENT
-		[]'q' or 'quit' to end, saves ending index to END
+		[x]'q' to end, saves ending index to END
 	[x]Continues onto next file if not quitting
 
 	if quitting:
@@ -178,6 +181,8 @@ for i in range(len(filenames)):
                 data.append((np.loadtxt(filenames[i])))
 			#keeps track of files looking at (due to index offset)
                 files.append(filenames[i])
+		
+		
 			#separate wave/flux/error for easier manipulation
                 orig_wave = data[i-offset][:,0]
                 orig_flux = data[i-offset][:,1]
@@ -197,7 +202,7 @@ for i in range(len(filenames)):
                 interp_error = interp[2]
 #                print interp_wave,interp_flux,interp_error
 
-			##plotting orig, interp, var
+		##plotting orig, interp, var
 
 
                 Relative_Flux = [orig_wave, orig_flux, interp_wave, interp_flux]  # Want to plot a composite of multiple spectrum
@@ -210,21 +215,21 @@ for i in range(len(filenames)):
                 Show_Data     = [Relative_Flux,Variance,Residuals,Spectra_Bin,Age,Delta,Redshift]
                 image_title   = source,i            # Name the image (with location)
                 title         = "checking",filenames[i]
-			#
-			## Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift, Multiple Spectrum, Stacked Spectrum
-			##                   0              1          2            3    4      5         6,                 7
-			####################################^should be varience?...
+		#
+		## Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift, Multiple Spectrum, Stacked Spectrum
+		##                   0              1          2            3    4      5         6,                 7
+		####################################^should be varience?...
                 name_array = ["original", " ", "interpolated", " "]
                 Names = name_array
                 Plots = [0,1] # the plots you want to create
-			#
-			## The following line will plot the data
-			#
-                xmin         = 3500 
-                xmax         = 8000
+		#
+		## The following line will plot the data
+		#
+                xmin         = orig_wave[0]-50 
+                xmax         = orig_wave[len(orig_wave)-1]+50
                 # Use the plotting function here
                 #Plotting.main(Show_Data , Plots , image_title , title, Names,xmin,xmax)
-                
+                print "FILE:",filenames[i]
                 #test plotting (when Plotting code is not working properly)
                 #plt.figure(1)
                 plt.subplot(2,1,1)                
@@ -240,26 +245,34 @@ for i in range(len(filenames)):
                 plt.xlabel('Rest Wavelength')
                 plt.ylabel('Inverse Variance')
                 plt.show()
-                print "spectra is plotted"
+                #print "spectra is plotted"
 
                 comment = str(raw_input("Please comment on this spectra\n([enter](blank) = no error, 'q' or 'quit' to stop)\n:"))
 			#no error, don't record anything
                 if comment == '':
-				print "nothing to see here"
-				print "move along, move along"
+			print "nothing to see here"
+			print "move along, move along"
 			#done checking, record ending index and stop loop
                 elif comment == 'q' or comment == 'quit':
-				end = i
-				break
+			end = i
+			break
 			#comment made, record it and the file to respective lists
                 else:
-				badfile.append(filenames[i])
-				badcomment.append(comment)
+			if source == 'cfa':
+				badfile.append(filenames[j].split('/')[5])
+			else:
+				badfile.append(filenames[j].split('/')[4])
+
+			badcomment.append(comment)
+			print "COMMENT:",comment
 				
 				
             except ValueError:
 			print "found bad file! at index:",i
-			badfile.append(filenames[i])
+			if source == 'cfa':
+				badfile.append(filenames[j].split('/')[5])
+			else:
+				badfile.append(filenames[j].split('/')[4])
 			badcomment.append("bad file")
 			#can't read file ->messes up indexing and this corrects for this
 			offset += 1
@@ -278,8 +291,23 @@ if end == -1:
 ##QUITTING##
 ############
 badlist =  Table([badfile,badcomment])
-badlist_filename = source,"_",start,"_",end
-print badlist_filename
-print badlist
-#ascii.write(badlist,badlist_filename)
+badlist_filename = "checked"+"_"+source+"_"+str(start)+"-"+str(end)
+print "REVIEW:"
+print "BADLIST FILENAME:",badlist_filename
+print "LIST:\n",badlist
+while(True):
+	save = str(raw_input("save?(y/n)\n:"))
+	if save == 'y':
+		print "saving..."
+		ascii.write(badlist,badlist_filename)
+	elif save == 'n':
+		safety = str(raw_input("are you sure you want to quit?(y/n)\n:"))
+		if safety == 'y':
+			print "quitting without saving..."
+			break
+		elif safety =='n':
+			continue
+
+	else:
+		print "not valid input"
 
