@@ -442,9 +442,9 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
     RDmax = []
     """
     
-    for j in range(len_RF):
-        if j % 2 != 0:
-            RFmax.append(max(RF[j])[0])
+#    for j in range(len_RF):
+#        if j % 2 != 0:
+#            RFmax.append(max(RF[j])[0])
     # The following code is to remove extreme data points
     # the random peaks and dips. This will not be 
     # implemented until code can be run :(

@@ -168,14 +168,14 @@ files = []
 #############
 offset = start
 for i in range(len(filenames)):
-	if (i >= start):
-		try:
+    if (i >= start):
+            try:
 			###checks that correct data files are appended 
 			###when taking into account the index offset
 			##print i,filenames[i]
 
 			#gets wave and flux from current file
-			data.append((np.loadtxt(filenames[i])))
+            	data.append((np.loadtxt(filenames[i])))
 			#keeps track of files looking at (due to index offset)
 			files.append(filenames[i])
 			#separate wave/flux/error for easier manipulation
@@ -189,7 +189,8 @@ for i in range(len(filenames)):
 				orig_error = np.array([0])
 
 			##get invar, to use in interp, and separate wave/flux/errors
-			invar = genivar(orig_wave,orig_flux)
+        		invar = genivar(orig_wave,orig_flux)
+#                  print invar                           
 			interp = Interpo(orig_wave,orig_flux,invar)
 			interp_wave = interp[0]
 			interp_flux = interp[1]
@@ -221,8 +222,8 @@ for i in range(len(filenames)):
 			xmin         = 1500 
 			xmax         = 12000
 			#still figuring out how to get this to work properly
-			#Plotting.main(Show_Data , Plots , image_title , title, Names,xmin,xmax)
-			print "pretend that something plotted"
+			Plotting.main(Show_Data , Plots , image_title , title, Names,xmin,xmax)
+			print "spectra plotted"
 
 			comment = str(raw_input("Please comment on this spectra\n([enter](blank) = no error, 'q' or 'quit' to stop)\n:"))
 			#no error, don't record anything
