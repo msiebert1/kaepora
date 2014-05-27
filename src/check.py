@@ -229,7 +229,7 @@ for i in range(len(filenames)):
                 xmax         = orig_wave[len(orig_wave)-1]+50
                 # Use the plotting function here
                 #Plotting.main(Show_Data , Plots , image_title , title, Names,xmin,xmax)
-                print "FILE:",filenames[i]
+                print "FILE",i,":",filenames[i]
                 #test plotting (when Plotting code is not working properly)
                 #plt.figure(1)
                 plt.subplot(2,1,1)                
@@ -239,7 +239,8 @@ for i in range(len(filenames)):
                 plt.xlabel('Rest Wavelength')
                 plt.ylabel('Flux')
 		
-		plt.legend(loc="upper right")	
+		plt.legend(loc="upper right")
+		plt.title(filenames[i])
 		
                 plt.subplot(2,1,2)
                 plt.plot(orig_wave,invar)
@@ -261,9 +262,9 @@ for i in range(len(filenames)):
 			#comment made, record it and the file to respective lists
                 else:
 			if source == 'cfa':
-				badfile.append(filenames[j].split('/')[5])
+				badfile.append(filenames[i].split('/')[5])
 			else:
-				badfile.append(filenames[j].split('/')[4])
+				badfile.append(filenames[i].split('/')[4])
 
 			badcomment.append(comment)
 			print "COMMENT:",comment
@@ -272,9 +273,9 @@ for i in range(len(filenames)):
             except ValueError:
 			print "found bad file! at index:",i
 			if source == 'cfa':
-				badfile.append(filenames[j].split('/')[5])
+				badfile.append(filenames[i].split('/')[5])
 			else:
-				badfile.append(filenames[j].split('/')[4])
+				badfile.append(filenames[i].split('/')[4])
 			badcomment.append("bad file")
 			#can't read file ->messes up indexing and this corrects for this
 			offset += 1
