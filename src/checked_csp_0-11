@@ -1,0 +1,9 @@
+col0 col1
+SN04dt_040914_b01_DUP_WF.dat clipping,telluric
+SN04dt_040919_b01_DUP_WF.dat telluric
+SN04dt_040920_b01_DUP_WF.dat telluric
+SN04ef_040908_b01_CLA_BC.dat telluric?
+SN04ef_040909_b01_CLA_LD.dat clipping
+SN04ef_040910_b01_CLA_BC.dat telluric?
+SN04ef_040914_b01_DUP_WF.dat telluric,clipping?
+SN04ef_040919_b01_DUP_WF.dat telluric,clipping
