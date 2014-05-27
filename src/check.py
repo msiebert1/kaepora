@@ -195,6 +195,7 @@ for i in range(len(filenames)):
                 interp_wave = interp[0]
                 interp_flux = interp[1]
                 interp_error = interp[2]
+#                print interp_wave,interp_flux,interp_error
 
 			##plotting orig, interp, var
 
@@ -219,20 +220,27 @@ for i in range(len(filenames)):
 			#
 			## The following line will plot the data
 			#
-                xmin         = 1500 
-                xmax         = 12000
+                xmin         = 3500 
+                xmax         = 8000
                 # Use the plotting function here
                 #Plotting.main(Show_Data , Plots , image_title , title, Names,xmin,xmax)
                 
                 #test plotting (when Plotting code is not working properly)
-                plt.figure(1)
-                plt.subplot(211)
-                plt.plot(orig_wave,orig_flux,'b',interp_wave, interp_flux,'g')
+                #plt.figure(1)
+                plt.subplot(2,1,1)                
+                plt.plot(orig_wave,orig_flux,'b',label = 'Original')
+                plt.plot(interp_wave, interp_flux,'r',label = 'Interpolated')
+                plt.xlim(xmin,xmax)
+                plt.xlabel('Rest Wavelength')
+                plt.ylabel('Flux')
 
-                plt.subplot(212)
+                plt.subplot(2,1,2)
                 plt.plot(orig_wave,invar)
+                plt.xlim(xmin,xmax)
+                plt.xlabel('Rest Wavelength')
+                plt.ylabel('Inverse Variance')
                 plt.show()
-                print "spectra plotted"
+                print "spectra is plotted"
 
                 comment = str(raw_input("Please comment on this spectra\n([enter](blank) = no error, 'q' or 'quit' to stop)\n:"))
 			#no error, don't record anything
