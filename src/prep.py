@@ -160,7 +160,7 @@ def compprep(spectrum,sn_name,z,source):
         old_error = spectrum[:, 2] # check if supernovae has error array
     except IndexError:
         old_error = np.array([0]) # if not, set default
-    old_var = genivar(old_wave, old_flux, old_error) #variance
+    old_var = genivar(old_wave, old_flux) #variance
     snr = getsnr(old_flux, old_var)
 
     if source == 'cfa' : # choosing source dataset
@@ -170,22 +170,21 @@ def compprep(spectrum,sn_name,z,source):
         sne = ReadExtin('extinctionbsnip.dat')
     if source == 'csp' :
         sne = ReadExtin('extinctioncsp.dat')
-        old_wave *= 1+float(z)
+        old_wave *= 1+float(z) # Redshift back
     if source == 'uv' :
         sne = ReadExtin('extinctionuv.dat')
-    if souce == 'other' :
+    if source == 'other' :
         sne = ReadExtin('extinctionother.dat')
         
 
     newdata = []
 
-    new_spectrum = dered(sne, sn_name, old_wave, old_flux)
-    new_wave = old_wave/(1.+z)
-    new_flux = new_spectrum
-    new_error = old_error # Placeholder if it needs to be changed
-    new_var  = genivar(new_wave, new_flux, new_error) #variance
+    new_flux = dered(sne, sn_name, old_wave, old_flux) # Dereddending (see if sne in extinction files match the SN name)
+    new_wave = old_wave/(1.+z) # Deredshifting
+#    new_error = old_error # Placeholder if it needs to be changed
+    new_ivar  = genivar(new_wave, new_flux) #variance
     #var = new_flux*0+1
-    newdata = Interpo(new_wave, new_flux, new_var) # Do the interpolation
+    newdata = Interpo(new_wave, new_flux, new_ivar) # Do the interpolation
 #    print 'new spectra',newdata
     return newdata, snr
 
