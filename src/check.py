@@ -175,73 +175,81 @@ for i in range(len(filenames)):
 			##print i,filenames[i]
 
 			#gets wave and flux from current file
-            	data.append((np.loadtxt(filenames[i])))
+                data.append((np.loadtxt(filenames[i])))
 			#keeps track of files looking at (due to index offset)
-			files.append(filenames[i])
+                files.append(filenames[i])
 			#separate wave/flux/error for easier manipulation
-			orig_wave = data[i-offset][:,0]
-			orig_flux = data[i-offset][:,1]
-			try:
+                orig_wave = data[i-offset][:,0]
+                orig_flux = data[i-offset][:,1]
+                try:
 				# check if data has error array
-				orig_error = data[i-offset][:,2] 
-		   	except IndexError:
+                    orig_error = data[i-offset][:,2] 
+                except IndexError:
 				# if not, set default
-				orig_error = np.array([0])
+                    orig_error = np.array([0])
 
 			##get invar, to use in interp, and separate wave/flux/errors
-        		invar = genivar(orig_wave,orig_flux)
+                invar = genivar(orig_wave,orig_flux)
 #                  print invar                           
-			interp = Interpo(orig_wave,orig_flux,invar)
-			interp_wave = interp[0]
-			interp_flux = interp[1]
-			interp_error = interp[2]
+                interp = Interpo(orig_wave,orig_flux,invar)
+                interp_wave = interp[0]
+                interp_flux = interp[1]
+                interp_error = interp[2]
 
 			##plotting orig, interp, var
 
 
-			Relative_Flux = [orig_wave, orig_flux, interp_wave, interp_flux]  # Want to plot a composite of multiple spectrum
-			Variance = invar
-			Residuals     = []
-			Spectra_Bin   = []
-			Age           = []
-			Delta         = []
-			Redshift      = [] 
-			Show_Data     = [Relative_Flux,Variance,Residuals,Spectra_Bin,Age,Delta,Redshift]
-			image_title   = source,i            # Name the image (with location)
-			title         = "checking",filenames[i]
+                Relative_Flux = [orig_wave, orig_flux, interp_wave, interp_flux]  # Want to plot a composite of multiple spectrum
+                Variance = invar
+                Residuals     = []
+                Spectra_Bin   = []
+                Age           = []
+                Delta         = []
+                Redshift      = [] 
+                Show_Data     = [Relative_Flux,Variance,Residuals,Spectra_Bin,Age,Delta,Redshift]
+                image_title   = source,i            # Name the image (with location)
+                title         = "checking",filenames[i]
 			#
 			## Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift, Multiple Spectrum, Stacked Spectrum
 			##                   0              1          2            3    4      5         6,                 7
 			####################################^should be varience?...
-			name_array = ["original", " ", "interpolated", " "]
-			Names = name_array
-			Plots = [0,1] # the plots you want to create
+                name_array = ["original", " ", "interpolated", " "]
+                Names = name_array
+                Plots = [0,1] # the plots you want to create
 			#
 			## The following line will plot the data
 			#
-			xmin         = 1500 
-			xmax         = 12000
-			#still figuring out how to get this to work properly
-			Plotting.main(Show_Data , Plots , image_title , title, Names,xmin,xmax)
-			print "spectra plotted"
+                xmin         = 1500 
+                xmax         = 12000
+                # Use the plotting function here
+                #Plotting.main(Show_Data , Plots , image_title , title, Names,xmin,xmax)
+                
+                #test plotting (when Plotting code is not working properly)
+                plt.figure(1)
+                plt.subplot(211)
+                plt.plot(orig_wave,orig_flux,'b',interp_wave, interp_flux,'g')
 
-			comment = str(raw_input("Please comment on this spectra\n([enter](blank) = no error, 'q' or 'quit' to stop)\n:"))
+                plt.subplot(212)
+                plt.plot(orig_wave,invar)
+                plt.show()
+                print "spectra plotted"
+
+                comment = str(raw_input("Please comment on this spectra\n([enter](blank) = no error, 'q' or 'quit' to stop)\n:"))
 			#no error, don't record anything
-			if comment == '':
+                if comment == '':
 				print "nothing to see here"
 				print "move along, move along"
 			#done checking, record ending index and stop loop
-			elif comment == 'q' or comment == 'quit':
+                elif comment == 'q' or comment == 'quit':
 				end = i
 				break
 			#comment made, record it and the file to respective lists
-			else:
+                else:
 				badfile.append(filenames[i])
 				badcomment.append(comment)
 				
 				
-		
-		except ValueError:
+            except ValueError:
 			print "found bad file! at index:",i
 			badfile.append(filenames[i])
 			badcomment.append("bad file")
