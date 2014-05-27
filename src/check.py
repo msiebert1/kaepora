@@ -238,7 +238,9 @@ for i in range(len(filenames)):
                 plt.xlim(xmin,xmax)
                 plt.xlabel('Rest Wavelength')
                 plt.ylabel('Flux')
-
+		
+		plt.legend(loc="upper right")	
+		
                 plt.subplot(2,1,2)
                 plt.plot(orig_wave,invar)
                 plt.xlim(xmin,xmax)
@@ -300,6 +302,7 @@ while(True):
 	if save == 'y':
 		print "saving..."
 		ascii.write(badlist,badlist_filename)
+		break
 	elif save == 'n':
 		safety = str(raw_input("are you sure you want to quit?(y/n)\n:"))
 		if safety == 'y':
