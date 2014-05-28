@@ -263,7 +263,7 @@ for i in range(len(filenames)):
                 plt.plot(orig_wave,invar**-0.5)
                 plt.xlim(xmin,xmax)
                 plt.xlabel('Rest Wavelength')
-                plt.ylabel('Inverse Variance')
+                plt.ylabel('Error')
                 plt.show()
                 #print "spectra is plotted"
 
