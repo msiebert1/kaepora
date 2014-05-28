@@ -123,7 +123,7 @@ def Interpo (wave, flux, variance) :
     lower = wave[0] # Find the area where interpolation is valid
     upper = wave[-1]
     
-    variance = clip(wave, flux, variance) #clip bad points in flux (if before interpolation)
+#    variance = clip(wave, flux, variance) #clip bad points in flux (if before interpolation)
     variance[variance < 0] = 0 # make sure no negative points
     
     good_data = np.where((wave >= lower) & (wave <= upper))	#creates an array of wavelength values between minimum and maximum wavelengths from new spectrum    
@@ -135,7 +135,7 @@ def Interpo (wave, flux, variance) :
     inter_flux = inter.splev(wavelength, influx)	#fits b-spline over wavelength range
     inter_var  = inter.splev(wavelength, invar)   # doing the same with errors
     
-#    inter_var = clip(wavelength, inter_flux, inter_var) #clip bad points (if do after interpolation) 
+    inter_var = clip(wavelength, inter_flux, inter_var) #clip bad points (if do after interpolation) 
     
     inter_var[inter_var < 0] = 0 #make sure there are no negative points!
 
