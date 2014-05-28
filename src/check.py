@@ -18,11 +18,10 @@ from datafidelity import *
 *Meant to be used from src folder
 
 This code is designed to check each spectra file, one by one, given a particular source,
-by plotting the original and the interpolated spectra together, along with the 
-inverse varience.  
+by plotting the original and the interpolated spectra together, along with the error.  
 
-comments can be given to note telluric absorption, errors in reddening, spikes in fluxes,
-clipping, or any other problems with either the original or interpolated spectra
+comments can be given to note telluric absorption, *Clipping issues, and other features that
+should be weighted differently, as well as any other issues with the spectra/data
 """
 
 """
@@ -30,6 +29,7 @@ ROUGH OUTLINE OF CODE
 -select SOURCE (bsnip,cfa,csp,other,uv)
 -pull all FILENAMES from selected source
 -select START index [0 to (len(source)-1))]
+	-can check the index and corresponding file with input '-1'
 
 MAIN LOOP:	
 	-read data at index (from START)
@@ -59,14 +59,24 @@ guidelines:
 #comment on the functionality of the blocks of code
 ##commented out code that does checks on the functionality of code
 ==========
-variables: (work in progress)
+(important) variables: (work in progress)
 ==========
 SOURCE		which source data is being looked at(bsnip,cfa,etc.)
 FILENAMES	path to the spectra files
-FILES		truncated path list to match the data being looked at
+FILES		truncated path list to match the START (Mostly useless(harmless))***
+
 DATA		data from the spectra files
+ORIG_WAVE	separate original wavelength from DATA
+ORIG_FLUX	separate original flux from DATA
+INTERP		interpolated data
+INTERP_WAVE	separate interpolated wavelength from INTERP
+INTERP_FLUX	separate interpolated flux from INTERP
+INVAR		inverse variance from Datafidelity code
+
+BADINDEX	holds the index of the bad file
 BADFILE		holds filename that has problems
 BADCOMMENT	holds the comment associated with the bad file
+BADLIST		combines BADFILE and BADCOMMENT into one table
 
 START		index started at
 END		index ended at
@@ -130,8 +140,10 @@ wave = []
 flux = []
 badfile = []
 badcomment = []
+badindex = []
 interp = []
 invar = []
+#ending index, remains -1 if gone through whole list
 end = -1
 
 """
@@ -147,22 +159,27 @@ MAIN LOOP CHECKLIST:
 	[x]make sure FILE lines up with DATA
 	[x]create separate interpolated data INTERP
 	[x]get inverse varience values INVAR
-	[!]plot ORIG and INTERP data 
-	 with INVAR
+#	[!]plot ORIG and INTERP data (problems using Plotting.py)
+#	[!]plot error (issue with error column of interpolated data,
+	   right now reversing the inverse variance to error)
 	[x]Observe and Comment(for BADFILE and BADCOMMENT):
 		[x][enter](blank input)
 		 	plot is fine(don't add to list)
-		[x]type comment(telluric, spikes, clipping, etc...)
+		[x]COMMENT(telluric,clipping,etc...)
 		 	add FILES[i] to BADFILE and 
 			keyboard input to BADCOMMENT
+			and index to BADINDEX
 		[x]'q' to end, saves ending index to END
+			[x]combine BADFILE/BADCOMMENT/BADINDEX into 3-column table
+#			[!]save table (no safeguard for overwriting file of same
+			   name, but issue is local; another issue is commiting file
+			   of same name when both files have different comments)
+			   FORMAT:'checked_SOURCE_START-END'
+			   ex.:'checked_cfa_0-200'
 	[x]Continues onto next file if not quitting
 
-	if quitting:
-		[]combine BADFILE and BADCOMMENT into 2-column list
-		[]save list to txt file in format: 
-		('SOURCE_'+'START'+'_'+'END')
-		ex. ('cfa_0_200.txt')
+	
+
 
 """
 files = []
@@ -243,7 +260,7 @@ for i in range(len(filenames)):
 		plt.title(filenames[i])
 		
                 plt.subplot(2,1,2)
-                plt.plot(orig_wave,invar)
+                plt.plot(orig_wave,invar**-0.5)
                 plt.xlim(xmin,xmax)
                 plt.xlabel('Rest Wavelength')
                 plt.ylabel('Inverse Variance')
@@ -267,6 +284,7 @@ for i in range(len(filenames)):
 				badfile.append(filenames[i].split('/')[4])
 
 			badcomment.append(comment)
+			badindex.append(i)
 			print "COMMENT:",comment
 				
 				
@@ -277,9 +295,11 @@ for i in range(len(filenames)):
 			else:
 				badfile.append(filenames[i].split('/')[4])
 			badcomment.append("bad file")
+			badindex.append(i)
 			#can't read file ->messes up indexing and this corrects for this
 			offset += 1
 
+#did not quit early, update end to last index
 if end == -1:
 	end = len(filenames)-1
 ###checks to make sure the right data is being looked at
@@ -293,7 +313,7 @@ if end == -1:
 ############
 ##QUITTING##
 ############
-badlist =  Table([badfile,badcomment])
+badlist =  Table([badindex,badfile,badcomment])
 badlist_filename = "checked"+"_"+source+"_"+str(start)+"-"+str(end)
 print "REVIEW:"
 print "BADLIST FILENAME:",badlist_filename
