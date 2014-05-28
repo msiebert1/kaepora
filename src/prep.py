@@ -122,8 +122,11 @@ def Interpo (wave, flux, variance) :
 
     lower = wave[0] # Find the area where interpolation is valid
     upper = wave[-1]
-
-    good_data = np.where((wave >= lower) & (wave <= upper))	#creates an array of wavelength values between minimum and maximum wavelengths from new spectrum
+    
+    variance = clip(wave, flux, variance) #clip bad points in flux (if before interpolation)
+    variance[variance < 0] = 0 # make sure no negative points
+    
+    good_data = np.where((wave >= lower) & (wave <= upper))	#creates an array of wavelength values between minimum and maximum wavelengths from new spectrum    
 
     influx = inter.splrep(wave[good_data], flux[good_data])	#creates b-spline from new spectrum
 
@@ -131,15 +134,16 @@ def Interpo (wave, flux, variance) :
 
     inter_flux = inter.splev(wavelength, influx)	#fits b-spline over wavelength range
     inter_var  = inter.splev(wavelength, invar)   # doing the same with errors
-
-    new_inter_var = clip(wavelength, inter_flux, inter_var) #clip bad points in flux
-    new_inter_var[new_inter_var < 0] = 0 #make sure there are no negative points!
+    
+#    inter_var = clip(wavelength, inter_flux, inter_var) #clip bad points (if do after interpolation) 
+    
+    inter_var[inter_var < 0] = 0 #make sure there are no negative points!
 
     missing_data = np.where((wavelength < lower) | (wavelength > upper))
     inter_flux[missing_data] = float('NaN')  # set the bad values to NaN !!!
-    new_inter_var[missing_data] =  float('NaN')
+    inter_var[missing_data] =  float('NaN')
 
-    output = np.array([wavelength, inter_flux, new_inter_var]) # put the interpolated data into the new table
+    output = np.array([wavelength, inter_flux, inter_var]) # put the interpolated data into the new table
 
     return output # return new table
 
@@ -183,7 +187,7 @@ def compprep(spectrum,sn_name,z,source):
     new_wave = old_wave/(1.+z) # Deredshifting
     new_error = old_error # Placeholder if it needs to be changed
     new_ivar  = genivar(new_wave, new_flux,new_error) #variance
-    #var = new_flux*0+1
+    #var = new_flux*0+1    
     newdata = Interpo(new_wave, new_flux, new_ivar) # Do the interpolation
 #    print 'new spectra',newdata
     return newdata, snr

@@ -129,7 +129,7 @@ def addsky(wavelength, flux, error, med_error):
 ## genivar(wavelength, flux, float vexp = 0.005, float nsig = 5.0)
 #
 
-def genivar(wavelength, flux, varflux , vexp = 0.0008, nsig = 5.0):
+def genivar(wavelength, flux, varflux , vexp = 0.0008, nsig = 5.0): # varflux should be set as the input error?
 
     # Check to see if it has a variance already
     if len(np.where(varflux == 0)[0]) > 0:

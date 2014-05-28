@@ -212,7 +212,7 @@ for i in range(len(filenames)):
 
 			##get invar, to use in interp, and separate wave/flux/errors
                 invar = genivar(orig_wave,orig_flux,orig_error)
-#                  print invar                           
+#                print invar                           
                 interp = Interpo(orig_wave,orig_flux,invar)
                 interp_wave = interp[0]
                 interp_flux = interp[1]
