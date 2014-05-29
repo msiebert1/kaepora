@@ -107,9 +107,9 @@ For the spectra that does not cover the whole range of specified wavelength,
 we output the outside values as NAN
 """
 
-from datafidelity import *  # Get variance from the datafidelity outcome
+from datafidelity import *  # Get inverse variance from the datafidelity outcome
 
-def Interpo (wave, flux, variance) :
+def Interpo (wave, flux, ivar) :
     wave_min = 1500
     wave_max = 12000
     dw = 2
@@ -123,19 +123,19 @@ def Interpo (wave, flux, variance) :
     lower = wave[0] # Find the area where interpolation is valid
     upper = wave[-1]
     
-#    variance = clip(wave, flux, variance) #clip bad points in flux (if before interpolation)
-    variance[variance < 0] = 0 # make sure no negative points
+    ivar = clip(wave, flux, ivar) #clip bad points in flux (if before interpolation)
+    ivar[ivar < 0] = 0 # make sure no negative points
     
     good_data = np.where((wave >= lower) & (wave <= upper))	#creates an array of wavelength values between minimum and maximum wavelengths from new spectrum    
 
     influx = inter.splrep(wave[good_data], flux[good_data])	#creates b-spline from new spectrum
 
-    invar  = inter.splrep(wave[good_data], variance[good_data]) # doing the same with the errors
+    invar  = inter.splrep(wave[good_data], ivar[good_data]) # doing the same with the errors
 
     inter_flux = inter.splev(wavelength, influx)	#fits b-spline over wavelength range
     inter_var  = inter.splev(wavelength, invar)   # doing the same with errors
     
-    inter_var = clip(wavelength, inter_flux, inter_var) #clip bad points (if do after interpolation) 
+#    inter_var = clip(wavelength, inter_flux, inter_var) #clip bad points (if do after interpolation) 
     
     inter_var[inter_var < 0] = 0 #make sure there are no negative points!
 

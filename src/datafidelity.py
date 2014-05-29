@@ -121,7 +121,7 @@ def addsky(wavelength, flux, error, med_error):
 
 ############################################################################
 #
-# Function to generate variance for files that are missing this data
+# Function to generate inverse variance for files that are missing this data
 #
 ## Function genivar() generates an inverse variance spectrum.
 ## Required inputs are an array of wavelengths (wavelength) and an array of corresponding fluxes (flux)
