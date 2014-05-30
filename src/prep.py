@@ -124,19 +124,25 @@ def Interpo (wave, flux, ivar) :
     upper = wave[-1]
     
     ivar = clip(wave, flux, ivar) #clip bad points in flux (if before interpolation)
+    #bad_points = clip(wave, flux, ivar) # change the output and delete row below, don't need it yet (A.S.)
     ivar[ivar < 0] = 0 # make sure no negative points
     
     good_data = np.where((wave >= lower) & (wave <= upper))	#creates an array of wavelength values between minimum and maximum wavelengths from new spectrum    
 
     influx = inter.splrep(wave[good_data], flux[good_data])	#creates b-spline from new spectrum
 
-    inivar  = inter.splrep(wave[good_data], ivar[good_data]) # doing the same with the errors
+    inivar  = inter.splrep(wave[good_data], ivar[good_data]) # doing the same with the inverse varinces
 
     inter_flux = inter.splev(wavelength, influx)	#fits b-spline over wavelength range
     inter_ivar  = inter.splev(wavelength, inivar)   # doing the same with errors
     
 #    inter_ivar = clip(wavelength, inter_flux, inter_var) #clip bad points (if do after interpolation) 
-    
+
+    # Then the below code (or something similar) would do it (A.S.)
+    #for wave_tuple in bad_points:
+    #    zero_points = np.where((wavelength > wave_tuple[0]) & (wavelength < wave_tuple[1])]
+    #    inter_ivar[zero_points] = 0
+
     inter_ivar[inter_ivar < 0] = 0 #make sure there are no negative points!
 
     missing_data = np.where((wavelength < lower) | (wavelength > upper))
