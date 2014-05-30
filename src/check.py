@@ -216,8 +216,8 @@ for i in range(len(filenames)):
                 interp = Interpo(orig_wave,orig_flux,invar)
                 interp_wave = interp[0]
                 interp_flux = interp[1]
-                interp_error = interp[2]
-#                print interp_wave,interp_flux,interp_error
+                interp_ivar = interp[2]
+#                print interp_wave,interp_flux,interp_ivar
 
 		##plotting orig, interp, var
 
@@ -260,10 +260,12 @@ for i in range(len(filenames)):
 		plt.title(filenames[i])
 		
                 plt.subplot(2,1,2)
-                plt.plot(orig_wave,invar**-0.5)
+                plt.plot(orig_wave,invar**-0.5,label = 'Original')
+                plt.plot(interp_wave,interp_ivar**-0.5,label = 'Interpolated')
                 plt.xlim(xmin,xmax)
                 plt.xlabel('Rest Wavelength')
                 plt.ylabel('Error')
+                plt.legend()
                 plt.show()
                 #print "spectra is plotted"
 

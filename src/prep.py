@@ -116,6 +116,7 @@ def Interpo (wave, flux, ivar) :
 
     #wavelength = np.linspace(wave_min,wave_max,(wave_max-wave_min)/pix+1)
     wavelength = np.arange(math.ceil(wave_min), math.floor(wave_max), dtype=int, step=dw) #creates N equally spaced wavelength values
+    bad_points = []
     inter_flux = []
     inter_ivar  = []
     output     = []
@@ -123,9 +124,11 @@ def Interpo (wave, flux, ivar) :
     lower = wave[0] # Find the area where interpolation is valid
     upper = wave[-1]
     
-    ivar = clip(wave, flux, ivar) #clip bad points in flux (if before interpolation)
-    #bad_points = clip(wave, flux, ivar) # change the output and delete row below, don't need it yet (A.S.)
-    ivar[ivar < 0] = 0 # make sure no negative points
+    #ivar = clip(wave, flux, ivar) #clip bad points in flux (if before interpolation)
+    bad_points = clip(wave, flux, ivar) # if returned bad points range instead of ivar
+#    print 'ivar', ivar
+#    print 'bad points', bad_points
+    #ivar[ivar < 0] = 0 # make sure no negative points
     
     good_data = np.where((wave >= lower) & (wave <= upper))	#creates an array of wavelength values between minimum and maximum wavelengths from new spectrum    
 
@@ -139,9 +142,10 @@ def Interpo (wave, flux, ivar) :
 #    inter_ivar = clip(wavelength, inter_flux, inter_var) #clip bad points (if do after interpolation) 
 
     # Then the below code (or something similar) would do it (A.S.)
-    #for wave_tuple in bad_points:
-    #    zero_points = np.where((wavelength > wave_tuple[0]) & (wavelength < wave_tuple[1])]
-    #    inter_ivar[zero_points] = 0
+    for wave_tuple in bad_points:
+#        print wave_tuple
+        zero_points = np.where((wavelength > wave_tuple[0]) & (wavelength < wave_tuple[1]))
+        inter_ivar[zero_points] = 0
 
     inter_ivar[inter_ivar < 0] = 0 #make sure there are no negative points!
 
