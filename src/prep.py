@@ -117,7 +117,7 @@ def Interpo (wave, flux, ivar) :
     #wavelength = np.linspace(wave_min,wave_max,(wave_max-wave_min)/pix+1)
     wavelength = np.arange(math.ceil(wave_min), math.floor(wave_max), dtype=int, step=dw) #creates N equally spaced wavelength values
     inter_flux = []
-    inter_var  = []
+    inter_ivar  = []
     output     = []
 
     lower = wave[0] # Find the area where interpolation is valid
@@ -130,20 +130,20 @@ def Interpo (wave, flux, ivar) :
 
     influx = inter.splrep(wave[good_data], flux[good_data])	#creates b-spline from new spectrum
 
-    invar  = inter.splrep(wave[good_data], ivar[good_data]) # doing the same with the errors
+    inivar  = inter.splrep(wave[good_data], ivar[good_data]) # doing the same with the errors
 
     inter_flux = inter.splev(wavelength, influx)	#fits b-spline over wavelength range
-    inter_var  = inter.splev(wavelength, invar)   # doing the same with errors
+    inter_ivar  = inter.splev(wavelength, inivar)   # doing the same with errors
     
-#    inter_var = clip(wavelength, inter_flux, inter_var) #clip bad points (if do after interpolation) 
+#    inter_ivar = clip(wavelength, inter_flux, inter_var) #clip bad points (if do after interpolation) 
     
-    inter_var[inter_var < 0] = 0 #make sure there are no negative points!
+    inter_ivar[inter_ivar < 0] = 0 #make sure there are no negative points!
 
     missing_data = np.where((wavelength < lower) | (wavelength > upper))
     inter_flux[missing_data] = float('NaN')  # set the bad values to NaN !!!
-    inter_var[missing_data] =  float('NaN')
+    inter_ivar[missing_data] =  float('NaN')
 
-    output = np.array([wavelength, inter_flux, inter_var]) # put the interpolated data into the new table
+    output = np.array([wavelength, inter_flux, inter_ivar]) # put the interpolated data into the new table
 
     return output # return new table
 
@@ -164,8 +164,8 @@ def compprep(spectrum,sn_name,z,source):
         old_error = spectrum[:, 2] # check if supernovae has error array
     except IndexError:
         old_error = np.array([0]) # if not, set default
-    old_var = genivar(old_wave, old_flux, old_error) #variance
-    snr = getsnr(old_flux, old_var)
+    old_ivar = genivar(old_wave, old_flux, old_error) #generate inverse variance
+    snr = getsnr(old_flux, old_ivar)
 
     if source == 'cfa' : # choosing source dataset
 #        z = ReadParam()
@@ -186,7 +186,7 @@ def compprep(spectrum,sn_name,z,source):
     new_flux = dered(sne, sn_name, old_wave, old_flux) # Dereddending (see if sne in extinction files match the SN name)
     new_wave = old_wave/(1.+z) # Deredshifting
     new_error = old_error # Placeholder if it needs to be changed
-    new_ivar  = genivar(new_wave, new_flux,new_error) #variance
+    new_ivar  = genivar(new_wave, new_flux,new_error) #generate new inverse variance
     #var = new_flux*0+1    
     newdata = Interpo(new_wave, new_flux, new_ivar) # Do the interpolation
 #    print 'new spectra',newdata
