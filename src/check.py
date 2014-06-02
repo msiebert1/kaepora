@@ -82,6 +82,22 @@ START		index started at
 END		index ended at
 
 """
+######################
+## Helper Functions ##
+######################
+def tolists(filename,index,comment):
+	if source == 'cfa':
+		badfile.append(filenames[i].split('/')[5])
+	else:
+		badfile.append(filenames[i].split('/')[4])
+
+	badcomment.append(comment)
+	badindex.append(i)
+
+
+####################
+## File Selecting ##
+####################
 
 #Select which data you want to check, will loop until a correct data source is selected
 while (True):
@@ -183,9 +199,32 @@ MAIN LOOP CHECKLIST:
 
 """
 files = []
-#############
-##MAIN LOOP## see MAIN LOOP CHECKLIST above for breakdown
-#############
+###############
+## MAIN LOOP ## see MAIN LOOP CHECKLIST above for breakdown
+###############
+
+#explanation for offset for my own sanity and
+#fear of mislabeling data
+"""
+try appending next data, can't if i is not lined up.
+
+offset = start so that it'll take into account starting
+index and adjust the data being looked at correctly
+
+(start = 1 instead of 0, won't run first time through,
+want to look at 2nd filename, so it'll append filename[1]
+to data, data length now 1.  access data[0] (i-start or 
+1-1=0) <--should work fine
+
+CASE:bad data read (ExceptValueError):
+Given: start at 5, filenames[6] is bad, move on to 7
+i >=5, read in filename 5, data length 1, access data
+(5-5 = 0th index [good]). i=6 filename[6] is bad, move
+on.  i = 7 now, offset = start+1 = 6.  read filenames[7]
+append to data (size 2).  Want to access data[1], so
+7-6 = 1[GOOD]
+
+"""
 offset = start
 for i in range(len(filenames)):
     if (i >= start):
@@ -197,8 +236,10 @@ for i in range(len(filenames)):
 			#gets wave and flux from current file
                 data.append((np.loadtxt(filenames[i])))
 			#keeps track of files looking at (due to index offset)
-                files.append(filenames[i])
-		
+		if source == 'cfa':
+			files.append(filenames[i].split('/')[5])
+		else:
+			files.append(filenames[i].split('/')[4])
 		
 			#separate wave/flux/error for easier manipulation
                 orig_wave = data[i-offset][:,0]
@@ -216,12 +257,11 @@ for i in range(len(filenames)):
                 interp = Interpo(orig_wave,orig_flux,invar)
                 interp_wave = interp[0]
                 interp_flux = interp[1]
-                interp_error = interp[2]
-#                print interp_wave,interp_flux,interp_error
+                interp_ivar = interp[2]
+#                print interp_wave,interp_flux,interp_ivar
 
-		##plotting orig, interp, var
-
-
+		##plotting orig, interp, error
+		"""Plotting.py code that isn't compatible with this code right now
                 Relative_Flux = [orig_wave, orig_flux, interp_wave, interp_flux]  # Want to plot a composite of multiple spectrum
                 Variance = invar
                 Residuals     = []
@@ -246,6 +286,9 @@ for i in range(len(filenames)):
                 xmax         = orig_wave[len(orig_wave)-1]+50
                 # Use the plotting function here
                 #Plotting.main(Show_Data , Plots , image_title , title, Names,xmin,xmax)
+		"""
+		xmin = orig_wave[0]-50 
+                xmax = orig_wave[len(orig_wave)-1]+50
                 print "FILE",i,":",filenames[i]
                 #test plotting (when Plotting code is not working properly)
                 #plt.figure(1)
@@ -257,13 +300,15 @@ for i in range(len(filenames)):
                 plt.ylabel('Flux')
 		
 		plt.legend(loc="upper right")
-		plt.title(filenames[i])
+		plt.title(files[i-offset])
 		
                 plt.subplot(2,1,2)
-                plt.plot(orig_wave,invar**-0.5)
+                plt.plot(orig_wave,invar**-0.5,label = 'Original')
+		plt.plot(interp_wave,interp_ivar**-0.5,label = 'Interpolated')
                 plt.xlim(xmin,xmax)
                 plt.xlabel('Rest Wavelength')
                 plt.ylabel('Error')
+		plt.legend()
                 plt.show()
                 #print "spectra is plotted"
 
@@ -278,26 +323,15 @@ for i in range(len(filenames)):
 			break
 			#comment made, record it and the file to respective lists
                 else:
-			if source == 'cfa':
-				badfile.append(filenames[i].split('/')[5])
-			else:
-				badfile.append(filenames[i].split('/')[4])
-
-			badcomment.append(comment)
-			badindex.append(i)
+			tolists(filenames[i],i,comment)
 			print "COMMENT:",comment
 				
 				
             except ValueError:
-			print "found bad file! at index:",i
-			if source == 'cfa':
-				badfile.append(filenames[i].split('/')[5])
-			else:
-				badfile.append(filenames[i].split('/')[4])
-			badcomment.append("bad file")
-			badindex.append(i)
-			#can't read file ->messes up indexing and this corrects for this
-			offset += 1
+		print "found bad file! at index:",i
+		tolists(filenames[i],i,comment)
+		#can't read file ->messes up indexing and this corrects for this
+		offset += 1
 
 #did not quit early, update end to last index
 if end == -1:
@@ -310,9 +344,9 @@ if end == -1:
 ##print len(filenames),"- starting index",start,"=",len(data)
 ##print badfile,badcomment
 
-############
-##QUITTING##
-############
+##############
+## QUITTING ##
+##############
 badlist =  Table([badindex,badfile,badcomment])
 badlist_filename = "checked"+"_"+source+"_"+str(start)+"-"+str(end)
 print "REVIEW:"
