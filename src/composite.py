@@ -17,6 +17,7 @@ from scipy.special import erf
 import file_name
 import bootstrap
 import time
+from lmfit import minimize, Parameters
 
 np.set_printoptions(threshold=np.nan)
 mn.patch()
@@ -140,23 +141,25 @@ def find_scales(SN_Array, temp_flux, temp_ivar):
         ivar = SN.ivar
         overlap   = temp_ivar * ivar
         n_overlap = len([x for x in overlap if x > 0])
-
         if n_overlap < min_overlap:
 
             #If there is insufficient overlap, the scale is zero.
             scales = np.append(scales, np.array([0]), axis = 0)
+	elif len(flux) == 0:
+	    return scales
 
         else:
             #Otherwise, fit things
             vars = [1.0]
             #Find the appropriate values for scaling
             good      = np.where(overlap > 0)
-            flux2     = np.array([flux[good]])
-            ivar2     = np.array([ivar[good]])
-            tempflux2 = np.array([temp_flux[good]])
-            tempivar2 = np.array([temp_ivar[good]])
+	    good      = np.array(good[0])
+	    
+            flux2     = np.array(flux[good[0]:good[-1]])
+            ivar2     = ivar[good[0]:good[-1]]
+            tempflux2 = np.array(temp_flux[good[0]:good[-1]])
+            tempivar2 = temp_ivar[good[0]:good[-1]]
             totivar   = 1/(1/ivar2 + 1/tempivar2)
-
             result = np.median(tempflux2/flux2)
 
             if result < 0:
@@ -173,6 +176,7 @@ def find_scales(SN_Array, temp_flux, temp_ivar):
 badfiles = []
 def scale_data(SN_Array, scales):
     print "Scaling..."
+    print scales
     for i in range(len(scales)):
         if scales[i] != 0:
             SN_Array[i].flux *= np.abs(scales[i])
@@ -180,7 +184,12 @@ def scale_data(SN_Array, scales):
             #print "Scaled at factor ", scales[i]
         else:
             SN_Array[i].ivar = np.zeros(len(SN_Array[i].ivar))
-        plt.plot(SN_Array[i].wavelength, SN_Array[i].flux)
+	#print SN_Array[i].flux
+	if len(SN_Array[i].flux) == 0:
+	    np.delete(SN_Array,i)
+	else:
+	    print len(SN_Array[i].wavelength), len(SN_Array[i].flux)
+	    plt.plot(SN_Array[i].wavelength, SN_Array[i].flux)
     print "Displaying scaled spectra..."
     plt.show()
     return SN_Array
@@ -199,10 +208,14 @@ def scale_data(SN_Array, scales):
 ##########
 
 def new_scale_func(SN_Array, template):
+    print "Using fitting function..."
     for SN in SN_Array:
         data = np.array([template.flux, SN.flux])
         source  = data.T
-        #print source
+        print len(source)
+	if len(source) < 3000:
+	    scales = []
+	    return SN_Array, scales
         guess = 4
         datas = []
         for m in range(len(source)):
@@ -214,6 +227,7 @@ def new_scale_func(SN_Array, template):
         plt.plot(SN.wavelength, SN.flux)
     plt.show()
     return SN_Array, scales
+    
     
 def residual(comp, data):
     return comp-data
@@ -307,13 +321,17 @@ def average(SN_Array, template, medmean):
 def do_things(SN_Array, template, scales, medmean):
         n_start = len([x for x in scales if x>0])
         scales   = []
+	scales   = find_scales(SN_Array, template.flux, template.ivar)
+	SN_Array = scale_data(SN_Array, scales)
         SN_Array, scales = new_scale_func(SN_Array, template)
-        #scales   = find_scales(SN_Array, template.flux, template.ivar)
-        n_scale  = len([x for x in scales if x>0])
-        #SN_Array = scale_data(SN_Array, scales)
-        template = average(SN_Array, template, medmean)
-        n_end    = n_scale
-        return n_start, n_end, SN_Array, template, scales
+	if len(scales) == 0:
+	    n_end = 0
+	    return n_start, n_end, SN_Array, template, scales
+	else:
+	    n_scale  = len([x for x in scales if x>0])
+	    template = average(SN_Array, template, medmean)
+	    n_end    = n_scale
+	    return n_start, n_end, SN_Array, template, scales
 
 def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
     SN_Array = []
