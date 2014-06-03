@@ -4,7 +4,7 @@ from astropy.table import Table
 from astropy.io import ascii
 import matplotlib.pyplot as plt
 import numpy as np
-
+import time
 import sqlite3 as sq3
 from scipy import interpolate as intp
 import math
@@ -290,13 +290,12 @@ for i in range(len(filenames)):
 		xmin = orig_wave[0]-50 
                 xmax = orig_wave[len(orig_wave)-1]+50
                 print "FILE",i,":",filenames[i]
+		
                 #test plotting (when Plotting code is not working properly)
                 #plt.figure(1)
                 plt.subplot(2,1,1)                
                 plt.plot(orig_wave,orig_flux,'b',label = 'Original')
                 plt.plot(interp_wave, interp_flux,'r',label = 'Interpolated')
-		print orig_flux
-		print interp_flux
                 plt.xlim(xmin,xmax)
                 plt.xlabel('Rest Wavelength')
                 plt.ylabel('Flux')
@@ -311,7 +310,14 @@ for i in range(len(filenames)):
                 plt.xlabel('Rest Wavelength')
                 plt.ylabel('Error')
 		plt.legend()
-
+		print "Checking Original data"
+		print orig_wave
+		print orig_flux
+		print invar
+		print "checking Interpolated data"
+		print interp_wave
+		print interp_flux
+		print interp_ivar
                 plt.show()
                 #print "spectra is plotted"
 
@@ -351,7 +357,7 @@ if end == -1:
 ## QUITTING ##
 ##############
 badlist =  Table([badindex,badfile,badcomment])
-badlist_filename = "checked"+"_"+source+"_"+str(start)+"-"+str(end)
+badlist_filename = "checked"+"_"+source+"_"+str(start)+"-"+str(end)+time.strftime("(%H,%M,%S)")
 print "REVIEW:"
 print "BADLIST FILENAME:",badlist_filename
 print "LIST:\n",badlist
