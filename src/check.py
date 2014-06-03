@@ -295,6 +295,7 @@ for i in range(len(filenames)):
                 plt.subplot(2,1,1)                
                 plt.plot(orig_wave,orig_flux,'b',label = 'Original')
                 plt.plot(interp_wave, interp_flux,'r',label = 'Interpolated')
+		print interp_flux
                 plt.xlim(xmin,xmax)
                 plt.xlabel('Rest Wavelength')
                 plt.ylabel('Flux')
