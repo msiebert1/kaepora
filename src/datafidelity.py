@@ -77,15 +77,16 @@ def clip(wave, flux, ivar):
 
     # Find indices for general clipping
     bad = np.array([], int)
-    #bad_ranges = [] # don't need it to be a numpy array (A.S.)
+    bad_ranges = [] # if don't need it to be a numpy array (A.S.)
+    
     for i in range(len(bad_wave)):
         bad = np.append(bad, np.where(abs(wave - bad_wave[i]) < 8))
-        #bad_ranges.append((bad_wave[i]-8, bad_wave[i]+8)) # instead save each point as tuple of desired range (A.S.)
+        bad_ranges.append((bad_wave[i]-8, bad_wave[i]+8)) # instead save each point as tuple of desired range (A.S.)
 
     # Set ivar to 0 for those points and return
-    ivar[bad] = 0
-    return ivar
-    #return bad_ranges # return bad_ranges instead of setting ivar[bad] = 0 (A.S.)
+#    ivar[bad] = 0
+#    return ivar
+    return bad_ranges # return bad_ranges instead of setting ivar[bad] = 0 (A.S.)
 
 ############################################################################
 #

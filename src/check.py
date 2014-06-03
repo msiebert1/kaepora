@@ -259,6 +259,12 @@ for i in range(len(filenames)):
                 interp_flux = interp[1]
                 interp_ivar = interp[2]
 #                print interp_wave,interp_flux,interp_ivar
+<<<<<<< HEAD
+=======
+
+		##plotting orig, interp, var
+
+>>>>>>> 8d33a6df4c13e73e3205e26b53b41d9dd9ffb033
 
 		##plotting orig, interp, error
 		"""Plotting.py code that isn't compatible with this code right now
@@ -305,11 +311,19 @@ for i in range(len(filenames)):
 		
                 plt.subplot(2,1,2)
                 plt.plot(orig_wave,invar**-0.5,label = 'Original')
+<<<<<<< HEAD
 		plt.plot(interp_wave,interp_ivar**-0.5,label = 'Interpolated')
                 plt.xlim(xmin,xmax)
                 plt.xlabel('Rest Wavelength')
                 plt.ylabel('Error')
 		plt.legend()
+=======
+                plt.plot(interp_wave,interp_ivar**-0.5,label = 'Interpolated')
+                plt.xlim(xmin,xmax)
+                plt.xlabel('Rest Wavelength')
+                plt.ylabel('Error')
+                plt.legend()
+>>>>>>> 8d33a6df4c13e73e3205e26b53b41d9dd9ffb033
                 plt.show()
                 #print "spectra is plotted"
 
