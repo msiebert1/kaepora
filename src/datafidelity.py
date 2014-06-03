@@ -24,7 +24,7 @@ import pyfits
 ## Optional imputs are smoothing velocity (vexp) and number of sigma (nsig)
 ## Syntax: new_y_array = gsmooth(x_array, y_array, var_y, vexp = 0.01, nsig = 5.0)
 
-def gsmooth(x_array, y_array, var_y, vexp = 0.005, nsig = 5.0):
+def gsmooth(x_array, y_array, var_y, vexp = 0.005, nsig = 2.0):
     
     # Check for non-zero variance points, and set to 1E-20
     for i in range(len(var_y)):
@@ -73,7 +73,7 @@ def clip(wave, flux, ivar):
     serr = gsmooth(wave, err, var, 0.008)
 
     # Find the wavelengths that need to be clipped (omitting 5800-6000 region)
-    bad_wave = wave[np.where((err/serr > 2) & ((wave < 5800.0) | (wave > 6000.0)))]
+    bad_wave = wave[np.where((err/serr > 4) & ((wave < 5800.0) | (wave > 6000.0)))]
 
     # Find indices for general clipping
     bad = np.array([], int)

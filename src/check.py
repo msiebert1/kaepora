@@ -227,51 +227,53 @@ append to data (size 2).  Want to access data[1], so
 offset = start
 for i in range(len(filenames)):
     if (i >= start):
-            try:
+        try:
 			###checks that correct data files are appended 
 			###when taking into account the index offset
 			##print i,filenames[i]
 
 			#gets wave and flux from current file
-                data.append((np.loadtxt(filenames[i])))
+            data.append((np.loadtxt(filenames[i])))
 			#keeps track of files looking at (due to index offset)
-		if source == 'cfa':
-			files.append(filenames[i].split('/')[5])
-		else:
+            if source == 'cfa':
+                files.append(filenames[i].split('/')[5])
+            else:
 			files.append(filenames[i].split('/')[4])
+            print files
 		
 			#separate wave/flux/error for easier manipulation
-                orig_wave = data[i-offset][:,0]
-                orig_flux = data[i-offset][:,1]
-                try:
+            orig_wave = data[i-offset][:,0]
+            orig_flux = data[i-offset][:,1]
+            try:
 				# check if data has error array
                     orig_error = data[i-offset][:,2] 
-                except IndexError:
+            except IndexError:
 				# if not, set default
                     orig_error = np.array([0])
 
 			##get invar, to use in interp, and separate wave/flux/errors
-                invar = genivar(orig_wave,orig_flux,orig_error)
+            invar = genivar(orig_wave,orig_flux,orig_error)
 #                print invar                           
-                interp = Interpo(orig_wave,orig_flux,invar)
-                interp_wave = interp[0]
-                interp_flux = interp[1]
-                interp_ivar = interp[2]
+            interp = Interpo(orig_wave,orig_flux,invar)
+            interp_wave = interp[0]
+            interp_flux = interp[1]
+            interp_ivar = interp[2]
 #                print interp_wave,interp_flux,interp_ivar
 
 
 		##plotting orig, interp, error
-		"""Plotting.py code that isn't compatible with this code right now
-                Relative_Flux = [orig_wave, orig_flux, interp_wave, interp_flux]  # Want to plot a composite of multiple spectrum
-                Variance = invar
-                Residuals     = []
-                Spectra_Bin   = []
-                Age           = []
-                Delta         = []
-                Redshift      = [] 
-                Show_Data     = [Relative_Flux,Variance,Residuals,Spectra_Bin,Age,Delta,Redshift]
-                image_title   = source,i            # Name the image (with location)
-                title         = "checking",filenames[i]
+            """
+Plotting.py code that isn't compatible with this code right now
+Relative_Flux = [orig_wave, orig_flux, interp_wave, interp_flux]  # Want to plot a composite of multiple spectrum
+Variance = invar
+Residuals     = []
+Spectra_Bin   = []
+Age           = []
+Delta         = []
+Redshift      = [] 
+Show_Data     = [Relative_Flux,Variance,Residuals,Spectra_Bin,Age,Delta,Redshift]
+image_title   = source,i            # Name the image (with location)
+title         = "checking",filenames[i]
 		#
 		## Available Plots:  Relative Flux, Residuals, Spectra/Bin, Age, Delta, Redshift, Multiple Spectrum, Stacked Spectrum
 		##                   0              1          2            3    4      5         6,                 7
@@ -286,31 +288,31 @@ for i in range(len(filenames)):
                 xmax         = orig_wave[len(orig_wave)-1]+50
                 # Use the plotting function here
                 #Plotting.main(Show_Data , Plots , image_title , title, Names,xmin,xmax)
-		"""
-		xmin = orig_wave[0]-50 
-                xmax = orig_wave[len(orig_wave)-1]+50
-                print "FILE",i,":",filenames[i]
+"""
+            xmin = orig_wave[0]-50 
+            xmax = orig_wave[len(orig_wave)-1]+50
+            print "FILE",i,":",filenames[i]
 		
                 #test plotting (when Plotting code is not working properly)
                 #plt.figure(1)
-                plt.subplot(2,1,1)                
-                plt.plot(orig_wave,orig_flux,'b',label = 'Original')
-                plt.plot(interp_wave, interp_flux,'r',label = 'Interpolated')
-                plt.xlim(xmin,xmax)
-                plt.xlabel('Rest Wavelength')
-                plt.ylabel('Flux')
+            plt.subplot(2,1,1)                
+            plt.plot(orig_wave,orig_flux,'b',label = 'Original')
+            plt.plot(interp_wave, interp_flux,'r',label = 'Interpolated')
+            plt.xlim(xmin,xmax)
+            plt.xlabel('Rest Wavelength')
+            plt.ylabel('Flux')
 		
-		plt.legend(loc="upper right")
-		plt.title(files[i-offset])
+            plt.legend(loc="upper right")
+            plt.title(files[i-offset])
 		
-                plt.subplot(2,1,2)
-                plt.plot(orig_wave,invar**-0.5,label = 'Original')
-		plt.plot(interp_wave,interp_ivar**-0.5,label = 'Clipped')
-                plt.xlim(xmin,xmax)
-                plt.xlabel('Rest Wavelength')
-                plt.ylabel('Error')
-		plt.legend()
-		'''
+            plt.subplot(2,1,2)
+            plt.plot(orig_wave,invar**-0.5,label = 'Original')
+            plt.plot(interp_wave,interp_ivar**-0.5,label = 'Clipped')
+            plt.xlim(xmin,xmax)
+            plt.xlabel('Rest Wavelength')
+            plt.ylabel('Error')
+            plt.legend()
+            '''
 		print "Checking Original data"
 		print orig_wave
 		print orig_flux
@@ -320,25 +322,25 @@ for i in range(len(filenames)):
 		print interp_flux
 		print interp_ivar
 		'''
-                plt.show()
+            plt.show()
                 #print "spectra is plotted"
 
-                comment = str(raw_input("Please comment on this spectra\n([enter](blank) = no error, 'q' or 'quit' to stop)\n:"))
+            comment = str(raw_input("Please comment on this spectra\n([enter](blank) = no error, 'q' or 'quit' to stop)\n:"))
 			#no error, don't record anything
-                if comment == '':
+            if comment == '':
 			print "nothing to see here"
 			print "move along, move along"
 			#done checking, record ending index and stop loop
-                elif comment == 'q' or comment == 'quit':
+            elif comment == 'q' or comment == 'quit':
 			end = i
 			break
 			#comment made, record it and the file to respective lists
-                else:
+            else:
 			tolists(filenames[i],i,comment)
 			print "COMMENT:",comment
 				
 				
-            except ValueError:
+        except ValueError:
 		print "found bad file! at index:",i
 		tolists(filenames[i],i,comment)
 		#can't read file ->messes up indexing and this corrects for this
