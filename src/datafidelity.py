@@ -73,7 +73,7 @@ def clip(wave, flux, ivar):
     serr = gsmooth(wave, err, var, 0.008)
 
     # Find the wavelengths that need to be clipped (omitting 5800-6000 region)
-    bad_wave = wave[np.where((err/serr > 4) & ((wave < 5800.0) | (wave > 6000.0)))]
+    bad_wave = wave[np.where((err/serr > 2) & ((wave < 5800.0) | (wave > 6000.0)))]
 
     # Find indices for general clipping
     bad = np.array([], int)

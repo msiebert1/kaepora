@@ -305,7 +305,7 @@ for i in range(len(filenames)):
 		
                 plt.subplot(2,1,2)
                 plt.plot(orig_wave,invar**-0.5,label = 'Original')
-		plt.plot(interp_wave,interp_ivar**-0.5,label = 'Interpolated')
+		plt.plot(interp_wave,interp_ivar**-0.5,label = 'Clipped')
                 plt.xlim(xmin,xmax)
                 plt.xlabel('Rest Wavelength')
                 plt.ylabel('Error')
