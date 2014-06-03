@@ -310,6 +310,7 @@ for i in range(len(filenames)):
                 plt.xlabel('Rest Wavelength')
                 plt.ylabel('Error')
 		plt.legend()
+		'''
 		print "Checking Original data"
 		print orig_wave
 		print orig_flux
@@ -318,6 +319,7 @@ for i in range(len(filenames)):
 		print interp_wave
 		print interp_flux
 		print interp_ivar
+		'''
                 plt.show()
                 #print "spectra is plotted"
 
