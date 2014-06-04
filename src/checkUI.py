@@ -5,12 +5,9 @@ from astropy.io import ascii
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Button
 import numpy as np
+import os
 
-import sqlite3 as sq3
 from scipy import interpolate as intp
-import math
-import msgpack as msg
-import msgpack_numpy as mn
 from prep import *
 from datafidelity import *
 
@@ -87,19 +84,19 @@ END		index ended at
 ## Helper Functions ##
 ######################
 def tolists(filename,index,comment):
-	if source == 'cfa':
-		badfile.append(filename.split('/')[5])
-	else:
-		badfile.append(filename.split('/')[4])
+    
+    badfile.append(os.path.split(filename)[1])
+    badcomment.append(comment)
+    badindex.append(index)
 
-	badcomment.append(comment)
-	badindex.append(index)
+"""
+this part is useless
 
 def trimfile(filename):
 	if source == 'cfa':
-		return filename.split('/')[5]
+		return os.path.split(filename)[1]
 	else:
-		return filename.split('/')[4]
+		return os.path.split(filename)[1]  """   
 
 ####################
 ## File Selecting ##
@@ -212,50 +209,55 @@ def process(index, f):
 	try:
 
 		#gets wave and flux from current file
-		data = (np.loadtxt(f[i]))
-		filename = trimfile(f[i])
+            data = (np.loadtxt(f[i]))
+#            print f[i]
+            filename = os.path.split(f[i])[1]
 		#separate wave/flux/error for easier manipulation
-		orig_wave = data[:,0]
-		orig_flux = data[:,1]
-		try:
+            print filename
+            orig_wave = data[:,0]
+            orig_flux = data[:,1]
+            try:
 			# check if data has error array
 			orig_error = data[:,2] 
-		except IndexError:
+            except IndexError:
 			# if not, set default
 			orig_error = np.array([0])
 
 		#get invar, to use in interp, and separate wave/flux/errors
-		invar = genivar(orig_wave,orig_flux,orig_error)
+            invar = genivar(orig_wave,orig_flux,orig_error)
 		#print invar                           
-		interp = Interpo(orig_wave,orig_flux,invar)
-		interp_wave = interp[0]
-		interp_flux = interp[1]
-		interp_ivar = interp[2]
+            interp = Interpo(orig_wave,orig_flux,invar)
+            interp_wave = interp[0]
+            interp_flux = interp[1]
+            interp_ivar = interp[2]
 		#print interp_wave,interp_flux,interp_error
-
+            
+            # averaging weighted spectra
+#            avgflux  = np.average(interp_flux, weights=interp_ivar, axis=0)
+            
 		##plotting orig, interp, error
-		xmin = orig_wave[0]-50
-		xmax = orig_wave[len(orig_wave)-1]+50
+            xmin = orig_wave[0]-50
+            xmax = orig_wave[len(orig_wave)-1]+50
 		
-		print "FILE",index,":",filename
+            print "FILE",index,":",filename
 		
-		main.cla()
-		main.set_xlim(xmin,xmax)
-		main.plot(orig_wave,orig_flux,'b',label = 'Original')
-                main.plot(interp_wave, interp_flux,'r',label = 'Interpolated')
-		main.set_xlabel('Rest Wavelength')
-		main.set_ylabel('Flux')
-		main.legend()
-		main.set_title(filename)
-		sub.cla()
-		sub.set_xlim(xmin,xmax)
-		sub.plot(orig_wave,invar**-0.5,label = 'Original')
-		sub.plot(interp_wave,interp_ivar**-0.5,label = 'Interpolated')
+            main.cla()
+            main.set_xlim(xmin,xmax)
+            main.plot(orig_wave,orig_flux,'b',label = 'Original')
+            main.plot(interp_wave, interp_flux,'r',label = 'Weighted')
+            main.set_xlabel('Rest Wavelength')
+            main.set_ylabel('Flux')
+            main.legend()
+            main.set_title(filename)
+            sub.cla()
+            sub.set_xlim(xmin,xmax)
+            sub.plot(orig_wave,invar**-0.5,label = 'Original')
+            sub.plot(interp_wave,interp_ivar**-0.5,label = 'Interpolated')
 		
-		sub.set_xlabel('Rest Wavelength')
-		sub.set_ylabel('Error')
+            sub.set_xlabel('Rest Wavelength')
+            sub.set_ylabel('Error')
 		
-		plt.draw()
+            plt.draw()
 		#print "spectra is plotted"
 		
 		#NEW COMMENTING CODE
