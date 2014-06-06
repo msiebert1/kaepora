@@ -14,12 +14,14 @@ mn.patch()
 global c
 c = 299792.458
 
+
 def read_cfa_or_bsnip_or_uv(fname):
     """
     Returns a numpy array with spectra from a cfa or bsnip source
     """
     spectra = np.loadtxt(fname)
     return spectra
+
 
 def read_csp(fname):
     """
@@ -32,12 +34,15 @@ def read_csp(fname):
 
     return spectra, info
 
+
 def read_cfa_info(data_file, dates_file):
     """
     Reads Cfa SN information from separate files.
     Output dict format:
-    #key,     0         1           2       3        4        5       6     7        8        9       10        11       12       13              14
-    #SN,  zhel,  tmax(B),  +/-  ref.,  Dm15, +/-  ref.,  M_B   +/-,   B-V,   +/-,  Bm-Vm, +/-,   Phot. ref   Obs Date
+    # key,     0         1           2       3        4        5       6     7        8        9
+    # SN,  zhel,  tmax(B),  +/-  ref.,  Dm15, +/-  ref.,  M_B   +/-,   B-V,
+     10        11       12       13              14
+    +/-,  Bm-Vm, +/-,   Phot. ref   Obs Date
     """
     with open(dates_file) as dates:
         lines = dates.readlines()
@@ -59,19 +64,21 @@ def read_cfa_info(data_file, dates_file):
 
     return sndict, date_dict
 
+
 def read_bsnip_data(data_file):
     """
     Returns a dict keyed on 'snname-longdate' ie. 1989a-19890427
     """
     data1 = pd.read_fwf('../data/info_files/obj_info_table.txt', names=('SN name', 'Type',
-                                      'Host Galaxy', 'Host Morphology', 'Redshift', 'Reddening',
-                                      'Discovery Date'), colspecs=((0,10),(10,17),(17,51),(51,58),
-                                      (58,63),(63,69),(69,97)))
+                                        'Host Galaxy', 'Host Morphology', 'Redshift', 'Reddening',
+                                        'Discovery Date'), colspecs=((0, 10), (10, 17), (17, 51),
+                                        (51, 58), (58, 63), (63, 69), (69, 97)))
 
-    data2 = pd.read_fwf('../data/info_files/spec_info_table.txt', names=('SN name', 'Year',
-                                      'Month', 'Day', 'MJD of Spectrum', 'Phase of Spectrum',),
-                                      colspecs=((0,9),(10,15),(15,18),(18,25),
-                                      (25,36),(37,43)))
+    data2 = pd.read_fwf('../data/info_files/spec_info_table.txt',
+                                        names=('SN name', 'Year', 'Month', 'Day',
+                                                       'MJD of Spectrum', 'Phase of Spectrum',),
+                                        colspecs=((0, 9), (10, 15), (15, 18), (18, 25),
+                                                         (25, 36), (37, 43)))
     dmat1 = data1.as_matrix()
     dmat2 = data2.as_matrix()
     dmat2 = dmat2.tolist()
@@ -79,7 +86,7 @@ def read_bsnip_data(data_file):
     #do the same for day (5.000 -> 05.000)
     for line in dmat2:
         if line[2] < 10:
-            line[2] = ''.join(['0',str(line[2])])
+            line[2] = ''.join(['0', str(line[2])])
         if line[3] < 10:
             line[3] = ''.join(['0', str(line[3])])
     for line in dmat2:
@@ -100,6 +107,7 @@ def read_bsnip_data(data_file):
         bsnip_dict[full_key] = [key1, bsnip_dict_rs[key1], line[len(line)-2]]
     return bsnip_dict
 
+
 def find_SN(fname, source=None, csplist=None):
     """
     Returns SN name, either from cspdict if source is a csp spectra
@@ -117,6 +125,7 @@ def find_SN(fname, source=None, csplist=None):
             snname = snname[0][2:]
 
         return snname
+
 
 def build_morph_dict():
     """
@@ -136,6 +145,7 @@ def build_morph_dict():
 
     return morph_dict
 
+
 def build_vel_dict():
     """
     Builds a dictionary of the form {sn_name: velocity}
@@ -151,6 +161,7 @@ def build_vel_dict():
             vel_dict[ents[0]] = ents[2]
     return vel_dict
 
+
 def build_gas_dict():
     """
     Builds a dictionary of the form {sn_name: gas rich (0/1)}
@@ -164,6 +175,7 @@ def build_gas_dict():
             if ents:
                 gas_dict[ents[0]] = ents[1]
     return gas_dict
+
 
 def build_carbon_dict():
     """
@@ -180,6 +192,7 @@ def build_carbon_dict():
                     carbon_dict[ents[0].lower()] = ents[1]
     return carbon_dict
 
+
 def build_redshift_dict(bsnipdict, cfadict):
     rsd = {}
     for item in cfadict:
@@ -188,6 +201,7 @@ def build_redshift_dict(bsnipdict, cfadict):
         if bsnipdict[item][0] not in rsd:
             rsd[item] = bsnipdict[item][1]/c
     return rsd
+
 
 def is_number(s):
     try:
@@ -198,7 +212,7 @@ def is_number(s):
 
 #build necessary dictionaries
 sndict, date_dict = read_cfa_info('../data/spectra/cfa/cfasnIa_param.dat',
-                                                       '../data/spectra/cfa/cfasnIa_mjdspec.dat')
+                                  '../data/spectra/cfa/cfasnIa_mjdspec.dat')
 bsnip_vals = read_bsnip_data('obj_info_table.txt')
 rsd = build_redshift_dict(bsnip_vals, sndict)
 morph_dict = build_morph_dict()
@@ -244,24 +258,24 @@ shiftless = []
 
 #ignore bad files
 spectra_ignore = [
-                                'SN06mr_061113_g01_BAA_IM.dat',
-                                'SN07af_070310_g01_BAA_IM.dat',
-                                'SN07ai_070310_g01_BAA_IM.dat',
-                                'SN07af_070310_g01_BAA_IM.dat',
-                                'SN07ai_070312_g01_BAA_IM.dat',
-                                'sn1996ai-19960620.17-fast.flm',
-                                'sn1994T-19940612.25-mmt.flm',
-                                'sn1994T-19940613.19-fast.flm',
-                                'sn2000dn-20001006.25-fast.flm',
-                                'sn2006bt-20060502.33-fast.flm',
-                                'sn2006bt-20060503.33-fast.flm',
-                                'sn1994Q-19940612.32-mmt.flm',
-                                'sn2006H-20060206.21-fast.flm',
-                                'sn2002dj-20020614.17-fast.flm',
-                                'sn1999ek-19991030.47-fast.flm',
-                                'sn2003cq-20030408.26-fast.flm',
-                                'sn1996ai-19960620.17-fast.flm',
-                                ]
+    'SN06mr_061113_g01_BAA_IM.dat',
+    'SN07af_070310_g01_BAA_IM.dat',
+    'SN07ai_070310_g01_BAA_IM.dat',
+    'SN07af_070310_g01_BAA_IM.dat',
+    'SN07ai_070312_g01_BAA_IM.dat',
+    'sn1996ai-19960620.17-fast.flm',
+    'sn1994T-19940612.25-mmt.flm',
+    'sn1994T-19940613.19-fast.flm',
+    'sn2000dn-20001006.25-fast.flm',
+    'sn2006bt-20060502.33-fast.flm',
+    'sn2006bt-20060503.33-fast.flm',
+    'sn1994Q-19940612.32-mmt.flm',
+    'sn2006H-20060206.21-fast.flm',
+    'sn2002dj-20020614.17-fast.flm',
+    'sn1999ek-19991030.47-fast.flm',
+    'sn2003cq-20030408.26-fast.flm',
+    'sn1996ai-19960620.17-fast.flm',
+    ]
 print "Adding information to table"
 count = 1
 for path, subdirs, files in os.walk(root):
@@ -285,7 +299,7 @@ for path, subdirs, files in os.walk(root):
                 bad_files.append(f)
                 continue
 
-            print  count, sn_name
+            print count, sn_name
             count += 1
 
             if 'other' in f:
@@ -324,7 +338,7 @@ for path, subdirs, files in os.walk(root):
                 print f
                 source = 'cfa'
                 redshift = float(sn_cfa[0])
-                if  sn_cfa[1] == '99999.9':
+                if sn_cfa[1] == '99999.9':
                     phase = None
                 else:
                     #try/except catches and fixes sn2011 errors
@@ -415,15 +429,15 @@ for path, subdirs, files in os.walk(root):
             else:
                 gasrich = None
 
-            interped  = msg.packb(interp_spec)
+            interped = msg.packb(interp_spec)
             con.execute("""INSERT INTO Supernovae(Filename, SN, Source,
                                 Redshift, Phase, MinWave, MaxWave, Dm15, M_B,
                                 B_mMinusV_m, Velocity, Morphology, Carbon,
                                 GasRich, snr, Interpolated_Spectra)
                                 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                                (name, sn_name, source, redshift, phase,
-                                min_wave, max_wave, Dm15, m_b, bm_vm, vel,
-                                morph, carbon, gasrich, sig_noise, buffer(interped)))
+                        (name, sn_name, source, redshift, phase,
+                         min_wave, max_wave, Dm15, m_b, bm_vm, vel,
+                         morph, carbon, gasrich, sig_noise, buffer(interped)))
 
 con.commit()
 te = time.clock()
