@@ -130,27 +130,28 @@ filenames = glob.glob(path)
 #select an index value to start at so you don't have to check a set of data
 #from the beginning every time you run the program
 while (True):
-	print "valid index range: 0 to",(len(filenames)-1)
-	try:
-		start = int(raw_input("Please select what index you would like to start at?(-1 for list)\n:"))
-		if start == -1:
-			step = int(raw_input("Please enter step size(how many spectra per [enter])\n:"))
-			print "PRESS [ENTER] TO SHOW NEXT",step,"(q to quit)"
-			for j in range(len(filenames)):
-				if source == 'cfa':
-					print j,filenames[j].split('/')[5]
-				else:
-					print j,filenames[j].split('/')[4]
-				if (j % step == 0):
+    print "valid index range: 0 to",(len(filenames)-1)
+    try:
+        start = int(raw_input("Please select what index you would like to start at?(-1 for list)\n:"))
+        if start == -1:
+            step = int(raw_input("Please enter step size(how many spectra per [enter])\n:"))
+            print "PRESS [ENTER] TO SHOW NEXT",step,"(q to quit)"
+            for j in range(len(filenames)):
+                print j , os.path.split(filenames[j])[1]
+#				if source == 'cfa':
+#					print j,filenames[j].split('/')[5]
+#				else:
+#					print j,filenames[j].split('/')[4]
+                if (j % step == 0):
 					flag = raw_input();
 					if flag == 'q':
 						break
 		if (start < 0 or start > (len(filenames)-1)):
 			print "INDEX OUT OF RANGE\n"
-		else:
+        else:
 			print "starting at index:",start		
 			break
-	except ValueError:
+    except ValueError:
 		print "NOT AN INTEGER\n"
 
 
@@ -230,10 +231,19 @@ def process(index, f):
             interp_wave = interp[0]
             interp_flux = interp[1]
             interp_ivar = interp[2]
-		#print interp_wave,interp_flux,interp_error
+#            print interp_flux
             
-            # averaging weighted spectra
-#            avgflux  = np.average(interp_flux, weights=interp_ivar, axis=0)
+            # Just added : averaging weighted spectra
+#            index = np.where(np.logical_not(np.isnan(interp_flux)))[0]
+#            avgflux  = np.average(interp_flux[index], weights = interp_ivar[index], axis = 0)
+#            print avgflux
+#            weight_flux1 = orig_flux * invar 
+#            weight_flux2 = interp_flux*interp_ivar 
+            
+            # Just Added: Clipping effect on flux
+            index = np.where( interp_ivar == 0)
+#            print index
+            interp_flux[index] = float('NaN')
             
 		##plotting orig, interp, error
             xmin = orig_wave[0]-50
@@ -244,7 +254,7 @@ def process(index, f):
             main.cla()
             main.set_xlim(xmin,xmax)
             main.plot(orig_wave,orig_flux,'b',label = 'Original')
-            main.plot(interp_wave, interp_flux,'r',label = 'Weighted')
+            main.plot(interp_wave, interp_flux ,'r',label = 'Clipped')            
             main.set_xlabel('Rest Wavelength')
             main.set_ylabel('Flux')
             main.legend()
@@ -252,8 +262,8 @@ def process(index, f):
             sub.cla()
             sub.set_xlim(xmin,xmax)
             sub.plot(orig_wave,invar**-0.5,label = 'Original')
-            sub.plot(interp_wave,interp_ivar**-0.5,label = 'Interpolated')
-		
+            sub.plot(interp_wave,interp_ivar**-0.5,label = 'Clipped')
+            sub.legend()		
             sub.set_xlabel('Rest Wavelength')
             sub.set_ylabel('Error')
 		

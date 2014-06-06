@@ -24,7 +24,7 @@ import pyfits
 ## Optional imputs are smoothing velocity (vexp) and number of sigma (nsig)
 ## Syntax: new_y_array = gsmooth(x_array, y_array, var_y, vexp = 0.01, nsig = 5.0)
 
-def gsmooth(x_array, y_array, var_y, vexp = 0.005, nsig = 2.0):
+def gsmooth(x_array, y_array, var_y, vexp = 0.005, nsig = 5.0):
     
     # Check for non-zero variance points, and set to 1E-20
     for i in range(len(var_y)):
