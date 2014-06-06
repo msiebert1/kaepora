@@ -10,6 +10,7 @@ import os
 from scipy import interpolate as intp
 from prep import *
 from datafidelity import *
+import time
 
 
 """
@@ -88,6 +89,7 @@ def tolists(filename,index,comment):
     badfile.append(os.path.split(filename)[1])
     badcomment.append(comment)
     badindex.append(index)
+    
 
 """
 this part is useless
@@ -168,7 +170,7 @@ interp_flux = []
 interp_error = []
 invar = []
 #ending index, remains -1 if gone through whole list
-end = -1
+end = []
 
 files = []
 offset = start
@@ -184,6 +186,7 @@ class Index:
 		else:
 			self.ind += 1
 		process(self.ind,filenames)
+		end.append(self.ind)
 
 	def prev(self, event):
 		if self.ind == 0:
@@ -191,14 +194,14 @@ class Index:
 		else:
 			self.ind -= 1
 		process(self.ind,filenames)
+		return self.ind
 	def comm(self, event):
 		print self.ind, filenames[self.ind]
-		end = self.ind
-		print end
 		comment = str(raw_input("Comments on this spectra\n:"))
 		tolists(filenames[self.ind],self.ind,comment)
 		print "FILE",self.ind,':',filenames[self.ind]
 		print "COMMENT:",comment
+
 
 #plot first file we want to look at
 
@@ -249,7 +252,7 @@ def process(index, f):
             xmin = orig_wave[0]-50
             xmax = orig_wave[len(orig_wave)-1]+50
 		
-            print "FILE",index,":",filename
+            print "FILE",i,":",filename
 		
             main.cla()
             main.set_xlim(xmin,xmax)
@@ -295,14 +298,17 @@ bprev = Button(axprev, 'Prev')
 bprev.on_clicked(callback.prev)
 bcomm = Button(axcomm, 'Comment')
 bcomm.on_clicked(callback.comm)
+
 plt.show()
 
+
+end = end[len(end)-1]
 print "ending at index:",end
 ##############
 ## QUITTING ##
 ##############
 badlist =  Table([badindex,badfile,badcomment])
-badlist_filename = "checked"+"_"+source+"_"+str(start)+"-"+str(end)
+badlist_filename = "checked"+"_"+source+"_"+str(start)+"_"+str(end)+time.strftime("(%H:%M:%S)")
 print "REVIEW:"
 print "BADLIST FILENAME:",badlist_filename
 print "LIST:\n",badlist
