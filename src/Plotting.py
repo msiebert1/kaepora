@@ -188,7 +188,7 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
         for k in range(len_RF):
             if k % 2 == 0:
                 good = np.where(VA[k+1] != 0)
-                plt.plot(RF[k][good], RF[k+1][good], label = Names[k] )
+                plt.plot(RF[k][good], RF[k+1][good],label = Names[k] )
                 #plt.plot(RF[k], RF[k+1], color = random.choice(['g', 'r', 'c', 'm', 'y', 'k']), label = Names[k] )
                 #plt.fill_between(RF[k], RF[k+1] + RS[k+1], RF[k+1] - RS[k+1], facecolor = random.choice(['g', 'r', 'c', 'm', 'y', 'k']),alpha=0.5)                
                 #plt.plot(RF[k], RF[k+1] + RS[1], label = "+ RMS")
@@ -221,9 +221,14 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
 
         for k in range(len_VA):
             if k % 2 == 0:
-                good = np.where(VA[k+1] != 0)
+                good = np.where((1/VA[k+1]) > 0)
+                print len(good)
                 plt.plot(VA[k][good], VA[k+1][good], label = "Variance", ls = '-')
         VAxticklabels = Variance.get_xticklabels()
+        
+        # This isn't working the way I'd like it to         
+        gca().yaxis.get_major_locator()._nbins=6
+        
         if max(stacked) == 1:            
             plt.setp(VAxticklabels, visible=True)
         else:
@@ -245,6 +250,9 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
                 plt.plot(RF[k][good], RF[k+1][good]-RF[1][good], label = "RMS of residuals", ls = '-')
         #plt.plot(RS[0], RS[1], label = "RMS of residuals", ls = '-')
         RSxticklabels = Resid.get_xticklabels()
+                
+        gca().yaxis.get_major_locator()._nbins=6
+        
         if max(stacked) == 2:
             plt.setp(RSxticklabels, visible=True)
         else:
@@ -262,7 +270,10 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
             if k % 2 == 0:
                 good = np.where(VA[k+1] != 0)
                 plt.plot(SB[k][good], SB[k+1][good], label = "Spectra per Bin", ls = '-')
-        SBxticklabels = SpecBin.get_xticklabels()        
+        SBxticklabels = SpecBin.get_xticklabels()     
+        
+        gca().yaxis.get_major_locator()._nbins=6        
+        
         if max(stacked) == 3:
             plt.setp(SBxticklabels, visible=True)
         else:
@@ -281,6 +292,9 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
                 good = np.where(VA[k+1] != 0)
                 plt.plot(AG[k][good], AG[k+1][good], label = "Age", ls = '-')
         AGxticklabels = Age.get_xticklabels()        
+
+        gca().yaxis.get_major_locator()._nbins=8       
+        
         if max(stacked) == 4:
             plt.setp(AGxticklabels, visible=True)
         else:
@@ -299,6 +313,9 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
                 good = np.where(VA[k+1] != 0)
                 plt.plot(DE[k][good], DE[k+1][good], label = "Delta", ls = '-')
         DLxticklabels = Delta.get_xticklabels()
+        
+        gca().yaxis.get_major_locator()._nbins=7
+        
         if max(stacked) == 5:            
             plt.setp(DLxticklabels, visible=True)
         else:
@@ -317,6 +334,9 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
                 good = np.where(VA[k+1] != 0)
                 plt.plot(RD[k][good], RD[k+1][good], label = "Redshift", ls = '-')
         Zxticklabels = Redshift.get_xticklabels()        
+
+        gca().yaxis.get_major_locator()._nbins=6
+        
         if max(stacked) == 6:            
             plt.setp(Zxticklabels, visible=True)
         else:
@@ -562,10 +582,11 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
         p = p+1
     """   
     # Regardless of what is plotted, we label the Xaxis and save the plot image
-    plt.xlim(xmin, xmax)       
+    plt.xlim(xmin, xmax)    
+    
     plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
     #plt.axis([xmin, xmax, 0, max(RFmax)])    
-    plt.savefig(image_title, dpi = 600, facecolor='w', edgecolor='w', pad_inches = 0.1) # CHANGE dpi = 600
+    plt.savefig(image_title, dpi = 600, facecolor='w', edgecolor='w', pad_inches = 0.2)
     print "Plotting complete..."    
     
 #############################################################
