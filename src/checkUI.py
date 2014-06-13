@@ -114,13 +114,22 @@ while (True):
 		break
 
 #accounts for different file organizations for sources
-if source == 'bsnip' or source == 'uv':
-	path = "../data/spectra/"+source+"/*.flm"
+if source == 'bsnip' :
+    path = "../data/spectra/"+source+"/*.flm"
+    sne = ReadExtin('extinctionbsnip.dat')         
+if source == 'uv':
+    path = "../data/spectra/"+source+"/*.flm"
+    sne = ReadExtin('extinctionuv.dat')
 if source == 'cfa':
-	path = "../data/spectra/"+source+"/*/*.flm"
-if source == 'csp' or source == 'other':
-	path = "../data/spectra/"+source+"/*.dat"
-
+    path = "../data/spectra/"+source+"/*/*.flm"
+    sne = ReadExtin('extinction.dat')
+    z = ReadParam()
+if source == 'csp' :
+    path = "../data/spectra/"+source+"/*.dat"
+    sne = ReadExtin('extinctioncsp.dat')
+if source == 'other' :
+    path = "../data/spectra/"+source+"/*.dat"
+    sne = ReadExtin('extinctionother.dat')
 
 #read in all filenames to extract data from 
 filenames = glob.glob(path)
@@ -227,9 +236,14 @@ def process(index, f):
 			# if not, set default
 			orig_error = np.array([0])
 
+            # deredenning
+#            new_flux = dered(sne, filename, orig_wave, orig_flux)
+            # deredshifting
+#            if source != 'csp' :
+#                new_wave = orig_wave/(1.+z)
 		#get invar, to use in interp, and separate wave/flux/errors
             invar = genivar(orig_wave,orig_flux,orig_error)
-		#print invar                           
+		#print invar                         
             interp = Interpo(orig_wave,orig_flux,invar)
             interp_wave = interp[0]
             interp_flux = interp[1]
@@ -246,7 +260,11 @@ def process(index, f):
             # Just Added: Clipping effect on flux
             index = np.where( interp_ivar == 0)
 #            print index
-            interp_flux[index] = float('NaN')
+#            interp_flux[index] = float('NaN')
+            var = np.ones(len(index), float)
+            interp_flux[index] = gsmooth(interp_wave[index], interp_flux[index], var, 0.008)
+
+            
             
 		##plotting orig, interp, error
             xmin = orig_wave[0]-50
