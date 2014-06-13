@@ -243,12 +243,18 @@ def process(index, f):
 #                new_wave = orig_wave/(1.+z)
 		#get invar, to use in interp, and separate wave/flux/errors
             invar = genivar(orig_wave,orig_flux,orig_error)
-		#print invar                         
+            err = invar**-0.5
+            place = np.where((orig_wave > 5800.0 ) & (orig_wave < 6000.0 ))
+            print err[place]  
+                     
             interp = Interpo(orig_wave,orig_flux,invar)
             interp_wave = interp[0]
             interp_flux = interp[1]
             interp_ivar = interp[2]
-#            print interp_flux
+            interp_err = interp_ivar**-0.5
+            
+            place = np.where((interp_wave > 5800.0 ) & (interp_wave < 6000.0 ))
+            print interp_err[place]
             
             # Just added : averaging weighted spectra
 #            index = np.where(np.logical_not(np.isnan(interp_flux)))[0]
@@ -282,8 +288,8 @@ def process(index, f):
             main.set_title(filename)
             sub.cla()
             sub.set_xlim(xmin,xmax)
-            sub.plot(orig_wave,invar**-0.5,label = 'Original')
-            sub.plot(interp_wave,interp_ivar**-0.5,label = 'Clipped')
+            sub.plot(orig_wave,err,label = 'Original')
+            sub.plot(interp_wave,interp_err,label = 'Clipped')
             sub.legend()		
             sub.set_xlabel('Rest Wavelength')
             sub.set_ylabel('Error')

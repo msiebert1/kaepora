@@ -126,8 +126,7 @@ def Interpo (wave, flux, ivar):
     upper = wave[-1]
 
     #ivar = clip(wave, flux, ivar) #clip bad points in flux (if before interpolation)
-    ivar = clipmore(wave,flux,ivar) 
-    print ivar
+    ivar = clipmore(wave,flux,ivar)    
     bad_points = clip(wave, flux, ivar)  # if returned bad points range instead of ivar
 #    print 'ivar', ivar
 #    print 'bad points', bad_points
@@ -151,10 +150,15 @@ def Interpo (wave, flux, ivar):
         inter_ivar[zero_points] = 0
 
     inter_ivar[inter_ivar < 0] = 0  # make sure there are no negative points!
+    
+#    place = np.where((wavelength > 5800.0 ) & (wavelength < 6000.0 ))
+#    print inter_ivar[place]
 
     missing_data = np.where((wavelength < lower) | (wavelength > upper))
     inter_flux[missing_data] = float('NaN')  # set the bad values to NaN !!!
     inter_ivar[missing_data] = float('NaN')
+
+#    print inter_ivar[place]
 
     output = np.array([wavelength, inter_flux, inter_ivar])  # put the interpolated data into the new table
 
