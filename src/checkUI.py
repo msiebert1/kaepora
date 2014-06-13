@@ -244,8 +244,8 @@ def process(index, f):
 		#get invar, to use in interp, and separate wave/flux/errors
             invar = genivar(orig_wave,orig_flux,orig_error)
             err = invar**-0.5
-            place = np.where((orig_wave > 5800.0 ) & (orig_wave < 6000.0 ))
-            print err[place]  
+#            place = np.where((orig_wave > 5800.0 ) & (orig_wave < 6000.0 ))
+#            print err[place]  
                      
             interp = Interpo(orig_wave,orig_flux,invar)
             interp_wave = interp[0]
@@ -253,8 +253,8 @@ def process(index, f):
             interp_ivar = interp[2]
             interp_err = interp_ivar**-0.5
             
-            place = np.where((interp_wave > 5800.0 ) & (interp_wave < 6000.0 ))
-            print interp_err[place]
+#            place = np.where((interp_wave > 5800.0 ) & (interp_wave < 6000.0 ))
+#            print interp_err[place]
             
             # Just added : averaging weighted spectra
 #            index = np.where(np.logical_not(np.isnan(interp_flux)))[0]

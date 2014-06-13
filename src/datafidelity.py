@@ -73,7 +73,7 @@ def clip(wave, flux, ivar):
     serr = gsmooth(wave, err, var, 0.008)
 
     # Find the wavelengths that need to be clipped (omitting 5800-6000 region)
-    index = np.where(((err/serr > 4.5) & (wave < 5800.0)) | ((err/serr > 3.8) & (wave > 6000.0)))
+    index = np.where(((err/serr > 4.5) & (wave < 5800.0)) | ((err/serr > 3.5) & (wave > 6000.0)))
     bad_wave = wave[index]
 
     # Find indices for general clipping
@@ -93,7 +93,7 @@ def clip(wave, flux, ivar):
 # Currently only for Na lines (5800-5900)
 def clipmore(wave, flux, ivar) :
     
-    ind = np.where((wave > 5800.0 ) & (wave < 5900.0 )) # what region to look at 
+    ind = np.where((wave > 5800.0 ) & (wave < 6000.0 )) # what region to look at 
 #    print ind[0]
     if len(ind[0]) == 0 : # Doesn't have spectra at this range
         print 'no data'
@@ -102,17 +102,28 @@ def clipmore(wave, flux, ivar) :
         wmin = ind[0][0]
         wmax = ind[0][-1]
 #        print wmin, wmax
+        # Create an array of all ones
+        var = np.ones(len(flux), float)
     
-        medivar = np.median(ivar[ind])
-        if ivar[wmin-1] / medivar > 4 or ivar[wmax+1] / medivar > 4 : # criterion: mederr/outerr > 2
+        # Create 2 smoothed fluxes, of varying vexp
+        sflux = gsmooth(wave, flux, var, 0.002)
+    
+        # Take the difference of the two fluxes and smooth
+        err = abs(flux - sflux)  
+#        serr = gsmooth(wave, err, var, 0.008)
+        
+        mederr = np.median(err[ind])
+        if mederr/ err[wmin-1] >2 or mederr / err[wmax+1] > 2 :
+#        medivar = np.median(ivar[ind])
+#        if ivar[wmin-1] / medivar > 4 or ivar[wmax+1] / medivar > 4 : # criterion: mederr/outerr > 2
             print 'sodium clipped!'
 #            print ivar[ind]
-            ivar[ind] = medivar
+            ivar[ind] = mederr**-2.0
+#            ivar[ind] = medivar
 #            print ivar[ind]
 
-            return ivar    
-        else:
-            return ivar
+        return ivar
+        
 ############################################################################
 #
 # Function to add sky over a wavelength range
