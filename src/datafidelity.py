@@ -104,17 +104,15 @@ def clipmore(wave, flux, ivar) :
 #        print wmin, wmax
     
         medivar = np.median(ivar[ind])
-        if ivar[wmin-1] / medivar > 1/3 or ivar[wmax+1] / medivar > 1/3 :
+        if ivar[wmin-1] / medivar > 4 or ivar[wmax+1] / medivar > 4 : # criterion: mederr/outerr > 2
             print 'sodium clipped!'
 #            print ivar[ind]
             ivar[ind] = medivar
 #            print ivar[ind]
 
-        return ivar    
-    
-
-    
-
+            return ivar    
+        else:
+            return ivar
 ############################################################################
 #
 # Function to add sky over a wavelength range
