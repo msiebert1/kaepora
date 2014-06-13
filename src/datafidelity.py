@@ -88,6 +88,32 @@ def clip(wave, flux, ivar):
 #    ivar[bad] = 0
 #    return ivar
     return bad_ranges # return bad_ranges instead of setting ivar[bad] = 0 (A.S.)
+    
+# clip function specifically for lines that need ivar to set to nearby ones
+# Currently only for Na lines (5800-5900)
+def clipmore(wave, flux, ivar) :
+    
+    ind = np.where((wave > 5800.0 ) & (wave < 5900.0 )) # what region to look at 
+#    print ind[0]
+    if len(ind[0]) == 0 : # Doesn't have spectra at this range
+        print 'no data'
+        return ivar
+    else: 
+        wmin = ind[0][0]
+        wmax = ind[0][-1]
+#        print wmin, wmax
+    
+        medivar = np.median(ivar[ind])
+        if ivar[wmin-1] / medivar > 1/3 or ivar[wmax+1] / medivar > 1/3 :
+            print 'sodium clipped!'
+#            print ivar[ind]
+            ivar[ind] = medivar
+#            print ivar[ind]
+
+        return ivar    
+    
+
+    
 
 ############################################################################
 #

@@ -261,9 +261,9 @@ def process(index, f):
             index = np.where( interp_ivar == 0)
 #            print index
 #            interp_flux[index] = float('NaN')
+            # the following replace the bad points to smoothed spectra
             var = np.ones(len(index), float)
-            interp_flux[index] = gsmooth(interp_wave[index], interp_flux[index], var, 0.008)
-
+            interp_flux[index] = gsmooth(interp_wave[index], interp_flux[index], var, 0.005)
             
             
 		##plotting orig, interp, error

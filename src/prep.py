@@ -126,6 +126,8 @@ def Interpo (wave, flux, ivar):
     upper = wave[-1]
 
     #ivar = clip(wave, flux, ivar) #clip bad points in flux (if before interpolation)
+    ivar = clipmore(wave,flux,ivar) 
+    print ivar
     bad_points = clip(wave, flux, ivar)  # if returned bad points range instead of ivar
 #    print 'ivar', ivar
 #    print 'bad points', bad_points
