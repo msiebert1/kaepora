@@ -302,16 +302,23 @@ for path, subdirs, files in os.walk(root):
             print count, sn_name
             count += 1
 
+            #other source
             if 'other' in f:
-                print 'not doing other folder yet'
-                continue
+                print f
+                source = 'other'
+                if name in rsd:
+                    redshift = rsd[name]
+                else:
+                    redshift = None
 
+            #cfa source
             elif 'cfa' in f:
                 if 'sn2011' not in name:
                     sn_cfa = sndict[sn_name]
                 else:
                     snd = None
                     sn_cfa = [None] * 14
+
             #csp source
             if 'csp' in f:
                 print f
@@ -326,6 +333,7 @@ for path, subdirs, files in os.walk(root):
             elif 'uv' in path:
                 print f
                 #remove the continue once compprep in prep.py supports uv spectra
+                print name
                 continue
                 source = 'uv'
                 if name in rsd:
