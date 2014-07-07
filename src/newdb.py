@@ -70,15 +70,15 @@ def read_bsnip_data(data_file):
     Returns a dict keyed on 'snname-longdate' ie. 1989a-19890427
     """
     data1 = pd.read_fwf('../data/info_files/obj_info_table.txt', names=('SN name', 'Type',
-                                        'Host Galaxy', 'Host Morphology', 'Redshift', 'Reddening',
-                                        'Discovery Date'), colspecs=((0, 10), (10, 17), (17, 51),
-                                        (51, 58), (58, 63), (63, 69), (69, 97)))
+                                    'Host Galaxy', 'Host Morphology', 'Redshift', 'Reddening',
+                                    'Discovery Date'), colspecs=((0, 10), (10, 17), (17, 51),
+                                    (51, 58), (58, 63), (63, 69), (69, 97)))
 
     data2 = pd.read_fwf('../data/info_files/spec_info_table.txt',
-                                        names=('SN name', 'Year', 'Month', 'Day',
-                                                       'MJD of Spectrum', 'Phase of Spectrum',),
-                                        colspecs=((0, 9), (10, 15), (15, 18), (18, 25),
-                                                         (25, 36), (37, 43)))
+                        names=('SN name', 'Year', 'Month', 'Day',
+                            'MJD of Spectrum', 'Phase of Spectrum',),
+                                    colspecs=((0, 9), (10, 15), (15, 18), (18, 25),
+                                                        (25, 36), (37, 43)))
     dmat1 = data1.as_matrix()
     dmat2 = data2.as_matrix()
     dmat2 = dmat2.tolist()
@@ -116,6 +116,12 @@ def find_SN(fname, source=None, csplist=None):
     if source == 'csp':
         snname = csplist[0]
         return snname[2:]
+    elif source == 'other':
+        snname = fname.replace('_', '-').split('-')
+        if snname[0][:2] == 'sn':
+            return snname[0][2:]
+        else:
+            return snname[0]
     else:
         snname = fname.replace('_', '-').split('-')
         if snname[0][:3] == 'snf':
@@ -294,7 +300,10 @@ for path, subdirs, files in os.walk(root):
                     sn_name = find_SN(name, 'csp', info)
                 else:
                     spectra = read_cfa_or_bsnip_or_uv(f)
-                    sn_name = find_SN(name)
+                    if 'other' in path:
+                        sn_name = find_SN(name, 'other')
+                    else:
+                        sn_name = find_SN(name)
             except:
                 bad_files.append(f)
                 continue
