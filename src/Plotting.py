@@ -374,7 +374,7 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
     def Stacked(RF):
         plt.figure(num = 2, dpi = 100, figsize = [6, 4*len(RF[1])], facecolor = 'w')
         
-        buff = ((max(RF[1])-min(RF[1]))/2.0)
+        buff = (max(RF[1])-min(RF[1]))/2.0
         
         plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
         plt.ylabel('Relative, f$_{\lambda}$', fontdict = font)
@@ -384,7 +384,7 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
                 plt.plot(RF[m], RF[m+1]+(m+1)*(1+buff))
                 plt.annotate(str(Names[m]), xy = (max(RF[m]), max(RF[m+1]+(m+1)*(1+buff))), xytext = (-10, 0), textcoords = 'offset points', fontsize = 8, family  = 'serif', weight = 'bold', ha = 'right')
                 #plt.annotate(str(Names[m+1]), xy = (max(RF[0]), max(RF[1][m+1])+(m+1)*(1+buff)), xytext = (-10, 0), textcoords = 'offset points', fontsize = 8, family  = 'serif', weight = 'bold', ha = 'right')
-        plt.xlim(xmin, xmax) 
+        #plt.xlim(xmin, xmax) 
         plt.minorticks_on()
         plt.show(block = False)
         plt.savefig(image_title[:-4] +'_stack.png', dpi = 100, facecolor='w', edgecolor='w', pad_inches = 0.1)
