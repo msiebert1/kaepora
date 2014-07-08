@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import math
 from pylab import *
 import matplotlib.gridspec as gridspec
+#from matplotlib.figure import Figure
 import scipy.optimize as optimize
 import random # new import so that colors in fill_between are random
 import operator
@@ -50,7 +51,7 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
     print "Begin plotting..."
     # Available Plots:  Relative Flux,Variance, Residuals, Spectra/Bin, Age, Delta, Redshift, Stacked  
     #                   0              1          2            3         4      5     6         7
-    Height =           [6,             2,         2,           2,        2,     2,    2] #,        0] # Uncomment to run stacked
+    Height =           [6,             2,         2,           2,        2,     2,    2,        0]
     
     h = []
     
@@ -107,7 +108,6 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
         rd = Show_Data[:][6][i].T
         RD.append(rd) 
 
-    
     """    
     def remove_zero(data):
         delete = []
@@ -167,6 +167,7 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
         #scaled = (data)/(max(data))
         scaled = (data)/(medvalue)
         return scaled
+
 #############################################################
 # residual: Takes the data (Y values?) and subracts it from
 # the composite. 
@@ -204,7 +205,8 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
         l.draw_frame(False)
         plt.draw()
           
-        RFxticklabels = Rel_flux.get_xticklabels()  
+        RFxticklabels = Rel_flux.get_xticklabels() 
+        
         if max(stacked) == 0:
             plt.setp(RFxticklabels, visible=True)
         else:
@@ -218,15 +220,21 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
         plt.yscale('log')
         #plt.axis([xmin, xmax, 1e-35, 1e-30])
         #plt.yticks(np.arange(1e-33, 1e-29))
-
+        """
+        for j in range(len_VA):
+            if j % 2 == 0:
+                VA[j], VA[j+1] = remove_extremes(VA[j],VA[j+1])
+            
+        VA = np.array(VA)
+        """
         for k in range(len_VA):
             if k % 2 == 0:
                 good = np.where((1/VA[k+1]) > 0)
-                print len(good)
                 plt.plot(VA[k][good], VA[k+1][good], label = "Variance", ls = '-')
         VAxticklabels = Variance.get_xticklabels()
         
         # This isn't working the way I'd like it to         
+        
         gca().yaxis.get_major_locator()._nbins=6
         
         if max(stacked) == 1:            
@@ -250,8 +258,6 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
                 plt.plot(RF[k][good], RF[k+1][good]-RF[1][good], label = "RMS of residuals", ls = '-')
         #plt.plot(RS[0], RS[1], label = "RMS of residuals", ls = '-')
         RSxticklabels = Resid.get_xticklabels()
-                
-        gca().yaxis.get_major_locator()._nbins=6
         
         if max(stacked) == 2:
             plt.setp(RSxticklabels, visible=True)
@@ -272,7 +278,7 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
                 plt.plot(SB[k][good], SB[k+1][good], label = "Spectra per Bin", ls = '-')
         SBxticklabels = SpecBin.get_xticklabels()     
         
-        gca().yaxis.get_major_locator()._nbins=6        
+        gca().yaxis.get_major_locator()._nbins=6
         
         if max(stacked) == 3:
             plt.setp(SBxticklabels, visible=True)
@@ -286,14 +292,20 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
         Age = plt.subplot(gs[p], sharex = Rel_flux)
         plt.ylabel('Age [d]', fontdict = font)
         #plt.yticks(np.arange(0, 0.9, 0.2))
-        
+        """
+        for j in range(len_AG):
+            if j % 2 == 0:
+                AG[j], AG[j+1] = remove_extremes(AG[j],AG[j+1])
+                
+        AG = np.array(AG)
+        """
         for k in range(len_AG):
             if k % 2 == 0:
                 good = np.where(VA[k+1] != 0)
                 plt.plot(AG[k][good], AG[k+1][good], label = "Age", ls = '-')
         AGxticklabels = Age.get_xticklabels()        
 
-        gca().yaxis.get_major_locator()._nbins=8       
+        gca().yaxis.get_major_locator()._nbins=8
         
         if max(stacked) == 4:
             plt.setp(AGxticklabels, visible=True)
@@ -307,6 +319,12 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
         Delta = plt.subplot(gs[p], sharex = Rel_flux)
         plt.ylabel('$\Delta$m$_{15}$', fontdict = font)
         #plt.yticks(np.arange(0, 0.9, 0.2))
+        """
+        for j in range(len_DE):
+            if j % 2 == 0:
+                DE[j], DE[j+1] = remove_extremes(DE[j],DE[j+1])
+        """      
+        DE = np.array(DE)
         
         for k in range(len_DE):
             if k % 2 == 0:
@@ -314,7 +332,7 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
                 plt.plot(DE[k][good], DE[k+1][good], label = "Delta", ls = '-')
         DLxticklabels = Delta.get_xticklabels()
         
-        gca().yaxis.get_major_locator()._nbins=7
+        gca().yaxis.get_major_locator()._nbins=8
         
         if max(stacked) == 5:            
             plt.setp(DLxticklabels, visible=True)
@@ -328,7 +346,13 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
         Redshift = plt.subplot(gs[p], sharex = Rel_flux)
         plt.ylabel('Redshift', fontdict = font)
         #plt.yticks(np.arange(0, 0.9, 0.2))
-        
+        """
+        for j in range(len_RD):
+            if j % 2 == 0:
+                RD[j], RD[j+1] = remove_extremes(RD[j],RD[j+1])
+               
+        RD = np.array(RD)
+        """
         for k in range(len_RD):
             if k % 2 == 0:
                 good = np.where(VA[k+1] != 0)
@@ -337,10 +361,34 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
 
         gca().yaxis.get_major_locator()._nbins=6
         
-        if max(stacked) == 6:            
+        if max(stacked) >= 6:            
             plt.setp(Zxticklabels, visible=True)
         else:
             plt.setp(Zxticklabels, visible=False)
+
+#############################################################
+# The following function stacks all the data sets used to  
+# build the composite spectrum. This will appear on a 
+# separate figure.
+#############################################################  
+    def Stacked(RF):
+        plt.figure(num = 2, dpi = 100, figsize = [6, 4*len(RF[1])], facecolor = 'w')
+        
+        buff = ((max(RF[1])-min(RF[1]))/2.0)
+        
+        plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
+        plt.ylabel('Relative, f$_{\lambda}$', fontdict = font)
+        plt.title('Stacked Figures', fontdict = font)  
+        for m in range(len_RF-1):
+            if m % 2 == 0:
+                plt.plot(RF[m], RF[m+1]+(m+1)*(1+buff))
+                plt.annotate(str(Names[m]), xy = (max(RF[m]), max(RF[m+1]+(m+1)*(1+buff))), xytext = (-10, 0), textcoords = 'offset points', fontsize = 8, family  = 'serif', weight = 'bold', ha = 'right')
+                #plt.annotate(str(Names[m+1]), xy = (max(RF[0]), max(RF[1][m+1])+(m+1)*(1+buff)), xytext = (-10, 0), textcoords = 'offset points', fontsize = 8, family  = 'serif', weight = 'bold', ha = 'right')
+        plt.xlim(xmin, xmax) 
+        plt.minorticks_on()
+        plt.show(block = False)
+        plt.savefig(image_title[:-4] +'_stack.png', dpi = 100, facecolor='w', edgecolor='w', pad_inches = 0.1)
+    
 #############################################################
 #remove_extremes will remove the peaks and dips from plotting
 #############################################################
@@ -349,7 +397,7 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
         sortedArray = sorted(zip(dataX,dataY), key = operator.itemgetter(1))
 
         # find the length of the array data. locate 95% and 05% indice
-        length = len(data[0])
+        length = len(dataX)
         newMax = np.int_(floor(length*.95))
         newMin = np.int_(ceil(length*.05))
         
@@ -371,7 +419,7 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
     # Temporary comment until we get data for multiple arrays
     """
     def Multi(RF,rms_data):
-        plt.figure(num = 2, dpi = 100, figsize = [8, 8], facecolor = 'w')
+        plt.figure(num = 3, dpi = 100, figsize = [8, 8], facecolor = 'w')
         for m in range(len(RF[1])):
             plt.plot(xtrunc, RF[1][m], label = str(Names[m]))
         plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
@@ -380,29 +428,7 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
         plt.legend(prop = {'family' : 'serif'})        
         plt.savefig('multi-spectrum plot.png', dpi = 100, facecolor='w', edgecolor='w', pad_inches = 0.1)
         """
-#############################################################
-# The following function stacks all the data sets used to  
-# build the composite spectrum. This will appear on a 
-# separate figure.
-#############################################################  
-    """  
-    # Commented out till testing is complete.
-    def Stacked(RF): 
-       len_RF = 2
-       plt.figure(num = 2, dpi = 100, figsize = [8, 4*len(RF[1])], facecolor = 'w')
-       plt.plot(RF[0], RF[1])
-       #plt.annotate(str(Names[0]), xy = (max(RF[0]), max(RF[1][0])), xytext = (-10, 0), textcoords = 'offset points', fontsize = 8, family  = 'serif', weight = 'bold', ha = 'right')
-       buffer = (max(RF[1])-min(RF[1]))/2.0
-       for m in range(len_RF-1):
-           if m % 2 == 0:
-               plt.plot(RF[m], RF[m+1]+(m+1)*(1+buffer))
-               #plt.annotate(str(Names[m+1]), xy = (max(RF[0]), max(RF[1][m+1])+(m+1)*(1+buffer)), xytext = (-10, 0), textcoords = 'offset points', fontsize = 8, family  = 'serif', weight = 'bold', ha = 'right')
-       
-       plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
-       plt.ylabel('Relative, f$_{\lambda}$', fontdict = font)
-       plt.minorticks_on()
-       plt.savefig('stacked plot.png', dpi = 100, facecolor='w', edgecolor='w', pad_inches = 0.1)
-       """
+
 #############################################################
 ########################      End of function section
 ########################              :)   
@@ -423,6 +449,7 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
                     #print RF[j][i]
                     RFtrunc.append(RF[j][i])
             RF[j] = Scaling(RF[j], median(RFtrunc))
+    
     #Not implemented until it can be fully tested
     
     """
@@ -451,9 +478,10 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
             RD[j] = Scaling(RD[j])
     """
     
-    RFmax = []
+    
     
     """
+    RFmax = []
     VAmax = []
     RSmax = []
     SBmax = []
@@ -462,55 +490,7 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
     RDmax = []
     """
     
-#    for j in range(len_RF):
-#        if j % 2 != 0:
-#            RFmax.append(max(RF[j])[0])
-    # The following code is to remove extreme data points
-    # the random peaks and dips. This will not be 
-    # implemented until code can be run :(
-    """
-    for k in range(len_RF):
-	if j % 2 != 0:
-	    combinArray_RF = []
-	    combinArray_RF = remove_extremes(RF[k],RF[k+1])
-	    RF[k].append(combinArray_RF[0])
-	    RF[k+1].append(combinArray_RF[1])
-
-    for k in range(len_RS):
-	if j % 2 != 0:
-	    combinArray_RS = []
- 	    combinArray_RS = remove_extremes(RS[k],RS[k+1])
-	    RS[k].append(combinArray_RS[0])
-	    RS[k+1].append(combinArray_RS[1])
-
-    for k in range(len_SB):
-	if j % 2 != 0:
-	    combinArray_SB = []
-	    combinArray_SB = remove_extremes(SB[k],SB[k+1])
-	    SB[k].append(combinArray_SB[0])
-	    SB[k+1].append(combinArray_SB[1])
-
-    for k in range(len_AG):
-	if j % 2 != 0:
-	    combinArray_AG = []
- 	    combinArray_AG = remove_extremes(AG[k],AG[k+1])
-	    AG[k].append(combinArray_AG[0])
-	    AG[k+1].append(combinArray_AG[1])
-    
-    for k in range(len_DE):
-	if j % 2 != 0:
-	    combinArray_DE = []
-	    combinArray_DE = remove_extremes(DE[k],DE[k+1])
-	    DE[k].append(combinArray_DE[0])
-	    DE[k+1].append(combinArray_DE[1])
-
-    for k in range(len_RD):
-	if j % 2 != 0:
-	    combinArray_RD = []
- 	    combinArray_RD = remove_extremes(RD[k],RD[k+1])
-	    RD[k].append(combinArray_RD[0])
-	    RD[k+1].append(combinArray_RD[1])
-    """
+   
     """
     for j in range(len_VA):
         if j % 2 != 0:
@@ -543,7 +523,9 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
 #############################################################
     plt.figure(num = 1, dpi = 100, figsize = [6, np.sum(h)], facecolor = 'w')
     gs = gridspec.GridSpec(len(Plots), 1, height_ratios = h, hspace = 0.001)
-
+    
+    mpl.rcParams['ytick.major.pad'] = 8
+        
     p = 0
     Rel_flux = plt.subplot(gs[p])
     plt.title(title, fontdict = font)
@@ -576,91 +558,17 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
     if 6 in Plots:
         Redshift(RD)
         p = p+1
-    """ # Initiate stacked plot
-    if 7 in Plots:
+    plt.xlim(xmin, xmax)     
+    plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
+    plt.savefig(image_title, dpi = 600, facecolor='w', edgecolor='w', pad_inches = 0.1)
+    plt.show()
+    # Initiates stacked plot
+    if 7 in Plots:        
         Stacked(RF)
         p = p+1
-    """   
-    # Regardless of what is plotted, we label the Xaxis and save the plot image
-    plt.xlim(xmin, xmax)    
-    
-    plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
-    #plt.axis([xmin, xmax, 0, max(RFmax)])    
-    plt.savefig(image_title, dpi = 600, facecolor='w', edgecolor='w', pad_inches = 0.2)
-    print "Plotting complete..."    
-    
-#############################################################
-# Other figures to plot, we put these after the first figure
-# is saved. So as to not confuse the code.     
-#############################################################      
-    """
-   if 6 in Plots:
-        Multi(RF[0],RF[1])
-           
-    if 7 in Plots:
-        Stacked(RF[0],RF[1])
-    """
-#############################################################
-# Show the plots!
-#############################################################                  
-
     plt.show()
-
-
-    """
-    # Commented out for the time being because we're only given a single array
-    source = (np.array(RF[1])).T
-
-    sbins = []
-    guess = []
-    print source
+    #plt.axis([xmin, xmax, 0, max(RFmax)])    
     
-    if len(source) !=1:
-        for m in range(len(source)):
-            comp, cov = optimize.leastsq(residual, guess[m], args = (source[m]), full_output = False)
-            comp.append(comp[0])
-            sbins.append(len(source[m]))
-        else:
-            comp_data = RF[1]
-        
-    delta_data = []     # difference from the mean value
-    
-    for m in range(len(RF[1])):   # finds difference between composite data and interpolated data sets
-        delta_data.append(comp-RF[1][m]) 
-        rms_data = np.sqrt(np.mean(np.square(delta_data), axis = 0))    # finds root-mean-square of differences at each wavelength within overlap
-    """
-
-    #Will implement once testing is complete
-    """
-    def remove_extremes(data):
-        new_data = []
-        bad      = []
-        new_data = data
-        length = len(data) #do i need it?
-        sort(data[1])
-        new_max = data[1][-1]*.95
-        new_min = data[1][0]*.05
-        for i in range(length):
-            if (new_data[1][i] > new_max) or (new_data[1][i] < new_min):
-                bad.append(i)
-        for j in range(len(bad)):
-            del new_data[0][bad[len(bad)-1-j]]
-            del new_data[1][bad[len(bad)-1-j]]
-        return new_data
-        
-        
-        def chop_data(d,p):
-	delete = []	#temporary variable to track which indices to remove
-
-	for i in range(len(d)):
-		if d[i][0][0] > wave_min or d[i][-1][0] < wave_max:
-			delete.append(i)
-			#print "\nwaves #",i,":",data_pos[i][:,0]
-			#print "from path:",path_pos[i],"does not make the cut"
-	for i in range(len(delete)):
-		#print "remove",d[delete[len(delete)-1-i]]
-		del d[delete[len(delete)-1-i]]	#have to remove from end of array to account for moving indexes
-		del p[delete[len(delete)-1-i]]
-		#print d[delete[len(delete)-1-i]]
-      """
-
+    #fig = Figure()
+    #fig.tight_layout()
+    print "Plotting complete..."    
