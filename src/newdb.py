@@ -232,7 +232,6 @@ sndict, date_dict = read_cfa_info('../data/spectra/cfa/cfasnIa_param.dat',
 bsnip_vals = read_bsnip_data('obj_info_table.txt')
 short_bsnip_dict = create_short_bsnip_dict(bsnip_vals)
 rsd = build_redshift_dict(short_bsnip_dict, sndict)
-print rsd
 morph_dict = build_morph_dict()
 vel_dict = build_vel_dict()
 gas_dict = build_gas_dict()
@@ -302,6 +301,14 @@ for path, subdirs, files in os.walk(root):
         if name in spectra_ignore or name in have_both:
             continue
 
+        #reset all fields to prevent carrying over from last loop iteration
+        Dm15 = None
+        m_b = None
+        bm_vm = None
+        phase = None
+        redshift = None
+        source = None
+
         f = os.path.join(path, name)
         if f.endswith('.flm') or f.endswith('.dat'):
             if 'cfasnIa' in f:
@@ -329,8 +336,6 @@ for path, subdirs, files in os.walk(root):
                 source = 'other'
                 if sn_name in rsd:
                     redshift = rsd[sn_name]
-                else:
-                    redshift = None
 
             #cfa source
             elif 'cfa' in f:
@@ -346,27 +351,21 @@ for path, subdirs, files in os.walk(root):
                 source = 'csp'
                 redshift = float(info[2])
                 phase = float(info[4]) - float(info[3])
-                Dm15 = None
-                m_b = None
-                bm_vm = None
 
             #uv source
             elif 'uv' in path:
                 print f
-                #remove the continue once compprep in prep.py supports uv spectra
                 print name
-                continue
                 source = 'uv'
                 if sn_name in rsd:
                     redshift = rsd[sn_name]
-                else:
-                    redshift = None
 
             #cfa spectra
             elif 'cfa' in f:
                 print f
                 source = 'cfa'
                 redshift = float(sn_cfa[0])
+                #if statements assign values to fields if they exist, else none is assigned
                 if sn_cfa[1] == '99999.9':
                     phase = None
                 else:
@@ -412,11 +411,6 @@ for path, subdirs, files in os.walk(root):
                 #if phase exists, add to db
                 if not math.isnan(data[2]):
                     phase = data[2]
-                else:
-                    phase = None
-                Dm15 = None
-                m_b = None
-                bm_vm = None
 
             waves = spectra[:, 0]
             min_wave = waves[0]
