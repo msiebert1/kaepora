@@ -70,15 +70,15 @@ def read_bsnip_data(data_file):
     Returns a dict keyed on 'snname-longdate' ie. 1989a-19890427
     """
     data1 = pd.read_fwf('../data/info_files/obj_info_table.txt', names=('SN name', 'Type',
-                                    'Host Galaxy', 'Host Morphology', 'Redshift', 'Reddening',
-                                    'Discovery Date'), colspecs=((0, 10), (10, 17), (17, 51),
-                                    (51, 58), (58, 63), (63, 69), (69, 97)))
+                                        'Host Galaxy', 'Host Morphology', 'Redshift', 'Reddening',
+                                        'Discovery Date'), colspecs=((0, 10), (10, 17), (17, 51),
+                                        (51, 58), (58, 63), (63, 69), (69, 97)))
 
     data2 = pd.read_fwf('../data/info_files/spec_info_table.txt',
                         names=('SN name', 'Year', 'Month', 'Day',
-                            'MJD of Spectrum', 'Phase of Spectrum',),
-                                    colspecs=((0, 9), (10, 15), (15, 18), (18, 25),
-                                                        (25, 36), (37, 43)))
+                                       'MJD of Spectrum', 'Phase of Spectrum',),
+                        colspecs=((0, 9), (10, 15), (15, 18), (18, 25),
+                                         (25, 36), (37, 43)))
     dmat1 = data1.as_matrix()
     dmat2 = data2.as_matrix()
     dmat2 = dmat2.tolist()
@@ -200,13 +200,23 @@ def build_carbon_dict():
 
 
 def build_redshift_dict(bsnipdict, cfadict):
+    """
+    Creates a dictionary of the form snname: redshift from the cfa and bsnip data
+    """
     rsd = {}
     for item in cfadict:
-        rsd[item] = cfadict[item][0]
+        rsd[item] = float(cfadict[item][0])
     for item in bsnipdict:
-        if bsnipdict[item][0] not in rsd:
-            rsd[item] = bsnipdict[item][1]/c
+        if item not in rsd:
+            rsd[item] = float(bsnipdict[item])
     return rsd
+
+
+def create_short_bsnip_dict(bsnipdict):
+    newdict = {}
+    for k, v in bsnipdict.iteritems():
+        newdict[k.split('-')[0]] = v[1]/c
+    return newdict
 
 
 def is_number(s):
@@ -220,7 +230,9 @@ def is_number(s):
 sndict, date_dict = read_cfa_info('../data/spectra/cfa/cfasnIa_param.dat',
                                   '../data/spectra/cfa/cfasnIa_mjdspec.dat')
 bsnip_vals = read_bsnip_data('obj_info_table.txt')
-rsd = build_redshift_dict(bsnip_vals, sndict)
+short_bsnip_dict = create_short_bsnip_dict(bsnip_vals)
+rsd = build_redshift_dict(short_bsnip_dict, sndict)
+print rsd
 morph_dict = build_morph_dict()
 vel_dict = build_vel_dict()
 gas_dict = build_gas_dict()
@@ -315,8 +327,8 @@ for path, subdirs, files in os.walk(root):
             if 'other' in f:
                 print f
                 source = 'other'
-                if name in rsd:
-                    redshift = rsd[name]
+                if sn_name in rsd:
+                    redshift = rsd[sn_name]
                 else:
                     redshift = None
 
@@ -345,8 +357,8 @@ for path, subdirs, files in os.walk(root):
                 print name
                 continue
                 source = 'uv'
-                if name in rsd:
-                    redshift = rsd[name]
+                if sn_name in rsd:
+                    redshift = rsd[sn_name]
                 else:
                     redshift = None
 
@@ -413,8 +425,9 @@ for path, subdirs, files in os.walk(root):
 
             try:
                 interp_spec, sig_noise = prep.compprep(spectra, sn_name, redshift, source)
-            except:
-                raise
+            except Exception, e:
+                #raise
+                print e
                 print "Interp failed"
                 bad_interp.append(name)
                 bad_files.append(name)
@@ -445,6 +458,10 @@ for path, subdirs, files in os.walk(root):
                 gasrich = gas_dict[sn_name]
             else:
                 gasrich = None
+
+            #add redshift to redshift dictionary if not already present
+            if name not in rsd and redshift is not None:
+                rsd[name] = redshift
 
             interped = msg.packb(interp_spec)
             con.execute("""INSERT INTO Supernovae(Filename, SN, Source,
