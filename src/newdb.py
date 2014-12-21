@@ -78,7 +78,7 @@ def read_bsnip_data(data_file):
                         names=('SN name', 'Year', 'Month', 'Day',
                                        'MJD of Spectrum', 'Phase of Spectrum',),
                         colspecs=((0, 9), (10, 15), (15, 18), (18, 25),
-                                         (25, 36), (37, 43)))
+                                         (25, 36), (36, 43)))
     dmat1 = data1.as_matrix()
     dmat2 = data2.as_matrix()
     dmat2 = dmat2.tolist()
