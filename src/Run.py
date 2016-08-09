@@ -117,7 +117,7 @@ image_title  = "../plots/" + plot_name + ".png"
 
 # Want a custom saved image name? Uncomment this next line...but leave the one above alone.
 #image_title  = "../plots/" + "Custome Title" + ".png"
-print "Plot saved as: " + image_title
+#print "Plot saved as: " + image_title
 
 #Next line is the header on your plot
 title        = "Insert Title Here"

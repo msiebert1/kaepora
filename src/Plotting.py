@@ -387,7 +387,7 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
         #plt.xlim(xmin, xmax) 
         plt.minorticks_on()
         plt.show(block = False)
-        plt.savefig(image_title[:-4] +'_stack.png', dpi = 100, facecolor='w', edgecolor='w', pad_inches = 0.1)
+#        plt.savefig(image_title[:-4] +'_stack.png', dpi = 100, facecolor='w', edgecolor='w', pad_inches = 0.1)
     
 #############################################################
 #remove_extremes will remove the peaks and dips from plotting
@@ -560,7 +560,7 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
         p = p+1
     plt.xlim(xmin, xmax)     
     plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
-    plt.savefig(image_title, dpi = 600, facecolor='w', edgecolor='w', pad_inches = 0.1)
+#    plt.savefig(image_title, dpi = 600, facecolor='w', edgecolor='w', pad_inches = 0.1)
     plt.show()
     # Initiates stacked plot
     if 7 in Plots:        
