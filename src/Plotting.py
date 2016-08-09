@@ -138,14 +138,14 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
 #############################################################
 # Changing font parameters
 #############################################################
-    params = {'legend.fontsize': 10, 
-              'legend.linewidth': 2,
-              'legend.font': 'serif',
-              'mathtext.default': 'regular', 
-              'xtick.labelsize': 10, 
-              'ytick.labelsize': 10} # changes font size in the plot legend
-
-    plt.rcParams.update(params)                             # reset the plot parameters
+#    params = {'legend.fontsize': 10, 
+#              'legend.linewidth': 2,
+#              'legend.font': 'serif',
+#              'mathtext.default': 'regular', 
+#              'xtick.labelsize': 10, 
+#              'ytick.labelsize': 10} # changes font size in the plot legend
+#
+#    plt.rcParams.update(params)                             # reset the plot parameters
 
     font = {'family' : 'serif',
             'color'  : 'black',

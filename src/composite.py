@@ -2,7 +2,7 @@
 Spectra composite program
 Authors: Sam, Yixian, Aaron
 """
-
+#example: python Run.py 2 "SELECT * FROM Supernovae WHERE Carbon = 'A' AND Phase Between -6 and -4 AND Dm15 Between 0 and 2"
 import matplotlib.pyplot as plt
 import numpy as np
 import glob
@@ -18,6 +18,7 @@ import file_name
 import bootstrap
 import time
 from lmfit import minimize, Parameters
+import scipy.optimize as opt
 
 np.set_printoptions(threshold=np.nan)
 mn.patch()
@@ -208,6 +209,8 @@ def scale_data(SN_Array, scales):
 ##########
 
 def new_scale_func(SN_Array, template):
+    #possibly use scipy.optimize.minimize 
+    #write function that sums all residuals so minimize solves for coeffs
     print "Using fitting function..."
     for SN in SN_Array:
         data = np.array([template.flux, SN.flux])
@@ -228,6 +231,29 @@ def new_scale_func(SN_Array, template):
     plt.show()
     return SN_Array, scales
     
+
+def optimize_scales(SN_Array, template):
+    print "Using fitting function..."
+    for SN in SN_Array:
+        SN.flux = SN.flux*1e14 #values too small otherwise
+    guess = np.ones(len(SN_Array))
+    scales = opt.minimize(sq_residuals, guess, args = (SN_Array, template))
+    print scales
+    
+def sq_residuals(s, SN_Array, comp):
+    all_sums = []
+    for i in range(len(SN_Array)):
+        if SN_Array[i] != comp:
+            SN = SN_Array[i]
+            temp_sum = 0
+            temp_flux = s[i]*SN.flux
+            for x in range(len(SN.flux)):
+                sq_res = (comp.flux[x]-temp_flux[x])*(comp.flux[x]-temp_flux[x])
+                temp_sum += sq_res
+            all_sums.append(temp_sum)
+    
+    tot = np.sum(all_sums)
+    return tot
     
 def residual(comp, data):
     return comp-data
@@ -313,25 +339,27 @@ def average(SN_Array, template, medmean):
             template.vel   = np.median(vels, axis=0)
             template.dm15  = np.median(dm15s, axis=0)
             template.red_array = np.median(reds, axis=0)
+            
         template.ivar = 1/np.sum(ivars, axis=0)
         template.ivar[no_data] = 0
         template.name = "Composite Spectrum"
         return template
 
 def do_things(SN_Array, template, scales, medmean):
-        n_start = len([x for x in scales if x>0])
-        scales   = []
-	scales   = find_scales(SN_Array, template.flux, template.ivar)
-	SN_Array = scale_data(SN_Array, scales)
-        SN_Array, scales = new_scale_func(SN_Array, template)
-	if len(scales) == 0:
-	    n_end = 0
-	    return n_start, n_end, SN_Array, template, scales
-	else:
-	    n_scale  = len([x for x in scales if x>0])
-	    template = average(SN_Array, template, medmean)
-	    n_end    = n_scale
-	    return n_start, n_end, SN_Array, template, scales
+    n_start = len([x for x in scales if x>0])
+    scales   = []
+    scales   = find_scales(SN_Array, template.flux, template.ivar)
+    SN_Array = scale_data(SN_Array, scales)
+    SN_Array, scales = optimize_scales(SN_Array, template)
+#   SN_Array, scales = new_scale_func(SN_Array, template)
+    if len(scales) == 0:
+        n_end = 0
+        return n_start, n_end, SN_Array, template, scales
+    else:
+        n_scale  = len([x for x in scales if x>0])
+        template = average(SN_Array, template, medmean)
+        n_end    = n_scale
+        return n_start, n_end, SN_Array, template, scales
 
 def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
     SN_Array = []
