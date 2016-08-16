@@ -1,0 +1,6 @@
+Useful composites:
+	"SELECT * FROM Supernovae WHERE Phase Between -.5 and .5 AND Dm15 Between 1.13 AND 1.24" 
+	"SELECT * FROM Supernovae WHERE Phase Between -.5 and .5 AND Dm15 Between 1.6 and 1.9"
+
+
+

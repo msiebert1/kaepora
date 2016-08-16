@@ -19,6 +19,7 @@ import bootstrap
 import time
 from lmfit import minimize, Parameters
 import scipy.optimize as opt
+import copy
 
 np.set_printoptions(threshold=np.nan)
 mn.patch()
@@ -115,8 +116,8 @@ def grab(sql_input):
                     
     print "Arrays cleaned"
     return SN_Array
-
-
+    
+    
 #gets as close as possible to matching the compare spectrum wavelength values
 def find_nearest(array,value):
     idx = (np.abs(array-value)).argmin()
@@ -221,13 +222,14 @@ def new_scale_func(SN_Array, template): #obselete
         SN.flux = datas
         plt.plot(SN.wavelength, SN.flux)
     plt.show()
-    return SN_Array, scales
+    return SN_Array, scales       
     
-
+    
 def optimize_scales(SN_Array, template):
-    print "Minimizing Residuals..."
+    print "Minimizing Square Residuals..."
     for SN in SN_Array:
-        SN.flux = SN.flux*1e14 #values too small otherwise
+        SN.flux = SN.flux*1e14 #values too small otherwise?
+    template.flux = template.flux*1e14
     guess = np.ones(len(SN_Array)) # this must be ones so the template is multiplied by 1
     scales = opt.minimize(sq_residuals, guess, args = (SN_Array, template)).x
     print scales
@@ -235,12 +237,12 @@ def optimize_scales(SN_Array, template):
         SN_Array[i].flux = 1e-14*scales[i]*SN_Array[i].flux
         SN_Array[i].ivar /= (scales[i])**2
         plt.plot(SN_Array[i].wavelength, SN_Array[i].flux)
-        
-    plt.plot(template.wavelength, template.flux, '--')
+    template.flux = 1e-14*template.flux
+    plt.plot(template.wavelength, template.flux,'k', linewidth = 4)
     plt.show()
     return SN_Array, scales
         
-    
+        
 def sq_residuals(s, SN_Array, comp):
     all_sums = []
     for i in range(len(SN_Array)):
@@ -248,20 +250,22 @@ def sq_residuals(s, SN_Array, comp):
         SN = SN_Array[i]
         non_zero_data = np.where(SN.flux != 0)
         non_zero_data = np.array(non_zero_data[0])
-        temp_sum = 0
-        temp_flux = s[i]*SN.flux
-        for x in my_range(non_zero_data[0], non_zero_data[-1], 1):
-            sq_res = (comp.flux[x]-temp_flux[x])*(comp.flux[x]-temp_flux[x])
-            temp_sum += sq_res
-        all_sums.append(temp_sum)
+        
+        non_zero_data_comp = np.where(comp.flux != 0)
+        non_zero_data_comp = np.array(non_zero_data_comp[0])
+        
+        if len(set(non_zero_data).intersection(non_zero_data_comp)) != 0:
+            temp_sum = 0
+            pos1 = non_zero_data[0]
+            pos2 = non_zero_data[-1]
+            temp_flux = s[i]*SN.flux
+            res = comp.flux[pos1:pos2] - temp_flux[pos1:pos2]
+            sq_res = res**2
+            temp_sum = np.sum(sq_res)
+            all_sums.append(temp_sum)
     
     tot = np.sum(all_sums)
     return tot
-
-def my_range(start, end, step):
-    while start <= end:
-        yield start
-        start += step
     
 def residual(comp, data):
     return comp-data
@@ -298,6 +302,7 @@ def average(SN_Array, template, medmean):
                 except ValueError:
                     print "This should never happen!"
 
+        
         #Adding masks for every parameter for consistency and zero compensation
         flux_mask = np.zeros(len(fluxes[0,:]))
         ivar_mask = np.zeros(len(fluxes[0,:]))
@@ -319,7 +324,6 @@ def average(SN_Array, template, medmean):
         dm15_ivars = np.array(ivars)
         red_ivars  = np.array(ivars)
         
-        
         #Add in flux/ivar mask
         fluxes = np.append(fluxes, np.array([flux_mask]), axis=0)
         ivars  = np.append(ivars, np.array([ivar_mask]), axis=0)
@@ -336,7 +340,6 @@ def average(SN_Array, template, medmean):
                 np.delete(dm15_ivars, i)
 
         if medmean == 1: 
-            old = template.flux
             template.flux  = np.average(fluxes, weights=ivars, axis=0)
             template.phase_array   = np.average(ages, weights=ivars, axis=0)
             template.vel   = np.average(vels, weights=ivars, axis=0)
@@ -357,18 +360,49 @@ def average(SN_Array, template, medmean):
 def do_things(SN_Array, template, scales, medmean):
     n_start = len([x for x in scales if x>0])
     scales   = []
+    n_end = n_start
 #    scales   = find_scales(SN_Array, template.flux, template.ivar)
 #    SN_Array = scale_data(SN_Array, scales)
     SN_Array, scales = optimize_scales(SN_Array, template)
 #   SN_Array, scales = new_scale_func(SN_Array, template)
-    if len(scales) == 0:
-        n_end = 0
-        return n_start, n_end, SN_Array, template, scales
-    else:
-        n_scale  = len([x for x in scales if x>0])
-        template = average(SN_Array, template, medmean)
-        n_end    = n_scale
-        return n_start, n_end, SN_Array, template, scales
+    template = average(SN_Array, template, medmean)
+    return n_start, n_end, SN_Array, template, scales
+        
+def bootstrapping (SN_Array, trials, scales, og_template):
+    strap_matrix = np.random.random_sample((trials, len(SN_Array)))
+    strap_matrix *= len(SN_Array)-1
+    strap_matrix = np.round(strap_matrix)
+    strap_matrix = strap_matrix.astype(int)
+    
+    boot_arr = []
+    boots = []
+    for i in range(len(strap_matrix)):
+        boot_arr.append([])
+        for j in range(len(strap_matrix[i])):
+            boot_arr[i].append(copy.copy(SN_Array[strap_matrix[i,j]]))
+
+    for p in range(len(boot_arr)):
+        lengths = []
+        for SN in boot_arr[p]:
+            lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
+        boot_temp = [SN for SN in boot_arr[p] if len(SN.flux[np.where(SN.flux!=0)]) == max(lengths)]
+        boot_temp = copy.copy(boot_temp[0])
+    
+        for x in range(3):
+            n_start, n_end, SN_Array, template, scales = do_things(boot_arr[p], boot_temp, scales, 1)
+        boots.append(copy.copy(template))
+    
+    print "scaling boots..."
+    optimize_scales(boots, og_template) 
+    boot_wave = []
+    boot_flux = []
+    for SN in boots:
+        boot_wave.append(SN.wavelength)
+        boot_flux.append(SN.flux)
+        
+    plt.plot(boot_wave, boot_flux)
+    plt.show()
+    
 
 def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
     SN_Array = []
@@ -401,9 +435,7 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
         #finds range of useable data
         good     = np.where(len(np.where(((wavemin <= wmin) & (wavemax >= wmax)) > 100)))
         template = supernova()
-        template = SN_Array[good[0]]
-        template = composite
-        temp_start = composite
+        template = copy.copy(composite)
 
         #Starts our main loop
         #scales data, makes a composite, and splices in non-overlapping data
@@ -411,11 +443,17 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
         n_start = 0
         n_end   = 1
         scales  = []
-        while (n_start != n_end):
+        
+        print "Creating composite..."
+#        while (n_start != n_end):
+        for i in range(3):
             n_start, n_end, SN_Array, template, scales = do_things(SN_Array, template, scales, medmean)
         n_start, n_end, SN_Array, template, scales = do_things(SN_Array, template, scales, medmean)
         print "Done."
 
+        scales  = []
+#        print "Bootstrapping"
+#        bootstrapping(SN_Array, 10, scales, template)
         #This next line creates a unique filename for each run based on the sample set used
         #### file_name.py needs to be adjusted
         #f_name = "../plots/" + file_name.make_name(SN_Array)
