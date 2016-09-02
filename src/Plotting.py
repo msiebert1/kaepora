@@ -51,7 +51,7 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
     print "Begin plotting..."
     # Available Plots:  Relative Flux,Variance, Residuals, Spectra/Bin, Age, Delta, Redshift, Stacked  
     #                   0              1          2            3         4      5     6         7
-    Height =           [6,             2,         2,           2,        2,     2,    2,        0]
+    Height =           [6,             2,         2,           2,        2,     2,    2,        0,      0,      0]
     
     h = []
     
@@ -75,6 +75,8 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
     len_AG = len(Show_Data[:][4])
     len_DE = len(Show_Data[:][5])
     len_RD = len(Show_Data[:][6])
+    len_LC = len(Show_Data[:][7])
+    len_UC = len(Show_Data[:][8])
 
     # Even values are x. Odd are y  (Slightly confusing for the time being)
     RF = []
@@ -84,6 +86,8 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
     DE = []
     RD = []
     VA = []
+    LC = []
+    UC = []
 
     # Fill each array with data that will go in each plot
     for i in range(len_RF):
@@ -107,7 +111,14 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
     for i in range(len_RD):
         rd = Show_Data[:][6][i].T
         RD.append(rd) 
-
+    for i in range(len_LC):
+        lc = Show_Data[:][7][i].T
+        LC.append(lc)
+    for i in range(len_UC):
+        uc = Show_Data[:][8][i].T
+        UC.append(uc)
+    
+    print len(LC)
     """    
     def remove_zero(data):
         delete = []
@@ -180,7 +191,8 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
 # The following function take the x,y,rms, and composite data    
 # to plot the composite spectrum
 #############################################################    
-    def Composite(RF,RS,Names):
+    def Composite(RF,RS,Names, LC, UC):
+
         plt.ylabel('Relative, f$_{\lambda}$', fontdict = font)
         #plt.axis([xmin, xmax, 0, max(RFmax)])
         #plt.minorticks_on()
@@ -190,6 +202,10 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
             if k % 2 == 0:
                 good = np.where(VA[k+1] != 0)
                 plt.plot(RF[k][good], RF[k+1][good],label = Names[k] )
+                if k == 0:
+                    plt.fill_between(LC[k][good], LC[k+1][good], UC[k+1][good], color = 'c', alpha = 0.5)
+                else:
+                    plt.fill_between(LC[k][good], LC[k+1][good], UC[k+1][good], color = 'g', alpha = 0.5)
                 #plt.plot(RF[k], RF[k+1], color = random.choice(['g', 'r', 'c', 'm', 'y', 'k']), label = Names[k] )
                 #plt.fill_between(RF[k], RF[k+1] + RS[k+1], RF[k+1] - RS[k+1], facecolor = random.choice(['g', 'r', 'c', 'm', 'y', 'k']),alpha=0.5)                
                 #plt.plot(RF[k], RF[k+1] + RS[1], label = "+ RMS")
@@ -244,18 +260,22 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
 #############################################################
 # The following function uses the x and rms to plot the RMS 
 #############################################################
-    def Residual(RS):
+    def Residual(RS,LC, UC):
         Resid = plt.subplot(gs[p], sharex = Rel_flux)
         plt.ylabel('Residuals', fontdict = font)
         #plt.yticks(np.arange(0, 0.9, 0.2))
-        
         for k in range(len_RS):
             if k % 2 == 0:
                 good = np.where(VA[k+1] != 0)
+                comp = np.concatenate(RF[1][good])
 		#There's something wrong with the dimensionality of x and y here
 		#I added the extra [0]s because the arrays were 3 dimensional somehow, so now they're both 1-D
 		#But they're still full of 'nan' so the plot gets messed up. But it runs through.
                 plt.plot(RF[k][good], RF[k+1][good]-RF[1][good], label = "RMS of residuals", ls = '-')
+                if k ==0:
+                    plt.fill_between(LC[k][good], LC[k+1][good] - comp, UC[k+1][good] - comp, color = 'c', alpha = 0.5)
+                else:
+                    plt.fill_between(LC[k][good], LC[k+1][good] - comp, UC[k+1][good] - comp, color = 'g', alpha = 0.5)
         #plt.plot(RS[0], RS[1], label = "RMS of residuals", ls = '-')
         RSxticklabels = Resid.get_xticklabels()
         
@@ -379,10 +399,15 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
         plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
         plt.ylabel('Relative, f$_{\lambda}$', fontdict = font)
         plt.title('Stacked Figures', fontdict = font)  
-        for m in range(len_RF-1):
+        for m in range(len_RF):
             if m % 2 == 0:
-                plt.plot(RF[m], RF[m+1]+(m+1)*(1+buff))
-                plt.annotate(str(Names[m]), xy = (max(RF[m]), max(RF[m+1]+(m+1)*(1+buff))), xytext = (-10, 0), textcoords = 'offset points', fontsize = 8, family  = 'serif', weight = 'bold', ha = 'right')
+                good = np.where(VA[m+1] != 0)
+                plt.plot(RF[m][good], RF[m+1][good] + (m+1)*buff)
+                if m == 0:
+                    plt.fill_between(LC[m][good], LC[m+1][good] + (m+1)*buff, UC[m+1][good] + (m+1)*buff, color = 'c', alpha = 0.5)
+                else:
+                    plt.fill_between(LC[m][good], LC[m+1][good] + (m+1)*buff, UC[m+1][good] + (m+1)*buff, color = 'g', alpha = 0.5)
+#                plt.annotate(str(Names[m]), xy = (max(RF[m]), max(RF[m+1]+(m+1)*(1+buff))), xytext = (-10, 0), textcoords = 'offset points', fontsize = 8, family  = 'serif', weight = 'bold', ha = 'right')
                 #plt.annotate(str(Names[m+1]), xy = (max(RF[0]), max(RF[1][m+1])+(m+1)*(1+buff)), xytext = (-10, 0), textcoords = 'offset points', fontsize = 8, family  = 'serif', weight = 'bold', ha = 'right')
         #plt.xlim(xmin, xmax) 
         plt.minorticks_on()
@@ -449,6 +474,9 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
                     #print RF[j][i]
                     RFtrunc.append(RF[j][i])
             RF[j] = Scaling(RF[j], median(RFtrunc))
+            LC[j] = Scaling(LC[j], median(RFtrunc))
+            UC[j] = Scaling(UC[j], median(RFtrunc))
+    
     
     #Not implemented until it can be fully tested
     
@@ -538,13 +566,13 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
 ############################################################# 
     
     if 0 in Plots: # will always plot a composite spectrum if any 1-5 are selected   
-        Composite(RF,RS,Names) 
+        Composite(RF,RS,Names, LC, UC) 
         p = p+1
     if 1 in Plots:
         Variance(VA)
         p = p+1
     if 2 in Plots:
-        Residual(RS) 
+        Residual(RS, LC, UC) 
         p = p+1
     if 3 in Plots:  
         SpecBin(SB)  

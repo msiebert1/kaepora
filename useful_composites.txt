@@ -1,6 +1,8 @@
 Useful composites:
-	"SELECT * FROM Supernovae WHERE Phase Between -.5 and .5 AND Dm15 Between 1.13 AND 1.24" 
-	"SELECT * FROM Supernovae WHERE Phase Between -.5 and .5 AND Dm15 Between 1.6 and 1.9"
+	"SELECT * FROM Supernovae WHERE Phase Between -.5 and .5 AND Dm15 Between 1.13 AND 1.24" python 
+		"SELECT * FROM Supernovae WHERE Phase Between -.5 and .5 AND Dm15 Between 1.6 and 1.9"
+	"SELECT * FROM Supernovae WHERE Carbon = 'A' AND Phase Between -1 and 4 AND Dm15 Between 0 and 1.3"
+  		"SELECT * FROM Supernovae WHERE Carbon = 'A' AND Phase Between -6 and -4 AND Dm15 Between 0 and 1.3"
 
 
 

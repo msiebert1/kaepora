@@ -167,6 +167,25 @@ def optimize_scales(SN_Array, template):
         
     return SN_Array, scales
     
+def optimize_scales_old(SN_Array, template):
+    """Scales each unique supernova in SN_Array by minimizing the square residuals
+       between the supernova flux and the template flux. Only works for bootstrap 
+       arrays if the array contains copies of each supernova object. Returns 
+       scaled SN_Array and the scales that were used.
+    """
+    scales = []
+    guess = 1.0 
+    
+    for SN in SN_Array:
+        s = opt.minimize(sq_residuals, guess, args = (SN, template)).x
+        scales.append(s)
+        
+    for i in range(len(SN_Array)):
+        SN_Array[i].flux = scales[i]*SN_Array[i].flux
+        SN_Array[i].ivar /= (scales[i])**2
+        
+    return SN_Array, scales
+    
     
 def sq_residuals(s,SN,comp):
     """Calculates the sum of the square residuals between two supernova flux 
@@ -278,7 +297,7 @@ def mask(SN_Array, boot):
             dm15s, flux_mask, ivar_mask, dm15_mask, red_mask)
                 
 
-def average(SN_Array, template, medmean, boot, fluxes, ivars, dm15_ivars, red_ivars, 
+def average_new(SN_Array, template, medmean, boot, fluxes, ivars, dm15_ivars, red_ivars, 
                 reds, phases, ages, vels, dm15s, flux_mask, ivar_mask, dm15_mask, red_mask):
     """Modifies the template supernova to be the inverse variance weighted average
        of the scaled data. Returns the new template supernova. 
@@ -305,6 +324,134 @@ def average(SN_Array, template, medmean, boot, fluxes, ivars, dm15_ivars, red_iv
     template.name = "Composite Spectrum"
     return template
     
+#averages with weights of the inverse variances in the spectra
+def average(SN_Array, template, medmean):
+    """Modifies the template supernova to be the inverse variance weighted average
+       of the scaled data. Returns the new template supernova. 
+    """
+    #create 2D arrays of ell available data
+    fluxes = []
+    ivars  = []
+    reds   = []
+    phases = []
+    ages   = []
+    vels   = []
+    dm15s  = []
+    for SN in SN_Array:
+        if len(fluxes) == 0:
+            fluxes = np.array([SN.flux])
+            ivars  = np.array([SN.ivar])
+            reds   = np.array([SN.red_array])
+            phases = np.array([SN.phase])
+            ages   = np.array([SN.phase_array])
+            vels   = np.array([SN.vel])
+            dm15s  = np.array([SN.dm15_array])
+        else:
+            try:
+                fluxes = np.append(fluxes, np.array([SN.flux]), axis=0)
+                ivars  = np.append(ivars, np.array([SN.ivar]), axis=0)
+                reds   = np.append(reds, np.array([SN.red_array]), axis = 0)
+                phases = np.append(phases, np.array([SN.phase]), axis = 0)
+                ages   = np.append(ages, np.array([SN.phase_array]), axis = 0)
+                vels   = np.append(vels, np.array([SN.vel]), axis = 0)
+                dm15s  = np.append(dm15s, np.array([SN.dm15_array]), axis = 0)
+            except ValueError:
+                print "This should never happen!"
+
+    #Adding masks for every parameter for consistency and zero compensation
+    flux_mask = np.zeros(len(fluxes[0,:]))
+    ivar_mask = np.zeros(len(fluxes[0,:]))
+    dm15_mask = np.zeros(len(dm15s[0,:]))
+    red_mask  = np.zeros(len(reds[0,:]))
+    
+    have_data = np.where(np.sum(ivars, axis = 0)>0)
+    no_data   = np.where(np.sum(ivars, axis = 0)==0)
+    no_dm15   = np.where(np.sum(dm15s, axis = 0)==0)
+    no_reds   = np.where(np.sum(reds, axis = 0)==0)
+    
+    ivar_mask[no_data] = 1
+    dm15_mask[no_dm15] = 1
+    
+    #Right now all of our spectra have redshift data, so a mask is unnecessary
+    #One day that might change?
+    red_mask[:]  = 1
+    
+    dm15_ivars = np.array(ivars)
+    red_ivars  = np.array(ivars)
+    
+    #Add in flux/ivar mask
+    fluxes = np.append(fluxes, np.array([flux_mask]), axis=0)
+    ivars  = np.append(ivars, np.array([ivar_mask]), axis=0)
+    reds   = np.append(reds, np.array([flux_mask]), axis=0)
+    ages   = np.append(ages, np.array([flux_mask]), axis=0)
+    vels   = np.append(vels, np.array([flux_mask]), axis=0)
+    dm15s  = np.append(dm15s, np.array([dm15_mask]), axis=0)
+    dm15_ivars = np.append(dm15_ivars, np.array([dm15_mask]), axis=0)
+    red_ivars  = np.append(red_ivars, np.array([red_mask]), axis=0)
+    
+  
+    for i in range(len(dm15_ivars)):
+        for j in range(len(dm15_ivars[i])):
+            if dm15_ivars[i,j] == 0.0:
+                dm15_ivars[i,j] = 1.0
+                
+#        i_frac = dm15_ivars*fluxes
+#        dm15_ivars = i_frac/dm15s
+                
+#        for i in range(len(dm15s)):
+#            if np.all(dm15s[i]) == 0:
+#                np.delete(dm15s, i)
+#                np.delete(dm15_ivars, i)
+    
+    
+    if medmean == 1: 
+        template.flux  = np.average(fluxes, weights=ivars, axis=0)
+        template.phase_array   = np.average(ages, weights=ivars, axis=0)
+        template.vel   = np.average(vels, weights=ivars, axis=0)
+        template.dm15  = np.average(dm15s, weights=dm15_ivars, axis=0)
+        template.red_array = np.average(np.array(reds), weights = red_ivars, axis=0)
+    if medmean == 2:
+        template.flux  = np.median(fluxes, axis=0)
+        template.phase_array   = np.median(ages, axis=0)
+        template.vel   = np.median(vels, axis=0)
+        template.dm15  = np.median(dm15s, axis=0)
+        template.red_array = np.median(reds, axis=0)
+    
+    #finds and stores the variance data of the template
+    template.ivar = 1/np.sum(ivars, axis=0)
+    template.ivar[no_data] = 0
+    template.name = "Composite Spectrum"
+    return template
+
+def boot_mask(SN_Array):
+    """Do not need to mask other parameters when bootstrapping"""
+    fluxes = []
+    ivars  = []
+    for SN in SN_Array:
+        if len(fluxes) == 0:
+            fluxes = np.array([SN.flux])
+            ivars  = np.array([SN.ivar])
+        else:
+            try:
+                fluxes = np.append(fluxes, np.array([SN.flux]), axis=0)
+                ivars  = np.append(ivars, np.array([SN.ivar]), axis=0)
+            except ValueError:
+                print "This should never happen!"
+
+    #Adding masks for every parameter for consistency and zero compensation
+    flux_mask = np.zeros(len(fluxes[0,:]))
+    ivar_mask = np.zeros(len(fluxes[0,:]))
+    no_data   = np.where(np.sum(ivars, axis = 0)==0)
+    ivar_mask[no_data] = 1
+    
+    return fluxes, ivars, flux_mask, ivar_mask
+    
+def boot_avg(SN_Array, template, fluxes, ivars, flux_mask, ivar_mask):
+    #Add in flux/ivar mask
+    fluxes = np.append(fluxes, np.array([flux_mask]), axis=0)
+    ivars  = np.append(ivars, np.array([ivar_mask]), axis=0)
+    template.flux  = np.average(fluxes, weights=ivars, axis=0)
+    return template
 
 def create_composite(SN_Array, template, scales, medmean, boot, fluxes, ivars, dm15_ivars, red_ivars, 
                   reds, phases, ages, vels, dm15s, flux_mask, ivar_mask, dm15_mask, red_mask):  
@@ -313,11 +460,19 @@ def create_composite(SN_Array, template, scales, medmean, boot, fluxes, ivars, d
        the template, and the scales used.
     """
     SN_Array, scales = optimize_scales(SN_Array, template)
-    template = average(SN_Array, template, medmean, boot, fluxes, ivars, dm15_ivars, red_ivars, 
+    template = average_new(SN_Array, template, medmean, boot, fluxes, ivars, dm15_ivars, red_ivars, 
                            reds, phases, ages, vels, dm15s, flux_mask, ivar_mask, dm15_mask, red_mask)
         
     return SN_Array, template, scales
-
+    
+def do_things(SN_Array, template, scales, medmean, boot, fluxes, ivars, flux_mask, ivar_mask):
+    SN_Array, scales = optimize_scales(SN_Array, template)
+    if boot:
+        template = boot_avg(SN_Array, template, fluxes, ivars, flux_mask, ivar_mask)
+    else:
+        template = average(SN_Array, template, medmean)
+        
+    return SN_Array, template, scales
         
 def bootstrapping (SN_Array, samples, scales, og_template, iters):
     """Creates a matrix of random sets of supernovae from the original sample 
@@ -337,7 +492,12 @@ def bootstrapping (SN_Array, samples, scales, og_template, iters):
     cpy_array = []
     for SN in SN_Array:
         cpy_array.append(copy.copy(SN))
+    
         
+#    for i in range(len(strap_matrix)):
+#        boot_arr.append([])
+#        for j in range(len(strap_matrix[i])):
+#            boot_arr[i].append(copy.copy(SN_Array[strap_matrix[i,j]]))
     
     for i in range(len(strap_matrix)):
         boot_arr.append([])
@@ -352,10 +512,12 @@ def bootstrapping (SN_Array, samples, scales, og_template, iters):
         boot_temp = [SN for SN in boot_arr[p] if len(SN.flux[np.where(SN.flux!=0)]) == max(lengths)]
         boot_temp = copy.copy(boot_temp[0])
         
+#        fluxes, ivars, flux_mask, ivar_mask = boot_mask(boot_arr[p])
         (fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, dm15s, 
         flux_mask, ivar_mask, dm15_mask, red_mask) = mask(boot_arr[p], boot)
         
         for x in range(iters):
+#            SN_Array, template, scales = do_things(boot_arr[p], boot_temp, scales, 1, boot, fluxes, ivars, flux_mask, ivar_mask)
             SN_Array, template, scales = create_composite(boot_arr[p], boot_temp, scales, 1, 
                                                        boot, fluxes, ivars, dm15_ivars, 
                                                        red_ivars, reds, phases, ages, 
@@ -454,6 +616,7 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
     for i in range(iters_comp):
         (fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, dm15s, 
          flux_mask, ivar_mask, dm15_mask, red_mask) = mask(SN_Array, boot)
+#            SN_Array, template, scales = do_things(SN_Array, template, scales, medmean, boot, fluxes, ivars, flux_mask, ivar_mask)
         SN_Array, template, scales = create_composite(SN_Array, template, scales, 
                                                    medmean, boot,fluxes, ivars, 
                                                    dm15_ivars, red_ivars, reds, 

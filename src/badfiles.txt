@@ -1,3 +1,6 @@
-                           sn1998bn-19980522-b.flm
-                           sn1998bp-19980522-b.flm
-                  SN08R_080201feb08_r01_DUP_BC.dat
+Bad Spectra
+
+sn2004ef-20040915.30-fast.flm
+sn1998bn-19980522-b.flm
+sn1998bp-19980522-b.flm
+SN08R_080201feb08_r01_DUP_BC.dat

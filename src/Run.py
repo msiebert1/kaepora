@@ -49,7 +49,9 @@ for n in range(queries):
     d["dm15s{0}".format(n+1)]        = np.array([d["composite{0}".format(n+1)]["Dm_15"]])
     d["vels{0}".format(n+1)]         = np.array([d["composite{0}".format(n+1)]["Velocity"]])
     d["reds{0}".format(n+1)]         = np.array([d["composite{0}".format(n+1)]["Redshift"]])
-    
+    d["lowconf{0}".format(n+1)]      = np.array([d["composite{0}".format(n+1)]["Lower Confidence"]])
+    d["upconf{0}".format(n+1)]       = np.array([d["composite{0}".format(n+1)]["Upper Confidence"]])
+    d["specbin{0}".format(n+1)]      = np.array([d["composite{0}".format(n+1)]["Spectra Per Bin"]])    
 
 #This chunk will create an array that's the right length for however many queries you used.
 plot_array     = []
@@ -60,6 +62,10 @@ age_array      = []
 dm15_array     = []
 vel_array      = []
 red_array      = []
+low_conf       = []
+up_conf        = []
+spec_bin       = []
+
 for n in range(queries):
     plot_array.append(d["wavelengths{0}".format(n+1)])
     plot_array.append(d["fluxes{0}".format(n+1)])
@@ -76,6 +82,12 @@ for n in range(queries):
     vel_array.append(d["vels{0}".format(n+1)][0])
     red_array.append(d["wavelengths{0}".format(n+1)][0])
     red_array.append(d["reds{0}".format(n+1)][0])
+    low_conf.append(d["wavelengths{0}".format(n+1)][0])
+    low_conf.append(d["lowconf{0}".format(n+1)][0])
+    up_conf.append(d["wavelengths{0}".format(n+1)][0])
+    up_conf.append(d["upconf{0}".format(n+1)][0])
+    spec_bin.append(d["wavelengths{0}".format(n+1)][0])
+    spec_bin.append(d["specbin{0}".format(n+1)][0])
     name_array.append("composite{0}".format(n+1))
     name_array.append(" ")
 
@@ -91,14 +103,17 @@ for n in range(queries):
 Relative_Flux   = plot_array #plots all given composites
 Variance        = variance_array
 Residuals       = residual_array
-Spectra_Bin     = [] #This could take some work, I'll get to it
+Spectra_Bin     = spec_bin #This could take some work, I'll get to it
 Age             = age_array 
 Delta           = dm15_array
 Redshift        = red_array
+Low_Confidence  = low_conf
+Up_Confidence   = up_conf
 ## If you want custom names, uncomment and use line 83, for consistency.
 ##Otherwise it'll default to just labeling composites in order.
 Names           = name_array
-Show_Data       = [Relative_Flux,Variance,Residuals,Spectra_Bin,Age,Delta,Redshift]
+Show_Data       = [Relative_Flux,Variance,Residuals,Spectra_Bin,Age,
+                   Delta,Redshift,Low_Confidence,Up_Confidence]
 
 ## Available Plots:  Relative Flux, Variances, Residuals, Spectra/Bin, Age, Delta, Redshift
 ##                   0              1          2          3            4    5      6
@@ -106,7 +121,7 @@ Show_Data       = [Relative_Flux,Variance,Residuals,Spectra_Bin,Age,Delta,Redshi
 # Choose the plot range and plot type!
 xmin         = 3000 
 xmax         = 10100
-Plots        = [0,1,2,4,5,6,7] 
+Plots        = [0,1,2,3,4,5,6,7] 
 
 #################
 #Now the file name of the plot is labeled by time of creation, but you can personalize it if you want.
