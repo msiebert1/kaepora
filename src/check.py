@@ -86,9 +86,9 @@ END		index ended at
 ######################
 def tolists(filename,index,comment):
 	if source == 'cfa':
-		badfile.append(filenames[i].split('/')[5])
+		badfile.append(filenames[i].split('\\')[2])
 	else:
-		badfile.append(filenames[i].split('/')[4])
+		badfile.append(filenames[i].split('\\')[1])
 
 	badcomment.append(comment)
 	badindex.append(i)
@@ -118,7 +118,6 @@ if source == 'csp' or source == 'other':
 
 #read in all filenames to extract data from 
 filenames = glob.glob(path)
-
 ###checks that all the files were correctly read in
 ##for files in filenames:
 ##	print files
@@ -134,9 +133,9 @@ while (True):
 			print "PRESS [ENTER] TO SHOW NEXT",step,"(q to quit)"
 			for j in range(len(filenames)):
 				if source == 'cfa':
-					print j,filenames[j].split('/')[5]
+					print j,filenames[j].split("\\")[2]
 				else:
-					print j,filenames[j].split('/')[4]
+					print j,filenames[j].split("\\")[1]
 				if (j % step == 0):
 					flag = raw_input();
 					if flag == 'q':
@@ -236,9 +235,9 @@ for i in range(len(filenames)):
             data.append((np.loadtxt(filenames[i])))
 			#keeps track of files looking at (due to index offset)
             if source == 'cfa':
-                files.append(filenames[i].split('/')[5])
+                files.append(filenames[i].split('\\')[2])
             else:
-			files.append(filenames[i].split('/')[4])
+                files.append(filenames[i].split('\\')[1])
             print files
 		
 			#separate wave/flux/error for easier manipulation

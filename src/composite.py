@@ -15,7 +15,6 @@ import msgpack_numpy as mn
 from scipy.optimize import leastsq
 from scipy.special import erf
 import file_name
-import bootstrap
 import time
 from lmfit import minimize, Parameters
 import scipy.optimize as opt
@@ -86,7 +85,6 @@ def grab(sql_input):
     #Within the interpolated spectra there are a lot of 'NaN' values
     #Now they become zeros so things work right
     for SN in SN_Array:
-        
         SN.phase_array = np.array(SN.flux)
         SN.dm15_array  = np.array(SN.flux)
         SN.red_array   = np.array(SN.flux)
@@ -100,7 +98,6 @@ def grab(sql_input):
                 SN.dm15_array[i]   = 0
                 SN.red_array[i]    = 0
                 SN.vel[i]          = 0
-            
             #Set nonzero values to correct ones
             if SN.phase_array[i] != 0:
                 if SN.phase != None:
@@ -122,7 +119,7 @@ def grab(sql_input):
                     SN.vel[i] = SN.velocity
                 else:
                     SN.vel[i] = 0
-        
+#        print SN.ivar
         non_zero_data = np.where(SN.flux != 0)
         non_zero_data = np.array(non_zero_data[0])
         SN.x1 = non_zero_data[0]
@@ -141,24 +138,26 @@ def spectra_per_bin(SN_Array):
     for i in range(len(SN_Array[0].flux)):
         count = 0
         for SN in SN_Array:
-            if SN.flux[i] != 0:
+            if SN.flux[i] != 0 and SN.ivar[i] != 0:   
                 count += 1
         spec_per_bin.append(count)
     
     return spec_per_bin
             
             
-def optimize_scales(SN_Array, template):
+def optimize_scales(SN_Array, template, initial):
     """Scales each unique supernova in SN_Array by minimizing the square residuals
        between the supernova flux and the template flux. This also works for bootstrap
        arrays (can contain repeated spectra) because the objects in SN_Array are not 
        copies. Returns scaled SN_Array and the scales that were used.
     """
     scales = []
-    guess = 1.0 
     unique_arr = list(set(SN_Array))
+    guess = 1.0
     for uSN in unique_arr:
-        u = opt.minimize(sq_residuals, guess, args = (uSN, template)).x
+#        guess = template.flux[2000]/uSN.flux[2000]
+        u = opt.minimize(sq_residuals, guess, args = (uSN, template, initial), 
+                         method = 'Nelder-Mead').x
         scales.append(u)
         
     for i in range(len(unique_arr)):
@@ -168,10 +167,11 @@ def optimize_scales(SN_Array, template):
     return SN_Array, scales
     
     
-def sq_residuals(s,SN,comp):
+def sq_residuals(s,SN,comp, initial):
     """Calculates the sum of the square residuals between two supernova flux 
        arrays usinig a given scale s. Returns the sum.
     """
+#    print s
     if SN.x1 <= comp.x1 and SN.x2 >= comp.x2:
         pos1 = comp.x1
         pos2 = comp.x2
@@ -192,7 +192,12 @@ def sq_residuals(s,SN,comp):
     temp_flux = s*SN.flux
     res = temp_flux[pos1:pos2] - comp.flux[pos1:pos2]
     sq_res = res*res
-    return np.sum(sq_res)
+    if initial:
+        return np.sum(sq_res)
+    else:
+        temp_ivar = SN.ivar/(s*s)
+        w_res = temp_ivar[pos1:pos2]*sq_res
+        return np.sum(w_res)
     
 def mask(SN_Array, boot):
     """Creates data structures to contain relevant data for the task needed 
@@ -248,7 +253,7 @@ def mask(SN_Array, boot):
         no_reds   = np.where(np.sum(reds, axis = 0)==0)
         dm15_mask[no_dm15] = 1
     
-    ivar_mask[no_data] = 1
+    ivar_mask[no_data] = 10e6
     
     #Right now all of our spectra have redshift data, so a mask is unnecessary
     #One day that might change
@@ -283,6 +288,9 @@ def average(SN_Array, template, medmean, boot, fluxes, ivars, dm15_ivars, red_iv
     """Modifies the template supernova to be the inverse variance weighted average
        of the scaled data. Returns the new template supernova. 
     """
+    for i in range(len(SN_Array)):
+        fluxes[i] = SN_Array[i].flux
+        ivars[i] = SN_Array[i].ivar            
     if medmean == 1: 
         template.flux  = np.average(fluxes, weights=ivars, axis=0)
         if not boot:
@@ -300,23 +308,10 @@ def average(SN_Array, template, medmean, boot, fluxes, ivars, dm15_ivars, red_iv
     
     #finds and stores the variance data of the template
     no_data   = np.where(np.sum(ivars, axis = 0)==0)
-    template.ivar = 1/np.sum(ivars, axis=0)
+    template.ivar = 1/np.sum(ivars, axis=0) #change to variance
     template.ivar[no_data] = 0
     template.name = "Composite Spectrum"
     return template
-    
-
-def create_composite(SN_Array, template, scales, medmean, boot, fluxes, ivars, dm15_ivars, red_ivars, 
-                  reds, phases, ages, vels, dm15s, flux_mask, ivar_mask, dm15_mask, red_mask):  
-    """Scales the current SN_Array to the current template creates a new 
-       template from the weighted average of the scaled array. Returns the SN_Array, 
-       the template, and the scales used.
-    """
-    SN_Array, scales = optimize_scales(SN_Array, template)
-    template = average(SN_Array, template, medmean, boot, fluxes, ivars, dm15_ivars, red_ivars, 
-                           reds, phases, ages, vels, dm15s, flux_mask, ivar_mask, dm15_mask, red_mask)
-        
-    return SN_Array, template, scales
 
         
 def bootstrapping (SN_Array, samples, scales, og_template, iters):
@@ -346,6 +341,7 @@ def bootstrapping (SN_Array, samples, scales, og_template, iters):
             
 
     for p in range(len(boot_arr)):
+        print p
         lengths = []
         for SN in boot_arr[p]:
             lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
@@ -353,23 +349,16 @@ def bootstrapping (SN_Array, samples, scales, og_template, iters):
         boot_temp = copy.copy(boot_temp[0])
         
         (fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, dm15s, 
-        flux_mask, ivar_mask, dm15_mask, red_mask) = mask(boot_arr[p], boot)
-        
+         flux_mask, ivar_mask, dm15_mask, red_mask) = mask(boot_arr[p], boot)
         for x in range(iters):
-            SN_Array, template, scales = create_composite(boot_arr[p], boot_temp, scales, 1, 
-                                                       boot, fluxes, ivars, dm15_ivars, 
-                                                       red_ivars, reds, phases, ages, 
-                                                       vels, dm15s, flux_mask, ivar_mask, 
-                                                       dm15_mask, red_mask)
+            SN_Array, scales = optimize_scales(boot_arr[p], boot_temp, False)
+            template = average(boot_arr[p], boot_temp, 1, boot, fluxes, ivars, dm15_ivars, red_ivars, 
+                               reds, phases, ages, vels, dm15s, flux_mask, ivar_mask, dm15_mask, red_mask)
         boots.append(copy.copy(template))
-        
-        for i in range(len(SN_Array)):
-            SN_Array[i].flux = cpy_array[i].flux
-            SN_Array[i].ivar = cpy_array[i].ivar
 
     
     print "scaling boots..."
-    optimize_scales(boots, og_template)
+    optimize_scales(boots, og_template, False)
     print "plotting..."
     for SN in boots:
         plt.plot(SN.wavelength, SN.flux, 'g')
@@ -381,15 +370,25 @@ def bootstrapping (SN_Array, samples, scales, og_template, iters):
     percentile = erf(1/np.sqrt(2.))
     low_pc = 0.5 - percentile*0.5
     up_pc = 0.5 + percentile*0.5
-    low_ind = np.round(samples * low_pc).astype(int)
-    up_ind = np.round(samples * up_pc).astype(int)
 
     for SN in boots:
+#        temp = SN.flux - og_template.flux
         resid.append(SN.flux - og_template.flux)
+#        non_olap = np.where(og_template.flux + temp == 0.0)
+#        temp = np.delete(temp, non_olap)
+#        resid.append(temp)
         
     resid_trans = np.transpose(resid)
     resid_sort = np.sort(resid_trans)
     arr = []
+    new_resid = []
+    for i in range(len(resid_sort)):
+        non_olap = []
+        for j in range (len(resid_sort[i])):
+            if resid_sort[i][j] + og_template.flux[i] == 0.0 and og_template.flux[i] != 0.0:
+                non_olap.append(j)
+        new_resid.append(np.delete(resid_sort[i],non_olap))
+                
     for elem in resid_sort:
         for i in range (len(elem)):
             arr.append(elem[i])
@@ -399,9 +398,18 @@ def bootstrapping (SN_Array, samples, scales, og_template, iters):
     
     low_arr = []
     up_arr = []
-    for i in range(len(resid_sort)):
-        low_arr.append(og_template.flux[i] + resid_sort[i][low_ind])
-        up_arr.append(og_template.flux[i] + resid_sort[i][up_ind])
+    for i in range(len(new_resid)):
+        low_ind = np.round((len(new_resid[i])-1) * low_pc).astype(int)
+        up_ind = np.round((len(new_resid[i])-1) * up_pc).astype(int)
+        low_arr.append(og_template.flux[i] + new_resid[i][low_ind])
+        up_arr.append(og_template.flux[i] + new_resid[i][up_ind])
+        
+#    for i in range(len(resid_sort)):
+#        print len(resid_sort[i])
+#        low_ind = np.round((len(resid_sort[i])-1) * low_pc).astype(int)
+#        up_ind = np.round((len(resid_sort[i])-1) * up_pc).astype(int)
+#        low_arr.append(og_template.flux[i] + resid_sort[i][low_ind])
+#        up_arr.append(og_template.flux[i] + resid_sort[i][up_ind])
     
     plt.plot(og_template.wavelength, og_template.flux, 'k', linewidth = 4)
     plt.fill_between(og_template.wavelength, low_arr, up_arr, color = 'green')
@@ -409,7 +417,18 @@ def bootstrapping (SN_Array, samples, scales, og_template, iters):
     
     return low_arr, up_arr        
     
-
+def is_bad_data(SN, bad_files, reddened_spectra):
+    for el in bad_files:
+        if SN.filename == el:
+            print 'bad file removed'
+            return True
+    for el in reddened_spectra:
+        if SN.filename == el:
+            print 'reddened spectrum removed'
+            return True
+    return False
+    
+    
 def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
     """Main function. Finds supernovae that agree with user query, prompts user 
        on whether to bootstrap or just create a composite, then does so and stores 
@@ -423,18 +442,61 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
 
     #finds the longest SN we have for our initial template
     lengths = []
+    bad_files =        ['sn2004ef-20040915.30-fast.flm', 'sn1994T-19940611.21-fast.flm',
+                        'sn2006cj-20060523.33-fast.flm', 'sn1996ab-19960522.37-fast.flm', 
+                        'sn1997bp-19970411.30-fast.flm'] 
+                        #sn1996ab-19960522.37-fast.flm  has large negative values
+                        #sn2004ef-20040915.30-fast.flm variance in database are all nan
+                        #sn2006cj-20060523.33-fast.flm variance in database are all nan
+                        #sn1997bp-19970411.30-fast.flm whole spectrum clearly shifted bluer
+                        #sn2007af-20070314.44-fast.flm has very low variance which strongly biases results
+                        #sn2001da-20010715.47-mmt.flm has a large wavelength range
+    reddened_spectra = ['sn2003cg-20030331.21-fast.flm', 'sn2002cd-20020419.48-fast.flm',
+                        'sn1996ai-19960621.23-fast.flm', 'sn1997dt-19971204.11-fast.flm',
+                        'sn2006br-20060427.33-fast.flm', 'sn2003W-20030209.35-fast.flm',
+                        'sn2004gs-20041216.49-fast.flm', 'sn2002fb-20020912.44-fast.flm',
+                        'sn2005bo-20050418.21-fast.flm', 'sn1998de-19980801.41-fast.flm',
+                        'sn1998bp-19980503.45-fast.flm', 'sn2005ke-20051125.30-fast.flm',
+                        'sn2006cm-20060529.46-fast.flm', 'sn1997bp-19970409.29-fast.flm',
+                        'sn2000cp-20000624.34-fast.flm', 'sn2005A-20050108.13-fast.flm',
+                        'sn1995E-19950226.27-fast.flm',  'sn1999cl-19990612.17-fast.flm',
+                        'sn2003cg-20030330.23-fast.flm', 'sn2006gj-20060920.43-fast.flm',
+                        'sn2007ax-20070327.26-fast.flm', 'sn2006bz-20060506.16-fast.flm',
+                        'sn2005A-20050110.11-ldss2.flm', 'sn1995E-19950228.23-fast.flm',
+                        'sn1999cl-19990614.18-fast.flm', 'sn2006X-20060221.40-fast.flm',
+                        'sn1999gd-19991208.52-fast.flm', 'sn2003cg-20030401.22-fast.flm',
+                        'sn1996ai-19960620.15-mmt.flm']
+    
+    good_SN_Array = [SN for SN in SN_Array if not is_bad_data(SN, bad_files, reddened_spectra)]
+    SN_Array = good_SN_Array
+    
     for SN in SN_Array:
+#        SN.flux = SN.flux*1e14
+#        SN.ivar = SN.ivar/(1e14*1e14)
         print SN.name, SN.filename
-        SN.flux = SN.flux*1e14
-        SN.ivar /= (1e14)**2
         lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
+
     temp = [SN for SN in SN_Array if len(SN.flux[np.where(SN.flux!=0)]) == max(lengths)]
     try:
         composite = temp[0]
     except IndexError:
         print "No spectra found"
         exit()
-    
+                
+    for i in range (len(SN_Array)):
+        for j in range(len(SN.flux)):
+            
+#            SN_Array[i].ivar[j] = np.median(SN_Array[i].ivar[SN_Array[i].x1:SN_Array[i].x2])
+            if j > SN_Array[i].x1 and j < SN_Array[i].x2:
+                if j < SN_Array[i].x1 + 5:
+                    SN_Array[i].ivar[j] = np.median(SN_Array[i].ivar[j:j+10])
+                if j > SN_Array[i].x2 + 5:
+                    SN_Array[i].ivar[j] = np.median(SN_Array[i].ivar[j-10:j])
+                else:
+                    SN_Array[i].ivar[j] = np.median(SN_Array[i].ivar[j-5:j+5])
+            else:
+                SN_Array[i].ivar[j] = 0.0
+                
     spec_bin = spectra_per_bin(SN_Array)
 
     #finds range of useable data
@@ -444,22 +506,29 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
     #creates main composite
     i = 0
     scales  = []
-    iters = 10
-    iters_comp = 10
+    iters = 3
+    iters_comp = 3
     boot = False
     
+    cpy_array = []
+    for SN in SN_Array:
+        cpy_array.append(copy.copy(SN))
+    
+    for i in range(len(SN_Array)):
+        plt.plot(SN_Array[i].wavelength, SN_Array[i].flux)
+    plt.plot(template.wavelength, template.flux, 'k', linewidth = 4)
+    plt.show()
+        
     bootstrap = raw_input("Bootstrap? (y/n): ")
     print "Creating composite..."
+    optimize_scales(SN_Array, template, True)
+    (fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, dm15s, 
+     flux_mask, ivar_mask, dm15_mask, red_mask) = mask(SN_Array, boot)
     
     for i in range(iters_comp):
-        (fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, dm15s, 
-         flux_mask, ivar_mask, dm15_mask, red_mask) = mask(SN_Array, boot)
-        SN_Array, template, scales = create_composite(SN_Array, template, scales, 
-                                                   medmean, boot,fluxes, ivars, 
-                                                   dm15_ivars, red_ivars, reds, 
-                                                   phases, ages, vels, dm15s, 
-                                                   flux_mask, ivar_mask, dm15_mask, 
-                                                   red_mask)
+        SN_Array, scales = optimize_scales(SN_Array, template, False)
+        template = average(SN_Array, template, medmean, boot, fluxes, ivars, dm15_ivars, red_ivars, 
+                           reds, phases, ages, vels, dm15s, flux_mask, ivar_mask, dm15_mask, red_mask)
     print "Done."
     
     #plot composite with the scaled spectra
@@ -477,7 +546,6 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
         samples = int (raw_input("# of samples:"))
         low_conf, up_conf = bootstrapping(SN_Array, samples, scales, template, iters)
     
-
     table = Table([template.wavelength, template.flux, template.ivar, template.phase_array, 
                    template.vel, template.dm15, template.red_array, low_conf, up_conf, spec_bin], 
                    names = ('Wavelength', 'Flux', 'Variance', 'Age', 'Velocity', 
