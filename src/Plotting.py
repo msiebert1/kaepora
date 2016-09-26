@@ -392,7 +392,9 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
 # separate figure.
 #############################################################  
     def Stacked(RF):
-        plt.figure(num = 2, dpi = 100, figsize = [6, 4*len(RF[1])], facecolor = 'w')
+#        plt.figure(num = 2, dpi = 100, figsize = [6, 4*len(RF[1])], facecolor = 'w')
+        plt.figure(num = 2, dpi = 100, figsize = [10, 10], facecolor = 'w')
+
         
         buff = (max(RF[1])-min(RF[1]))/2.0
         
@@ -469,7 +471,8 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
             #print median(RF[j-1])
             RFtrunc = []
             for i in range(len(RF[j-1])):
-                if (RF[j-1][i] >= 4500) & (RF[j-1][i] <= 7000):
+#                if (RF[j-1][i] >= 4500) & (RF[j-1][i] <= 7000):
+                if RF[j][i] != 0.0:
                     #print RF[j-1][i]
                     #print RF[j][i]
                     RFtrunc.append(RF[j][i])
@@ -549,7 +552,8 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
 # stacked on
 # (not sure if I understand this 100%)
 #############################################################
-    plt.figure(num = 1, dpi = 100, figsize = [6, np.sum(h)], facecolor = 'w')
+#    plt.figure(num = 1, dpi = 100, figsize = [6, np.sum(h)], facecolor = 'w')
+    plt.figure(num = 1, dpi = 100, figsize = [10,10], facecolor = 'w')
     gs = gridspec.GridSpec(len(Plots), 1, height_ratios = h, hspace = 0.001)
     
     mpl.rcParams['ytick.major.pad'] = 8
@@ -559,7 +563,7 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
     plt.title(title, fontdict = font)
     
 #############################################################
-# The following series of if statments runs a specific portion 
+# The following series of if statements runs a specific portion 
 # of the ploting functions. The p = p+1 allows the code to  
 # iterate through all the possible plot options      
 # if 0 or 1 or 2 or 3 or 4 or 5 in Plots.
