@@ -5,3 +5,4 @@ sn1998bn-19980522-b.flm
 sn1998bp-19980522-b.flm
 SN08R_080201feb08_r01_DUP_BC.dat
 sn2000al-20000315-ui.flm
+sn2006cj-20060523.33-fast.flm
