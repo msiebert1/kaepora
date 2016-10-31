@@ -444,14 +444,17 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
     lengths = []
     bad_files =        ['sn2004ef-20040915.30-fast.flm', 'sn1994T-19940611.21-fast.flm',
                         'sn2006cj-20060523.33-fast.flm', 'sn1996ab-19960522.37-fast.flm', 
-                        'sn1997bp-19970411.30-fast.flm'] 
+                        'sn1997bp-19970411.30-fast.flm', 'sn1995bd-19951225.27-fast.flm',
+                        'sn1991t-19910418.flm'] 
+                        #sn1991t-19910418.flm no si feature
                         #sn1996ab-19960522.37-fast.flm  has large negative values
                         #sn2004ef-20040915.30-fast.flm variance in database are all nan
                         #sn2006cj-20060523.33-fast.flm variance in database are all nan
+                        #sn1995bd-19951225.27-fast.flm variance in database are all nan
                         #sn1997bp-19970411.30-fast.flm whole spectrum clearly shifted bluer
                         #sn2007af-20070314.44-fast.flm has very low variance which strongly biases results
                         #sn2001da-20010715.47-mmt.flm has a large wavelength range
-    reddened_spectra = ['sn2003cg-20030331.21-fast.flm', 'sn2002cd-20020419.48-fast.flm',
+    reddened_spectra = ['sn2003cg-20030331.21-fast.flm', 'sn2002cd-2n0020419.48-fast.flm',
                         'sn1996ai-19960621.23-fast.flm', 'sn1997dt-19971204.11-fast.flm',
                         'sn2006br-20060427.33-fast.flm', 'sn2003W-20030209.35-fast.flm',
                         'sn2004gs-20041216.49-fast.flm', 'sn2002fb-20020912.44-fast.flm',
@@ -465,7 +468,20 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
                         'sn2005A-20050110.11-ldss2.flm', 'sn1995E-19950228.23-fast.flm',
                         'sn1999cl-19990614.18-fast.flm', 'sn2006X-20060221.40-fast.flm',
                         'sn1999gd-19991208.52-fast.flm', 'sn2003cg-20030401.22-fast.flm',
-                        'sn1996ai-19960620.15-mmt.flm']
+                        'sn1996ai-19960620.15-mmt.flm',
+
+                        #phase -15.0 to -12.0
+                        'sn1995bd-19951223.34-fast.flm', 'sn2002bo-20020310.26-fast.flm',
+                        'sn2002bo-20020311.23-fast.flm', 'SN07S_070131_b01_NTT_EM.dat',
+
+                        #phase -11.99 to -9.0
+                        'sn2002bo-20020311-ui-corrected.flm', 'sn2006gz-20060930.13-fast.flm',
+                        'sn2007bm-20070423.23-fast.flm', 'sn2003W-20030129.35-mmt.flm',
+                        'sn2006qo-20061201.436-ui.flm', 'sn1997dt-19971123.19-fast.flm',
+                        'sn2005cf-20050601.385-ui.flm', 'sn2002dj-20020615.17-fast.flm',
+                        'sn2007le-20071015.325-br-corrected.flm', 'sn2006cc-20060508.34-fast.flm',
+                        'sn1997dt-19971124.09-fast.flm', 'sn2004bw-20040527.362-lowopt.flm',
+                        'sn1999dq-19990905.45-fast.flm']
     
     good_SN_Array = [SN for SN in SN_Array if not is_bad_data(SN, bad_files, reddened_spectra)]
     SN_Array = good_SN_Array
