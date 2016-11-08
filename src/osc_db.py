@@ -18,6 +18,17 @@ mn.patch()
 global c
 c = 299792.458
 
+#
+#
+#
+#
+#NEXT GET SPECTRUM VALUES WITHOUT UNITS ATTACHED
+#
+#
+#
+#
+
+
 if __name__ == '__main__':
 	con = sq3.connect('..\..\osc_data\osc_SNe.db')
 	#make sure no prior table in db to avoid doubling/multiple copies of same data
