@@ -94,6 +94,14 @@ def dered(sne, snname, wave, flux):
 
     return flux
 
+def host_correction(sne, snname, wave, flux):
+    for j in range(len(sne)):  # go through list of SN parameters
+        sn = sne[j][0]
+        if sn in snname:  # SN with parameter matches the path
+            a_v = sne[j][2].astype(float)
+            flux *= ex.reddening(wave, ebv=3.1*a_v, r_v=3.1, model='f99')
+    return flux
+
 
 # Data Interpolation
 
@@ -197,9 +205,11 @@ def compprep(spectrum, sn_name, z, source):
     if source == 'other':
         sne = ReadExtin('extinctionother.dat')
 
+    host_reddened = ReadExtin('../data/info_files/ryan_av.txt')
     newdata = []
 
     new_flux = dered(sne, sn_name, old_wave, old_flux)  # Dereddending (see if sne in extinction files match the SN name)
+    new_flux = host_correction(sne, sn_name, old_wave, new_flux)
     new_wave = old_wave/(1.+z)  # Deredshifting
     new_error = old_error  # Placeholder if it needs to be changed
     new_ivar = genivar(new_wave, new_flux, new_error)  # generate new inverse variance

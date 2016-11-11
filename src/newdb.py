@@ -198,6 +198,21 @@ def build_carbon_dict():
                     carbon_dict[ents[0].lower()] = ents[1]
     return carbon_dict
 
+def build_residual_dict():
+    """
+    Builds a dictionary of the form {sn_name: hubble_residual }
+    """
+    with open('../data/info_files/ryan_av.txt') as f:
+        txt = f.readlines()
+        clean = [x.strip() for x in txt]
+        residual_dict = {}
+        for entry in clean:
+            if not entry.startswith('#'):
+                ents = entry.split()
+                if ents:
+                    residual_dict[ents[0].lower()] = ents[2]
+    return residual_dict
+
 
 def build_redshift_dict(bsnipdict, cfadict):
     """
@@ -236,17 +251,29 @@ morph_dict = build_morph_dict()
 vel_dict = build_vel_dict()
 gas_dict = build_gas_dict()
 carbon_dict = build_carbon_dict()
+residual_dict = build_residual_dict()
 ts = time.clock()
-con = sq3.connect('SNe.db')
+
+#con = sq3.connect('SNe.db')
+con = sq3.connect('SNe_2.db')
 
 #make sure no prior table in db to avoid doubling/multiple copies of same data
+
+# con.execute("""DROP TABLE IF EXISTS Supernovae""")
+# con.execute("""CREATE TABLE IF NOT EXISTS Supernovae (Filename
+#                     TEXT PRIMARY KEY, SN Text, Source Text, Redshift REAL,
+#                     Phase REAL, MinWave REAL, MaxWave REAL, Dm15 REAL,
+#                     M_B REAL, B_mMinusV_m REAL, Velocity REAL,
+#                     Morphology INTEGER, Carbon TEXT, GasRich INTEGER, snr REAL,
+#                     Interpolated_Spectra BLOB)""")
+
 con.execute("""DROP TABLE IF EXISTS Supernovae""")
 con.execute("""CREATE TABLE IF NOT EXISTS Supernovae (Filename
                     TEXT PRIMARY KEY, SN Text, Source Text, Redshift REAL,
                     Phase REAL, MinWave REAL, MaxWave REAL, Dm15 REAL,
                     M_B REAL, B_mMinusV_m REAL, Velocity REAL,
-                    Morphology INTEGER, Carbon TEXT, GasRich INTEGER, snr REAL,
-                    Interpolated_Spectra BLOB)""")
+                    Morphology INTEGER, Carbon TEXT, GasRich INTEGER, snr REAL, 
+                    Hubble_Res Real, Interpolated_Spectra BLOB)""")
 
 #read all bsnip to find corrected
 corr_list = []
@@ -453,19 +480,32 @@ for path, subdirs, files in os.walk(root):
             else:
                 gasrich = None
 
+            if sn_name in residual_dict:
+                hubble_residual = residual_dict[sn_name]
+            else:
+                hubble_residual = None
+
             #add redshift to redshift dictionary if not already present
             if name not in rsd and redshift is not None:
                 rsd[name] = redshift
 
             interped = msg.packb(interp_spec)
+            # con.execute("""INSERT INTO Supernovae(Filename, SN, Source,
+            #                     Redshift, Phase, MinWave, MaxWave, Dm15, M_B,
+            #                     B_mMinusV_m, Velocity, Morphology, Carbon,
+            #                     GasRich, snr, Interpolated_Spectra)
+            #                     VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            #             (name, sn_name, source, redshift, phase,
+            #              min_wave, max_wave, Dm15, m_b, bm_vm, vel,
+            #              morph, carbon, gasrich, sig_noise, buffer(interped)))
             con.execute("""INSERT INTO Supernovae(Filename, SN, Source,
                                 Redshift, Phase, MinWave, MaxWave, Dm15, M_B,
                                 B_mMinusV_m, Velocity, Morphology, Carbon,
-                                GasRich, snr, Interpolated_Spectra)
-                                VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                                GasRich, snr, Hubble_Res, Interpolated_Spectra)
+                                VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                         (name, sn_name, source, redshift, phase,
                          min_wave, max_wave, Dm15, m_b, bm_vm, vel,
-                         morph, carbon, gasrich, sig_noise, buffer(interped)))
+                         morph, carbon, gasrich, sig_noise, hubble_residual, buffer(interped)))
 
 con.commit()
 te = time.clock()
