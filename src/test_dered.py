@@ -43,12 +43,13 @@ def dered(sne, snname, wave, flux):
             b = sne[j][1].astype(float)
             v = sne[j][2].astype(float)
             bv = b-v
+            print 'here'
 #            print "B(%s)-V(%s)=%s"%(b,v,bv)
 #            print "R(v) =",r
             #or use fm07 model
             #test1 = spectra_data[i][:,1] * ex.reddening(spectra_data[i][:,0],ebv = bv, model='ccm89')
             #test2 = spectra_data[i][:,1] * ex.reddening(spectra_data[i][:,0],ebv = bv, model='od94')
-            red = ex.reddening(wave, a_v=1.33*1.8, r_v=1.8, model='f99')
+            red = ex.reddening(wave, a_v=3.1*bv, r_v=3.1, model='f99')
             flux *= red
             # flux *= ex.reddening(wave, a_v=bv, r_v=3.1, model='f99')
 
@@ -58,18 +59,26 @@ def dered(sne, snname, wave, flux):
             #host *= ex.reddening(wave,ebv = bv, r_v = r, model='f99')
 
     return flux
-        
-fname = '..\data\spectra\cfa\sn2003cg\sn2003cg-20030331.21-fast.flm'
-spectrum  = np.loadtxt(fname)
-sn_name = find_SN(fname)
-old_wave = spectrum[:, 0]*u.Angstrom	    # wavelengths
-old_flux = spectrum[:, 1]*u.Unit('W m-2 angstrom-1 sr-1')
-spec1d = Spectrum1D.from_array(old_wave, old_flux)
 
-sne = prep.ReadExtin('extinction.dat')
-plt.plot(old_wave,old_flux)
-plt.show()
-new_flux = dered(sne, sn_name, spec1d.wavelength, spec1d.flux)
-#new_flux = dered(sne, sn_name, old_wave, old_flux)
-plt.plot(old_wave, new_flux)
-plt.show()
+def host_correction(sne, snname, wave, flux):
+    for j in range(len(sne)):  # go through list of SN parameters
+        sn = sne[j][0]
+        if sn in snname:  # SN with parameter matches the path
+            a_v = sne[j][2].astype(float)
+            flux *= ex.reddening(wave, a_v=a_v, r_v=3.1, model='f99')
+    return flux
+
+# fname = '..\data\spectra\cfa\sn2002cd\sn2002cd-20020419.48-fast.flm'
+# spectrum  = np.loadtxt(fname)
+# sn_name = find_SN(fname)
+# old_wave = spectrum[:, 0]*u.Angstrom	    # wavelengths
+# old_flux = spectrum[:, 1]*u.Unit('W m-2 angstrom-1 sr-1')
+# spec1d = Spectrum1D.from_array(old_wave, old_flux)
+
+# sne = prep.ReadExtin('extinction.dat')
+# plt.plot(old_wave,old_flux)
+# plt.show()
+# new_flux = dered(sne, sn_name, spec1d.wavelength, spec1d.flux)
+# #new_flux = dered(sne, sn_name, old_wave, old_flux)
+# plt.plot(old_wave, new_flux)
+# plt.show()

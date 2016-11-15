@@ -3,6 +3,8 @@ Spectra composite program
 Authors: Sam, Yixian, Aaron
 """
 #example: python Run.py 2 "SELECT * FROM Supernovae WHERE Carbon = 'A' AND Phase Between -6 and -4 AND Dm15 Between 0 and 2"
+#msgpack_python version 0.4.6
+#msgpack_numpy version 0.3.5
 import matplotlib.pyplot as plt
 import numpy as np
 import glob
@@ -21,6 +23,12 @@ import scipy.optimize as opt
 import copy
 from collections import Counter
 
+from specutils import extinction as ex
+import test_dered
+import prep
+from astropy import units as u
+from specutils import Spectrum1D
+
 np.set_printoptions(threshold=np.nan)
 mn.patch()
 
@@ -37,7 +45,9 @@ class supernova(object):
 
 #Connect to database
 #Make sure your file is in this location
-con = sq3.connect('../data/SNe.db')
+
+#con = sq3.connect('../data/SNe.db')
+con = sq3.connect('../data/SNe_2.db')
 cur = con.cursor()
 
 
@@ -66,7 +76,8 @@ def grab(sql_input):
         SN.carbon    = row[12]
         SN.GasRich   = row[13]
         SN.SNR       = row[14]
-        interp       = msg.unpackb(row[15])
+        SN.resid     = row[15]
+        interp       = msg.unpackb(row[16])
         SN.interp    = interp
         try:
             SN.wavelength = SN.interp[0,:]
@@ -486,10 +497,28 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
     good_SN_Array = [SN for SN in SN_Array if not is_bad_data(SN, bad_files, reddened_spectra)]
     SN_Array = good_SN_Array
     
+    print "Dereddening..."
     for SN in SN_Array:
-#        SN.flux = SN.flux*1e14
-#        SN.ivar = SN.ivar/(1e14*1e14)
         print SN.name, SN.filename
+        if SN.source == 'cfa':  # choosing source dataset
+    #        z = ReadParam()
+            sne = prep.ReadExtin('extinction.dat')
+        if SN.source == 'bsnip':
+            sne = prep.ReadExtin('extinctionbsnip.dat')
+        if SN.source == 'csp':
+            sne = ReadExtin('extinctioncsp.dat')
+        if SN.source == 'uv':
+            sne = prep.ReadExtin('extinctionuv.dat')
+        if SN.source == 'other':
+            sne = prep.ReadExtin('extinctionother.dat')
+
+        host_reddened = prep.ReadExtin('../data/info_files/ryan_av.txt')
+        old_wave = SN.wavelength*u.Angstrom        # wavelengths
+        old_flux = SN.flux*u.Unit('W m-2 angstrom-1 sr-1')
+        spec1d = Spectrum1D.from_array(old_wave, old_flux)
+        new_flux = test_dered.dered(sne, SN.name, spec1d.wavelength, spec1d.flux)
+        new_flux = test_dered.host_correction(host_reddened, SN.name, old_wave, new_flux)
+        SN.flux = new_flux.value
         lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
 
     temp = [SN for SN in SN_Array if len(SN.flux[np.where(SN.flux!=0)]) == max(lengths)]

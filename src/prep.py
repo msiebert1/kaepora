@@ -75,6 +75,7 @@ NOTE:Currently only has SN_name, B, and V values for purposes of Dereddening due
 
 
 def dered(sne, snname, wave, flux):
+    print 'here'
     for j in range(len(sne)):  # go through list of SN parameters
         sn = sne[j][0]
         if sn in snname:  # SN with parameter matches the path
