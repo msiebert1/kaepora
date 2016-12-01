@@ -167,9 +167,12 @@ def optimize_scales(SN_Array, template, initial):
     guess = 1.0
     for uSN in unique_arr:
 #        guess = template.flux[2000]/uSN.flux[2000]
-        u = opt.minimize(sq_residuals, guess, args = (uSN, template, initial), 
-                         method = 'Nelder-Mead').x
-        scales.append(u)
+        if uSN.filename != template.filename:
+            u = opt.minimize(sq_residuals, guess, args = (uSN, template, initial), 
+                             method = 'Nelder-Mead').x
+            scales.append(u)
+        else:
+            scales.append(1.0)
         
     for i in range(len(unique_arr)):
         unique_arr[i].flux = scales[i]*unique_arr[i].flux
@@ -335,7 +338,7 @@ def bootstrapping (SN_Array, samples, scales, og_template, iters):
     """
     strap_matrix = np.random.random_sample((samples, len(SN_Array)))
     strap_matrix *= len(SN_Array)
-    strap_matrix = strap_matrix.astype(int)    
+    strap_matrix = strap_matrix.astype(int)   
     boot_arr = []
     boots = []
     boot = True
@@ -496,9 +499,22 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
     
     good_SN_Array = [SN for SN in SN_Array if not is_bad_data(SN, bad_files, reddened_spectra)]
     SN_Array = good_SN_Array
+
+    # good_SNs = []
+    # for SN in SN_Array:
+    #     plt.plot(SN.wavelength, SN.flux)
+    #     plt.show()
+    #     accept = raw_input("Accept? (y/n): ")
+    #     if accept is 'y':
+    #         print "Added"
+    #         good_SNs.append(SN)
+
+    # SN_Array = good_SNs
+    # print len(SN_Array)
     
     print "Dereddening..."
     for SN in SN_Array:
+        # print SN.resid
         print SN.name, SN.filename
         if SN.source == 'cfa':  # choosing source dataset
     #        z = ReadParam()
@@ -506,7 +522,7 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
         if SN.source == 'bsnip':
             sne = prep.ReadExtin('extinctionbsnip.dat')
         if SN.source == 'csp':
-            sne = ReadExtin('extinctioncsp.dat')
+            sne = prep.ReadExtin('extinctioncsp.dat')
         if SN.source == 'uv':
             sne = prep.ReadExtin('extinctionuv.dat')
         if SN.source == 'other':
