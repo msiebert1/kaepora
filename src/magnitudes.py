@@ -17,3 +17,12 @@ def ab_mags(SN_Array):
 					 mag_table['sdss2010-z'].quantity[0]]])
 
 	return mags
+
+def generate_event_list(SN_Array):
+	unique_events = []
+	event_file = open("event_list.txt", 'w')
+	for SN in SN_Array:
+		if SN.name not in unique_events:
+			unique_events.append(SN.name)
+			event_file.write(SN.name + ',' + '\n')
+	event_file.close()

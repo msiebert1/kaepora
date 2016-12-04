@@ -94,6 +94,7 @@ def grab(sql_input):
             continue
         full_array.append(SN)
         SN_Array.append(SN)
+
         # for i in range(len(SN_Array-1)): 
         #     if SN_Array[i].name == SN_Array[i-1].name and not multi_epoch:
         #         if abs(SN_Array[i].phase) < abs(SN_Array[i-1].phase): # closest to maximum
@@ -118,6 +119,10 @@ def grab(sql_input):
             SN_Array = new_SN_Array
 
     print len(SN_Array), "spectra found"
+
+    # print "Creating event file..."
+    # mg.generate_event_list(SN_Array)
+    # print "Event file done."
     
     #Within the interpolated spectra there are a lot of 'NaN' values
     #Now they become zeros so things work right
@@ -159,8 +164,12 @@ def grab(sql_input):
 #        print SN.ivar
         non_zero_data = np.where(SN.flux != 0)
         non_zero_data = np.array(non_zero_data[0])
-        SN.x1 = non_zero_data[0]
-        SN.x2 = non_zero_data[-1]
+        if len(non_zero_data) > 0:
+            SN.x1 = non_zero_data[0]
+            SN.x2 = non_zero_data[-1]
+        else:
+            SN.x1 = 0.
+            SN.x2 = 0.
                     
     print "Arrays cleaned"
     return SN_Array
