@@ -28,6 +28,7 @@ import test_dered
 import prep
 from astropy import units as u
 from specutils import Spectrum1D
+import magnitudes as mg
 
 np.set_printoptions(threshold=np.nan)
 mn.patch()
@@ -58,6 +59,12 @@ def grab(sql_input):
     """
     print "Collecting data..."
     SN_Array = []
+    multi_epoch = raw_input("Include multiple epochs? (y/n): ")
+    if multi_epoch == 'y':
+        multi_epoch = True
+    else:
+        multi_epoch = False
+
     cur.execute(sql_input)
     for row in cur:
         SN           = supernova()
@@ -87,10 +94,29 @@ def grab(sql_input):
             continue
         full_array.append(SN)
         SN_Array.append(SN)
-        for i in range(len(SN_Array)-1):
-            if SN_Array[i].name == SN_Array[i-1].name:
-                if abs(SN_Array[i].phase) < abs(SN_Array[i-1].phase):
-                    del SN_Array[i-1]
+        # for i in range(len(SN_Array-1)): 
+        #     if SN_Array[i].name == SN_Array[i-1].name and not multi_epoch:
+        #         if abs(SN_Array[i].phase) < abs(SN_Array[i-1].phase): # closest to maximum
+        #         # if abs(SN_Array[i].SNR) > abs(SN_Array[i-1].SNR): # best signal to noise
+        #             del SN_Array[i-1]
+        if not multi_epoch:
+            unique_events = []
+            new_SN_Array = []
+            for i in range(len(SN_Array)): 
+                if SN_Array[i].name not in unique_events:
+                    unique_events.append(SN_Array[i].name)
+            for i in range(len(unique_events)):
+                events = []
+                for SN in SN_Array:
+                    if SN.name == unique_events[i]:
+                        events.append(SN)
+                min_phase = events[0]
+                for e in events:
+                    if abs(e.phase) < abs(min_phase.phase):
+                        min_phase = e
+                new_SN_Array.append(min_phase)
+            SN_Array = new_SN_Array
+
     print len(SN_Array), "spectra found"
     
     #Within the interpolated spectra there are a lot of 'NaN' values
@@ -512,6 +538,11 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
     # SN_Array = good_SNs
     # print len(SN_Array)
     
+    mags = np.sort(mg.ab_mags(SN_Array), axis = 0)
+    for i in range(len(mags)):
+        print mags[i][0], mags[i][1] 
+
+
     print "Dereddening..."
     for SN in SN_Array:
         # print SN.resid
