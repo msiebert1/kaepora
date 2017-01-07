@@ -1,6 +1,9 @@
 import os
 import glob
 from specutils import extinction as ex
+from specutils import Spectrum1D
+from astropy import units as u
+import test_dered
 #import astroquery
 #from astroquery.ned import Ned
 #from astroquery.irsa_dust import IrsaDust
@@ -206,11 +209,17 @@ def compprep(spectrum, sn_name, z, source):
     if source == 'other':
         sne = ReadExtin('extinctionother.dat')
 
-    host_reddened = ReadExtin('../data/info_files/ryan_av.txt')
+#     host_reddened = ReadExtin('../data/info_files/ryan_av.txt')
     newdata = []
+    old_wave = old_wave*u.Angstrom        # wavelengths
+    old_flux = old_flux*u.Unit('W m-2 angstrom-1 sr-1')
+    spec1d = Spectrum1D.from_array(old_wave, old_flux)
+    test_flux = test_dered.dered(sne, sn_name, spec1d.wavelength, spec1d.flux)  # Dereddending (see if sne in extinction files match the SN name)
+#     new_flux = host_correction(sne, sn_name, old_wave, new_flux)
 
-    new_flux = dered(sne, sn_name, old_wave, old_flux)  # Dereddending (see if sne in extinction files match the SN name)
-    new_flux = host_correction(sne, sn_name, old_wave, new_flux)
+    # new_flux = old_flux
+    new_flux = test_flux.value
+    old_wave = old_wave.value
     new_wave = old_wave/(1.+z)  # Deredshifting
     new_error = old_error  # Placeholder if it needs to be changed
     new_ivar = genivar(new_wave, new_flux, new_error)  # generate new inverse variance

@@ -48,7 +48,8 @@ class supernova(object):
 #Make sure your file is in this location
 
 #con = sq3.connect('../data/SNe.db')
-con = sq3.connect('../data/SNe_2.db')
+# con = sq3.connect('../data/SNe_2.db')
+con = sq3.connect('../data/SNe_3.db')
 cur = con.cursor()
 
 
@@ -86,6 +87,8 @@ def grab(sql_input):
         SN.resid     = row[15]
         interp       = msg.unpackb(row[16])
         SN.interp    = interp
+        phot         = msg.unpackb(row[17])
+        SN.phot      = phot
         try:
             SN.wavelength = SN.interp[0,:]
             SN.flux       = SN.interp[1,:]
@@ -520,8 +523,8 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
                         'sn1996ai-19960620.15-mmt.flm',
 
                         #phase -15.0 to -12.0
-                        'sn1995bd-19951223.34-fast.flm', 'sn2002bo-20020310.26-fast.flm',
-                        'sn2002bo-20020311.23-fast.flm', 'SN07S_070131_b01_NTT_EM.dat',
+                        # 'sn1995bd-19951223.34-fast.flm', 'sn2002bo-20020310.26-fast.flm',
+                        # 'sn2002bo-20020311.23-fast.flm', 'SN07S_070131_b01_NTT_EM.dat',
 
                         #phase -11.99 to -9.0
                         'sn2002bo-20020311-ui-corrected.flm', 'sn2006gz-20060930.13-fast.flm',
@@ -547,33 +550,20 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
     # SN_Array = good_SNs
     # print len(SN_Array)
     
-    mags = np.sort(mg.ab_mags(SN_Array), axis = 0)
-    for i in range(len(mags)):
-        print mags[i][0], mags[i][1] 
+    # mags = np.sort(mg.ab_mags(SN_Array), axis = 0)
+    # for i in range(len(mags)):
+    #     print mags[i][0], mags[i][1] 
 
 
-    print "Dereddening..."
     for SN in SN_Array:
         # print SN.resid
         print SN.name, SN.filename
-        if SN.source == 'cfa':  # choosing source dataset
-    #        z = ReadParam()
-            sne = prep.ReadExtin('extinction.dat')
-        if SN.source == 'bsnip':
-            sne = prep.ReadExtin('extinctionbsnip.dat')
-        if SN.source == 'csp':
-            sne = prep.ReadExtin('extinctioncsp.dat')
-        if SN.source == 'uv':
-            sne = prep.ReadExtin('extinctionuv.dat')
-        if SN.source == 'other':
-            sne = prep.ReadExtin('extinctionother.dat')
-
         host_reddened = prep.ReadExtin('../data/info_files/ryan_av.txt')
         old_wave = SN.wavelength*u.Angstrom        # wavelengths
         old_flux = SN.flux*u.Unit('W m-2 angstrom-1 sr-1')
         spec1d = Spectrum1D.from_array(old_wave, old_flux)
-        new_flux = test_dered.dered(sne, SN.name, spec1d.wavelength, spec1d.flux)
-        new_flux = test_dered.host_correction(host_reddened, SN.name, old_wave, new_flux)
+        # new_flux = test_dered.dered(sne, SN.name, spec1d.wavelength, spec1d.flux)
+        new_flux = test_dered.host_correction(host_reddened, SN.name, old_wave, old_flux)
         SN.flux = new_flux.value
         lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
 
@@ -615,6 +605,7 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
     for SN in SN_Array:
         cpy_array.append(copy.copy(SN))
     
+    # plt.figure(num = 2, dpi = 100, figsize = [30, 20], facecolor = 'w')
     for i in range(len(SN_Array)):
         plt.plot(SN_Array[i].wavelength, SN_Array[i].flux)
     plt.plot(template.wavelength, template.flux, 'k', linewidth = 4)
@@ -633,6 +624,7 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
     print "Done."
     
     #plot composite with the scaled spectra
+    # plt.figure(num = 2, dpi = 100, figsize = [30, 20], facecolor = 'w')
     if bootstrap is 'n':
         for i in range(len(SN_Array)):
             plt.plot(SN_Array[i].wavelength, SN_Array[i].flux)

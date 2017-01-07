@@ -9,6 +9,7 @@ import os
 import re
 import math
 import time
+import photometry as phot
 
 mn.patch()
 global c
@@ -255,10 +256,11 @@ residual_dict = build_residual_dict()
 ts = time.clock()
 
 #con = sq3.connect('SNe.db')
-con = sq3.connect('SNe_test.db')
+con = sq3.connect('SNe_3.db')
 
 #make sure no prior table in db to avoid doubling/multiple copies of same data
 
+##version 1
 # con.execute("""DROP TABLE IF EXISTS Supernovae""")
 # con.execute("""CREATE TABLE IF NOT EXISTS Supernovae (Filename
 #                     TEXT PRIMARY KEY, SN Text, Source Text, Redshift REAL,
@@ -267,13 +269,22 @@ con = sq3.connect('SNe_test.db')
 #                     Morphology INTEGER, Carbon TEXT, GasRich INTEGER, snr REAL,
 #                     Interpolated_Spectra BLOB)""")
 
+##version 2
+# con.execute("""DROP TABLE IF EXISTS Supernovae""")
+# con.execute("""CREATE TABLE IF NOT EXISTS Supernovae (Filename
+#                     TEXT PRIMARY KEY, SN Text, Source Text, Redshift REAL,
+#                     Phase REAL, MinWave REAL, MaxWave REAL, Dm15 REAL,
+#                     M_B REAL, B_mMinusV_m REAL, Velocity REAL,
+#                     Morphology INTEGER, Carbon TEXT, GasRich INTEGER, snr REAL, 
+#                     Hubble_Res Real, Interpolated_Spectra BLOB)""")
+
 con.execute("""DROP TABLE IF EXISTS Supernovae""")
 con.execute("""CREATE TABLE IF NOT EXISTS Supernovae (Filename
                     TEXT PRIMARY KEY, SN Text, Source Text, Redshift REAL,
                     Phase REAL, MinWave REAL, MaxWave REAL, Dm15 REAL,
                     M_B REAL, B_mMinusV_m REAL, Velocity REAL,
                     Morphology INTEGER, Carbon TEXT, GasRich INTEGER, snr REAL, 
-                    Hubble_Res Real, Interpolated_Spectra BLOB)""")
+                    Hubble_Res Real, Interpolated_Spectra BLOB, Photometry BLOB)""")
 
 #read all bsnip to find corrected
 corr_list = []
@@ -490,6 +501,11 @@ for path, subdirs, files in os.walk(root):
                 rsd[name] = redshift
 
             interped = msg.packb(interp_spec)
+
+            sn_phot = phot.get_photometry(sn_name) 
+            phot_blob = msg.packb(sn_phot)
+
+            ##version 1
             # con.execute("""INSERT INTO Supernovae(Filename, SN, Source,
             #                     Redshift, Phase, MinWave, MaxWave, Dm15, M_B,
             #                     B_mMinusV_m, Velocity, Morphology, Carbon,
@@ -498,14 +514,24 @@ for path, subdirs, files in os.walk(root):
             #             (name, sn_name, source, redshift, phase,
             #              min_wave, max_wave, Dm15, m_b, bm_vm, vel,
             #              morph, carbon, gasrich, sig_noise, buffer(interped)))
+            ## version 2
+            # con.execute("""INSERT INTO Supernovae(Filename, SN, Source,
+            #                     Redshift, Phase, MinWave, MaxWave, Dm15, M_B,
+            #                     B_mMinusV_m, Velocity, Morphology, Carbon,
+            #                     GasRich, snr, Hubble_Res, Interpolated_Spectra)
+            #                     VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            #             (name, sn_name, source, redshift, phase,
+            #              min_wave, max_wave, Dm15, m_b, bm_vm, vel,
+            #              morph, carbon, gasrich, sig_noise, hubble_residual, buffer(interped)))
+            ## version 3
             con.execute("""INSERT INTO Supernovae(Filename, SN, Source,
                                 Redshift, Phase, MinWave, MaxWave, Dm15, M_B,
                                 B_mMinusV_m, Velocity, Morphology, Carbon,
-                                GasRich, snr, Hubble_Res, Interpolated_Spectra)
-                                VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                                GasRich, snr, Hubble_Res, Interpolated_Spectra, Photometry)
+                                VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                         (name, sn_name, source, redshift, phase,
                          min_wave, max_wave, Dm15, m_b, bm_vm, vel,
-                         morph, carbon, gasrich, sig_noise, hubble_residual, buffer(interped)))
+                         morph, carbon, gasrich, sig_noise, hubble_residual, buffer(interped), buffer(phot_blob)))
 
 con.commit()
 te = time.clock()
