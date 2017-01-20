@@ -22,7 +22,7 @@ def find_data(event):
 	return SN_Array
 
 def find_all_data():
-    query = "SELECT * FROM Supernovae where SN = '2002cx'"
+    query = "SELECT * FROM Supernovae "
     SN_Array = grab_event_data(query)
     return SN_Array
 
