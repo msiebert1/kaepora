@@ -2,8 +2,9 @@ import sqlite3 as sq3
 import msgpack as msg
 import msgpack_numpy as mn
 import numpy as np
+import magnitudes as mag
 
-con = sq3.connect('../data/SNe_2.db')
+con = sq3.connect('../data/SNe_8.db')
 cur = con.cursor()
 
 # np.set_printoptions(threshold=np.nan)
@@ -21,7 +22,7 @@ def find_data(event):
 	return SN_Array
 
 def find_all_data():
-    query = "SELECT * FROM Supernovae "
+    query = "SELECT * FROM Supernovae where SN = '2002cx'"
     SN_Array = grab_event_data(query)
     return SN_Array
 
@@ -60,6 +61,9 @@ def grab_event_data(sql_input):
         SN.resid     = row[15]
         interp       = msg.unpackb(row[16])
         SN.interp    = interp
+        phot         = msg.unpackb(row[17])
+        SN.phot      = phot
+        SN.mjd          = row[18]
         try:
             SN.wavelength = SN.interp[0,:]
             SN.flux       = SN.interp[1,:]
@@ -142,8 +146,14 @@ def grab_event_data(sql_input):
             SN.x1 = non_zero_data[0]
             SN.x2 = non_zero_data[-1]
         else:
-            SN.x1 = 0.
-            SN.x2 = 0.
+            SN.x1 = 0
+            SN.x2 = 0
                     
     print "Arrays cleaned"
     return SN_Array
+
+# arr = find_data('2005cf')
+# # mags = mag.ab_mags(arr)
+# # print mags
+# for SN in arr:
+#     print SN.filename, SN.mjd, type(SN.mjd)

@@ -50,6 +50,7 @@ class supernova(object):
 #con = sq3.connect('../data/SNe.db')
 # con = sq3.connect('../data/SNe_2.db')
 con = sq3.connect('../data/SNe_3.db')
+con = sq3.connect('../data/SNe_4.db')
 cur = con.cursor()
 
 
@@ -171,8 +172,8 @@ def grab(sql_input):
             SN.x1 = non_zero_data[0]
             SN.x2 = non_zero_data[-1]
         else:
-            SN.x1 = 0.
-            SN.x2 = 0.
+            SN.x1 = 0
+            SN.x2 = 0
                     
     print "Arrays cleaned"
     return SN_Array

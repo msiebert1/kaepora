@@ -8,7 +8,7 @@ def data_check(SN_Array, start = None):
 	dn = np.genfromtxt("data_notes.txt", dtype = 'string')
 	file_length = len(dn)
 	if file_length > 0:
-		end = int(dn[-2][0])
+		end = int(dn[-1][0])
 	else:
 		end = None
 
@@ -19,6 +19,8 @@ def data_check(SN_Array, start = None):
 			else:
 				i = end + 1
 			print "Starting at index: " + str(i)
+			print "Notes Key: \n r = reddened \n g = gap \n s = bad sky subtraction \n gc = galaxy contamination \n cr = bad cosmic ray \n d = discontinuity \n t = telluric absorption"
+			print "Type notes separated by commas. Include any comments at the end."
 			table = []
 			while i < len(SN_Array):
 				print SN_Array[i].filename
@@ -34,13 +36,17 @@ def data_check(SN_Array, start = None):
 				if cont == 'q':
 					break
 				i += 1
-			dn_append.write(tabulate(table))
+			dn_append.write('\n')
+			dn_append.write(tabulate(table, tablefmt = 'plain'))
 
 	else:	
 		dn_new = []
 		with open("data_notes.txt", "w+") as dn_redo:
 			table = []
-			for line in dn[1:-1]:
+			print "Notes Key: \n r = reddened \n g = gap \n s = bad sky subtraction \n gc = galaxy contamination \n cr = bad cosmic ray \n d = discontinuity \n t = telluric absorption"
+			print "Type notes separated by commas. Include any comments at the end."
+			for line in dn:
+				print line[0]
 				if float(line[0]) == i:
 					print line[0], line[1], line[2]
 					print SN_Array[i].filename
@@ -59,9 +65,13 @@ def data_check(SN_Array, start = None):
 				else:
 					table.append([line[0], line [1], line[2]])
 					# dn_redo.write('\t'.join(line) + "\n")
-			dn_redo.write(tabulate(table))
+			dn_redo.write(tabulate(table, tablefmt = 'plain'))
 
 	return 
 
+
 SN_Array = fed.find_all_data()
-data_check(SN_Array)
+starting_point = raw_input('Where would you like to start? (last line in file): ') or None
+if starting_point is not None:
+	starting_point = int(starting_point)
+data_check(SN_Array, start = starting_point)

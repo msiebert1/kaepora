@@ -1,0 +1,6 @@
+#Database Notes
+
+SNe.db 		original database
+SNe_2.db 	fixed milky way reddening corrections, added hubble residuals
+SNe_3.db 	added photometry
+SNe_4.db 	added photometry metadata, added mjd of each spectrum
