@@ -19,7 +19,7 @@ def data_check(SN_Array, start = None):
 			else:
 				i = end + 1
 			print "Starting at index: " + str(i)
-			print "Notes Key: \n r = reddened \n g = gap \n s = bad sky subtraction \n gc = galaxy contamination \n cr = bad cosmic ray \n d = discontinuity \n t = telluric absorption"
+			print "Notes Key: \n r = reddened \n g = gap \n s = bad sky subtraction \n gc = galaxy contamination \n cr = bad cosmic ray \n d = discontinuity \n t = telluric absorption \n q = questionable"
 			print "Type notes separated by commas. Include any comments at the end."
 			table = []
 			while i < len(SN_Array):
@@ -43,10 +43,9 @@ def data_check(SN_Array, start = None):
 		dn_new = []
 		with open("data_notes.txt", "w+") as dn_redo:
 			table = []
-			print "Notes Key: \n r = reddened \n g = gap \n s = bad sky subtraction \n gc = galaxy contamination \n cr = bad cosmic ray \n d = discontinuity \n t = telluric absorption"
+			print "Notes Key: \n r = reddened \n g = gap \n s = bad sky subtraction \n gc = galaxy contamination \n cr = bad cosmic ray \n d = discontinuity \n t = telluric absorption \n q = questionable"
 			print "Type notes separated by commas. Include any comments at the end."
 			for line in dn:
-				print line[0]
 				if float(line[0]) == i:
 					print line[0], line[1], line[2]
 					print SN_Array[i].filename
