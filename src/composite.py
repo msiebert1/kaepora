@@ -49,8 +49,8 @@ class supernova(object):
 
 #con = sq3.connect('../data/SNe.db')
 # con = sq3.connect('../data/SNe_2.db')
-con = sq3.connect('../data/SNe_3.db')
-con = sq3.connect('../data/SNe_4.db')
+# con = sq3.connect('../data/SNe_3.db')
+con = sq3.connect('../data/SNe_9.db')
 cur = con.cursor()
 
 
@@ -171,6 +171,7 @@ def grab(sql_input):
         if len(non_zero_data) > 0:
             SN.x1 = non_zero_data[0]
             SN.x2 = non_zero_data[-1]
+            SN.x2 += 1
         else:
             SN.x1 = 0
             SN.x2 = 0
@@ -205,7 +206,7 @@ def optimize_scales(SN_Array, template, initial):
     unique_arr = list(set(SN_Array))
     guess = 1.0
     for uSN in unique_arr:
-#        guess = template.flux[2000]/uSN.flux[2000]
+        guess = template.flux[2000]/uSN.flux[2000] #this is temporary it does not work for any spectrum 
         if uSN.filename != template.filename:
             u = opt.minimize(sq_residuals, guess, args = (uSN, template, initial), 
                              method = 'Nelder-Mead').x
@@ -225,6 +226,7 @@ def sq_residuals(s,SN,comp, initial):
        arrays usinig a given scale s. Returns the sum.
     """
 #    print s
+    s = np.absolute(s)
     if SN.x1 <= comp.x1 and SN.x2 >= comp.x2:
         pos1 = comp.x1
         pos2 = comp.x2
@@ -239,7 +241,7 @@ def sq_residuals(s,SN,comp, initial):
         pos2 = SN.x2
     else: 
         #residual of first index will always be zero (won't be scaled)
-        print "no overlap "
+        print "no overlap"
         pos1 = 0
         pos2 = 0
     temp_flux = s*SN.flux
@@ -498,7 +500,13 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
     bad_files =        ['sn2004ef-20040915.30-fast.flm', 'sn1994T-19940611.21-fast.flm',
                         'sn2006cj-20060523.33-fast.flm', 'sn1996ab-19960522.37-fast.flm', 
                         'sn1997bp-19970411.30-fast.flm', 'sn1995bd-19951225.27-fast.flm',
-                        'sn1991t-19910418.flm'] 
+                        'sn1991t-19910418.flm', 'sn2005m-20050131-hst.flm',
+                        'SN05hc_051018_r01_NTT_EM.dat','SN06D_060116_r01_NTT_EM.dat',
+                        'sn2005cf-20050607-hst.flm', 'sn2006d-20060116-snifs-b.dat',
+                        '2003du_20030501_4066_11015_00.dat', 'SN07A_070106_r01_NTT_EM.dat',
+                        'sn2003Y-20030131.35-fast.flm', '2002er_20020901_3213_9175_00.dat',
+                        'sn2007F-20070116.54-fast.flm', 'sn2005m-20050128-hst.flm',
+                        'SN09ab_090214_r01_BAA_IM.dat'] 
                         #sn1991t-19910418.flm no si feature
                         #sn1996ab-19960522.37-fast.flm  has large negative values
                         #sn2004ef-20040915.30-fast.flm variance in database are all nan
@@ -507,6 +515,21 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
                         #sn1997bp-19970411.30-fast.flm whole spectrum clearly shifted bluer
                         #sn2007af-20070314.44-fast.flm has very low variance which strongly biases results
                         #sn2001da-20010715.47-mmt.flm has a large wavelength range
+                        #sn2005m-20050131-hst.flm variance in database are all nan
+                        #SN05hc_051018_r01_NTT_EM.dat very noisy
+                        #SN06D_060116_r01_NTT_EM.dat not sure about this one but it causes problems
+                        #sn2005cf-20050607-hst.flm variance in database are all nan
+                        #sn2006d-20060116-snifs-b.dat not sure about this one but it cause problems
+                        #2003du_20030501_4066_11015_00.dat very large negative value
+                        #SN07A_070106_r01_NTT_EM.dat not sure about this one but it cause problems
+                        #sn2003Y-20030131.35-fast.flm variance in database are all nan
+                        #2002er_20020901_3213_9175_00.dat gap in spectrum
+                        #sn2007F-20070116.54-fast.flm variance in database are all nan
+                        #sn2005m-20050128-hst.flm variance in database are all nan
+                        #SN09ab_090214_r01_BAA_IM.dat not sure about this one but it cause problems
+
+
+
     reddened_spectra = ['sn2003cg-20030331.21-fast.flm', 'sn2002cd-2n0020419.48-fast.flm',
                         'sn1996ai-19960621.23-fast.flm', 'sn1997dt-19971204.11-fast.flm',
                         'sn2006br-20060427.33-fast.flm', 'sn2003W-20030209.35-fast.flm',
@@ -521,7 +544,7 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
                         'sn2005A-20050110.11-ldss2.flm', 'sn1995E-19950228.23-fast.flm',
                         'sn1999cl-19990614.18-fast.flm', 'sn2006X-20060221.40-fast.flm',
                         'sn1999gd-19991208.52-fast.flm', 'sn2003cg-20030401.22-fast.flm',
-                        'sn1996ai-19960620.15-mmt.flm',
+                        'sn1996ai-19960620.15-mmt.flm', 
 
                         #phase -15.0 to -12.0
                         # 'sn1995bd-19951223.34-fast.flm', 'sn2002bo-20020310.26-fast.flm',
@@ -557,8 +580,12 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
 
 
     for SN in SN_Array:
-        # print SN.resid
-        print SN.name, SN.filename
+        if True in np.isnan(SN.ivar):
+            print "FUCKIN NANS!!!!", SN.filename
+        print SN.name, SN.filename, np.average(SN.flux[SN.x1:SN.x2])
+        # if np.average(SN.flux[SN.x1:SN.x2]) > 1.e-13:
+            # SN.flux = 1.e-15*SN.flux
+        SN.flux = (1.e-15/np.average(SN.flux[SN.x1:SN.x2]))*SN.flux
         host_reddened = prep.ReadExtin('../data/info_files/ryan_av.txt')
         old_wave = SN.wavelength*u.Angstrom        # wavelengths
         old_flux = SN.flux*u.Unit('W m-2 angstrom-1 sr-1')
@@ -567,6 +594,7 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
         new_flux = test_dered.host_correction(host_reddened, SN.name, old_wave, old_flux)
         SN.flux = new_flux.value
         lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
+        
 
     temp = [SN for SN in SN_Array if len(SN.flux[np.where(SN.flux!=0)]) == max(lengths)]
     try:
@@ -618,6 +646,7 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
     (fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, dm15s, 
      flux_mask, ivar_mask, dm15_mask, red_mask) = mask(SN_Array, boot)
     
+
     for i in range(iters_comp):
         SN_Array, scales = optimize_scales(SN_Array, template, False)
         template = average(SN_Array, template, medmean, boot, fluxes, ivars, dm15_ivars, red_ivars, 

@@ -4,7 +4,7 @@ import msgpack_numpy as mn
 import numpy as np
 import magnitudes as mag
 
-con = sq3.connect('../data/SNe_8.db')
+con = sq3.connect('../data/SNe_9.db')
 cur = con.cursor()
 
 # np.set_printoptions(threshold=np.nan)
@@ -145,6 +145,7 @@ def grab_event_data(sql_input):
         if len(non_zero_data) > 0:
             SN.x1 = non_zero_data[0]
             SN.x2 = non_zero_data[-1]
+            SN.x2 += 1
         else:
             SN.x1 = 0
             SN.x2 = 0

@@ -14,7 +14,7 @@ def get_photometry(sn_name):
 		time_key = "time"
 
 		mag_key = "magnitude"
-		e_key = "e_magniude"
+		e_key = "e_magnitude"
 		e_low_key = "e_lower_magnitude"
 		e_up_key = "e_upper_magnitude"
 		zero_point_key = "zeropoint"
@@ -43,10 +43,11 @@ def get_photometry(sn_name):
 							#Each of the following fields is populated if the data exist (None if no data).
 							#currently: 0 - magnitude, 1 - error, 2 - lower error, 3 - upper error, 4 - zero point, 5 - photometric system,
 							#			6 - is upper limit, 7 - upper limit sigma, 8 - k corrected, 9 - host corrected, 10 - MW corrected
-							all_phot[band][1].append([phot.get(mag_key, None), phot.get(e_key, None), phot.get(e_low_key, None),
-													  phot.get(e_up_key, None), phot.get(zero_point_key, None), phot.get(sys_key, None),
-													  phot.get(upper_limit_key, None), phot.get(limit_sigma_key, None), phot.get(kcorr_key, None),
-													  phot.get(hcorr_key,None), phot.get(mcorr_key, None)])
+							# all_phot[band][1].append([phot.get(mag_key, None), phot.get(e_key, None), phot.get(e_low_key, None),
+							# 						  phot.get(e_up_key, None), phot.get(zero_point_key, None), phot.get(sys_key, None),
+							# 						  phot.get(upper_limit_key, None), phot.get(limit_sigma_key, None), phot.get(kcorr_key, None),
+							# 						  phot.get(hcorr_key,None), phot.get(mcorr_key, None)])
+							all_phot[band][1].append([phot.get(mag_key, None), phot])
 		if len(all_phot) == 0:
 			all_phot = None
 		return all_phot	

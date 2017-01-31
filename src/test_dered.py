@@ -39,24 +39,25 @@ def dered(sne, snname, wave, flux):
     corrected = False
     for j in range(len(sne)):  # go through list of SN parameters
         sn = sne[j][0]
-        if snname in sn or sn in snname and not corrected:  # SN with parameter matches the path
-            print 'Milky Way correction...'
-            b = sne[j][1].astype(float)
-            v = sne[j][2].astype(float)
-            bv = b-v
-#            print "B(%s)-V(%s)=%s"%(b,v,bv)
-#            print "R(v) =",r
-            #or use fm07 model
-            #test1 = spectra_data[i][:,1] * ex.reddening(spectra_data[i][:,0],ebv = bv, model='ccm89')
-            #test2 = spectra_data[i][:,1] * ex.reddening(spectra_data[i][:,0],ebv = bv, model='od94')
-            red = ex.reddening(wave, a_v=3.1*bv, r_v=3.1, model='f99')
-            flux *= red
-            corrected = True
-            # flux *= ex.reddening(wave, a_v=bv, r_v=3.1, model='f99')
-#            wave /= (1+z)
+        if snname in sn or sn in snname:  # SN with parameter matches the path
+            if not corrected:
+                print 'Milky Way correction...'
+                b = sne[j][1].astype(float)
+                v = sne[j][2].astype(float)
+                bv = b-v
+    #            print "B(%s)-V(%s)=%s"%(b,v,bv)
+    #            print "R(v) =",r
+                #or use fm07 model
+                #test1 = spectra_data[i][:,1] * ex.reddening(spectra_data[i][:,0],ebv = bv, model='ccm89')
+                #test2 = spectra_data[i][:,1] * ex.reddening(spectra_data[i][:,0],ebv = bv, model='od94')
+                red = ex.reddening(wave, a_v=3.1*bv, r_v=3.1, model='f99')
+                flux *= red
+                corrected = True
+                # flux *= ex.reddening(wave, a_v=bv, r_v=3.1, model='f99')
+    #            wave /= (1+z)
 
-            #print "de-reddened by host galaxy\n",flux*ex.reddening(wave,ebv = 0, r_v = r, model='f99')
-            #host *= ex.reddening(wave,ebv = bv, r_v = r, model='f99')
+                #print "de-reddened by host galaxy\n",flux*ex.reddening(wave,ebv = 0, r_v = r, model='f99')
+                #host *= ex.reddening(wave,ebv = bv, r_v = r, model='f99')
 
     return flux
 
@@ -64,12 +65,12 @@ def host_correction(sne, snname, wave, flux):
     corrected = False
     for j in range(len(sne)):  # go through list of SN parameters
         sn = sne[j][0]
-        if snname in sn or sn in snname and not corrected:  # SN with parameter matches the path
-            print 'Host correction...'
-            a_v = sne[j][2].astype(float)
-            flux *= ex.reddening(wave, a_v=a_v, r_v=3.1, model='f99')
-            print 'Done'
-            corrected = True
+        if snname in sn or sn in snname:  # SN with parameter matches the path
+            if not corrected:
+                print 'Host correction...'
+                a_v = sne[j][2].astype(float)
+                flux *= ex.reddening(wave, a_v=a_v, r_v=3.1, model='f99')
+                corrected = True
     return flux
 
 # fname = '..\data\spectra\cfa\sn2002cd\sn2002cd-20020419.48-fast.flm'

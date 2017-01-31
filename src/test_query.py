@@ -6,6 +6,7 @@ import magnitudes as mag
 import find_event_data as fed
 import magnitudes as mag
 import matplotlib.pyplot as plt
+import photometry as ph
 
 # np.set_printoptions(threshold=np.nan)
 
@@ -20,11 +21,29 @@ def specific_query(test_query):
 	SN_Array = fed.grab_event_data(query)
 	return SN_Array
 
-SN_Array = specific_query("where phase  between -1 and 1")
+# SN_Array = specific_query("where SN = '2002cx'")
+# phot = []
+# scales = []
+# print SN_Array[0].phot
+all_phot = ph.get_photometry('2002cx')
+print all_phot
+# for SN in SN_Array:
+# 	valid_bands = mag.valid_bands(SN)
+# 	scale, mags_from_phot = mag.scale_flux_to_photometry(SN, valid_bands)
+# 	scales.append(scale)
+# 	phot.append(mags_from_phot)
+# 	SN.flux *= scale
 
-for SN in SN_Array:
-	plt.plot(SN.wavelength, SN.flux)
-	plt.show()
+# for i in range(len(SN_Array)):
+# 	if phot[i] is not None and len(phot[i]) >= 2:
+# 		if 'R' in phot[i] and 'V' in phot[i] and phot[i]['R'] is not None and phot[i]['V'] is not None:
+# 			color_from_phot = phot[i]['V'] - phot[i]['R']
+# 			color_from_spec = mag.ab_mag(SN_Array[i], 'V') - mag.ab_mag(SN_Array[i], 'R')
+# 			print scales[i], color_from_spec, color_from_phot
+
+
+# valid_bands = mag.valid_bands(SN_Array[10])
+# mag.scale_flux_to_photometry(SN_Array[10], valid_bands)
 
 
 
