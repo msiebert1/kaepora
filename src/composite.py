@@ -50,7 +50,7 @@ class supernova(object):
 #con = sq3.connect('../data/SNe.db')
 # con = sq3.connect('../data/SNe_2.db')
 # con = sq3.connect('../data/SNe_3.db')
-con = sq3.connect('../data/SNe_9.db')
+con = sq3.connect('../data/SNe_11.db')
 cur = con.cursor()
 
 
@@ -206,7 +206,9 @@ def optimize_scales(SN_Array, template, initial):
     unique_arr = list(set(SN_Array))
     guess = 1.0
     for uSN in unique_arr:
-        guess = template.flux[2000]/uSN.flux[2000] #this is temporary it does not work for any spectrum 
+        # guess = 1.0
+        guess = np.average(template.flux[template.x1:template.x2])/np.average(uSN.flux[uSN.x1:uSN.x2])
+        # guess = template.flux[2000]/uSN.flux[2000] #this is temporary it does not work for any spectrum 
         if uSN.filename != template.filename:
             u = opt.minimize(sq_residuals, guess, args = (uSN, template, initial), 
                              method = 'Nelder-Mead').x
@@ -343,9 +345,17 @@ def average(SN_Array, template, medmean, boot, fluxes, ivars, dm15_ivars, red_iv
     """Modifies the template supernova to be the inverse variance weighted average
        of the scaled data. Returns the new template supernova. 
     """
+    temp_fluxes = []
     for i in range(len(SN_Array)):
         fluxes[i] = SN_Array[i].flux
-        ivars[i] = SN_Array[i].ivar            
+        ivars[i] = SN_Array[i].ivar
+        if medmean == 2:
+            fluxes[i][fluxes[i] == 0] = np.nan
+        # temp_fluxes.append(np.ma.masked_where(fluxes[i] == 0, fluxes[i]))    
+        # temp_fluxes.append(fluxes[i][fluxes[i] == 0] = np.nan) 
+    
+    # print temp_fluxes
+
     if medmean == 1: 
         template.flux  = np.average(fluxes, weights=ivars, axis=0)
         if not boot:
@@ -354,7 +364,9 @@ def average(SN_Array, template, medmean, boot, fluxes, ivars, dm15_ivars, red_iv
             template.dm15  = np.average(dm15s, weights=dm15_ivars, axis=0)
             template.red_array = np.average(np.array(reds), weights = red_ivars, axis=0)
     if medmean == 2:
-        template.flux  = np.median(fluxes, axis=0)
+        # template.flux  = np.median(fluxes, axis=0)
+        # template.flux  = np.ma.median(temp_fluxes, axis=0).filled(0)
+        template.flux = np.nanmedian(fluxes, axis=0)
         if not boot:
             template.phase_array   = np.median(ages, axis=0)
             template.vel   = np.median(vels, axis=0)
@@ -369,7 +381,7 @@ def average(SN_Array, template, medmean, boot, fluxes, ivars, dm15_ivars, red_iv
     return template
 
         
-def bootstrapping (SN_Array, samples, scales, og_template, iters):
+def bootstrapping (SN_Array, samples, scales, og_template, iters, medmean):
     """Creates a matrix of random sets of supernovae from the original sample 
        with the same size as the original sample. The number of samples is 
        defined by the user. Then creates and plots the composite spectrum for 
@@ -407,7 +419,7 @@ def bootstrapping (SN_Array, samples, scales, og_template, iters):
          flux_mask, ivar_mask, dm15_mask, red_mask) = mask(boot_arr[p], boot)
         for x in range(iters):
             SN_Array, scales = optimize_scales(boot_arr[p], boot_temp, False)
-            template = average(boot_arr[p], boot_temp, 1, boot, fluxes, ivars, dm15_ivars, red_ivars, 
+            template = average(boot_arr[p], boot_temp, medmean, boot, fluxes, ivars, dm15_ivars, red_ivars, 
                                reds, phases, ages, vels, dm15s, flux_mask, ivar_mask, dm15_mask, red_mask)
         boots.append(copy.copy(template))
 
@@ -484,7 +496,7 @@ def is_bad_data(SN, bad_files, reddened_spectra):
     return False
     
     
-def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
+def main(Full_query, showplot = 0, medmean = 2, opt = 'n', save_file = 'n'):
     """Main function. Finds supernovae that agree with user query, prompts user 
        on whether to bootstrap or just create a composite, then does so and stores 
        returns the relevant data for plotting in a table.
@@ -501,12 +513,35 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
                         'sn2006cj-20060523.33-fast.flm', 'sn1996ab-19960522.37-fast.flm', 
                         'sn1997bp-19970411.30-fast.flm', 'sn1995bd-19951225.27-fast.flm',
                         'sn1991t-19910418.flm', 'sn2005m-20050131-hst.flm',
-                        'SN05hc_051018_r01_NTT_EM.dat','SN06D_060116_r01_NTT_EM.dat',
-                        'sn2005cf-20050607-hst.flm', 'sn2006d-20060116-snifs-b.dat',
-                        '2003du_20030501_4066_11015_00.dat', 'SN07A_070106_r01_NTT_EM.dat',
+                        'SN05hc_051018_r01_NTT_EM.dat','sn2007al-20070314.26-fast.flm',
+                        'sn2005cf-20050607-hst.flm', '2002bo_20020323_3356_10385_00.dat',
+                        '2003du_20030501_4066_11015_00.dat', 'sn2004dt-20040823-hst.flm',
                         'sn2003Y-20030131.35-fast.flm', '2002er_20020901_3213_9175_00.dat',
                         'sn2007F-20070116.54-fast.flm', 'sn2005m-20050128-hst.flm',
-                        'SN09ab_090214_r01_BAA_IM.dat'] 
+                        'sn2002hw-20021114.10-fast.flm', '2003du_20030503_4070_10994_00.dat',
+                        'sn2004gs-20050106.40-fast.flm', 'sn2006te-20070109.49-fast.flm',
+                        'sn2006cf-20060522.26-fast.flm', 'sn2006bq-20060427.35-fast.flm',
+                        'sn2005M-20050209.33-fast.flm', 'sn2004dt-20040908.49-fast.flm',
+                        'sn2002fb-20020929.42-fast.flm', 'sn2001E-20010124.48-fast.flm',
+                        '2003du_20030512_4070_11015_00.dat', 'sn2006nz-20061124-ntt.dat',
+                        'sn2007kk-20071015.32-fast.flm', 'sn2004ef-20040922.22-fast.flm',
+                        'sn1996bo-19961107.15-fast.flm', 'sn2001eh-20010925.757-hst.flm',
+                        'sn2006cj-20060601.28-fast.flm', 'sn2003hu-20030928.12-fast.flm',
+                        'sn2001ep-20011028.024-hst.flm', 'sn2006ac-20060226.34-fast.flm',
+                        'sn2005mz-20060123.15-fast.flm', 'sn2000fa-20001225.42-fast.flm',
+                        'sn2002kf-20030113.31-fast.flm', 'sn2001ep-20011102.871-hst.flm',
+                        'sn2006H-20060203.12-fast.flm', 'sn2007ci-20070614.18-fast.flm',
+                        'sn2005cc-20050617.18-fast.flm', 'sn2002do-20020710.33-fast.flm',
+                        'sn2008ha-20081205-ui.flm', 'sn2005na-20060130.24-fast.flm',
+                        'sn2005cc-20050628.25-fast.flm', 'sn2003it-20031123.14-fast.flm',
+                        'sn2003ch-20030428.15-fast.flm', 'sn2007if-20071010.31-fast.flm',
+                        'sn2008A-20080226.14-fast.flm', 'sn2005cc-20050709.21-fast.flm',
+                        'sn1995ak-19951222.23-fast.flm', 'sn2007F-20070309.39-fast.flm',
+                        'sn2007bj-20070609.28-fast.flm', 'sn2005M-20050409.19-fast.flm',
+                        'sn1994D-19940602.18-fast.flm', 'sn2008C-20080402.14-mmt.flm', 
+                        'sn2007F-20070415.31-fast.flm', 'sn2003kf-20040318.12-fast.flm',
+                        'sn2004dt-20041212.18-fast.flm', 'sn2004dt-20040820-hst.flm',
+                        'sn2008ae-20080214.32-fast.flm', 'sn2004ef-20040918-hst.flm'] 
                         #sn1991t-19910418.flm no si feature
                         #sn1996ab-19960522.37-fast.flm  has large negative values
                         #sn2004ef-20040915.30-fast.flm variance in database are all nan
@@ -517,16 +552,63 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
                         #sn2001da-20010715.47-mmt.flm has a large wavelength range
                         #sn2005m-20050131-hst.flm variance in database are all nan
                         #SN05hc_051018_r01_NTT_EM.dat very noisy
-                        #SN06D_060116_r01_NTT_EM.dat not sure about this one but it causes problems
+                        #sn2007al-20070314.26-fast.flm variance in database are all nan
                         #sn2005cf-20050607-hst.flm variance in database are all nan
-                        #sn2006d-20060116-snifs-b.dat not sure about this one but it cause problems
+                        #2002bo_20020323_3356_10385_00.dat variance in database are all nan
                         #2003du_20030501_4066_11015_00.dat very large negative value
-                        #SN07A_070106_r01_NTT_EM.dat not sure about this one but it cause problems
+                        #sn2004dt-20040823-hst.flm variance in database are all nan
                         #sn2003Y-20030131.35-fast.flm variance in database are all nan
                         #2002er_20020901_3213_9175_00.dat gap in spectrum
                         #sn2007F-20070116.54-fast.flm variance in database are all nan
                         #sn2005m-20050128-hst.flm variance in database are all nan
-                        #SN09ab_090214_r01_BAA_IM.dat not sure about this one but it cause problems
+                        #sn2002hw-20021114.10-fast.flm variance in database are all nan
+                        #2003du_20030503_4070_10994_00.dat very strong emission line?
+                        #sn2004gs-20050106.40-fast.flm variance in database are all nan
+                        #sn2006te-20070109.49-fast.flm variance in database are all nan
+                        #sn2006cf-20060522.26-fast.flm variance in database are all nan
+                        #sn2006bq-20060427.35-fast.flm variance in database are all nan
+                        #sn2005M-20050209.33-fast.flm variance in database are all nan
+                        #sn2004dt-20040908.49-fast.flm variance in database are all nan
+                        #sn2002fb-20020929.42-fast.flm variance in database are all nan
+                        #sn2001E-20010124.48-fast.flm variance in database are all nan
+                        #2003du_20030512_4070_11015_00.dat very negative values
+                        #sn2006nz-20061124-ntt.dat very negative values
+                        #sn2007kk-20071015.32-fast.flm variance in database are all nan
+                        #sn2004ef-20040922.22-fast.flm variance in database are all nan
+                        #sn1996bo-19961107.15-fast.flm variance in database are all nan
+                        #sn2001eh-20010925.757-hst.flm causes problem not sure why
+                        #sn2006cj-20060601.28-fast.flm variance in database are all nan
+                        #sn2003hu-20030928.12-fast.flm variance in database are all nan
+                        #sn2006ac-20060226.34-fast.flm variance in database are all nan
+                        #sn2005mz-20060123.15-fast.flm variance in database are all nan
+                        #sn2000fa-20001225.42-fast.flm variance in database are all nan
+                        #sn2002kf-20030113.31-fast.flm variance in database are all nan
+                        #sn2001ep-20011102.871-hst.flm causes problem not sure why
+                        #sn2006H-20060203.12-fast.flm variance in database are all nan
+                        #sn2007ci-20070614.18-fast.flm variance in database are all nan
+                        #sn2005cc-20050617.18-fast.flm variance in database are all nan
+                        #sn2002do-20020710.33-fast.flm variance in database are all nan
+                        #sn2008ha-20081205-ui.flm variance in database are all nan
+                        #sn2005na-20060130.24-fast.flm variance in database are all nan
+                        #sn2005cc-20050628.25-fast.flm variance in database are all nan
+                        #sn2003it-20031123.14-fast.flux_mask variance in database are all nan
+                        #sn2003ch-20030428.15-fast.flm variance in database are all nan
+                        #sn2007if-20071010.31-fast.flm variance in database are all nan
+                        #sn2008A-20080226.14-fast.flm variance in database are all nan
+                        #sn2005cc-20050709.21-fast.flm variance in database are all nan
+                        #sn1995ak-19951222.23-fast.flm variance in database are all nan
+                        #sn2007F-20070309.39-fast.flm variance in database are all nan
+                        #sn2007bj-20070609.28-fast.flm variance in database are all nan
+                        #sn2005M-20050409.19-fast.flm variance in database are all nan
+                        #sn1994D-19940602.18-fast.flm variance in database are all nan
+                        #sn2008C-20080402.14-mmt.flm variance in database are all nan
+                        #sn2007F-20070415.31-fast.flm variance in database are all nan
+                        #sn2003kf-20040318.12-fast.flm variance in database are all nan
+                        #sn2004dt-20041212.18-fast.flm variance in database are all nan
+                        #sn2004dt-20040820-hst.flm variance in database are all nan
+                        #sn2008ae-20080214.32-fast.flm variance in database are all nan
+
+
 
 
 
@@ -580,9 +662,11 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
 
 
     for SN in SN_Array:
+        # if SN.wavelength[SN.x1] > 3400 and SN.wavelength[SN.x1] < 3500:
+        #     print SN.filename, 'here'
         if True in np.isnan(SN.ivar):
-            print "FUCKIN NANS!!!!", SN.filename
-        print SN.name, SN.filename, np.average(SN.flux[SN.x1:SN.x2])
+            print "NANS!!!!                 ", SN.filename
+        # print SN.name, SN.filename, SN.resid
         # if np.average(SN.flux[SN.x1:SN.x2]) > 1.e-13:
             # SN.flux = 1.e-15*SN.flux
         SN.flux = (1.e-15/np.average(SN.flux[SN.x1:SN.x2]))*SN.flux
@@ -642,7 +726,7 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
         
     bootstrap = raw_input("Bootstrap? (y/n): ")
     print "Creating composite..."
-    optimize_scales(SN_Array, template, True)
+    test1, test2 = optimize_scales(SN_Array, template, True)
     (fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, dm15s, 
      flux_mask, ivar_mask, dm15_mask, red_mask) = mask(SN_Array, boot)
     
@@ -667,7 +751,7 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
         scales  = []
         print "Bootstrapping"
         samples = int (raw_input("# of samples:"))
-        low_conf, up_conf = bootstrapping(SN_Array, samples, scales, template, iters)
+        low_conf, up_conf = bootstrapping(SN_Array, samples, scales, template, iters, medmean)
     
     table = Table([template.wavelength, template.flux, template.ivar, template.phase_array, 
                    template.vel, template.dm15, template.red_array, low_conf, up_conf, spec_bin], 

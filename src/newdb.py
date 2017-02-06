@@ -211,7 +211,7 @@ def build_residual_dict():
     """
     Builds a dictionary of the form {sn_name: hubble_residual }
     """
-    with open('../data/info_files/ryan_av.txt') as f:
+    with open('../data/info_files/ryan_res.txt') as f:
         txt = f.readlines()
         clean = [x.strip() for x in txt]
         residual_dict = {}
@@ -265,7 +265,7 @@ residual_dict = build_residual_dict()
 ts = time.clock()
 
 #con = sq3.connect('SNe.db')
-con = sq3.connect('SNe_9.db')
+con = sq3.connect('SNe_11.db')
 
 #make sure no prior table in db to avoid doubling/multiple copies of same data
 
@@ -563,6 +563,8 @@ for path, subdirs, files in os.walk(root):
                 hubble_residual = residual_dict[sn_name]
             else:
                 hubble_residual = None
+
+            print hubble_residual
 
             #add redshift to redshift dictionary if not already present
             if name not in rsd and redshift is not None:

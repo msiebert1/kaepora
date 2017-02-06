@@ -401,10 +401,11 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
         plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
         plt.ylabel('Relative, f$_{\lambda}$', fontdict = font)
         plt.title('Stacked Figures', fontdict = font)  
+        labels = ['+10 - +12 days', '', '+4 - +6 days', '', '-1 - +1 days', '', '-6 - -4 days', '', '-12 - 10 days', '']
         for m in range(len_RF):
             if m % 2 == 0:
                 good = np.where(VA[m+1] != 0)
-                plt.plot(RF[m][good], RF[m+1][good] + (m+1)*buff)
+                plt.plot(RF[m][good], RF[m+1][good] + (m+1)*buff, label = labels[m])
                 if m == 0:
                     plt.fill_between(LC[m][good], LC[m+1][good] + (m+1)*buff, UC[m+1][good] + (m+1)*buff, color = 'c', alpha = 0.5)
                 else:
@@ -413,6 +414,7 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
                 #plt.annotate(str(Names[m+1]), xy = (max(RF[0]), max(RF[1][m+1])+(m+1)*(1+buff)), xytext = (-10, 0), textcoords = 'offset points', fontsize = 8, family  = 'serif', weight = 'bold', ha = 'right')
         #plt.xlim(xmin, xmax) 
         plt.minorticks_on()
+        plt.legend()
         plt.show(block = False)
 #        plt.savefig(image_title[:-4] +'_stack.png', dpi = 100, facecolor='w', edgecolor='w', pad_inches = 0.1)
     

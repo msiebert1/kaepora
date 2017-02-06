@@ -39,7 +39,7 @@ def dered(sne, snname, wave, flux):
     corrected = False
     for j in range(len(sne)):  # go through list of SN parameters
         sn = sne[j][0]
-        if snname in sn or sn in snname:  # SN with parameter matches the path
+        if snname.lower() == sn.lower()[2:]:  # SN with parameter matches the path
             if not corrected:
                 print 'Milky Way correction...'
                 b = sne[j][1].astype(float)
@@ -65,7 +65,7 @@ def host_correction(sne, snname, wave, flux):
     corrected = False
     for j in range(len(sne)):  # go through list of SN parameters
         sn = sne[j][0]
-        if snname in sn or sn in snname:  # SN with parameter matches the path
+        if snname.lower() == sn.lower():  # SN with parameter matches the path
             if not corrected:
                 print 'Host correction...'
                 a_v = sne[j][2].astype(float)

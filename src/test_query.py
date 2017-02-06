@@ -21,12 +21,23 @@ def specific_query(test_query):
 	SN_Array = fed.grab_event_data(query)
 	return SN_Array
 
-# SN_Array = specific_query("where SN = '2002cx'")
+files = ["'SN08bf_080328_b01_NTT_EM.dat'", "'SN05ke_051123_b01_DUP_MS.dat'"]
+f_string = "("
+for f in files:
+	f_string = f_string + f + ','
+f_string = f_string[0:-1] + ")"
+
+print f_string
+SN_Array = specific_query("where filename in "+ f_string)
+# SN_Array = specific_query("where phase between -1 and -.5")
+for SN in SN_Array:
+	print SN.filename
+	
+# plt.show()
+
 # phot = []
 # scales = []
 # print SN_Array[0].phot
-all_phot = ph.get_photometry('2002cx')
-print all_phot
 # for SN in SN_Array:
 # 	valid_bands = mag.valid_bands(SN)
 # 	scale, mags_from_phot = mag.scale_flux_to_photometry(SN, valid_bands)
