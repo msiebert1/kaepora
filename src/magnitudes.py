@@ -13,11 +13,11 @@ def ab_mag(SN, filt):
 
 def valid_bands(SN):
 	valid_bands = []
-	band_waves = {"U": [3000.,4500.], 
-				  "B": [3500.,5800.], 
-				  "V": [4500.,7000.], 
-				  "R": [5400.,9000.], 
-				  "I": [7000.,9500.]}
+	band_waves = {"U": [3000.,4200.], 
+				  "B": [3600.,5600.], 
+				  "V": [4700.,7000.], 
+				  "R": [5500.,9000.], 
+				  "I": [7000.,9200.]}
 	min_wave = SN.wavelength[SN.x1]
 	max_wave = SN.wavelength[SN.x2]
 
@@ -38,6 +38,11 @@ def interp_LC(phot):
 			mags.append(float(pt[0]))
 
 		lc = interp1d(times, mags, bounds_error = True)
+		t = np.linspace(times[0], times[-1], num = 1000)
+		m = lc(t)
+		plt.plot(t,m)
+		plt.gca().invert_yaxis()
+		plt.show()
 		return lc
 	else:
 		return None
@@ -81,7 +86,7 @@ def scale_flux_to_photometry(SN, valid_bands):
 		scale = opt.minimize(total_phot_offset, guess, args = (SN, filts, mags_from_phot)).x
 		scale = scale[0]
 		final = filts[valid_bands[0]].get_ab_magnitude(scale*SN.flux, SN.wavelength)
-		# print scale, final, mags_from_phot #for testing output
+		print scale, final, mags_from_phot #for testing output
 	else:
 		scale = 1.
 		mags_from_phot = None

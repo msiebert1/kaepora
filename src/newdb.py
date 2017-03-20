@@ -265,7 +265,8 @@ residual_dict = build_residual_dict()
 ts = time.clock()
 
 #con = sq3.connect('SNe.db')
-con = sq3.connect('SNe_11.db')
+# con = sq3.connect('SNe_11.db')
+con = sq3.connect('SNe_12.db')
 
 #make sure no prior table in db to avoid doubling/multiple copies of same data
 

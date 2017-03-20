@@ -6,7 +6,7 @@ import math
 from pylab import *
 import matplotlib.gridspec as gridspec
 #from matplotlib.figure import Figure
-import scipy.optimize as optimize
+import scipy.optimize as opt
 import random # new import so that colors in fill_between are random
 import operator
 # Eventually do scaling by choice
@@ -118,7 +118,6 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
         uc = Show_Data[:][8][i].T
         UC.append(uc)
     
-    print len(LC)
     """    
     def remove_zero(data):
         delete = []
@@ -401,11 +400,12 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
         plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
         plt.ylabel('Relative, f$_{\lambda}$', fontdict = font)
         plt.title('Stacked Figures', fontdict = font)  
-        labels = ['+10 - +12 days', '', '+4 - +6 days', '', '-1 - +1 days', '', '-6 - -4 days', '', '-12 - 10 days', '']
+        # labels = ['+10 - +12 days', '', '+4 - +6 days', '', '-1 - +1 days', '', '-6 - -4 days', '', '-12 - 10 days', '']
         for m in range(len_RF):
             if m % 2 == 0:
                 good = np.where(VA[m+1] != 0)
-                plt.plot(RF[m][good], RF[m+1][good] + (m+1)*buff, label = labels[m])
+                # plt.plot(RF[m][good], RF[m+1][good] + (m+1)*buff, label = labels[m])
+                plt.plot(RF[m][good], RF[m+1][good] + (m+1)*buff)
                 if m == 0:
                     plt.fill_between(LC[m][good], LC[m+1][good] + (m+1)*buff, UC[m+1][good] + (m+1)*buff, color = 'c', alpha = 0.5)
                 else:
@@ -414,7 +414,7 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
                 #plt.annotate(str(Names[m+1]), xy = (max(RF[0]), max(RF[1][m+1])+(m+1)*(1+buff)), xytext = (-10, 0), textcoords = 'offset points', fontsize = 8, family  = 'serif', weight = 'bold', ha = 'right')
         #plt.xlim(xmin, xmax) 
         plt.minorticks_on()
-        plt.legend()
+        # plt.legend()
         plt.show(block = False)
 #        plt.savefig(image_title[:-4] +'_stack.png', dpi = 100, facecolor='w', edgecolor='w', pad_inches = 0.1)
     
@@ -458,6 +458,26 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
         plt.savefig('multi-spectrum plot.png', dpi = 100, facecolor='w', edgecolor='w', pad_inches = 0.1)
         """
 
+    def scale_composites_in_range(data, pos1, pos2):
+        scales = []
+        template = data[1]
+        for i in range(len(data)):
+            if i % 2 != 0:
+                guess = np.average(template[pos1:pos2])/np.average(data[i][pos1:pos2])
+                s = opt.minimize(sq_residuals_in_range, guess, args = (data[i], template, pos1, pos2), 
+                             method = 'Nelder-Mead').x
+                scales.append(s)
+            else:
+                scales.append(None)
+        return scales
+
+    def sq_residuals_in_range(s, flux, comp, pos1, pos2):
+        flux = s*flux
+        res = flux[pos1:pos2] - comp[pos1:pos2]
+        sq_res = res*res
+        return np.sum(sq_res)
+
+
 #############################################################
 ########################      End of function section
 ########################              :)   
@@ -466,21 +486,73 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
 # What does this section do? I was having problems with it
 # so I've temporarily commented it out. 
 #############################################################
+    min_wave = 3000.
+    max_wave = 10000.
+
+    # non_zero_data = np.where(RF[1] != 0)
+    # non_zero_data = np.array(non_zero_data[0])
+    # if len(non_zero_data) > 0:
+    #     x1 = non_zero_data[0]
+    #     x2 = non_zero_data[-1]
+    #     x2 += 1
+
+    scale_data_min = np.where(RF[0] > min_wave)
+    scale_data_min = np.array(scale_data_min[0])
+    scale_data_max = np.where(RF[0] < max_wave)
+    scale_data_max = np.array(scale_data_max[0])
+    x1 = scale_data_min[0]
+    x2 = scale_data_max[-1]
+    x2 += 1
+
+    # x1s = []
+    # x2s = []
+    # for i in range(len_RF):
+    #     if i % 2 != 0:
+    #         non_zero_data = np.where(RF[i] > 0.)
+    #         non_zero_data = np.array(non_zero_data[0])
+    #         x1s.append(non_zero_data[0])
+    #         x2s.append(non_zero_data[-1])
+
+    # x1 = np.amax(x1s)
+    # x2 = np.amin(x2s)
+
+
+    # x1s = []
+    # x2s = []
+    # for i in range(len_RF):
+    #     if i % 2 != 0:
+    #         enough_spec = np.where(SB[i] >= 5.)
+    #         enough_spec = np.array(enough_spec[0])
+    #         x1s.append(enough_spec[0])
+    #         x2s.append(enough_spec[-1])
     
+    # x1 = np.amax(x1s)
+    # x2 = np.amin(x2s)
+
+    scales = scale_composites_in_range(RF, x1, x2)
     for j in range(len_RF):
         if j % 2 != 0:
-            #print median(RF[j])
-            #print median(RF[j-1])
-            RFtrunc = []
-            for i in range(len(RF[j-1])):
-#                if (RF[j-1][i] >= 4500) & (RF[j-1][i] <= 7000):
-                if RF[j][i] != 0.0:
-                    #print RF[j-1][i]
-                    #print RF[j][i]
-                    RFtrunc.append(RF[j][i])
-            RF[j] = Scaling(RF[j], median(RFtrunc))
-            LC[j] = Scaling(LC[j], median(RFtrunc))
-            UC[j] = Scaling(UC[j], median(RFtrunc))
+            RF[j] = RF[j]*scales[j]
+            LC[j] = LC[j]*scales[j]
+            UC[j] = UC[j]*scales[j]
+            VA[j] = VA[j]*scales[j]*scales[j]
+
+
+#     for j in range(len_RF):
+#         if j % 2 != 0:
+#             #print median(RF[j])
+#             #print median(RF[j-1])
+#             RFtrunc = []
+#             for i in range(len(RF[j-1])):
+# #                if (RF[j-1][i] >= 4500) & (RF[j-1][i] <= 7000):
+#                 if RF[j][i] != 0.0:
+#                     #print RF[j-1][i]
+#                     #print RF[j][i]
+#                     RFtrunc.append(RF[j][i])
+
+#             RF[j] = Scaling(RF[j], median(RFtrunc))
+#             LC[j] = Scaling(LC[j], median(RFtrunc))
+#             UC[j] = Scaling(UC[j], median(RFtrunc))
     
     
     #Not implemented until it can be fully tested
@@ -594,8 +666,9 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
         p = p+1
     plt.xlim(xmin, xmax)     
     plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
-#    plt.savefig(image_title, dpi = 600, facecolor='w', edgecolor='w', pad_inches = 0.1)
+    # plt.savefig('carbon_comparison.png', dpi = 600, facecolor='w', edgecolor='w', pad_inches = 0.1)
     plt.show()
+
     # Initiates stacked plot
     if 7 in Plots:        
         Stacked(RF)

@@ -61,17 +61,20 @@ def dered(sne, snname, wave, flux):
 
     return flux
 
-def host_correction(sne, snname, wave, flux):
+def host_correction(sne, snname, wave, flux, ivar):
     corrected = False
     for j in range(len(sne)):  # go through list of SN parameters
         sn = sne[j][0]
         if snname.lower() == sn.lower():  # SN with parameter matches the path
+            a_v = sne[j][2].astype(float)
             if not corrected:
                 print 'Host correction...'
                 a_v = sne[j][2].astype(float)
-                flux *= ex.reddening(wave, a_v=a_v, r_v=3.1, model='f99')
+                red = ex.reddening(wave, a_v=a_v, r_v=3.1, model='f99')
+                flux *= red
+                ivar *= 1./(red**2.) #correct ivar too
                 corrected = True
-    return flux
+    return flux, ivar, corrected
 
 # fname = '..\data\spectra\cfa\sn2002cd\sn2002cd-20020419.48-fast.flm'
 # spectrum  = np.loadtxt(fname)

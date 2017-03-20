@@ -50,7 +50,7 @@ class supernova(object):
 #con = sq3.connect('../data/SNe.db')
 # con = sq3.connect('../data/SNe_2.db')
 # con = sq3.connect('../data/SNe_3.db')
-con = sq3.connect('../data/SNe_11.db')
+con = sq3.connect('../data/SNe_12.db')
 cur = con.cursor()
 
 
@@ -115,11 +115,25 @@ def grab(sql_input):
                 for SN in SN_Array:
                     if SN.name == unique_events[i]:
                         events.append(SN)
-                min_phase = events[0]
+
+                # min_phase = events[0]
+                # for e in events:
+                #     if abs(e.phase) < abs(min_phase.phase):
+                #         min_phase = e
+                # new_SN_Array.append(min_phase)
+
+                # min_snr = events[0]
+                # for e in events:
+                #     if abs(e.SNR) > abs(min_snr.SNR):
+                #         min_snr = e
+                # new_SN_Array.append(min_snr)
+
+                max_range = events[0]
                 for e in events:
-                    if abs(e.phase) < abs(min_phase.phase):
-                        min_phase = e
-                new_SN_Array.append(min_phase)
+                    if (e.maxwave - e.minwave) > (max_range.maxwave - max_range.minwave):
+                        max_range = e
+                new_SN_Array.append(max_range)
+
             SN_Array = new_SN_Array
 
     print len(SN_Array), "spectra found"
@@ -243,7 +257,7 @@ def sq_residuals(s,SN,comp, initial):
         pos2 = SN.x2
     else: 
         #residual of first index will always be zero (won't be scaled)
-        print "no overlap"
+        # print "no overlap"
         pos1 = 0
         pos2 = 0
     temp_flux = s*SN.flux
@@ -351,6 +365,11 @@ def average(SN_Array, template, medmean, boot, fluxes, ivars, dm15_ivars, red_iv
         ivars[i] = SN_Array[i].ivar
         if medmean == 2:
             fluxes[i][fluxes[i] == 0] = np.nan
+            if not boot:
+                ages[i][ages[i] == 0] = np.nan
+                vels[i][vels[i] == 0] = np.nan
+                dm15s[i][dm15s[i] == 0] = np.nan
+                reds[i][reds[i] == 0] = np.nan
         # temp_fluxes.append(np.ma.masked_where(fluxes[i] == 0, fluxes[i]))    
         # temp_fluxes.append(fluxes[i][fluxes[i] == 0] = np.nan) 
     
@@ -368,14 +387,14 @@ def average(SN_Array, template, medmean, boot, fluxes, ivars, dm15_ivars, red_iv
         # template.flux  = np.ma.median(temp_fluxes, axis=0).filled(0)
         template.flux = np.nanmedian(fluxes, axis=0)
         if not boot:
-            template.phase_array   = np.median(ages, axis=0)
-            template.vel   = np.median(vels, axis=0)
-            template.dm15  = np.median(dm15s, axis=0)
-            template.red_array = np.median(reds, axis=0)
+            template.phase_array   = np.nanmedian(ages, axis=0)
+            template.vel   = np.nanmedian(vels, axis=0)
+            template.dm15  = np.nanmedian(dm15s, axis=0)
+            template.red_array = np.nanmedian(reds, axis=0)
     
     #finds and stores the variance data of the template
     no_data   = np.where(np.sum(ivars, axis = 0)==0)
-    template.ivar = 1/np.sum(ivars, axis=0) #change to variance
+    template.ivar = np.sum(ivars, axis=0)
     template.ivar[no_data] = 0
     template.name = "Composite Spectrum"
     return template
@@ -423,9 +442,11 @@ def bootstrapping (SN_Array, samples, scales, og_template, iters, medmean):
                                reds, phases, ages, vels, dm15s, flux_mask, ivar_mask, dm15_mask, red_mask)
         boots.append(copy.copy(template))
 
-    
     print "scaling boots..."
-    optimize_scales(boots, og_template, False)
+    temp1, scales = optimize_scales(boots, og_template, True)
+    if medmean == 1:
+        optimize_scales(boots, og_template, False)
+
     print "plotting..."
     for SN in boots:
         plt.plot(SN.wavelength, SN.flux, 'g')
@@ -484,19 +505,45 @@ def bootstrapping (SN_Array, samples, scales, og_template, iters, medmean):
     
     return low_arr, up_arr        
     
-def is_bad_data(SN, bad_files, reddened_spectra):
+def is_bad_data(SN, bad_files, bad_ivars):
     for el in bad_files:
         if SN.filename == el:
             print 'bad file removed'
             return True
-    for el in reddened_spectra:
+    for el in bad_ivars:
         if SN.filename == el:
-            print 'reddened spectrum removed'
             return True
     return False
+
+def remove_peculiars(SN_Array, file):
+    SN_Array_no_pecs = []
+    with open(file) as f:
+        names = f.readlines()
+        for SN in SN_Array:
+            if SN.name not in names:
+                SN_Array_no_pecs.append(SN)
+
+    return SN_Array_no_pecs
+
+def split_list(n):
+    """will return the list index"""
+    return [(x+1) for x,y in zip(n, n[1:]) if y-x != 1]
+
+def get_sub_list(my_list):
+    """will split the list base on the index"""
+    my_index = split_list(my_list)
+    output = list()
+    prev = 0
+    for index in my_index:
+        new_list = [ x for x in my_list[prev:] if x < index]
+        output.append(new_list)
+        prev += len(new_list)
+    output.append([ x for x in my_list[prev:]])
+    return output
+
     
     
-def main(Full_query, showplot = 0, medmean = 2, opt = 'n', save_file = 'n'):
+def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
     """Main function. Finds supernovae that agree with user query, prompts user 
        on whether to bootstrap or just create a composite, then does so and stores 
        returns the relevant data for plotting in a table.
@@ -509,176 +556,167 @@ def main(Full_query, showplot = 0, medmean = 2, opt = 'n', save_file = 'n'):
 
     #finds the longest SN we have for our initial template
     lengths = []
-    bad_files =        ['sn2004ef-20040915.30-fast.flm', 'sn1994T-19940611.21-fast.flm',
-                        'sn2006cj-20060523.33-fast.flm', 'sn1996ab-19960522.37-fast.flm', 
-                        'sn1997bp-19970411.30-fast.flm', 'sn1995bd-19951225.27-fast.flm',
-                        'sn1991t-19910418.flm', 'sn2005m-20050131-hst.flm',
-                        'SN05hc_051018_r01_NTT_EM.dat','sn2007al-20070314.26-fast.flm',
-                        'sn2005cf-20050607-hst.flm', '2002bo_20020323_3356_10385_00.dat',
-                        '2003du_20030501_4066_11015_00.dat', 'sn2004dt-20040823-hst.flm',
-                        'sn2003Y-20030131.35-fast.flm', '2002er_20020901_3213_9175_00.dat',
-                        'sn2007F-20070116.54-fast.flm', 'sn2005m-20050128-hst.flm',
-                        'sn2002hw-20021114.10-fast.flm', '2003du_20030503_4070_10994_00.dat',
-                        'sn2004gs-20050106.40-fast.flm', 'sn2006te-20070109.49-fast.flm',
-                        'sn2006cf-20060522.26-fast.flm', 'sn2006bq-20060427.35-fast.flm',
-                        'sn2005M-20050209.33-fast.flm', 'sn2004dt-20040908.49-fast.flm',
-                        'sn2002fb-20020929.42-fast.flm', 'sn2001E-20010124.48-fast.flm',
+    bad_files =        ['SN05hc_051018_r01_NTT_EM.dat', '2003du_20030501_4066_11015_00.dat',
+                        '2002er_20020901_3213_9175_00.dat', '2003du_20030503_4070_10994_00.dat',
                         '2003du_20030512_4070_11015_00.dat', 'sn2006nz-20061124-ntt.dat',
-                        'sn2007kk-20071015.32-fast.flm', 'sn2004ef-20040922.22-fast.flm',
-                        'sn1996bo-19961107.15-fast.flm', 'sn2001eh-20010925.757-hst.flm',
-                        'sn2006cj-20060601.28-fast.flm', 'sn2003hu-20030928.12-fast.flm',
-                        'sn2001ep-20011028.024-hst.flm', 'sn2006ac-20060226.34-fast.flm',
-                        'sn2005mz-20060123.15-fast.flm', 'sn2000fa-20001225.42-fast.flm',
-                        'sn2002kf-20030113.31-fast.flm', 'sn2001ep-20011102.871-hst.flm',
-                        'sn2006H-20060203.12-fast.flm', 'sn2007ci-20070614.18-fast.flm',
-                        'sn2005cc-20050617.18-fast.flm', 'sn2002do-20020710.33-fast.flm',
-                        'sn2008ha-20081205-ui.flm', 'sn2005na-20060130.24-fast.flm',
-                        'sn2005cc-20050628.25-fast.flm', 'sn2003it-20031123.14-fast.flm',
-                        'sn2003ch-20030428.15-fast.flm', 'sn2007if-20071010.31-fast.flm',
-                        'sn2008A-20080226.14-fast.flm', 'sn2005cc-20050709.21-fast.flm',
-                        'sn1995ak-19951222.23-fast.flm', 'sn2007F-20070309.39-fast.flm',
-                        'sn2007bj-20070609.28-fast.flm', 'sn2005M-20050409.19-fast.flm',
-                        'sn1994D-19940602.18-fast.flm', 'sn2008C-20080402.14-mmt.flm', 
-                        'sn2007F-20070415.31-fast.flm', 'sn2003kf-20040318.12-fast.flm',
-                        'sn2004dt-20041212.18-fast.flm', 'sn2004dt-20040820-hst.flm',
-                        'sn2008ae-20080214.32-fast.flm', 'sn2004ef-20040918-hst.flm'] 
-                        #sn1991t-19910418.flm no si feature
-                        #sn1996ab-19960522.37-fast.flm  has large negative values
-                        #sn2004ef-20040915.30-fast.flm variance in database are all nan
-                        #sn2006cj-20060523.33-fast.flm variance in database are all nan
-                        #sn1995bd-19951225.27-fast.flm variance in database are all nan
-                        #sn1997bp-19970411.30-fast.flm whole spectrum clearly shifted bluer
-                        #sn2007af-20070314.44-fast.flm has very low variance which strongly biases results
-                        #sn2001da-20010715.47-mmt.flm has a large wavelength range
-                        #sn2005m-20050131-hst.flm variance in database are all nan
+                        'sn2001eh-20010925.757-hst.flm', 'sn2001ep-20011102.871-hst.flm',
+                        '2005cf_20050601_3243_9720_00.dat', 'sn2006cm-20060529.46-fast.flm',
+                        '2002bo_20020321_3357_7725_00.dat', 'sn1994S-19940612.26-mmt.flm',
+                        'sn2003cg-20030329.27-mmt.flm', 'sn1995ac-19950929.27-fast.flm',
+                        'sn2007hj-20070903.28-fast.flm', '2000E_20000131_3274_7349_00.dat',
+                        'sn2006cj-20060521.29-fast.flm', 'sn2006oa-20061125.08-fast.flm',
+                        'sn2005cf-20050609.5-uvot-clip.flm', 'sn2006kf-20061030.385-ui.flm',
+                        'SN07bd_070412_b01_DUP_WF.dat', 'SN09ad_090223_b01_DUP_WF.dat',
+                        'SN05kc_051124_b01_DUP_MS.dat', 'sn2005eq-20051011.376-ui-corrected.flm',
+                        'sn2006et-20060919.345-ui.flm', 'sn2007cq-20070623.431-ui.flm',
+                        'sn1997bq-19970408.14-mmt.flm', 'sn2006lf-20061028.51-fast.flm',
+                        'sn2005eq-20051002.51-fast.flm', 'sn1995bd-19951223.34-fast.flm',
+                        'sn1998ab-19980403.38-fast.flm', 'sn1994M-19940612.22-mmt.flm',
+                        '2006X_20060209_3834_8139_00.dat', '2003du_20030508_4066_10997_00.dat',
+                        'SN05ke_051125_b01_T60_CS.dat', 'sn1994s-19940616-uoi.flm']
                         #SN05hc_051018_r01_NTT_EM.dat very noisy
-                        #sn2007al-20070314.26-fast.flm variance in database are all nan
-                        #sn2005cf-20050607-hst.flm variance in database are all nan
-                        #2002bo_20020323_3356_10385_00.dat variance in database are all nan
                         #2003du_20030501_4066_11015_00.dat very large negative value
-                        #sn2004dt-20040823-hst.flm variance in database are all nan
-                        #sn2003Y-20030131.35-fast.flm variance in database are all nan
                         #2002er_20020901_3213_9175_00.dat gap in spectrum
-                        #sn2007F-20070116.54-fast.flm variance in database are all nan
-                        #sn2005m-20050128-hst.flm variance in database are all nan
-                        #sn2002hw-20021114.10-fast.flm variance in database are all nan
                         #2003du_20030503_4070_10994_00.dat very strong emission line?
-                        #sn2004gs-20050106.40-fast.flm variance in database are all nan
-                        #sn2006te-20070109.49-fast.flm variance in database are all nan
-                        #sn2006cf-20060522.26-fast.flm variance in database are all nan
-                        #sn2006bq-20060427.35-fast.flm variance in database are all nan
-                        #sn2005M-20050209.33-fast.flm variance in database are all nan
-                        #sn2004dt-20040908.49-fast.flm variance in database are all nan
-                        #sn2002fb-20020929.42-fast.flm variance in database are all nan
-                        #sn2001E-20010124.48-fast.flm variance in database are all nan
                         #2003du_20030512_4070_11015_00.dat very negative values
                         #sn2006nz-20061124-ntt.dat very negative values
-                        #sn2007kk-20071015.32-fast.flm variance in database are all nan
-                        #sn2004ef-20040922.22-fast.flm variance in database are all nan
-                        #sn1996bo-19961107.15-fast.flm variance in database are all nan
-                        #sn2001eh-20010925.757-hst.flm causes problem not sure why
-                        #sn2006cj-20060601.28-fast.flm variance in database are all nan
-                        #sn2003hu-20030928.12-fast.flm variance in database are all nan
-                        #sn2006ac-20060226.34-fast.flm variance in database are all nan
-                        #sn2005mz-20060123.15-fast.flm variance in database are all nan
-                        #sn2000fa-20001225.42-fast.flm variance in database are all nan
-                        #sn2002kf-20030113.31-fast.flm variance in database are all nan
+                        #sn2001eh-20010925.757-hst.flm some interpolated sections
                         #sn2001ep-20011102.871-hst.flm causes problem not sure why
-                        #sn2006H-20060203.12-fast.flm variance in database are all nan
-                        #sn2007ci-20070614.18-fast.flm variance in database are all nan
-                        #sn2005cc-20050617.18-fast.flm variance in database are all nan
-                        #sn2002do-20020710.33-fast.flm variance in database are all nan
-                        #sn2008ha-20081205-ui.flm variance in database are all nan
-                        #sn2005na-20060130.24-fast.flm variance in database are all nan
-                        #sn2005cc-20050628.25-fast.flm variance in database are all nan
-                        #sn2003it-20031123.14-fast.flux_mask variance in database are all nan
-                        #sn2003ch-20030428.15-fast.flm variance in database are all nan
-                        #sn2007if-20071010.31-fast.flm variance in database are all nan
-                        #sn2008A-20080226.14-fast.flm variance in database are all nan
-                        #sn2005cc-20050709.21-fast.flm variance in database are all nan
-                        #sn1995ak-19951222.23-fast.flm variance in database are all nan
-                        #sn2007F-20070309.39-fast.flm variance in database are all nan
-                        #sn2007bj-20070609.28-fast.flm variance in database are all nan
-                        #sn2005M-20050409.19-fast.flm variance in database are all nan
-                        #sn1994D-19940602.18-fast.flm variance in database are all nan
-                        #sn2008C-20080402.14-mmt.flm variance in database are all nan
-                        #sn2007F-20070415.31-fast.flm variance in database are all nan
-                        #sn2003kf-20040318.12-fast.flm variance in database are all nan
-                        #sn2004dt-20041212.18-fast.flm variance in database are all nan
-                        #sn2004dt-20040820-hst.flm variance in database are all nan
-                        #sn2008ae-20080214.32-fast.flm variance in database are all nan
+                        #2005cf_20050601_3243_9720_00.dat causes problem not sure why
+                        #sn2006cm-20060529.46-fast.flm weird snr
+                        #2002bo_20020321_3357_7725_00.dat doesn't scale properly, flux very small at low wavelength
+                        #sn1994S-19940612.26-mmt.flm silicon line was interpolated
+                        #sn2003cg-20030329.27-mmt.flm SNR above 600 biases averaging
+                        #sn1995ac-19950929.27-fast.flm noisy
+                        #sn2007hj-20070903.28-fast.flm some interpolated sections
+                        #2000E_20000131_3274_7349_00.dat spectrum seems to be blueshifted
+                        #sn2006cj-20060521.29-fast.flm very noisy and some interpolation
+                        #sn2006oa-20061125.08-fast.flm some interpolated sections
+                        #sn2005cf-20050609.5-uvot-clip.flm high snr drags composite down
+                        #sn2006kf-20061030.385-ui.flm some interpolated sections
+                        #SN07bd_070412_b01_DUP_WF.dat some interpolated sections
+                        #SN09ad_090223_b01_DUP_WF.dat some interpolated sections
+                        #SN05kc_051124_b01_DUP_MS.dat some interpolated sections
+                        #sn2006et-20060919.345-ui.flm some interpolated sections
+                        #sn2007cq-20070623.431-ui.flm some interpolated sections
+                        #sn1997bq-19970408.14-mmt.flm telluric?
+                        #sn2006lf-20061028.51-fast.flm some interpolated sections, variance spectrum seems wrong
+                        #sn2005eq-20051002.51-fast.flm some interpolated sections
+                        #sn1995bd-19951223.34-fast.flm some interpolated sections
+                        #sn1998ab-19980403.38-fast.flm some interpolated sections
+                        #sn1994M-19940612.22-mmt.flm large interpolated section
+                        #2006X_20060209_3834_8139_00.dat host correction causes
+                        #2003du_20030508_4066_10997_00.dat very large negative value
+                        #SN05ke_051125_b01_T60_CS.dat some interpolated sections
+                        #sn1994s-19940616-uoi.flm some interpolated sections
+
+                        # sn1994d-19940603.flm ??
+
+                        #sn2001az-20010430-ui.flm
+
+                        #Weird continuum
+                        #sn1997E-19970116.25-fast.flm   0.1221
+                        #sn1996bl-19961018.18-fast.flm  0.2945
+                        #sn1998ef-19981024.30-fast.flm  -0.0303
+                        #sn2003it-20031019.18-fast.flm  0.0932
+
+    # reddened_spectra = ['sn2003cg-20030331.21-fast.flm', 'sn2002cd-2n0020419.48-fast.flm',
+    #                     'sn1996ai-19960621.23-fast.flm', 'sn1997dt-19971204.11-fast.flm',
+    #                     'sn2006br-20060427.33-fast.flm', 'sn2003W-20030209.35-fast.flm',
+    #                     'sn2004gs-20041216.49-fast.flm', 'sn2002fb-20020912.44-fast.flm',
+    #                     'sn2005bo-20050418.21-fast.flm', 'sn1998de-19980801.41-fast.flm',
+    #                     'sn1998bp-19980503.45-fast.flm', 'sn2005ke-20051125.30-fast.flm',
+    #                     'sn2006cm-20060529.46-fast.flm', 'sn1997bp-19970409.29-fast.flm',
+    #                     'sn2000cp-20000624.34-fast.flm', 'sn2005A-20050108.13-fast.flm',
+    #                     'sn1995E-19950226.27-fast.flm',  'sn1999cl-19990612.17-fast.flm',
+    #                     'sn2003cg-20030330.23-fast.flm', 'sn2006gj-20060920.43-fast.flm',
+    #                     'sn2007ax-20070327.26-fast.flm', 'sn2006bz-20060506.16-fast.flm',
+    #                     'sn2005A-20050110.11-ldss2.flm', 'sn1995E-19950228.23-fast.flm',
+    #                     'sn1999cl-19990614.18-fast.flm', 'sn2006X-20060221.40-fast.flm',
+    #                     'sn1999gd-19991208.52-fast.flm', 'sn2003cg-20030401.22-fast.flm',
+    #                     'sn1996ai-19960620.15-mmt.flm', 
+
+    #                     #phase -15.0 to -12.0
+    #                     # 'sn1995bd-19951223.34-fast.flm', 'sn2002bo-20020310.26-fast.flm',
+    #                     # 'sn2002bo-20020311.23-fast.flm', 'SN07S_070131_b01_NTT_EM.dat',
+
+    #                     #phase -11.99 to -9.0
+    #                     'sn2002bo-20020311-ui-corrected.flm', 'sn2006gz-20060930.13-fast.flm',
+    #                     'sn2007bm-20070423.23-fast.flm', 'sn2003W-20030129.35-mmt.flm',
+    #                     'sn2006qo-20061201.436-ui.flm', 'sn1997dt-19971123.19-fast.flm',
+    #                     'sn2005cf-20050601.385-ui.flm', 'sn2002dj-20020615.17-fast.flm',
+    #                     'sn2007le-20071015.325-br-corrected.flm', 'sn2006cc-20060508.34-fast.flm',
+    #                     'sn1997dt-19971124.09-fast.flm', 'sn2004bw-20040527.362-lowopt.flm',
+    #                     'sn1999dq-19990905.45-fast.flm']
 
 
-
-
-
-    reddened_spectra = ['sn2003cg-20030331.21-fast.flm', 'sn2002cd-2n0020419.48-fast.flm',
-                        'sn1996ai-19960621.23-fast.flm', 'sn1997dt-19971204.11-fast.flm',
-                        'sn2006br-20060427.33-fast.flm', 'sn2003W-20030209.35-fast.flm',
-                        'sn2004gs-20041216.49-fast.flm', 'sn2002fb-20020912.44-fast.flm',
-                        'sn2005bo-20050418.21-fast.flm', 'sn1998de-19980801.41-fast.flm',
-                        'sn1998bp-19980503.45-fast.flm', 'sn2005ke-20051125.30-fast.flm',
-                        'sn2006cm-20060529.46-fast.flm', 'sn1997bp-19970409.29-fast.flm',
-                        'sn2000cp-20000624.34-fast.flm', 'sn2005A-20050108.13-fast.flm',
-                        'sn1995E-19950226.27-fast.flm',  'sn1999cl-19990612.17-fast.flm',
-                        'sn2003cg-20030330.23-fast.flm', 'sn2006gj-20060920.43-fast.flm',
-                        'sn2007ax-20070327.26-fast.flm', 'sn2006bz-20060506.16-fast.flm',
-                        'sn2005A-20050110.11-ldss2.flm', 'sn1995E-19950228.23-fast.flm',
-                        'sn1999cl-19990614.18-fast.flm', 'sn2006X-20060221.40-fast.flm',
-                        'sn1999gd-19991208.52-fast.flm', 'sn2003cg-20030401.22-fast.flm',
-                        'sn1996ai-19960620.15-mmt.flm', 
-
-                        #phase -15.0 to -12.0
-                        # 'sn1995bd-19951223.34-fast.flm', 'sn2002bo-20020310.26-fast.flm',
-                        # 'sn2002bo-20020311.23-fast.flm', 'SN07S_070131_b01_NTT_EM.dat',
-
-                        #phase -11.99 to -9.0
-                        'sn2002bo-20020311-ui-corrected.flm', 'sn2006gz-20060930.13-fast.flm',
-                        'sn2007bm-20070423.23-fast.flm', 'sn2003W-20030129.35-mmt.flm',
-                        'sn2006qo-20061201.436-ui.flm', 'sn1997dt-19971123.19-fast.flm',
-                        'sn2005cf-20050601.385-ui.flm', 'sn2002dj-20020615.17-fast.flm',
-                        'sn2007le-20071015.325-br-corrected.flm', 'sn2006cc-20060508.34-fast.flm',
-                        'sn1997dt-19971124.09-fast.flm', 'sn2004bw-20040527.362-lowopt.flm',
-                        'sn1999dq-19990905.45-fast.flm']
+    reddened_spectra = []
     
-    good_SN_Array = [SN for SN in SN_Array if not is_bad_data(SN, bad_files, reddened_spectra)]
+    bad_ivars = []
+    for SN in SN_Array:
+        if True in np.isnan(SN.ivar):
+            bad_ivars.append(SN.filename)
+
+    good_SN_Array = [SN for SN in SN_Array if not is_bad_data(SN, bad_files, bad_ivars)]
     SN_Array = good_SN_Array
 
-    # good_SNs = []
-    # for SN in SN_Array:
-    #     plt.plot(SN.wavelength, SN.flux)
-    #     plt.show()
-    #     accept = raw_input("Accept? (y/n): ")
-    #     if accept is 'y':
-    #         print "Added"
-    #         good_SNs.append(SN)
+    print len(bad_ivars), 'spectra with nan ivars removed'
 
-    # SN_Array = good_SNs
-    # print len(SN_Array)
+    #remove peculiar Ias
+    SN_Array = remove_peculiars(SN_Array,'../data/info_files/pec_Ias.txt')
+    print 'Peculiar Ias removed', len(SN_Array), 'spectra left'
+
     
     # mags = np.sort(mg.ab_mags(SN_Array), axis = 0)
     # for i in range(len(mags)):
     #     print mags[i][0], mags[i][1] 
 
-
+    corrected_SNs = []
     for SN in SN_Array:
-        # if SN.wavelength[SN.x1] > 3400 and SN.wavelength[SN.x1] < 3500:
-        #     print SN.filename, 'here'
-        if True in np.isnan(SN.ivar):
-            print "NANS!!!!                 ", SN.filename
-        # print SN.name, SN.filename, SN.resid
+        if SN.wavelength[SN.x2] > 10240 and SN.wavelength[SN.x2] < 10270:
+            print SN.filename, '                                  here'
+        print SN.name, SN.filename, SN.phase, SN.resid
         # if np.average(SN.flux[SN.x1:SN.x2]) > 1.e-13:
             # SN.flux = 1.e-15*SN.flux
-        SN.flux = (1.e-15/np.average(SN.flux[SN.x1:SN.x2]))*SN.flux
+        pre_scale = (1.e-15/np.average(SN.flux[SN.x1:SN.x2]))
+        SN.flux = pre_scale*SN.flux
+        SN.ivar = SN.ivar/(pre_scale*pre_scale)
         host_reddened = prep.ReadExtin('../data/info_files/ryan_av.txt')
         old_wave = SN.wavelength*u.Angstrom        # wavelengths
         old_flux = SN.flux*u.Unit('W m-2 angstrom-1 sr-1')
         spec1d = Spectrum1D.from_array(old_wave, old_flux)
+        old_ivar = SN.ivar*u.Unit('W m-2 angstrom-1 sr-1')
         # new_flux = test_dered.dered(sne, SN.name, spec1d.wavelength, spec1d.flux)
-        new_flux = test_dered.host_correction(host_reddened, SN.name, old_wave, old_flux)
+        new_flux, new_ivar, corrected = test_dered.host_correction(host_reddened, SN.name, old_wave, old_flux, old_ivar)
         SN.flux = new_flux.value
-        lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
-        
+        SN.ivar = new_ivar.value
+        # lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
+        if corrected:
+            corrected_SNs.append(SN)
+            lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
+
+    SN_Array = corrected_SNs
+    print len(SN_Array), 'SNs with host corrections'
+
+    # good_SNs = []
+    # lengths = []
+    # for SN in SN_Array:
+    #     plt.figure(num = 2, dpi = 100, figsize = [35, 17], facecolor = 'w')
+    #     plt.subplot(2,1,1)
+    #     plt.plot(SN.wavelength[SN.x1:SN.x2], SN.flux[SN.x1:SN.x2])
+    #     plt.subplot(2,1,2)
+    #     plt.plot(SN.wavelength[SN.x1:SN.x2], 1./(SN.ivar[SN.x1:SN.x2])**.5)
+    #     # plt.plot(SN.wavelength[SN.x1:SN.x2], SN.ivar[SN.x1:SN.x2])
+    #     plt.show()
+    #     print SN.SNR, SN.filename, SN.source
+    #     accept = raw_input("Accept? (y/n): ")
+    #     if accept is 'y':
+    #         print "Added"
+    #         good_SNs.append(SN)
+    #         lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
+
+    # SN_Array = good_SNs
+    # print len(SN_Array)
 
     temp = [SN for SN in SN_Array if len(SN.flux[np.where(SN.flux!=0)]) == max(lengths)]
     try:
@@ -686,21 +724,7 @@ def main(Full_query, showplot = 0, medmean = 2, opt = 'n', save_file = 'n'):
     except IndexError:
         print "No spectra found"
         exit()
-                
-    for i in range (len(SN_Array)):
-        for j in range(len(SN.flux)):
-            
-#            SN_Array[i].ivar[j] = np.median(SN_Array[i].ivar[SN_Array[i].x1:SN_Array[i].x2])
-            if j > SN_Array[i].x1 and j < SN_Array[i].x2:
-                if j < SN_Array[i].x1 + 5:
-                    SN_Array[i].ivar[j] = np.median(SN_Array[i].ivar[j:j+10])
-                if j > SN_Array[i].x2 + 5:
-                    SN_Array[i].ivar[j] = np.median(SN_Array[i].ivar[j-10:j])
-                else:
-                    SN_Array[i].ivar[j] = np.median(SN_Array[i].ivar[j-5:j+5])
-            else:
-                SN_Array[i].ivar[j] = 0.0
-                
+
     spec_bin = spectra_per_bin(SN_Array)
 
     #finds range of useable data
@@ -719,14 +743,34 @@ def main(Full_query, showplot = 0, medmean = 2, opt = 'n', save_file = 'n'):
         cpy_array.append(copy.copy(SN))
     
     # plt.figure(num = 2, dpi = 100, figsize = [30, 20], facecolor = 'w')
-    for i in range(len(SN_Array)):
-        plt.plot(SN_Array[i].wavelength, SN_Array[i].flux)
-    plt.plot(template.wavelength, template.flux, 'k', linewidth = 4)
-    plt.show()
-        
+    # for i in range(len(SN_Array)):
+    #     plt.plot(SN_Array[i].wavelength, SN_Array[i].flux)
+    # plt.plot(template.wavelength, template.flux, 'k', linewidth = 4)
+    # plt.show()
+    
+    #for updating one spectrum at a time
+    # num_plots = len(SN_Array)
+    # for i in range(num_plots):
+    #     sub_sns = copy.copy(SN_Array[0:i+1])
+    #     print SN_Array[i].filename
+    #     optimize_scales(sub_sns, template, True)
+    #     (fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, dm15s, 
+    #      flux_mask, ivar_mask, dm15_mask, red_mask) = mask(sub_sns, boot)
+    #     for i in range(iters_comp):
+    #         SN_Array, scales = optimize_scales(SN_Array, template, False)
+    #         template = average(sub_sns, template, medmean, boot, fluxes, ivars, dm15_ivars, red_ivars, 
+    #                            reds, phases, ages, vels, dm15s, flux_mask, ivar_mask, dm15_mask, red_mask)
+    #     plt.figure(num = 2, dpi = 100, figsize = [30, 15], facecolor = 'w')
+    #     for SN in sub_sns:
+    #         plt.plot(SN.wavelength, SN.flux)
+    #     plt.plot(template.wavelength, template.flux, 'k', linewidth = 4)
+    #     plt.show()
+
+
+
     bootstrap = raw_input("Bootstrap? (y/n): ")
     print "Creating composite..."
-    test1, test2 = optimize_scales(SN_Array, template, True)
+    optimize_scales(SN_Array, template, True)
     (fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, dm15s, 
      flux_mask, ivar_mask, dm15_mask, red_mask) = mask(SN_Array, boot)
     
@@ -753,6 +797,7 @@ def main(Full_query, showplot = 0, medmean = 2, opt = 'n', save_file = 'n'):
         samples = int (raw_input("# of samples:"))
         low_conf, up_conf = bootstrapping(SN_Array, samples, scales, template, iters, medmean)
     
+    template.ivar = 1./template.ivar
     table = Table([template.wavelength, template.flux, template.ivar, template.phase_array, 
                    template.vel, template.dm15, template.red_array, low_conf, up_conf, spec_bin], 
                    names = ('Wavelength', 'Flux', 'Variance', 'Age', 'Velocity', 
