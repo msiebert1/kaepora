@@ -26,6 +26,11 @@ def find_all_data():
     SN_Array = grab_event_data(query)
     return SN_Array
 
+def find_csp_other_data():
+    query = "SELECT * FROM Supernovae where source = 'csp' or source = 'other'"
+    SN_Array = grab_event_data(query)
+    return SN_Array
+
 class supernova(object):
     """Contains all spectral data provided by the associated file.
        Attributes can be added
