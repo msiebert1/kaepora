@@ -50,7 +50,7 @@ class supernova(object):
 #con = sq3.connect('../data/SNe.db')
 # con = sq3.connect('../data/SNe_2.db')
 # con = sq3.connect('../data/SNe_3.db')
-con = sq3.connect('../data/SNe_12.db')
+con = sq3.connect('../data/SNe_14.db')
 cur = con.cursor()
 
 
@@ -61,11 +61,13 @@ def grab(sql_input):
     """
     print "Collecting data..."
     SN_Array = []
-    multi_epoch = raw_input("Include multiple epochs? (y/n): ")
-    if multi_epoch == 'y':
-        multi_epoch = True
-    else:
-        multi_epoch = False
+    # multi_epoch = raw_input("Include multiple epochs? (y/n): ")
+    # if multi_epoch == 'y':
+    #     multi_epoch = True
+    # else:
+    #     multi_epoch = False
+
+    multi_epoch = False
 
     cur.execute(sql_input)
     for row in cur:
@@ -88,8 +90,13 @@ def grab(sql_input):
         SN.resid     = row[15]
         interp       = msg.unpackb(row[16])
         SN.interp    = interp
-        phot         = msg.unpackb(row[17])
+        # phot         = msg.unpackb(row[17])
+        phot         = row[17]
         SN.phot      = phot
+        SN.low_conf  = []
+        SN.up_conf   = []
+        SN.spec_bin  = []
+
         try:
             SN.wavelength = SN.interp[0,:]
             SN.flux       = SN.interp[1,:]
@@ -104,37 +111,37 @@ def grab(sql_input):
         #         if abs(SN_Array[i].phase) < abs(SN_Array[i-1].phase): # closest to maximum
         #         # if abs(SN_Array[i].SNR) > abs(SN_Array[i-1].SNR): # best signal to noise
         #             del SN_Array[i-1]
-        if not multi_epoch:
-            unique_events = []
-            new_SN_Array = []
-            for i in range(len(SN_Array)): 
-                if SN_Array[i].name not in unique_events:
-                    unique_events.append(SN_Array[i].name)
-            for i in range(len(unique_events)):
-                events = []
-                for SN in SN_Array:
-                    if SN.name == unique_events[i]:
-                        events.append(SN)
+    if not multi_epoch:
+        unique_events = []
+        new_SN_Array = []
+        for i in range(len(SN_Array)): 
+            if SN_Array[i].name not in unique_events:
+                unique_events.append(SN_Array[i].name)
+        for i in range(len(unique_events)):
+            events = []
+            for SN in SN_Array:
+                if SN.name == unique_events[i]:
+                    events.append(SN)
 
-                # min_phase = events[0]
-                # for e in events:
-                #     if abs(e.phase) < abs(min_phase.phase):
-                #         min_phase = e
-                # new_SN_Array.append(min_phase)
+            # min_phase = events[0]
+            # for e in events:
+            #     if abs(e.phase) < abs(min_phase.phase):
+            #         min_phase = e
+            # new_SN_Array.append(min_phase)
 
-                # min_snr = events[0]
-                # for e in events:
-                #     if abs(e.SNR) > abs(min_snr.SNR):
-                #         min_snr = e
-                # new_SN_Array.append(min_snr)
+            # min_snr = events[0]
+            # for e in events:
+            #     if abs(e.SNR) > abs(min_snr.SNR):
+            #         min_snr = e
+            # new_SN_Array.append(min_snr)
 
-                max_range = events[0]
-                for e in events:
-                    if (e.maxwave - e.minwave) > (max_range.maxwave - max_range.minwave):
-                        max_range = e
-                new_SN_Array.append(max_range)
+            max_range = events[0]
+            for e in events:
+                if (e.maxwave - e.minwave) > (max_range.maxwave - max_range.minwave):
+                    max_range = e
+            new_SN_Array.append(max_range)
 
-            SN_Array = new_SN_Array
+        SN_Array = new_SN_Array
 
     print len(SN_Array), "spectra found"
 
@@ -189,6 +196,10 @@ def grab(sql_input):
         else:
             SN.x1 = 0
             SN.x2 = 0
+
+        # SN.ivar[SN.x1:SN.x1 + 25] = 0.
+        # SN.ivar[SN.x2 - 25:SN.x2 + 1] = 0.
+
                     
     print "Arrays cleaned"
     return SN_Array
@@ -222,7 +233,7 @@ def optimize_scales(SN_Array, template, initial):
     for uSN in unique_arr:
         # guess = 1.0
         guess = np.average(template.flux[template.x1:template.x2])/np.average(uSN.flux[uSN.x1:uSN.x2])
-        # guess = template.flux[2000]/uSN.flux[2000] #this is temporary it does not work for any spectrum 
+        # guess = template.flux[2000]/uSN.flux[2000] #this is temporary it does not work for every spectrum 
         if uSN.filename != template.filename:
             u = opt.minimize(sq_residuals, guess, args = (uSN, template, initial), 
                              method = 'Nelder-Mead').x
@@ -233,6 +244,11 @@ def optimize_scales(SN_Array, template, initial):
     for i in range(len(unique_arr)):
         unique_arr[i].flux = scales[i]*unique_arr[i].flux
         unique_arr[i].ivar /= (scales[i])**2
+        if len(unique_arr[i].low_conf) > 0 and len(unique_arr[i].up_conf) > 0:
+            unique_arr[i].low_conf = scales[i]*unique_arr[i].low_conf
+            unique_arr[i].up_conf = scales[i]*unique_arr[i].up_conf
+
+
         
     return SN_Array, scales
     
@@ -447,11 +463,11 @@ def bootstrapping (SN_Array, samples, scales, og_template, iters, medmean):
     if medmean == 1:
         optimize_scales(boots, og_template, False)
 
-    print "plotting..."
-    for SN in boots:
-        plt.plot(SN.wavelength, SN.flux, 'g')
-    plt.plot(og_template.wavelength,og_template.flux, 'k', linewidth = 4)
-    plt.show()
+    # print "plotting..."
+    # for SN in boots:
+    #     plt.plot(SN.wavelength, SN.flux, 'g')
+    # plt.plot(og_template.wavelength,og_template.flux, 'k', linewidth = 4)
+    # plt.show()
     
     print "computing confidence intervals..."
     resid = []
@@ -481,8 +497,8 @@ def bootstrapping (SN_Array, samples, scales, og_template, iters, medmean):
         for i in range (len(elem)):
             arr.append(elem[i])
 
-    plt.hist(arr, 100)
-    plt.show()
+    # plt.hist(arr, 100)
+    # plt.show()
     
     low_arr = []
     up_arr = []
@@ -499,11 +515,11 @@ def bootstrapping (SN_Array, samples, scales, og_template, iters, medmean):
 #        low_arr.append(og_template.flux[i] + resid_sort[i][low_ind])
 #        up_arr.append(og_template.flux[i] + resid_sort[i][up_ind])
     
-    plt.plot(og_template.wavelength, og_template.flux, 'k', linewidth = 4)
-    plt.fill_between(og_template.wavelength, low_arr, up_arr, color = 'green')
-    plt.show()
+    # plt.plot(og_template.wavelength, og_template.flux, 'k', linewidth = 4)
+    # plt.fill_between(og_template.wavelength, low_arr, up_arr, color = 'green')
+    # plt.show()
     
-    return low_arr, up_arr        
+    return np.asarray(low_arr), np.asarray(up_arr)        
     
 def is_bad_data(SN, bad_files, bad_ivars):
     for el in bad_files:
@@ -518,16 +534,28 @@ def is_bad_data(SN, bad_files, bad_ivars):
 def remove_peculiars(SN_Array, file):
     SN_Array_no_pecs = []
     with open(file) as f:
-        names = f.readlines()
+        names = np.loadtxt(f, dtype = str)
         for SN in SN_Array:
             if SN.name not in names:
                 SN_Array_no_pecs.append(SN)
 
     return SN_Array_no_pecs
 
+def build_av_dict(file):
+     with open(file) as f:
+        lines = f.readlines()
+
+        av_dict = {}
+        for line in lines:
+            l = line.split()    
+            if len(l) == 30 and l[0] == 'SN:':
+                av_dict[l[1].lower()] = float(l[18])
+
+     return av_dict
+
 def split_list(n):
     """will return the list index"""
-    return [(x+1) for x,y in zip(n, n[1:]) if y-x != 1]
+    return [(x+1) for x,y in zip(n, n[1:]) if y-x != 1.]
 
 def get_sub_list(my_list):
     """will split the list base on the index"""
@@ -541,6 +569,16 @@ def get_sub_list(my_list):
     output.append([ x for x in my_list[prev:]])
     return output
 
+def fix_weights(SN_Array):
+
+    for SN in SN_Array:
+        zero_inds = np.where(SN.ivar == 0)[0]
+        zero_ranges = get_sub_list(zero_inds)
+
+        for r in zero_ranges:
+            if r[0] > SN.x1 and r[-1] < SN.x2:
+                SN.ivar[r] = (SN.ivar[r[0]-1] + SN.ivar[r[-1]+1])/2.
+                SN.flux[r] = (SN.flux[r[0]-1] + SN.flux[r[-1]+1])/2.
     
     
 def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
@@ -573,7 +611,18 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
                         'sn2005eq-20051002.51-fast.flm', 'sn1995bd-19951223.34-fast.flm',
                         'sn1998ab-19980403.38-fast.flm', 'sn1994M-19940612.22-mmt.flm',
                         '2006X_20060209_3834_8139_00.dat', '2003du_20030508_4066_10997_00.dat',
-                        'SN05ke_051125_b01_T60_CS.dat', 'sn1994s-19940616-uoi.flm']
+                        'SN05ke_051125_b01_T60_CS.dat', 'sn1994s-19940616-uoi.flm',
+                        '1994D_19940317_2999_10549_00.dat', '2005cf_20050608_3365_9997_00.dat',
+                        '2002dj_20020620_3210_9231_00.dat', 'sn2006lf-20061029.40-fast.flm',
+                        'sn2006lf-20061030.41-fast.flm', 'sn2006lf-20061031.42-fast.flm',
+                        'sn2006lf-20061101.40-fast.flm', 'sn2006lf-20061111.36-fast.flm',
+                        'sn2006lf-20061112.37-fast.flm','sn2006lf-20061113.36-fast.flm',
+                        'sn2006lf-20061115.42-fast.flm','sn2006lf-20061116.39-fast.flm',
+                        'sn2006lf-20061117.42-fast.flm','sn2006lf-20061119.35-fast.flm',
+                        'sn2006lf-20061122.35-fast.flm','sn2006lf-20061125.34-fast.flm',
+                        'sn2006lf-20061214.28-fast.flm','sn2006lf-20061216.30-fast.flm',
+                        'sn2006lf-20061226.26-fast.flm','sn2006lf-20061227.29-fast.flm',
+                        'sn1995al-19951114.52-fast.flm', '2002er_20020901_3213_9175_00.dat']
                         #SN05hc_051018_r01_NTT_EM.dat very noisy
                         #2003du_20030501_4066_11015_00.dat very large negative value
                         #2002er_20020901_3213_9175_00.dat gap in spectrum
@@ -609,6 +658,12 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
                         #2003du_20030508_4066_10997_00.dat very large negative value
                         #SN05ke_051125_b01_T60_CS.dat some interpolated sections
                         #sn1994s-19940616-uoi.flm some interpolated sections
+                        #1994D_19940317_2999_10549_00.dat not joined properly, telluric absorption
+                        #2005cf_20050608_3365_9997_00.dat telluric absorption
+                        #2002dj_20020620_3210_9231_00.dat telluric absorption
+                        #2002er_20020901_3213_9175_00.dat large gap
+                        #
+                        #All 2006lf cfa data seems to have large ivar (skews data)
 
                         # sn1994d-19940603.flm ??
 
@@ -619,36 +674,6 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
                         #sn1996bl-19961018.18-fast.flm  0.2945
                         #sn1998ef-19981024.30-fast.flm  -0.0303
                         #sn2003it-20031019.18-fast.flm  0.0932
-
-    # reddened_spectra = ['sn2003cg-20030331.21-fast.flm', 'sn2002cd-2n0020419.48-fast.flm',
-    #                     'sn1996ai-19960621.23-fast.flm', 'sn1997dt-19971204.11-fast.flm',
-    #                     'sn2006br-20060427.33-fast.flm', 'sn2003W-20030209.35-fast.flm',
-    #                     'sn2004gs-20041216.49-fast.flm', 'sn2002fb-20020912.44-fast.flm',
-    #                     'sn2005bo-20050418.21-fast.flm', 'sn1998de-19980801.41-fast.flm',
-    #                     'sn1998bp-19980503.45-fast.flm', 'sn2005ke-20051125.30-fast.flm',
-    #                     'sn2006cm-20060529.46-fast.flm', 'sn1997bp-19970409.29-fast.flm',
-    #                     'sn2000cp-20000624.34-fast.flm', 'sn2005A-20050108.13-fast.flm',
-    #                     'sn1995E-19950226.27-fast.flm',  'sn1999cl-19990612.17-fast.flm',
-    #                     'sn2003cg-20030330.23-fast.flm', 'sn2006gj-20060920.43-fast.flm',
-    #                     'sn2007ax-20070327.26-fast.flm', 'sn2006bz-20060506.16-fast.flm',
-    #                     'sn2005A-20050110.11-ldss2.flm', 'sn1995E-19950228.23-fast.flm',
-    #                     'sn1999cl-19990614.18-fast.flm', 'sn2006X-20060221.40-fast.flm',
-    #                     'sn1999gd-19991208.52-fast.flm', 'sn2003cg-20030401.22-fast.flm',
-    #                     'sn1996ai-19960620.15-mmt.flm', 
-
-    #                     #phase -15.0 to -12.0
-    #                     # 'sn1995bd-19951223.34-fast.flm', 'sn2002bo-20020310.26-fast.flm',
-    #                     # 'sn2002bo-20020311.23-fast.flm', 'SN07S_070131_b01_NTT_EM.dat',
-
-    #                     #phase -11.99 to -9.0
-    #                     'sn2002bo-20020311-ui-corrected.flm', 'sn2006gz-20060930.13-fast.flm',
-    #                     'sn2007bm-20070423.23-fast.flm', 'sn2003W-20030129.35-mmt.flm',
-    #                     'sn2006qo-20061201.436-ui.flm', 'sn1997dt-19971123.19-fast.flm',
-    #                     'sn2005cf-20050601.385-ui.flm', 'sn2002dj-20020615.17-fast.flm',
-    #                     'sn2007le-20071015.325-br-corrected.flm', 'sn2006cc-20060508.34-fast.flm',
-    #                     'sn1997dt-19971124.09-fast.flm', 'sn2004bw-20040527.362-lowopt.flm',
-    #                     'sn1999dq-19990905.45-fast.flm']
-
 
     reddened_spectra = []
     
@@ -672,22 +697,23 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
     #     print mags[i][0], mags[i][1] 
 
     corrected_SNs = []
+    av_dict = build_av_dict('../data/info_files/lowz_rv25_all.fitres')
+    r_v = 2.5
     for SN in SN_Array:
-        if SN.wavelength[SN.x2] > 10240 and SN.wavelength[SN.x2] < 10270:
-            print SN.filename, '                                  here'
-        print SN.name, SN.filename, SN.phase, SN.resid
+        # if SN.wavelength[SN.x2] > 10240 and SN.wavelength[SN.x2] < 10270:
+        #     print SN.filename, '                                  here'
+        print SN.name, SN.filename, SN.phase
         # if np.average(SN.flux[SN.x1:SN.x2]) > 1.e-13:
             # SN.flux = 1.e-15*SN.flux
         pre_scale = (1.e-15/np.average(SN.flux[SN.x1:SN.x2]))
         SN.flux = pre_scale*SN.flux
         SN.ivar = SN.ivar/(pre_scale*pre_scale)
-        host_reddened = prep.ReadExtin('../data/info_files/ryan_av.txt')
         old_wave = SN.wavelength*u.Angstrom        # wavelengths
         old_flux = SN.flux*u.Unit('W m-2 angstrom-1 sr-1')
         spec1d = Spectrum1D.from_array(old_wave, old_flux)
         old_ivar = SN.ivar*u.Unit('W m-2 angstrom-1 sr-1')
         # new_flux = test_dered.dered(sne, SN.name, spec1d.wavelength, spec1d.flux)
-        new_flux, new_ivar, corrected = test_dered.host_correction(host_reddened, SN.name, old_wave, old_flux, old_ivar)
+        new_flux, new_ivar, corrected = test_dered.host_correction(av_dict, r_v, SN.name, old_wave, old_flux, old_ivar)
         SN.flux = new_flux.value
         SN.ivar = new_ivar.value
         # lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
@@ -697,6 +723,10 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
 
     SN_Array = corrected_SNs
     print len(SN_Array), 'SNs with host corrections'
+
+
+    # fix_weights(SN_Array)
+
 
     # good_SNs = []
     # lengths = []
@@ -725,11 +755,12 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
         print "No spectra found"
         exit()
 
-    spec_bin = spectra_per_bin(SN_Array)
+    # spec_bin = spectra_per_bin(SN_Array)
 
     #finds range of useable data
     template = supernova()
     template = copy.copy(composite)
+    template.spec_bin = spectra_per_bin(SN_Array)
 
     #creates main composite
     i = 0
@@ -752,7 +783,7 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
     # num_plots = len(SN_Array)
     # for i in range(num_plots):
     #     sub_sns = copy.copy(SN_Array[0:i+1])
-    #     print SN_Array[i].filename
+    #     print SN_Array[i].filename, SN_Array[i].phase, SN_Array[i].source, SN_Array[i].SNR
     #     optimize_scales(sub_sns, template, True)
     #     (fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, dm15s, 
     #      flux_mask, ivar_mask, dm15_mask, red_mask) = mask(sub_sns, boot)
@@ -761,14 +792,21 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
     #         template = average(sub_sns, template, medmean, boot, fluxes, ivars, dm15_ivars, red_ivars, 
     #                            reds, phases, ages, vels, dm15s, flux_mask, ivar_mask, dm15_mask, red_mask)
     #     plt.figure(num = 2, dpi = 100, figsize = [30, 15], facecolor = 'w')
+    #     plt.subplot(2,1,1)
+    #     # plt.plot(sub_sns[-1].wavelength, sub_sns[-1].flux)
     #     for SN in sub_sns:
-    #         plt.plot(SN.wavelength, SN.flux)
-    #     plt.plot(template.wavelength, template.flux, 'k', linewidth = 4)
+    #         plt.plot(SN.wavelength[SN_Array[i].x1:SN_Array[i].x2], SN.flux[SN_Array[i].x1:SN_Array[i].x2])
+    #     plt.plot(template.wavelength[SN_Array[i].x1:SN_Array[i].x2], template.flux[SN_Array[i].x1:SN_Array[i].x2], 'k', linewidth = 4)
+    #     plt.subplot(2,1,2)
+    #     # plt.plot(sub_sns[-1].wavelength, sub_sns[-1].ivar)
+    #     for SN in sub_sns:
+    #         plt.plot(SN.wavelength[SN_Array[i].x1:SN_Array[i].x2], SN.ivar[SN_Array[i].x1:SN_Array[i].x2])
     #     plt.show()
 
 
-
-    bootstrap = raw_input("Bootstrap? (y/n): ")
+    # bootstrap = raw_input("Bootstrap? (y/n): ")
+    bootstrap = 'n'
+    # bootstrap = 'y'
     print "Creating composite..."
     optimize_scales(SN_Array, template, True)
     (fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, dm15s, 
@@ -784,27 +822,41 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
     #plot composite with the scaled spectra
     # plt.figure(num = 2, dpi = 100, figsize = [30, 20], facecolor = 'w')
     if bootstrap is 'n':
-        for i in range(len(SN_Array)):
-            plt.plot(SN_Array[i].wavelength, SN_Array[i].flux)
-        plt.plot(template.wavelength, template.flux, 'k', linewidth = 4)
-        plt.show()
-        low_conf = template.flux
-        up_conf = template.flux
+        pass
+        # for i in range(len(SN_Array)):
+        #     plt.plot(SN_Array[i].wavelength, SN_Array[i].flux)
+        # plt.plot(template.wavelength, template.flux, 'k', linewidth = 4)
+        # plt.show()
+
     #create bootstrap composites
     else:
         scales  = []
         print "Bootstrapping"
-        samples = int (raw_input("# of samples:"))
-        low_conf, up_conf = bootstrapping(SN_Array, samples, scales, template, iters, medmean)
+        # samples = int (raw_input("# of samples:"))
+        samples = 00
+        # low_conf, up_conf = bootstrapping(SN_Array, samples, scales, template, iters, medmean)
+        template.low_conf, template.up_conf = bootstrapping(SN_Array, samples, scales, template, iters, medmean)
     
+    non_zero_data = np.where(template.flux != 0)
+    non_zero_data = np.array(non_zero_data[0])
+    if len(non_zero_data) > 0:
+        SN.x1 = non_zero_data[0]
+        SN.x2 = non_zero_data[-1]
+        SN.x2 += 1
+
     template.ivar = 1./template.ivar
-    table = Table([template.wavelength, template.flux, template.ivar, template.phase_array, 
-                   template.vel, template.dm15, template.red_array, low_conf, up_conf, spec_bin], 
-                   names = ('Wavelength', 'Flux', 'Variance', 'Age', 'Velocity', 
-                            'Dm_15', 'Redshift', 'Lower Confidence', 'Upper Confidence', 'Spectra Per Bin'))
-    if save_file == 'y':
-        table.write(template.savedname, format='ascii')
-    return table
+    template.ivar[0:template.x1] = 0.
+    template.ivar[template.x2:] = 0.
+
+    # table = Table([template.wavelength, template.flux, template.ivar, template.phase_array, 
+    #                template.vel, template.dm15, template.red_array, low_conf, up_conf, spec_bin], 
+    #                names = ('Wavelength', 'Flux', 'Variance', 'Age', 'Velocity', 
+    #                         'Dm_15', 'Redshift', 'Lower Confidence', 'Upper Confidence', 'Spectra Per Bin'))
+    # if save_file == 'y':
+    #     table.write(template.savedname, format='ascii')
+
+    # return table
+    return template
 
 if __name__ == "__main__":
     main()

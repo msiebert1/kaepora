@@ -114,13 +114,14 @@ Up_Confidence   = up_conf
 Names           = name_array
 Show_Data       = [Relative_Flux,Variance,Residuals,Spectra_Bin,Age,
                    Delta,Redshift,Low_Confidence,Up_Confidence]
+                   
 
 ## Available Plots:  Relative Flux, Variances, Residuals, Spectra/Bin, Age, Delta, Redshift
 ##                   0              1          2          3            4    5      6
 # the plots you want to create
 # Choose the plot range and plot type!
-xmin         = 3000 
-xmax         = 10100
+xmin         = 2500 
+xmax         = 10500
 Plots        = [0,1,2,3,4,5,6,7] 
 
 #################

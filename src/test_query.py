@@ -28,22 +28,6 @@ def reject_outliers(data, m=1):
 	
 	return data
 
-def split_list(n):
-    """will return the list index"""
-    return [(x+1) for x,y in zip(n, n[1:]) if y-x != 1]
-
-def get_sub_list(my_list):
-    """will split the list base on the index"""
-    my_index = split_list(my_list)
-    output = list()
-    prev = 0
-    for index in my_index:
-        new_list = [ x for x in my_list[prev:] if x < index]
-        output.append(new_list)
-        prev += len(new_list)
-    output.append([ x for x in my_list[prev:]])
-    return output
-
 def specific_query(test_query):
 	# event = "'" + event + "'"
 	query = "SELECT * FROM Supernovae " + test_query
@@ -107,8 +91,9 @@ def find_missing_data(SN):
 	plt.show()
 
 
+
 # SN_Array = specific_query("where filename = 'sn1994t-19940715-ui.flm'")
-SN_Array = specific_query("where filename = 'sn1994S-19940612.26-mmt.flm'")
+# SN_Array = specific_query("where filename = 'sn1994S-19940612.26-mmt.flm'")
 # SN_Array = specific_query("where phase  between -2 and 2 and dm15 < 1.1 and source != 'cfa'")
 
 # for SN in SN_Array:
@@ -121,9 +106,9 @@ SN_Array = specific_query("where filename = 'sn1994S-19940612.26-mmt.flm'")
 # 		for i in l:
 # 			SN.ivar[i] = fill_val
 
-SN = SN_Array[0]
+# SN = SN_Array[0]
 
-find_missing_data(SN)
+# find_missing_data(SN)
 
 # for SN in SN_Array:
 # 	pre_scale = (1.e-15/np.average(SN.flux[SN.x1:SN.x2]))

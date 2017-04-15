@@ -305,8 +305,8 @@ title         = "checking",filenames[i]
             plt.title(files[i-offset])
 		
             plt.subplot(2,1,2)
-            plt.plot(orig_wave,invar**-0.5,label = 'Original')
-            plt.plot(interp_wave,interp_ivar**-0.5,label = 'Clipped')
+            plt.plot(orig_wave,1./(invar**-0.5),label = 'Original')
+            plt.plot(interp_wave,1./(interp_ivar**-0.5),label = 'Clipped')
             plt.xlim(xmin,xmax)
             plt.xlabel('Rest Wavelength')
             plt.ylabel('Error')

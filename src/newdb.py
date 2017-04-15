@@ -9,7 +9,7 @@ import os
 import re
 import math
 import time
-import photometry as phot
+# import photometry as phot
 import jdcal
 
 mn.patch()
@@ -266,7 +266,7 @@ ts = time.clock()
 
 #con = sq3.connect('SNe.db')
 # con = sq3.connect('SNe_11.db')
-con = sq3.connect('SNe_12.db')
+con = sq3.connect('SNe_14.db')
 
 #make sure no prior table in db to avoid doubling/multiple copies of same data
 
@@ -297,7 +297,6 @@ con = sq3.connect('SNe_12.db')
 #                     Morphology INTEGER, Carbon TEXT, GasRich INTEGER, snr REAL, 
 #                     Hubble_Res Real, Interpolated_Spectra BLOB, Photometry BLOB)""")
 
-##version 4
 con.execute("""DROP TABLE IF EXISTS Supernovae""")
 con.execute("""CREATE TABLE IF NOT EXISTS Supernovae (Filename
                     TEXT PRIMARY KEY, SN Text, Source Text, Redshift REAL,
@@ -573,8 +572,9 @@ for path, subdirs, files in os.walk(root):
 
             interped = msg.packb(interp_spec)
 
-            sn_phot = phot.get_photometry(sn_name) 
-            phot_blob = msg.packb(sn_phot)
+            # sn_phot = phot.get_photometry(sn_name) 
+            # phot_blob = msg.packb(sn_phot)
+            phot_blob = None
 
             ##version 1
             # con.execute("""INSERT INTO Supernovae(Filename, SN, Source,
@@ -612,7 +612,7 @@ for path, subdirs, files in os.walk(root):
                         (name, sn_name, source, redshift, phase,
                          min_wave, max_wave, Dm15, m_b, bm_vm, vel,
                          morph, carbon, gasrich, sig_noise, hubble_residual, 
-                         buffer(interped), buffer(phot_blob), mjd))
+                         buffer(interped), phot_blob, mjd))
 
 con.commit()
 te = time.clock()

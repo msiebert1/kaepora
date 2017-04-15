@@ -77,15 +77,21 @@ def clip(wave, flux, ivar):
 
     # Find the wavelengths that need to be clipped (omitting 5800-6000 region)
     index = np.where(((err/serr > 4.5) & (wave < 5800.0)) | ((err/serr > 3.5) & (wave > 6000.0)))
+    index_na = np.where((err/serr > 10.5) & ((wave > 5800.0) & (wave < 6000.0)))
     bad_wave = wave[index]
+    bad_wave_na = wave[index_na]
 
     # Find indices for general clipping
-    bad = np.array([], int)
+    # bad = np.array([], int)
     bad_ranges = [] # if don't need it to be a numpy array (A.S.)
     
     for i in range(len(bad_wave)):
-        bad = np.append(bad, np.where(abs(wave - bad_wave[i]) < 8))
+        # bad = np.append(bad, np.where(abs(wave - bad_wave[i]) < 8))
         bad_ranges.append((bad_wave[i]-8, bad_wave[i]+8)) # instead save each point as tuple of desired range (A.S.)
+
+    for i in range(len(bad_wave_na)):
+        # bad = np.append(bad, np.where(abs(wave - bad_wave[i]) < 8))
+        bad_ranges.append((bad_wave_na[i]-8, bad_wave_na[i]+8))
 
     # Set ivar to 0 for those points and return
 #    ivar[bad] = 0
@@ -95,7 +101,7 @@ def clip(wave, flux, ivar):
 # clip function specifically for lines that need ivar to set to nearby ones
 # Currently only for Na lines (5800-5900)
 def clipmore(wave, flux, ivar) :
-    
+
     ind = np.where((wave > 5800.0 ) & (wave < 6000.0 )) # what region to look at 
 #    print ind[0]
     if len(ind[0]) == 0 : # Doesn't have spectra at this range

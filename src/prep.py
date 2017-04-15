@@ -138,7 +138,7 @@ def Interpo (wave, flux, ivar):
     upper = wave[-1]
 
     #ivar = clip(wave, flux, ivar) #clip bad points in flux (if before interpolation)
-    ivar = clipmore(wave,flux,ivar)    
+    # ivar = clipmore(wave,flux,ivar)    
     bad_points = clip(wave, flux, ivar)  # if returned bad points range instead of ivar
 #    print 'ivar', ivar
 #    print 'bad points', bad_points
@@ -150,8 +150,9 @@ def Interpo (wave, flux, ivar):
 
     inivar = inter.splrep(wave[good_data], ivar[good_data])  # doing the same with the inverse varinces
 
-    inter_flux = inter.splev(wavelength, influx)	 # fits b-spline over wavelength range
-    inter_ivar = inter.splev(wavelength, inivar)   # doing the same with errors
+    # extrapolating returns edge values
+    inter_flux = inter.splev(wavelength, influx, ext = 3)	 # fits b-spline over wavelength range
+    inter_ivar = inter.splev(wavelength, inivar, ext = 3)   # doing the same with errors
 
 #    inter_ivar = clip(wavelength, inter_flux, inter_var) #clip bad points (if do after interpolation)
 
@@ -159,7 +160,11 @@ def Interpo (wave, flux, ivar):
     for wave_tuple in bad_points:
 #        print wave_tuple
         zero_points = np.where((wavelength > wave_tuple[0]) & (wavelength < wave_tuple[1]))
-        inter_ivar[zero_points] = 0
+        #make sure not at edge of spectrum
+        inter_flux[zero_points] = np.interp(wavelength[zero_points], [wave_tuple[0], wave_tuple[1]], [inter_flux[zero_points[0][0]-1], inter_flux[zero_points[0][-1]+1]])
+        #deweight data (but not to 0), somewhat arbitrary
+        inter_ivar[zero_points] = .5*np.interp(wavelength[zero_points], [wave_tuple[0], wave_tuple[1]], [inter_ivar[zero_points[0][0]-1], inter_ivar[zero_points[0][-1]+1]])
+        # inter_ivar[zero_points] = 0
 
     inter_ivar[inter_ivar < 0] = 0  # make sure there are no negative points!
     

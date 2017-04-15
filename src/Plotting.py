@@ -199,7 +199,7 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
        
         for k in range(len_RF):
             if k % 2 == 0:
-                good = np.where(VA[k+1] != 0)
+                good = np.where(VA[k+1] > 0)
                 plt.plot(RF[k][good], RF[k+1][good],label = Names[k] )
                 if k == 0:
                     plt.fill_between(LC[k][good], LC[k+1][good], UC[k+1][good], color = 'c', alpha = 0.5)
@@ -244,8 +244,9 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
         """
         for k in range(len_VA):
             if k % 2 == 0:
-                good = np.where((1/VA[k+1]) > 0)
+                good = np.where(VA[k+1] > 0)
                 plt.plot(VA[k][good], VA[k+1][good], label = "Variance", ls = '-')
+                # plt.ylim(1e-36, 1.e-30)
         VAxticklabels = Variance.get_xticklabels()
         
         # This isn't working the way I'd like it to         
@@ -486,8 +487,8 @@ def main(Show_Data , Plots , image_title , title , Names , xmin , xmax):
 # What does this section do? I was having problems with it
 # so I've temporarily commented it out. 
 #############################################################
-    min_wave = 3000.
-    max_wave = 10000.
+    min_wave = 3500.
+    max_wave = 9500.
 
     # non_zero_data = np.where(RF[1] != 0)
     # non_zero_data = np.array(non_zero_data[0])
