@@ -22,6 +22,10 @@ def deweight_tell_ranges(SN_Array):
 		B_range = np.where((SN.wavelength > B_band[0]) & (SN.wavelength < B_band[1]))
 		SN.ivar[A_range] = weight_val
 		SN.ivar[B_range] = weight_val
+
+		#continue here
+
+		
 	return SN_Array
 
 
