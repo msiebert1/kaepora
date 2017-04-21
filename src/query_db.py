@@ -1,5 +1,4 @@
 import composite
-import Plotting
 from astropy.table import Table
 import matplotlib
 import matplotlib.pyplot as plt
@@ -7,13 +6,8 @@ import numpy as np
 import sys
 import time
 import matplotlib.gridspec as gridspec
+import matplotlib.animation as animation
 
-num_queries = int(sys.argv[1])
-query_strings = sys.argv[2:]
-
-composites = []
-for n in range(num_queries):
-	composites.append(composite.main(query_strings[n]))
 
 def make_colorbar(composites):
 	phases = []
@@ -21,21 +15,55 @@ def make_colorbar(composites):
 		phases.append(np.average(comp.phase_array[comp.x1:comp.x2]))
 
 	norm = matplotlib.colors.Normalize(vmin=np.min(phases),vmax=np.max(phases))
-	c_m = matplotlib.cm.plasma
+	c_m = matplotlib.cm.viridis
 	s_m = matplotlib.cm.ScalarMappable(cmap=c_m, norm=norm)
 	s_m.set_array([])
 
 	return s_m
 
-#set x1 and x2 to where spec_bin > X
+def scaled_plot(composites):
+
+	font = {'family' : 'serif',
+        'color'  : 'black',
+        'weight' : 'bold',
+        'size'   : 10,
+        }
+
+	fig = plt.figure(num = 1, dpi = 100, figsize = [10,10], facecolor = 'w')
+	s_m = make_colorbar(composites)
+
+	composites, scales = composite.optimize_scales(composites, composites[0], True)
+
+	for comp in composites:
+		phase = np.average(comp.phase_array[comp.x1:comp.x2])
+
+		plt.ylabel('Relative Flux', fontdict = font)
+		plt.plot(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], color = s_m.to_rgba(phase))
+		if len(comp.low_conf) > 0 and len(comp.up_conf) > 0:
+			plt.fill_between(comp.wavelength[comp.x1:comp.x2], comp.low_conf[comp.x1:comp.x2], 
+				             comp.up_conf[comp.x1:comp.x2], color = s_m.to_rgba(phase), alpha = 0.5)
+
+	plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
+	cb = plt.colorbar(s_m, ax = fig.axes)
+	cb.set_label('Phase', fontdict = font)
+	plt.show()
+
+def set_min_num_spec(composites, num):
+
+	for comp in composites:
+		comp.spec_bin = np.array(comp.spec_bin)
+		valid_range = np.where(comp.spec_bin >= num)[0]
+		comp.x1, comp.x2 = valid_range[0], valid_range[-1]
+
+
 def comparison_plot(composites):
 
 	h = [3,1,1,1,1,1,1]
 	font = {'family' : 'serif',
-            'color'  : 'black',
-            'weight' : 'bold',
-            'size'   : 10,
-            }
+        'color'  : 'black',
+        'weight' : 'bold',
+        'size'   : 10,
+        }
 
 	gs = gridspec.GridSpec(7, 1, height_ratios=h, hspace = .001)
 	fig = plt.figure(num = 1, dpi = 100, figsize = [10,10], facecolor = 'w')
@@ -47,7 +75,7 @@ def comparison_plot(composites):
 		phase = np.average(comp.phase_array[comp.x1:comp.x2])
 
 		rel_flux = plt.subplot(gs[0])
-		plt.ylabel('Residuals', fontdict = font)
+		plt.ylabel('Relative Flux', fontdict = font)
 		plt.plot(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], color = s_m.to_rgba(phase))
 		if len(comp.low_conf) > 0 and len(comp.up_conf) > 0:
 			plt.fill_between(comp.wavelength[comp.x1:comp.x2], comp.low_conf[comp.x1:comp.x2], 
@@ -92,4 +120,55 @@ def comparison_plot(composites):
 def stacked_plot(composites):
 	"finish"
 
-comparison_plot(composites)
+# set_min_num_spec(composites, 5)
+
+def main(num_queries, query_strings):
+	# num_queries = int(sys.argv[1])
+	# query_strings = sys.argv[2:]
+
+	composites = []
+	for n in range(num_queries):
+		composites.append(composite.main(query_strings[n]))
+
+	composite.optimize_scales(composites, composites[0], True)
+	return composites
+
+
+def make_animation(composites):
+	fig, ax = plt.subplots()
+	plt.xlim([3000,10000])
+	plt.ylim([0.,5.e-15])
+	s_m = make_colorbar(composites)
+
+	phase = np.average(composites[0].phase_array[composites[0].x1:composites[0].x2])
+	line, = ax.plot(composites[0].wavelength[composites[0].x1:composites[0].x2], 
+					composites[0].flux[composites[0].x1:composites[0].x2], color = s_m.to_rgba(phase))
+
+	def animate(i):
+		if i == 0:
+			ax.cla()
+		phase = np.average(composites[i].phase_array[composites[i].x1:composites[i].x2])
+		ax.plot(composites[i].wavelength[composites[i].x1:composites[i].x2], 
+					composites[i].flux[composites[i].x1:composites[i].x2], color = s_m.to_rgba(phase))
+		plt.xlim([3000,10000])
+		plt.ylim([0.,5.e-15])
+		# line.set_xdata(composites[i].wavelength[composites[i].x1:composites[i].x2])
+		# line.set_ydata(composites[i].flux[composites[i].x1:composites[i].x2])  # update the data
+		return line,
+
+	animation.FuncAnimation(fig, animate, np.arange(0, len(composites)), repeat = True)
+	plt.show()
+
+if __name__ == "__main__":
+	composites = []
+
+	num_queries = int(sys.argv[1])
+	query_strings = sys.argv[2:]
+
+	for n in range(num_queries):
+		composites.append(composite.main(query_strings[n]))
+
+	composite.optimize_scales(composites, composites[0], True)
+	
+	comparison_plot(composites)
+	scaled_plot(composites)

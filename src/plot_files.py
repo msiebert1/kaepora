@@ -97,7 +97,6 @@ for SN in SN_Array:
 	plt.plot(SN.wavelength[SN.x1:SN.x2], SN.flux[SN.x1:SN.x2])
 	plt.show()
 
-print SN.ivar[SN.x1:SN.x2]
 
 bad_files = ['sn1991t-19910820-ir2.flm',	#interpolated
 			 'sn1989m-19900501-opt.flm',	#interpolated

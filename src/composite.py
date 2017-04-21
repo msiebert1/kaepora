@@ -199,6 +199,8 @@ def grab(sql_input):
 
         # SN.ivar[SN.x1:SN.x1 + 25] = 0.
         # SN.ivar[SN.x2 - 25:SN.x2 + 1] = 0.
+        SN.x1 = SN.x1 + 25
+        SN.x2 = SN.x2 - 25
 
                     
     print "Arrays cleaned"
@@ -822,18 +824,18 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
     #plot composite with the scaled spectra
     # plt.figure(num = 2, dpi = 100, figsize = [30, 20], facecolor = 'w')
     if bootstrap is 'n':
-        pass
-        # for i in range(len(SN_Array)):
-        #     plt.plot(SN_Array[i].wavelength, SN_Array[i].flux)
-        # plt.plot(template.wavelength, template.flux, 'k', linewidth = 4)
-        # plt.show()
+        # pass
+        for i in range(len(SN_Array)):
+            plt.plot(SN_Array[i].wavelength, SN_Array[i].flux)
+        plt.plot(template.wavelength, template.flux, 'k', linewidth = 4)
+        plt.show()
 
     #create bootstrap composites
     else:
         scales  = []
         print "Bootstrapping"
         # samples = int (raw_input("# of samples:"))
-        samples = 00
+        samples = 100
         # low_conf, up_conf = bootstrapping(SN_Array, samples, scales, template, iters, medmean)
         template.low_conf, template.up_conf = bootstrapping(SN_Array, samples, scales, template, iters, medmean)
     
