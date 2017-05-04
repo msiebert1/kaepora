@@ -154,31 +154,31 @@ def find_missing_data(SN):
 # 	plt.show()
 
 ##Plots all photometry for a given event
-# p = SN_Array[0].phot
-# times = []
-# ms = []
-# for band in p:
-# 	t = []
-# 	m = []
-# 	for i in range(len(p[band][0])):
-# 		t.append(float(p[band][0][i]))
-# 		m.append(float(p[band][1][i][0]))
-# 	times.append(t)
-# 	ms.append(m)
-# for i in range(len(times)):
-# 	plt.plot(times[i], ms[i], 'o')
-# plt.gca().invert_yaxis()
-# plt.show()
+p = SN_Array[0].phot
+times = []
+ms = []
+for band in p:
+	t = []
+	m = []
+	for i in range(len(p[band][0])):
+		t.append(float(p[band][0][i]))
+		m.append(float(p[band][1][i][0]))
+	times.append(t)
+	ms.append(m)
+for i in range(len(times)):
+	plt.plot(times[i], ms[i], 'o')
+plt.gca().invert_yaxis()
+plt.show()
+
+for i in range(len(SN_Array)):
+	print SN_Array[i].phot
+	phot = SN_Array[i].phot
+	if phot[i] is not None and len(phot[i]) >= 2:
+		if 'R' in phot[i] and 'V' in phot[i] and phot[i]['R'] is not None and phot[i]['V'] is not None:
+			color_from_phot = phot[i]['V'] - phot[i]['R']
+			color_from_spec = mag.ab_mag(SN_Array[i], 'V') - mag.ab_mag(SN_Array[i], 'R')
+			print scales[i], color_from_spec, color_from_phot
 
 
-# for i in range(len(SN_Array)):
-# 	if phot[i] is not None and len(phot[i]) >= 2:
-# 		if 'R' in phot[i] and 'V' in phot[i] and phot[i]['R'] is not None and phot[i]['V'] is not None:
-# 			color_from_phot = phot[i]['V'] - phot[i]['R']
-# 			color_from_spec = mag.ab_mag(SN_Array[i], 'V') - mag.ab_mag(SN_Array[i], 'R')
-# 			print scales[i], color_from_spec, color_from_phot
-
-
-# valid_bands = mag.valid_bands(SN_Array[10])
-# mag.scale_flux_to_photometry(SN_Array[10], valid_bands)
-
+valid_bands = mag.valid_bands(SN_Array[10])
+mag.scale_flux_to_photometry(SN_Array[10], valid_bands)

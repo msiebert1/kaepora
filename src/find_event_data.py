@@ -4,7 +4,7 @@ import msgpack_numpy as mn
 import numpy as np
 import magnitudes as mag
 
-con = sq3.connect('../data/SNe_14.db')
+con = sq3.connect('../data/SNe_12.db')
 cur = con.cursor()
 
 # np.set_printoptions(threshold=np.nan)
@@ -66,8 +66,8 @@ def grab_event_data(sql_input):
         SN.resid     = row[15]
         interp       = msg.unpackb(row[16])
         SN.interp    = interp
-        # phot         = msg.unpackb(row[17])
-        # SN.phot      = phot
+        phot         = msg.unpackb(row[17])
+        SN.phot      = phot
         SN.mjd          = row[18]
         try:
             SN.wavelength = SN.interp[0,:]

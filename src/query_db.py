@@ -76,6 +76,7 @@ def comparison_plot(composites):
 
 		rel_flux = plt.subplot(gs[0])
 		plt.ylabel('Relative Flux', fontdict = font)
+		rel_flux.axes.get_yaxis().set_ticks([])
 		plt.plot(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], color = s_m.to_rgba(phase))
 		if len(comp.low_conf) > 0 and len(comp.up_conf) > 0:
 			plt.fill_between(comp.wavelength[comp.x1:comp.x2], comp.low_conf[comp.x1:comp.x2], 
@@ -118,9 +119,19 @@ def comparison_plot(composites):
 	plt.show()
 
 def stacked_plot(composites):
-	"finish"
+	fig, ax = plt.subplots(1,1)
+	fig.set_size_inches(8.5, 11.)
+	ax.get_yaxis().set_ticks([])
+	composites, scales = composite.optimize_scales(composites, composites[0], True)
+	upper_buff = 200
 
-# set_min_num_spec(composites, 5)
+	for comp in composites:
+		phase = np.average(comp.phase_array[comp.x1:comp.x2])
+		comp.flux = 1.e15*comp.flux + upper_buff
+		ax.plot(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2] - 3.*phase, 'k-')
+	plt.show()
+
+
 
 def main(num_queries, query_strings):
 	# num_queries = int(sys.argv[1])
@@ -165,10 +176,83 @@ if __name__ == "__main__":
 	num_queries = int(sys.argv[1])
 	query_strings = sys.argv[2:]
 
+	# query_strings = [
+	# 				 "SELECT * FROM Supernovae where phase < -10",
+	#                  "SELECT * FROM Supernovae where phase >= -10 and phase < -9",
+	#                  "SELECT * FROM Supernovae where phase >= -9 and phase < -8",
+	#                  "SELECT * FROM Supernovae where phase >= -8 and phase < -7",
+	#                  "SELECT * FROM Supernovae where phase >= -7 and phase < -6",
+	#                  "SELECT * FROM Supernovae where phase >= -6 and phase < -5",
+	#                  "SELECT * FROM Supernovae where phase >= -5 and phase < -4",
+	#                  "SELECT * FROM Supernovae where phase >= -4 and phase < -3",
+	#                  "SELECT * FROM Supernovae where phase >= -3 and phase < -2",
+	#                  "SELECT * FROM Supernovae where phase >= -2 and phase < -1",
+	#                  "SELECT * FROM Supernovae where phase >= -1 and phase < 0",
+	#                  "SELECT * FROM Supernovae where phase >= 0 and phase < 1",
+	#                  "SELECT * FROM Supernovae where phase >= 1 and phase < 2",
+	#                  "SELECT * FROM Supernovae where phase >= 2 and phase < 3",
+	#                  "SELECT * FROM Supernovae where phase >= 3 and phase < 4",
+	#                  "SELECT * FROM Supernovae where phase >= 4 and phase < 5",
+	#                  "SELECT * FROM Supernovae where phase >= 5 and phase < 6",
+	#                  "SELECT * FROM Supernovae where phase >= 6 and phase < 7",
+	#                  "SELECT * FROM Supernovae where phase >= 7 and phase < 8",
+	#                  "SELECT * FROM Supernovae where phase >= 8 and phase < 9",
+	#                  "SELECT * FROM Supernovae where phase >= 9 and phase < 10",
+	#                  "SELECT * FROM Supernovae where phase >= 10 and phase < 11",
+	#                  "SELECT * FROM Supernovae where phase >= 11 and phase < 12",
+	#                  "SELECT * FROM Supernovae where phase >= 12 and phase < 13",
+	#                  "SELECT * FROM Supernovae where phase >= 13 and phase < 14",
+	#                  "SELECT * FROM Supernovae where phase >= 14 and phase < 15",
+	#                  "SELECT * FROM Supernovae where phase >= 15 and phase < 16",
+	#                  "SELECT * FROM Supernovae where phase >= 16 and phase < 17",
+	#                  "SELECT * FROM Supernovae where phase >= 17 and phase < 18",
+	#                  "SELECT * FROM Supernovae where phase >= 18 and phase < 19",
+	#                  "SELECT * FROM Supernovae where phase >= 19 and phase < 20",
+	#                  "SELECT * FROM Supernovae where phase >= 20 and phase < 21",
+	#                  "SELECT * FROM Supernovae where phase >= 21 and phase < 22",
+	#                  "SELECT * FROM Supernovae where phase >= 22 and phase < 23",
+	#                  "SELECT * FROM Supernovae where phase >= 23 and phase < 24",
+	#                  "SELECT * FROM Supernovae where phase >= 24 and phase < 25",
+	#                  "SELECT * FROM Supernovae where phase >= 25 and phase < 26",
+	#                  "SELECT * FROM Supernovae where phase >= 26 and phase < 27",
+	#                  "SELECT * FROM Supernovae where phase >= 27 and phase < 28",
+	#                  "SELECT * FROM Supernovae where phase >= 28 and phase < 29",
+	#                  "SELECT * FROM Supernovae where phase >= 29 and phase < 30",
+	#                  "SELECT * FROM Supernovae where phase >= 30 and phase < 31",
+	#                  "SELECT * FROM Supernovae where phase >= 31 and phase < 32",
+	#                  "SELECT * FROM Supernovae where phase >= 32 and phase < 33",
+	#                  "SELECT * FROM Supernovae where phase >= 33 and phase < 34",
+	#                  "SELECT * FROM Supernovae where phase >= 34 and phase < 35",
+	#                  "SELECT * FROM Supernovae where phase >= 35 and phase < 36",
+	#                  "SELECT * FROM Supernovae where phase >= 36 and phase < 37",
+	#                  "SELECT * FROM Supernovae where phase >= 37 and phase < 38",
+	#                  "SELECT * FROM Supernovae where phase >= 38 and phase < 39",
+	#                  "SELECT * FROM Supernovae where phase >= 39 and phase < 40",
+	#                  "SELECT * FROM Supernovae where phase >= 40 and phase < 42",
+	#                  "SELECT * FROM Supernovae where phase >= 42 and phase < 44",
+	#                  "SELECT * FROM Supernovae where phase >= 44 and phase < 46",
+	#                  "SELECT * FROM Supernovae where phase >= 46 and phase < 49",
+	#                  "SELECT * FROM Supernovae where phase >= 49 and phase < 52",
+	#                  "SELECT * FROM Supernovae where phase >= 52 and phase < 55",
+	#                  "SELECT * FROM Supernovae where phase >= 55 and phase < 58",
+	#                  "SELECT * FROM Supernovae where phase >= 58 and phase < 61",
+	#                  "SELECT * FROM Supernovae where phase >= 61 and phase < 65",
+	#                  "SELECT * FROM Supernovae where phase >= 65 and phase < 70",
+	#                  "SELECT * FROM Supernovae where phase >= 70 and phase < 78",
+	#                  "SELECT * FROM Supernovae where phase >= 78 and phase < 88",
+	#                  "SELECT * FROM Supernovae where phase >= 88 and phase < 98",
+	#                  "SELECT * FROM Supernovae where phase >= 98 and phase < 125",
+	#                  "SELECT * FROM Supernovae where phase >= 125 and phase < 180",
+	#                  "SELECT * FROM Supernovae where phase >= 180"
+	#                  ]
+	num_queries = len(query_strings)
+
 	for n in range(num_queries):
 		composites.append(composite.main(query_strings[n]))
 
 	composite.optimize_scales(composites, composites[0], True)
 	
+	set_min_num_spec(composites, 5)
 	comparison_plot(composites)
-	scaled_plot(composites)
+	# scaled_plot(composites)
+	stacked_plot(composites)
