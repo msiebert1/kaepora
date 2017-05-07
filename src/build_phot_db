@@ -1,0 +1,3 @@
+from astropy.io import ascii
+
+data = ascii.read("..\data\info_files\salt_params_dists.txt")

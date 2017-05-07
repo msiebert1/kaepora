@@ -23,8 +23,9 @@ def specific_query(test_query):
 	return SN_Array
 
 # SN_Array = specific_query("where filename = 'sn1994t-19940715-ui.flm'")
-SN_Array = specific_query("where filename = 'sn1994S-19940612.26-mmt.flm'")
+# SN_Array = specific_query("where filename = 'sn1994S-19940612.26-mmt.flm'")
 # SN_Array = specific_query("where phase  between -2 and 2 and dm15 < 1.1 and source != 'cfa'")
+SN_Array = specific_query("where SN = '2006ac'")
 
 p = SN_Array[0].phot
 times = []

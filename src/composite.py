@@ -50,9 +50,23 @@ class supernova(object):
 #con = sq3.connect('../data/SNe.db')
 # con = sq3.connect('../data/SNe_2.db')
 # con = sq3.connect('../data/SNe_3.db')
-con = sq3.connect('../data/SNe_14.db')
+con = sq3.connect('../data/SNe_14_phot_1.db')
 cur = con.cursor()
 
+def store_phot_data(SN, row):
+    phot_row = row[19:]
+    # SN.name      = phot_row[0]
+    SN.re        = phot_row[1]
+    SN.dec       = phot_row[2]
+    SN.zCMB_salt, SN.e_zCMB_salt, SN.Bmag_salt, SN.e_Bmag_salt, SN.s_salt, SN.e_s_salt, SN.c_salt, SN.e_c_salt, SN.mu_salt, SN.e_mu_salt = phot_row[3:13]
+    SN.zCMB_salt2, SN.e_zCMB_salt2, SN.Bmag_salt2, SN.e_Bmag_salt2, SN.x1_salt2, SN.e_x1_salt2, SN.c_salt2, SN.e_c_salt2, SN.mu_salt2, SN.e_mu_salt2 = phot_row[13:23]
+    SN.zCMB_mlcs31, SN.e_zCMB_mlcs31, SN.mu_mlcs31, SN.e_mu_mlcs31, SN.delta_mlcs31, SN.e_delta_mlcs31, SN.av_mlcs31, SN.e_av_mlcs31 = phot_row[23:31]
+    SN.zCMB_mlcs17, SN.e_zCMB_mlcs17, SN.mu_mlcs17, SN.e_mu_mlcs17, SN.delta_mlcs17, SN.e_delta_mlcs17, SN.av_mlcs17, SN.e_av_mlcs17 = phot_row[31:39]
+    SN.glon_host, SN.glat_host, SN.cz_host, SN.czLG_host, SN.czCMB_host, SN.mtype_host, SN.xpos_host, SN.ypos_host, SN.t1_host, SN.filt_host, SN.Ebv_host = phot_row[39:50]
+    SN.zCMB_lc, SN.zhel_lc, SN.mb_lc, SN.e_mb_lc, SN.c_lc, SN.e_c_lc, SN.x1_lc, SN.e_x1_lc, SN.logMst_lc, SN.e_logMst_lc, SN.tmax_lc, SN.e_tmax_lc, SN.cov_mb_s_lc, SN.cov_mb_c_lc, SN.cov_s_c_lc, SN.bias_lc = phot_row[50:66]
+    SN.av_25 = phot_row[66]
+    SN.dm15_cfa = phot_row[67]
+    # SN.light_curves = msg.unpackb(phot_row[68])
 
 def grab(sql_input):
     """Pulls in all columns from the database for the selected query. 
@@ -68,6 +82,10 @@ def grab(sql_input):
     #     multi_epoch = False
 
     multi_epoch = False
+
+    get_phot = False
+    if "join" in sql_input:
+        get_phot = True
 
     cur.execute(sql_input)
     for row in cur:
@@ -93,6 +111,10 @@ def grab(sql_input):
         # phot         = msg.unpackb(row[17])
         phot         = row[17]
         SN.phot      = phot
+
+        if get_phot:
+            store_phot_data(SN, row)
+
         SN.low_conf  = []
         SN.up_conf   = []
         SN.spec_bin  = []
@@ -106,6 +128,7 @@ def grab(sql_input):
         full_array.append(SN)
         SN_Array.append(SN)
 
+        
         # for i in range(len(SN_Array-1)): 
         #     if SN_Array[i].name == SN_Array[i-1].name and not multi_epoch:
         #         if abs(SN_Array[i].phase) < abs(SN_Array[i-1].phase): # closest to maximum
@@ -581,6 +604,67 @@ def fix_weights(SN_Array):
             if r[0] > SN.x1 and r[-1] < SN.x2:
                 SN.ivar[r] = (SN.ivar[r[0]-1] + SN.ivar[r[-1]+1])/2.
                 SN.flux[r] = (SN.flux[r[0]-1] + SN.flux[r[-1]+1])/2.
+
+def apply_host_corrections(SN_Array, lengths):
+    corrected_SNs = []
+    for SN in SN_Array:
+        # if SN.wavelength[SN.x2] > 10240 and SN.wavelength[SN.x2] < 10270:
+        #     print SN.filename, '                                  here'
+        print SN.name, SN.filename, SN.phase
+        # if np.average(SN.flux[SN.x1:SN.x2]) > 1.e-13:
+            # SN.flux = 1.e-15*SN.flux
+        if SN.av_mlcs31 != None:
+            pre_scale = (1.e-15/np.average(SN.flux[SN.x1:SN.x2]))
+            SN.flux = pre_scale*SN.flux
+            SN.ivar = SN.ivar/(pre_scale*pre_scale)
+            old_wave = SN.wavelength*u.Angstrom        # wavelengths
+            old_flux = SN.flux*u.Unit('W m-2 angstrom-1 sr-1')
+            spec1d = Spectrum1D.from_array(old_wave, old_flux)
+            old_ivar = SN.ivar*u.Unit('W m-2 angstrom-1 sr-1')
+            # new_flux = test_dered.dered(sne, SN.name, spec1d.wavelength, spec1d.flux)
+            new_flux, new_ivar = test_dered.host_correction(SN.av_mlcs31, 3.1, SN.name, old_wave, old_flux, old_ivar)
+            SN.flux = new_flux.value
+            SN.ivar = new_ivar.value
+            # lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
+            corrected_SNs.append(SN)
+            lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
+
+        elif SN.av_mlcs17 != None:
+            pre_scale = (1.e-15/np.average(SN.flux[SN.x1:SN.x2]))
+            SN.flux = pre_scale*SN.flux
+            SN.ivar = SN.ivar/(pre_scale*pre_scale)
+            old_wave = SN.wavelength*u.Angstrom        # wavelengths
+            old_flux = SN.flux*u.Unit('W m-2 angstrom-1 sr-1')
+            spec1d = Spectrum1D.from_array(old_wave, old_flux)
+            old_ivar = SN.ivar*u.Unit('W m-2 angstrom-1 sr-1')
+            # new_flux = test_dered.dered(sne, SN.name, spec1d.wavelength, spec1d.flux)
+            new_flux, new_ivar = test_dered.host_correction(SN.av_mlcs17, 1.7, SN.name, old_wave, old_flux, old_ivar)
+            SN.flux = new_flux.value
+            SN.ivar = new_ivar.value
+            # lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
+            corrected_SNs.append(SN)
+            lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
+
+        elif SN.av_25 != None:
+            pre_scale = (1.e-15/np.average(SN.flux[SN.x1:SN.x2]))
+            SN.flux = pre_scale*SN.flux
+            SN.ivar = SN.ivar/(pre_scale*pre_scale)
+            old_wave = SN.wavelength*u.Angstrom        # wavelengths
+            old_flux = SN.flux*u.Unit('W m-2 angstrom-1 sr-1')
+            spec1d = Spectrum1D.from_array(old_wave, old_flux)
+            old_ivar = SN.ivar*u.Unit('W m-2 angstrom-1 sr-1')
+            # new_flux = test_dered.dered(sne, SN.name, spec1d.wavelength, spec1d.flux)
+            new_flux, new_ivar = test_dered.host_correction(SN.av_25, 2.5, SN.name, old_wave, old_flux, old_ivar)
+            SN.flux = new_flux.value
+            SN.ivar = new_ivar.value
+            # lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
+            corrected_SNs.append(SN)
+            lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
+
+    SN_Array = corrected_SNs
+    print len(SN_Array), 'SNs with host corrections'
+    return SN_Array
+
     
     
 def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
@@ -845,33 +929,7 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
     # for i in range(len(mags)):
     #     print mags[i][0], mags[i][1] 
 
-    corrected_SNs = []
-    av_dict = build_av_dict('../data/info_files/lowz_rv25_all.fitres')
-    r_v = 2.5
-    for SN in SN_Array:
-        # if SN.wavelength[SN.x2] > 10240 and SN.wavelength[SN.x2] < 10270:
-        #     print SN.filename, '                                  here'
-        print SN.name, SN.filename, SN.phase
-        # if np.average(SN.flux[SN.x1:SN.x2]) > 1.e-13:
-            # SN.flux = 1.e-15*SN.flux
-        pre_scale = (1.e-15/np.average(SN.flux[SN.x1:SN.x2]))
-        SN.flux = pre_scale*SN.flux
-        SN.ivar = SN.ivar/(pre_scale*pre_scale)
-        old_wave = SN.wavelength*u.Angstrom        # wavelengths
-        old_flux = SN.flux*u.Unit('W m-2 angstrom-1 sr-1')
-        spec1d = Spectrum1D.from_array(old_wave, old_flux)
-        old_ivar = SN.ivar*u.Unit('W m-2 angstrom-1 sr-1')
-        # new_flux = test_dered.dered(sne, SN.name, spec1d.wavelength, spec1d.flux)
-        new_flux, new_ivar, corrected = test_dered.host_correction(av_dict, r_v, SN.name, old_wave, old_flux, old_ivar)
-        SN.flux = new_flux.value
-        SN.ivar = new_ivar.value
-        # lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
-        if corrected:
-            corrected_SNs.append(SN)
-            lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
-
-    SN_Array = corrected_SNs
-    print len(SN_Array), 'SNs with host corrections'
+    SN_Array = apply_host_corrections(SN_Array, lengths)
 
 
     # fix_weights(SN_Array)
