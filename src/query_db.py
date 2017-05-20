@@ -15,7 +15,8 @@ def make_colorbar(composites):
 		phases.append(np.average(comp.phase_array[comp.x1:comp.x2]))
 
 	norm = matplotlib.colors.Normalize(vmin=np.min(phases),vmax=np.max(phases))
-	c_m = matplotlib.cm.viridis
+	# c_m = matplotlib.cm.viridis
+	c_m = matplotlib.cm.winter
 	s_m = matplotlib.cm.ScalarMappable(cmap=c_m, norm=norm)
 	s_m.set_array([])
 
@@ -111,8 +112,8 @@ def comparison_plot(composites):
 		plt.plot(comp.wavelength[comp.x1:comp.x2], comp.red_array[comp.x1:comp.x2], color = s_m.to_rgba(phase))
 
 	plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
-	cb = plt.colorbar(s_m, ax = fig.axes)
-	cb.set_label('Phase', fontdict = font)
+	# cb = plt.colorbar(s_m, ax = fig.axes)
+	# cb.set_label('Phase', fontdict = font)
 	for ax in fig.axes:
 		ax.set_axis_bgcolor('white')
 
@@ -120,15 +121,20 @@ def comparison_plot(composites):
 
 def stacked_plot(composites):
 	fig, ax = plt.subplots(1,1)
-	fig.set_size_inches(8.5, 11.)
+	fig.set_size_inches(20, 12., forward = True)
 	ax.get_yaxis().set_ticks([])
 	composites, scales = composite.optimize_scales(composites, composites[0], True)
-	upper_buff = 200
 
+	i = 0
 	for comp in composites:
-		phase = np.average(comp.phase_array[comp.x1:comp.x2])
-		comp.flux = 1.e15*comp.flux + upper_buff
-		ax.plot(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2] - 3.*phase, 'k-')
+		dm15 = np.average(comp.dm15[comp.x1:comp.x2])
+		comp.flux = 1.e15*comp.flux 
+		ax.plot(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2] - 2.*i, color = '#3F5D7D', linewidth = 5)
+		plt.text(9700, comp.flux[comp.x2] - 2*i + 1, dm15)
+		i+=1
+
+	plt.ylabel('Relative Flux + const.')
+	plt.xlabel('Wavelength (A)')
 	plt.show()
 
 

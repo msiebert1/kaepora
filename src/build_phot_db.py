@@ -3,6 +3,9 @@ import sqlite3 as sq3
 import msgpack as msg
 import msgpack_numpy as mn
 import photometry as phot
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.interpolate import interp1d
 
 def find_all_events(salt,salt2,mlcs31,mlcs17,lcparams,host_data,av_dict,cfa_dict):
 	events = []
@@ -23,13 +26,35 @@ def find_all_events(salt,salt2,mlcs31,mlcs17,lcparams,host_data,av_dict,cfa_dict
 		events.append(SN['SimbadName'].lower())
 
 	for SN in host_data:
-		events.append(SN['SN'].lower())
+		events.append('sn' + SN['SN'].lower())
 
 	for SN in av_dict.keys():
 		events.append(SN.lower())
 
 	for SN in cfa_dict.keys():
 		events.append(SN.lower())
+
+	other_events = ['sn1989a', 'sn1989m', 'sn1993y', 'sn1993z', 'sn1999dg', 'sn1999do', 'sn2000dr', 'sn2000dx', 'sn2001dl', 'sn2001dt', 'sn2001dw', 'sn2002cv', 'sn2002eb', 
+					'sn2002eh', 'sn2002el', 'sn2003gs', 'sn2003gt', 'sn2003he', 'sn2003hs', 'sn2004bl', 'sn2004br', 'sn2004bv', 'sn2004bw', 'sn2004e', 'sn2004go', 'sn2005de', 
+					'sn2005di', 'sn2005dm', 'sn2005er', 'sn2005gj', 'sn2006dm', 'sn2007aj', 'sn2007cs', 'sn2007fr', 'sn2007ge', 'sn2007gi', 'sn2007gk', 'sn2007s1', 'sn2008bt', 
+					'sn2008cl', 'sn2008dt', 'sn2008dx', 'sn2008ec', 'sn2008ei', 'sn2008ha', 'sn2008hs', 'sn2008s1', 'sn2008s5', 'sn2005A', 'sn2005M', 'sn2005W', 'sn2006dd', 
+					'sn2006D', 'sn2006X', 'sn2007A', 'sn2007N', 'sn2007S', 'sn2008C', 'sn2008gl', 'sn2008hu', 'sn2008R', 'sn2009aa', 'sn2009ab', 'sn2009ad', 'sn2009ag', 
+					'sn2009D', 'sn2009F', 'sn2009Y','sn1994e', 'sn1994b', 'sn1998dj', 'sn1994j', 'sn2002ec', 'sn2005lt', 'snsnf20080522-011', 'sn1994u', 'sn2008bz', 'sn1998dw', 
+					'sn2002ep', 'sn1994x', 'sn2008fr', 'sn2004w', 'sn1997fc', 'sn2007e', 'sn2006es', 'sn2008fg', 'sn2008fj', 'sn2006eb', 'sn1995a', 'sn1995c', 'sn1999gf', 'sn2006ch', 
+					'sn2003x', 'sn1998en', 'sn1990g', 'snsnf20080522-000', 'sn1995t', 'sn1993aj', 'sn1993ai', 'sn2004gl', 'sn2005dh', 'sn2002dr', 'sn1993ab', 'sn2005do', 'sn2007v', 
+					'sn2006dy', 'sn2001fg', 'sn2006dw', 'sn2006dh', 'sn2006di', 'sn2006do', 'sn1995l', 'sn2008s4', 'sn2007m', 'sn1996o', 'sn2001a', 'sn2003v', 'sn2005bu', 'sn2002gx', 
+					'sn2002gg', 'sn2002gf', 'sn2002gc', 'sn2002gb', 'snsnf20080720-001', 'sn1996p', 'sn2005as', 'sn2004gw', 'sn2008dr', 'sn2008ds', 'sn2001cg', 'sn2000ej', 'sn1992ap', 
+					'sn2008db', 'sn2002fi', 'snsnf20080623-001', 'sn1998cl', 'sn1998cm', 'sn2006nr', 'sn1998cd', 'sn1997t', 'sn1999aq', 'sn1997fb', 'sn2004fw', 'sn1994ab', 'sn2005x', 
+					'sn2008gw', 'sn2007fq', 'sn2005p', 'sn2000dd', 'sn2004fg', 'sn2000df', 'sn2008ge', 'sn2008gh', 'sn2005f', 'sn2004y', 'sn2004bq', 'sn1991bj', 'sn1990m', 'sn1991bd', 
+					'sn1991bf', 'sn2003bf', 'sn2000j', 'sn1991bb', 'sn1991bc', 'sn2000q', 'sn1990r', 'snsnf20080514-002', 'sn2007ry', 'sn2001eg', 'sn1999c', 'sn2006ay', 'sn2008r3', 
+					'sn2004eq', 'sn2001ew', 'sn2001eu', 'sn2001er', 'sn2008bv', 'sn2008bw', 'sn2002dx', 'sn2003dw', 'sn1991k', 'sn2007sa', 'sn1991ak', 'sn1991b', 'sn1991am', 'sn1991at', 
+					'sn1991ay', 'sn2008ez', 'sn2008ey', 'sn2008er', 'sn2003p', 'sn2003ls', 'sn2008s3', 'sn2008gy', 'sn2002hl', 'sn2004di', 'sn2003lb', 'sn2008ee', 'sn2001dn', 'sn2003ax', 
+					'sn2003ay', 'sn1998fc', 'sn2003au', 'sn2003av', 'sn2003ij', 'sn2003ik', 'sn2005ec', 'sn2003an', 'sn2003ah', 'sn1999fz', 'sn1992m', 'sn2000al', 'sn2006ct', 'sn2004cv', 
+					'sn2003hj', 'sn2006ce', 'sn2004cb', 'sn2008hq', 'sn2008hr', 'sn2007qd', 'sn2008hy', 'sn2008hz', 'sn2002jo', 'sn2002bp', 'sn1993c', 'sn2002bk', 'sn2003bi', 'sn2003bh', 
+					'sn2008hj', 'sn2008hk', 'sn2004bz', 'sn2001dd', 'sn2001dm', 'sn2008cd', 'sn2008cf', 'sn2008ca', 'sn2008cb', 'sn2001ds', 'sn2008ct']
+
+	for event in other_events:
+		events.append(event)
 
 	events = set(events)
 	return events
@@ -128,7 +153,7 @@ def build_host_dict(host_data):
 		filt = SN['Filt']
 		Ebv = float(SN['E(B-V)'])
 		
-		host_dict[SN['SN'].lower()] = [ra,dec,glon,glat,cz,czLG,czCMB,mtype,xpos,ypos,t1,filt,Ebv]
+		host_dict['sn' + SN['SN'].lower()] = [ra,dec,glon,glat,cz,czLG,czCMB,mtype,xpos,ypos,t1,filt,Ebv]
 		
 	return host_dict
 
@@ -182,6 +207,30 @@ def build_cfa_dict(data_file):
 
 	return cfa_dict
 
+def dm15_from_fit_params(events, fit_dict, cfa_dict):
+	dm15_arr = []
+	param_arr = []
+	cfa_none = [None,None,None,None,None,None,None,None,None,None,None,None,None,None]
+	fit_none = [None,None,None,None,None,None,None,None,None,None]
+	for event in events:
+		if event != 'sn2001da' and event != 'sn2001cp': #outliers
+			if event in fit_dict and event in cfa_dict:
+				dm15_cfa = cfa_dict.get(event, cfa_none)[4]
+				if dm15_cfa != '9.99' and dm15_cfa != None:
+					dm15_cfa = float(dm15_cfa)
+					dm15_arr.append(dm15_cfa)
+					param_arr.append(fit_dict.get(event, fit_none)[6]) #stretch param is 6th index of dicts
+
+	coeffs = np.polyfit(param_arr, dm15_arr, 2)
+	x = np.linspace(-5, 5.1, 10000)
+	y = coeffs[0]*x**2. + coeffs[1]*x + coeffs[2]
+	# plt.scatter(param_arr, dm15_arr)
+	# plt.plot(x,y)
+	# plt.show()
+	dm15_interp = interp1d(x, y, bounds_error = True)
+	return dm15_interp
+
+
 if __name__ == "__main__":
 	mn.patch()
 
@@ -204,6 +253,10 @@ if __name__ == "__main__":
 	host_dict = build_host_dict(host_data)
 	lcparams_dict = build_lcparams_dict(lcparams)
 
+	dm15_s_interp = dm15_from_fit_params(events, salt_dict, cfa_dict)
+	dm15_x1_interp = dm15_from_fit_params(events, salt2_dict, cfa_dict)
+	dm15_delta_interp = dm15_from_fit_params(events, mlcs31_dict, cfa_dict)
+
 	con = sq3.connect('..\data\SNe_14_phot_1.db')
 	con.execute("""DROP TABLE IF EXISTS Photometry""")
 	con.execute("""CREATE TABLE IF NOT EXISTS Photometry (SN TEXT, RA TEXT, DEC TEXT, 
@@ -213,7 +266,7 @@ if __name__ == "__main__":
 														  zCMB_mlcs17 REAL, e_zCMB_mlcs17 REAL, mu_mlcs17 REAL, e_mu_mlcs17 REAL, delta_mlcs17 REAL, e_delta_mlcs17 REAL, av_mlcs17 REAL, e_av_mlcs17 REAL,
 														  glon_host REAL, glat_host REAL, cz_host REAL, czLG_host REAL, czCMB_host REAL, mtype_host TEXT, xpos_host REAL, ypos_host REAL, t1_host REAL, filt_host TEXT, Ebv_host REAL,
 														  zCMB_lc REAL, zhel_lc REAL, mb_lc REAL, e_mb_lc REAL, c_lc REAL, e_c_lc REAL, x1_lc REAL, e_x1_lc REAL, logMst_lc REAL, e_logMst_lc REAL, tmax_lc REAL, e_tmax_lc REAL, cov_mb_s_lc REAL, cov_mb_c_lc REAL, cov_s_c_lc REAL, bias_lc REAL,
-														  av_25 REAL, dm15_cfa Real,
+														  av_25 REAL, dm15_cfa Real, dm15_from_fits REAL,
 														  Photometry BLOB)""")
 
 	salt_none = [None,None,None,None,None,None,None,None,None,None,None,None]
@@ -247,11 +300,33 @@ if __name__ == "__main__":
 				break
 
 		av_25 = av_dict.get(event)
+
+		#dm15 estimation
 		dm15_cfa = cfa_dict.get(event, cfa_none)[4]
 		if dm15_cfa != '9.99' and dm15_cfa != None:
 			dm15_cfa = float(dm15_cfa)
 		elif dm15_cfa == '9.99':
 			dm15_cfa = None
+
+		if dm15_cfa is None:
+			dm15_from_s = np.NaN
+			if s_salt != None:
+				dm15_from_s = float(dm15_s_interp(s_salt))
+
+			dm15_from_x1 = np.NaN
+			if x1_salt2 != None:
+				dm15_from_x1 = float(dm15_x1_interp(x1_salt2))
+
+			dm15_from_delta = np.NaN
+			if delta_mlcs31 != None:
+				dm15_from_delta = float(dm15_delta_interp(delta_mlcs31))
+
+			dm15_from_fits = np.nanmean([dm15_from_s, dm15_from_x1, dm15_from_delta])
+			if dm15_from_fits == np.NaN:
+				dm15_from_fits = None
+		else:
+			dm15_from_fits = None
+
 
 		if event[0:2] == 'sn':
 			event = event[2:]
@@ -259,23 +334,22 @@ if __name__ == "__main__":
 		sn_phot = phot.get_photometry(event)
 		phot_blob = msg.packb(sn_phot)
 
-
 		con.execute("""INSERT INTO Photometry(SN, RA, DEC, zCMB_salt, e_zCMB_salt, Bmag_salt, e_Bmag_salt, s_salt, e_s_salt, c_salt, e_c_salt, mu_salt, e_mu_salt,
 											           zCMB_salt2, e_zCMB_salt2, Bmag_salt2, e_Bmag_salt2, x1_salt2, e_x1_salt2, c_salt2, e_c_salt2, mu_salt2, e_mu_salt2,
 											           zCMB_mlcs31, e_zCMB_mlcs31, mu_mlcs31, e_mu_mlcs31, delta_mlcs31, e_delta_mlcs31, av_mlcs31, e_av_mlcs31,
 											           zCMB_mlcs17, e_zCMB_mlcs17, mu_mlcs17, e_mu_mlcs17, delta_mlcs17, e_delta_mlcs17, av_mlcs17, e_av_mlcs17,
 											           glon_host, glat_host, cz_host, czLG_host, czCMB_host, mtype_host, xpos_host, ypos_host, t1_host, filt_host, Ebv_host,
 											           zCMB_lc, zhel_lc, mb_lc, e_mb_lc, c_lc, e_c_lc, x1_lc, e_x1_lc, logMst_lc, e_logMst_lc, tmax_lc, e_tmax_lc, cov_mb_s_lc, cov_mb_c_lc, cov_s_c_lc, bias_lc,
-											           av_25, dm15_cfa,
+											           av_25, dm15_cfa, dm15_from_fits,
 											           Photometry)
-                                VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                                VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                         (event, ra, dec, zCMB_salt, e_zCMB_salt, Bmag_salt, e_Bmag_salt, s_salt, e_s_salt, c_salt, e_c_salt, mu_salt, e_mu_salt,
                         	      zCMB_salt2, e_zCMB_salt2, Bmag_salt2, e_Bmag_salt2, x1_salt2, e_x1_salt2, c_salt2, e_c_salt2, mu_salt2, e_mu_salt2,
                         	      zCMB_mlcs31, e_zCMB_mlcs31, mu_mlcs31, e_mu_mlcs31, delta_mlcs31, e_delta_mlcs31, av_mlcs31, e_av_mlcs31,
                         	      zCMB_mlcs17, e_zCMB_mlcs17, mu_mlcs17, e_mu_mlcs17, delta_mlcs17, e_delta_mlcs17, av_mlcs17, e_av_mlcs17,
                         	      glon_host, glat_host, cz_host, czLG_host, czCMB_host, mtype_host, xpos_host, ypos_host, t1_host, filt_host, Ebv_host,
                         	      zCMB_lc, zhel_lc, mb_lc, e_mb_lc, c_lc, e_c_lc, x1_lc, e_x1_lc, logMst_lc, e_logMst_lc, tmax_lc, e_tmax_lc, cov_mb_s_lc, cov_mb_c_lc, cov_s_c_lc, bias_lc,
-                        	      av_25, dm15_cfa,
+                        	      av_25, dm15_cfa, dm15_from_fits,
                         	      buffer(phot_blob))
                     )
 		print 'Done'

@@ -58,7 +58,9 @@ def grab_event_phot_data(sql_input):
         PH.zCMB_mlcs17, PH.e_zCMB_mlcs17, PH.mu_mlcs17, PH.e_mu_mlcs17, PH.delta_mlcs17, PH.e_delta_mlcs17, PH.av_mlcs17, PH.e_av_mlcs17 = row[31:39]
         PH.glon_host, PH.glat_host, PH.cz_host, PH.czLG_host, PH.czCMB_host, PH.mtype_host, PH.xpos_host, PH.ypos_host, PH.t1_host, PH.filt_host, PH.Ebv_host = row[39:50]
         PH.zCMB_lc, PH.zhel_lc, PH.mb_lc, PH.e_mb_lc, PH.c_lc, PH.e_c_lc, PH.x1_lc, PH.e_x1_lc, PH.logMst_lc, PH.e_logMst_lc, PH.tmax_lc, PH.e_tmax_lc, PH.cov_mb_s_lc, PH.cov_mb_c_lc, PH.cov_s_c_lc, PH.bias_lc = row[50:66]
-        PH.light_curves = msg.unpackb(row[66])
+        PH.av_25 = row[66]
+        PH.dm15_cfa = row[67]
+        PH.light_curves = msg.unpackb(row[68])
 
         PH_Array.append(PH)    
 

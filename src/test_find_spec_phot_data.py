@@ -26,7 +26,8 @@ def plot_light_curves(PH):
 # plot_light_curves(PH_Array[0])
 # print PH_Array[0].light_curves
 
-PH_Array = fed.grab_event_phot_data("SELECT * FROM Photometry where SN")
+PH_Array = fed.grab_event_phot_data("SELECT * FROM Photometry where SN = '2001bf'")
+print len(PH_Array)
 # SN_Array = fed.grab_event_data("SELECT * FROM Supernovae where dm15")
 
 # names = []
