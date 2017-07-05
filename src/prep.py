@@ -163,7 +163,7 @@ def Interpo (wave, flux, ivar):
         #make sure not at edge of spectrum
         inter_flux[zero_points] = np.interp(wavelength[zero_points], [wave_tuple[0], wave_tuple[1]], [inter_flux[zero_points[0][0]-1], inter_flux[zero_points[0][-1]+1]])
         #deweight data (but not to 0), somewhat arbitrary
-        inter_ivar[zero_points] = .5*np.interp(wavelength[zero_points], [wave_tuple[0], wave_tuple[1]], [inter_ivar[zero_points[0][0]-1], inter_ivar[zero_points[0][-1]+1]])
+        inter_ivar[zero_points] = np.interp(wavelength[zero_points], [wave_tuple[0], wave_tuple[1]], [inter_ivar[zero_points[0][0]-1], inter_ivar[zero_points[0][-1]+1]])
         # inter_ivar[zero_points] = 0
 
     inter_ivar[inter_ivar < 0] = 0  # make sure there are no negative points!

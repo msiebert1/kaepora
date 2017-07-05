@@ -32,6 +32,8 @@ dm15_s_interp = phot_db.dm15_from_fit_params(events, salt_dict, cfa_dict)
 dm15_x1_interp = phot_db.dm15_from_fit_params(events, salt2_dict, cfa_dict)
 dm15_delta_interp = phot_db.dm15_from_fit_params(events, mlcs31_dict, cfa_dict)
 
+
+#uncomment plotting code in dm15_from_fit_params in phot_db to see relationships
 for event in events:
 	dm15_from_s = np.NaN
 	dm15_from_x1 = np.NaN

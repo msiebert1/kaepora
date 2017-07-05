@@ -1,24 +1,24 @@
 def bad_files():
-		bad_files =        ['SN05hc_051018_r01_NTT_EM.dat', '2003du_20030501_4066_11015_00.dat',
-							'2002er_20020901_3213_9175_00.dat', '2003du_20030503_4070_10994_00.dat',
-							'2003du_20030512_4070_11015_00.dat', 'sn2006nz-20061124-ntt.dat',
-							'sn2001eh-20010925.757-hst.flm', 'sn2001ep-20011102.871-hst.flm',
-							'2005cf_20050601_3243_9720_00.dat', 'sn2006cm-20060529.46-fast.flm',
-							'2002bo_20020321_3357_7725_00.dat', 'sn1994S-19940612.26-mmt.flm',
-							'sn2003cg-20030329.27-mmt.flm', 'sn1995ac-19950929.27-fast.flm',
-							'sn2007hj-20070903.28-fast.flm', '2000E_20000131_3274_7349_00.dat',
-							'sn2006cj-20060521.29-fast.flm', 'sn2006oa-20061125.08-fast.flm',
-							'sn2005cf-20050609.5-uvot-clip.flm', 'sn2006kf-20061030.385-ui.flm',
-							'SN07bd_070412_b01_DUP_WF.dat', 'SN09ad_090223_b01_DUP_WF.dat',
-							'SN05kc_051124_b01_DUP_MS.dat', 'sn2005eq-20051011.376-ui-corrected.flm',
-							'sn2006et-20060919.345-ui.flm', 'sn2007cq-20070623.431-ui.flm',
-							'sn1997bq-19970408.14-mmt.flm', 'sn2006lf-20061028.51-fast.flm',
-							'sn2005eq-20051002.51-fast.flm', 'sn1995bd-19951223.34-fast.flm',
-							'sn1998ab-19980403.38-fast.flm', 'sn1994M-19940612.22-mmt.flm',
-							'2006X_20060209_3834_8139_00.dat', '2003du_20030508_4066_10997_00.dat',
-							'SN05ke_051125_b01_T60_CS.dat', 'sn1994s-19940616-uoi.flm',
-							'1994D_19940317_2999_10549_00.dat', '2005cf_20050608_3365_9997_00.dat',
-							'2002dj_20020620_3210_9231_00.dat', 'sn2006lf-20061029.40-fast.flm',
+		bad_files =        ['SN05hc_051018_r01_NTT_EM.dat', '2003du_20030501_4066_11015_00.dat',		#bad, bad
+							'2002er_20020901_3213_9175_00.dat', '2003du_20030503_4070_10994_00.dat',	#bad, bad
+							'2003du_20030512_4070_11015_00.dat', 'sn2006nz-20061124-ntt.dat',			#bad, bad
+							'sn2001eh-20010925.757-hst.flm', 'sn2001ep-20011102.871-hst.flm',			#missing from db now, missing from db now	
+							'2005cf_20050601_3243_9720_00.dat', 'sn2006cm-20060529.46-fast.flm',		#bad, reddening wrong
+							'2002bo_20020321_3357_7725_00.dat', 'sn1994S-19940612.26-mmt.flm',			#bad, bad
+							'sn2003cg-20030329.27-mmt.flm', 'sn1995ac-19950929.27-fast.flm',			#bad, bad
+							'sn2007hj-20070903.28-fast.flm', '2000E_20000131_3274_7349_00.dat',			#bad, redshift wrong?
+																										#good, good ('sn2006cj-20060521.29-fast.flm', 'sn2006oa-20061125.08-fast.flm',)
+							'sn2005cf-20050609.5-uvot-clip.flm', 										#bad, good ('sn2006kf-20061030.385-ui.flm',)
+														 'SN09ad_090223_b01_DUP_WF.dat',				#good, bad var ('SN07bd_070412_b01_DUP_WF.dat',)
+																										#good, good ('SN05kc_051124_b01_DUP_MS.dat', 'sn2005eq-20051011.376-ui-corrected.flm',)
+																										#good, good ('sn2006et-20060919.345-ui.flm', 'sn2007cq-20070623.431-ui.flm',)
+															 'sn2006lf-20061028.51-fast.flm',			#tell, bad var ('sn1997bq-19970408.14-mmt.flm',)
+																										#good, good ('sn2005eq-20051002.51-fast.flm', 'sn1995bd-19951223.34-fast.flm',)
+															 'sn1994M-19940612.22-mmt.flm',				#good, bad ('sn1998ab-19980403.38-fast.flm',)
+															 '2003du_20030508_4066_10997_00.dat',		#good, bad ('2006X_20060209_3834_8139_00.dat',)
+							'SN05ke_051125_b01_T60_CS.dat', 											#reddening wrong, good ('sn1994s-19940616-uoi.flm',)
+							'1994D_19940317_2999_10549_00.dat', 										#bad, tell ('2005cf_20050608_3365_9997_00.dat',)
+																 'sn2006lf-20061029.40-fast.flm',		#tell, bad var (same below) ('2002dj_20020620_3210_9231_00.dat',)
 							'sn2006lf-20061030.41-fast.flm', 'sn2006lf-20061031.42-fast.flm',
 							'sn2006lf-20061101.40-fast.flm', 'sn2006lf-20061111.36-fast.flm',
 							'sn2006lf-20061112.37-fast.flm','sn2006lf-20061113.36-fast.flm',
@@ -27,29 +27,29 @@ def bad_files():
 							'sn2006lf-20061122.35-fast.flm','sn2006lf-20061125.34-fast.flm',
 							'sn2006lf-20061214.28-fast.flm','sn2006lf-20061216.30-fast.flm',
 							'sn2006lf-20061226.26-fast.flm','sn2006lf-20061227.29-fast.flm',
-							'sn1995al-19951114.52-fast.flm', '2002er_20020901_3213_9175_00.dat',
-							'sn2003kf-20031216.37-fast.flm','SN05bg_050419_b01_DUP_WF.dat',
-							'2003du_20040202_3182_9333_00.dat', '2002bo_20020328_3099_8801_00.dat',
-							'2005cf_20050603_3721_8786_00.dat', 'SN06hx_061005_g01_NTT_EM.dat',
-							'2003du_20030429_3428_9436_00.dat', '2000E_20000127_3213_7513_00.dat',
-							'sn2006bt-20060427.629-br.flm','sn2003ic-20030919.40-fast.flm',
-							'2000E_20000130_3274_7356_00.dat','sn2006cm-20060528.45-fast.flm',
-							'sn2006nz-20061117.18-fast.flm','sn1996ai-19960620-uo.flm',
-							'sn2006cm-20060528.424-ui.flm','2003du_20030506_4068_10991_00.dat',
-							'sn2005A-20050111.04-ldss2.flm','sn2003iv-20031023.469-ui.flm',
-							'SN07al_070314_b01_DUP_BC.dat', 'sn2006ke-20061024.397-ui.flm',
-							'sn2002bf-20020307-os.flm','sn1996bk-19961015.10-fast.flm',
-							'SN06mr_061113_r01_BAA_IM.dat','sn2003ic-20030927.38-fast.flm',
-							'SN08hv_081220_b01_DUP_WF.dat','sn2002de-20020614.19-fast.flm',
-							'sn2003ic-20030929.35-fast.flm','sn2006cj-20060529.26-fast.flm',
-							'SN06mr_061116_b01_DUP_WF.dat','SN07al_070319_b01_DUP_BC.dat',
-							'2003du_20030515_4969_9241_00.dat','SN07N_070131_b01_NTT_EM.dat',
-							'sn2006ke-20061030.525-ui.flm','sn2003ic-20031002.25-fast.flm',
-							'sn2005hf-20051027.27-fast.flm', 'SN06mr_061119_b01_DUP_WF.dat',
-							'sn2005hf-20051028.22-fast.flm','SN06mr_061119_b01_HIL_BC.dat',
-							'sn2001ic-20011211-ui.flm','sn2005mz-20060121.13-fast.flm',
-							'sn2000cn-20000623.34-fast.flm','sn2007al-20070320.11-ldss3.flm',
-							'sn2007ax-20070407.16-fast.flm','SN07on_071125_b01_CLA_MA.dat', 
+															 '2002er_20020901_3213_9175_00.dat',		#good, bad ('sn1995al-19951114.52-fast.flm',)
+							'sn2003kf-20031216.37-fast.flm','SN05bg_050419_b01_DUP_WF.dat',				#bad var, bad var
+							'2003du_20040202_3182_9333_00.dat', '2002bo_20020328_3099_8801_00.dat',		#bad var, bad
+							'2005cf_20050603_3721_8786_00.dat', 'SN06hx_061005_g01_NTT_EM.dat',			#bad, reddening wrong
+																 '2000E_20000127_3213_7513_00.dat',		#tell, bad ('2003du_20030429_3428_9436_00.dat',)
+							'sn2006bt-20060427.629-br.flm','sn2003ic-20030919.40-fast.flm',				#reddening wrong, reddening wrong
+							'2000E_20000130_3274_7356_00.dat','sn2006cm-20060528.45-fast.flm',			#reddening wrong, reddening wrong
+							'sn2006nz-20061117.18-fast.flm','sn1996ai-19960620-uo.flm',					#reddening wrong, bad
+							'sn2006cm-20060528.424-ui.flm','2003du_20030506_4068_10991_00.dat',			#reddening wrong, bad
+							'sn2005A-20050111.04-ldss2.flm','sn2003iv-20031023.469-ui.flm',				#reddening wrong, reddening wrong
+							'SN07al_070314_b01_DUP_BC.dat', 'sn2006ke-20061024.397-ui.flm',				#reddening wrong, reddening wrong
+													'sn1996bk-19961015.10-fast.flm',					#good, reddening wrong ('sn2002bf-20020307-os.flm',)			
+							'SN06mr_061113_r01_BAA_IM.dat','sn2003ic-20030927.38-fast.flm',				#reddening wrong, reddening wrong
+							'SN08hv_081220_b01_DUP_WF.dat','sn2002de-20020614.19-fast.flm',				#reddening wrong, reddening	wrong
+							'sn2003ic-20030929.35-fast.flm','sn2006cj-20060529.26-fast.flm',			#reddening wrong, reddening	wrong
+							'SN06mr_061116_b01_DUP_WF.dat','SN07al_070319_b01_DUP_BC.dat',				#reddening wrong, reddening	wrong
+							'2003du_20030515_4969_9241_00.dat','SN07N_070131_b01_NTT_EM.dat',			#redshift wrong, redshift wrong
+							'sn2006ke-20061030.525-ui.flm','sn2003ic-20031002.25-fast.flm',				#reddening wrong, reddening	wrong
+							'sn2005hf-20051027.27-fast.flm', 'SN06mr_061119_b01_DUP_WF.dat',			#reddening wrong, reddening	wrong
+							'sn2005hf-20051028.22-fast.flm','SN06mr_061119_b01_HIL_BC.dat',				#reddening wrong, reddening	wrong
+							'sn2001ic-20011211-ui.flm','sn2005mz-20060121.13-fast.flm',					#reddening wrong, reddening	wrong
+							'sn2000cn-20000623.34-fast.flm','sn2007al-20070320.11-ldss3.flm',			#reddening wrong, reddening	wrong
+							'sn2007ax-20070407.16-fast.flm','SN07on_071125_b01_CLA_MA.dat', 			#reddening wrong (same below), reddening wrong/tell
 							'SN08hv_081227_b01_DUP_WF.dat','sn2005hf-20051030.22-fast.flm',
 							'sn2007al-20070321.33-fast.flm','sn1999gh-19991212.50-fast.flm',
 							'sn2001N-20010202.47-fast.flm','sn2002bf-20020316.32-fast.flm',
@@ -63,23 +63,30 @@ def bad_files():
 							'sn2005mz-20060129.11-fast.flm','SN06gt_061013_b01_DUP_WF.dat',
 							'sn1998bp-19980522-r.flm','sn2005hf-20051106.34-fast.flm',
 							'sn2006cm-20060620.410-ui.flm','sn2000cn-20000704.32-fast.flm',
-							'SN08R_080219feb08_b01_CLA_MA.dat','SN07jg_071016_b01_DUP_BC.dat',
-							'2003du_20030530_4060_10974_00.dat','sn2006nz-20061213-ntt.dat',
-							'sn2006te-20070126.326-ui.flm','SN08ia_090122_b01_CLA_LD.dat',
-							'sn2001G-20010423.19-fast.flm','SN06X_060524_b01_DUP_BC.dat',
-							'sn2006X-20060221.40-fast.flm','2006X_20060219_3731_8515_00.dat',
-							'2006X_20060221_3981_8865_00.dat','sn1999cl-19990614.18-fast.flm',
-							'sn2006X-20060222.41-fast.flm','sn2006x-20060222.413-ui.flm',
-							'2006X_20060225_3734_8223_00.dat','sn2006X-20060225.36-fast.flm',
-							'2006X_20060227_3918_8203_00.dat','sn2006X-20060227.44-fast.flm',
-							'sn2006X-20060228.34-fast.flm','2002er_20020916_3336_8734_00.dat',
-							'sn2006X-20060302.47-fast.flm','2006X_20060304_3783_8272_00.dat',
-							'sn2006X-20060304.51-fast.flm','2006X_20060307_3861_8130_00.dat',
-							'sn2006X-20060309.30-fast.flm','2002er_20020926_3489_8768_00.dat',
-							'2002er_20021010_3560_9363_00.dat','1996X_19960613_2806_10203_00.dat',
-							'sn2005m-20050201.556-ui.flm','2002er_20020906_3480_10263_00.dat',
-							'sn2003cg-20030402.17-ldss2.flm']
+							'SN08R_080219feb08_b01_CLA_MA.dat',											#reddening wrong/tell, good ('SN07jg_071016_b01_DUP_BC.dat',)
+							'2003du_20030530_4060_10974_00.dat','sn2006nz-20061213-ntt.dat',			#bad, bad
+							'sn2006te-20070126.326-ui.flm',												#reddening wrong, good ('SN08ia_090122_b01_CLA_LD.dat',)
+							'sn2001G-20010423.19-fast.flm','SN06X_060524_b01_DUP_BC.dat',				#reddening wrong, bad var
+							'sn2006X-20060221.40-fast.flm','2006X_20060219_3731_8515_00.dat',			#redshift wrong?, redshift wrong?
+							'2006X_20060221_3981_8865_00.dat','sn1999cl-19990614.18-fast.flm',			#redshift wrong?, bad var
+							'sn2006X-20060222.41-fast.flm','sn2006x-20060222.413-ui.flm',				#redshift wrong?, redshift wrong?					
+							'2006X_20060225_3734_8223_00.dat','sn2006X-20060225.36-fast.flm',			#redshift wrong?, redshift wrong?
+							'2006X_20060227_3918_8203_00.dat','sn2006X-20060227.44-fast.flm',			#redshift wrong?, redshift wrong?
+							'sn2006X-20060228.34-fast.flm','2002er_20020916_3336_8734_00.dat',			#redshift wrong?, reddening wrong
+							'sn2006X-20060302.47-fast.flm','2006X_20060304_3783_8272_00.dat',			#redshift wrong?, redshift wrong?
+							'sn2006X-20060304.51-fast.flm','2006X_20060307_3861_8130_00.dat',			#redshift wrong?, redshift wrong?
+							'sn2006X-20060309.30-fast.flm','2002er_20020926_3489_8768_00.dat',			#redshift wrong?, reddening wrong
+							'2002er_20021010_3560_9363_00.dat',											#reddening wrong, good ('1996X_19960613_2806_10203_00.dat',)
+							'sn2005m-20050201.556-ui.flm','2002er_20020906_3480_10263_00.dat',			#reddening wrong, reddening wrong?
+							'sn2003cg-20030402.17-ldss2.flm', 'sn2001fh-20011115.09-fast.flm',			#reddening wrong, bad var	
+							'sn2001fh-20011107.20-fast.flm','sn2001fh-20011108.19-fast.flm',			#bad var, bad var
+							'sn2001fh-20011109.10-fast.flm', 'sn2001fh-20011118.07-fast.flm',			#bad var, bad var
+							'sn2001fh-20011120.08-fast.flm', 'sn1997bp-19970411.30-fast.flm',			#bad var, redshift wrong?
+							'sn2006le-20061111.39-fast.flm', 'sn1999dq-19990904.48-fast.flm',			#bad var, bad var?
+							'sn1995bd-19951228.25-fast.flm','sn2006le-20061027.52-fast.flm',			#bad var, bad var
+							'sn2003it-20031028.34-fast.flm','sn1991t-19910418.flm']						#bad var, very large SNR biases early time composites
 
+		print len(bad_files), 'questionable files currently ignored'
 		return bad_files
 		#SN05hc_051018_r01_NTT_EM.dat very noisy
 		#2003du_20030501_4066_11015_00.dat very large negative value
@@ -223,6 +230,12 @@ def bad_files():
 		#sn2005m-20050201.556-ui.flm slope seems off
 		#2002er_20020906_3480_10263_00.dat slope seems off
 		#sn2003cg-20030402.17-ldss2.flm slope seems off
+		#sn1997bp-19970411.30-fast.flm redshift wrong?
+		#sn2006le-20061111.39-fast.flm bad var
+		#sn1999dq-19990904.48-fast.flm bad var
+		#sn1995bd-19951228.25-fast.flm bad var
+		#sn2006le-20061027.52-fast.flm bad var
+
 
 		# sn1994d-19940603.flm ??
 

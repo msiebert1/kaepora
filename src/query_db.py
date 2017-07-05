@@ -10,13 +10,13 @@ import matplotlib.animation as animation
 
 
 def make_colorbar(composites):
-	phases = []
+	params = []
 	for comp in composites:
-		phases.append(np.average(comp.phase_array[comp.x1:comp.x2]))
+		params.append(np.average(comp.dm15_array[comp.x1:comp.x2]))
 
-	norm = matplotlib.colors.Normalize(vmin=np.min(phases),vmax=np.max(phases))
+	norm = matplotlib.colors.Normalize(vmin=np.min(params),vmax=np.max(params))
 	# c_m = matplotlib.cm.viridis
-	c_m = matplotlib.cm.winter
+	c_m = matplotlib.cm.winter_r
 	s_m = matplotlib.cm.ScalarMappable(cmap=c_m, norm=norm)
 	s_m.set_array([])
 
@@ -73,43 +73,43 @@ def comparison_plot(composites):
 	composites, scales = composite.optimize_scales(composites, composites[0], True)
 
 	for comp in composites:
-		phase = np.average(comp.phase_array[comp.x1:comp.x2])
+		param = np.average(comp.dm15_array[comp.x1:comp.x2])
 
 		rel_flux = plt.subplot(gs[0])
 		plt.ylabel('Relative Flux', fontdict = font)
 		rel_flux.axes.get_yaxis().set_ticks([])
-		plt.plot(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], color = s_m.to_rgba(phase))
+		plt.plot(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], color = s_m.to_rgba(param))
 		if len(comp.low_conf) > 0 and len(comp.up_conf) > 0:
 			plt.fill_between(comp.wavelength[comp.x1:comp.x2], comp.low_conf[comp.x1:comp.x2], 
-				             comp.up_conf[comp.x1:comp.x2], color = s_m.to_rgba(phase), alpha = 0.5)
+				             comp.up_conf[comp.x1:comp.x2], color = s_m.to_rgba(param), alpha = 0.5)
 
 		plt.subplot(gs[1], sharex = rel_flux)
 		plt.ylabel('Variance', fontdict = font)
-		plt.plot(comp.wavelength[comp.x1:comp.x2], comp.ivar[comp.x1:comp.x2], color = s_m.to_rgba(phase))
+		plt.plot(comp.wavelength[comp.x1:comp.x2], comp.ivar[comp.x1:comp.x2], color = s_m.to_rgba(param))
 
 		plt.subplot(gs[2], sharex = rel_flux)
 		plt.ylabel('Residuals', fontdict = font)
-		plt.plot(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2] - composites[0].flux[comp.x1:comp.x2], color = s_m.to_rgba(phase))
+		plt.plot(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2] - composites[0].flux[comp.x1:comp.x2], color = s_m.to_rgba(param))
 		if len(comp.low_conf) > 0 and len(comp.up_conf) > 0:
 			low_resid = comp.low_conf[comp.x1:comp.x2] - composites[0].flux[comp.x1:comp.x2]
 			up_resid = comp.up_conf[comp.x1:comp.x2] - composites[0].flux[comp.x1:comp.x2]
-			plt.fill_between(comp.wavelength[comp.x1:comp.x2], low_resid, up_resid, color = s_m.to_rgba(phase), alpha = 0.5)
+			plt.fill_between(comp.wavelength[comp.x1:comp.x2], low_resid, up_resid, color = s_m.to_rgba(param), alpha = 0.5)
 
 		plt.subplot(gs[3], sharex = rel_flux)
 		plt.ylabel('Spectra/Bin', fontdict = font)
-		plt.plot(comp.wavelength[comp.x1:comp.x2], comp.spec_bin[comp.x1:comp.x2], color = s_m.to_rgba(phase))
+		plt.plot(comp.wavelength[comp.x1:comp.x2], comp.spec_bin[comp.x1:comp.x2], color = s_m.to_rgba(param))
 
 		plt.subplot(gs[4], sharex = rel_flux)
 		plt.ylabel('Phase [d]', fontdict = font)
-		plt.plot(comp.wavelength[comp.x1:comp.x2], comp.phase_array[comp.x1:comp.x2], color = s_m.to_rgba(phase))
+		plt.plot(comp.wavelength[comp.x1:comp.x2], comp.phase_array[comp.x1:comp.x2], color = s_m.to_rgba(param))
 
 		plt.subplot(gs[5], sharex = rel_flux)
 		plt.ylabel('$\Delta$m$_{15}$', fontdict = font)
-		plt.plot(comp.wavelength[comp.x1:comp.x2], comp.dm15[comp.x1:comp.x2], color = s_m.to_rgba(phase))
+		plt.plot(comp.wavelength[comp.x1:comp.x2], comp.dm15[comp.x1:comp.x2], color = s_m.to_rgba(param))
 
 		plt.subplot(gs[6], sharex = rel_flux)
 		plt.ylabel('Redshift', fontdict = font)
-		plt.plot(comp.wavelength[comp.x1:comp.x2], comp.red_array[comp.x1:comp.x2], color = s_m.to_rgba(phase))
+		plt.plot(comp.wavelength[comp.x1:comp.x2], comp.red_array[comp.x1:comp.x2], color = s_m.to_rgba(param))
 
 	plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
 	# cb = plt.colorbar(s_m, ax = fig.axes)
@@ -182,75 +182,6 @@ if __name__ == "__main__":
 	num_queries = int(sys.argv[1])
 	query_strings = sys.argv[2:]
 
-	# query_strings = [
-	# 				 "SELECT * FROM Supernovae where phase < -10",
-	#                  "SELECT * FROM Supernovae where phase >= -10 and phase < -9",
-	#                  "SELECT * FROM Supernovae where phase >= -9 and phase < -8",
-	#                  "SELECT * FROM Supernovae where phase >= -8 and phase < -7",
-	#                  "SELECT * FROM Supernovae where phase >= -7 and phase < -6",
-	#                  "SELECT * FROM Supernovae where phase >= -6 and phase < -5",
-	#                  "SELECT * FROM Supernovae where phase >= -5 and phase < -4",
-	#                  "SELECT * FROM Supernovae where phase >= -4 and phase < -3",
-	#                  "SELECT * FROM Supernovae where phase >= -3 and phase < -2",
-	#                  "SELECT * FROM Supernovae where phase >= -2 and phase < -1",
-	#                  "SELECT * FROM Supernovae where phase >= -1 and phase < 0",
-	#                  "SELECT * FROM Supernovae where phase >= 0 and phase < 1",
-	#                  "SELECT * FROM Supernovae where phase >= 1 and phase < 2",
-	#                  "SELECT * FROM Supernovae where phase >= 2 and phase < 3",
-	#                  "SELECT * FROM Supernovae where phase >= 3 and phase < 4",
-	#                  "SELECT * FROM Supernovae where phase >= 4 and phase < 5",
-	#                  "SELECT * FROM Supernovae where phase >= 5 and phase < 6",
-	#                  "SELECT * FROM Supernovae where phase >= 6 and phase < 7",
-	#                  "SELECT * FROM Supernovae where phase >= 7 and phase < 8",
-	#                  "SELECT * FROM Supernovae where phase >= 8 and phase < 9",
-	#                  "SELECT * FROM Supernovae where phase >= 9 and phase < 10",
-	#                  "SELECT * FROM Supernovae where phase >= 10 and phase < 11",
-	#                  "SELECT * FROM Supernovae where phase >= 11 and phase < 12",
-	#                  "SELECT * FROM Supernovae where phase >= 12 and phase < 13",
-	#                  "SELECT * FROM Supernovae where phase >= 13 and phase < 14",
-	#                  "SELECT * FROM Supernovae where phase >= 14 and phase < 15",
-	#                  "SELECT * FROM Supernovae where phase >= 15 and phase < 16",
-	#                  "SELECT * FROM Supernovae where phase >= 16 and phase < 17",
-	#                  "SELECT * FROM Supernovae where phase >= 17 and phase < 18",
-	#                  "SELECT * FROM Supernovae where phase >= 18 and phase < 19",
-	#                  "SELECT * FROM Supernovae where phase >= 19 and phase < 20",
-	#                  "SELECT * FROM Supernovae where phase >= 20 and phase < 21",
-	#                  "SELECT * FROM Supernovae where phase >= 21 and phase < 22",
-	#                  "SELECT * FROM Supernovae where phase >= 22 and phase < 23",
-	#                  "SELECT * FROM Supernovae where phase >= 23 and phase < 24",
-	#                  "SELECT * FROM Supernovae where phase >= 24 and phase < 25",
-	#                  "SELECT * FROM Supernovae where phase >= 25 and phase < 26",
-	#                  "SELECT * FROM Supernovae where phase >= 26 and phase < 27",
-	#                  "SELECT * FROM Supernovae where phase >= 27 and phase < 28",
-	#                  "SELECT * FROM Supernovae where phase >= 28 and phase < 29",
-	#                  "SELECT * FROM Supernovae where phase >= 29 and phase < 30",
-	#                  "SELECT * FROM Supernovae where phase >= 30 and phase < 31",
-	#                  "SELECT * FROM Supernovae where phase >= 31 and phase < 32",
-	#                  "SELECT * FROM Supernovae where phase >= 32 and phase < 33",
-	#                  "SELECT * FROM Supernovae where phase >= 33 and phase < 34",
-	#                  "SELECT * FROM Supernovae where phase >= 34 and phase < 35",
-	#                  "SELECT * FROM Supernovae where phase >= 35 and phase < 36",
-	#                  "SELECT * FROM Supernovae where phase >= 36 and phase < 37",
-	#                  "SELECT * FROM Supernovae where phase >= 37 and phase < 38",
-	#                  "SELECT * FROM Supernovae where phase >= 38 and phase < 39",
-	#                  "SELECT * FROM Supernovae where phase >= 39 and phase < 40",
-	#                  "SELECT * FROM Supernovae where phase >= 40 and phase < 42",
-	#                  "SELECT * FROM Supernovae where phase >= 42 and phase < 44",
-	#                  "SELECT * FROM Supernovae where phase >= 44 and phase < 46",
-	#                  "SELECT * FROM Supernovae where phase >= 46 and phase < 49",
-	#                  "SELECT * FROM Supernovae where phase >= 49 and phase < 52",
-	#                  "SELECT * FROM Supernovae where phase >= 52 and phase < 55",
-	#                  "SELECT * FROM Supernovae where phase >= 55 and phase < 58",
-	#                  "SELECT * FROM Supernovae where phase >= 58 and phase < 61",
-	#                  "SELECT * FROM Supernovae where phase >= 61 and phase < 65",
-	#                  "SELECT * FROM Supernovae where phase >= 65 and phase < 70",
-	#                  "SELECT * FROM Supernovae where phase >= 70 and phase < 78",
-	#                  "SELECT * FROM Supernovae where phase >= 78 and phase < 88",
-	#                  "SELECT * FROM Supernovae where phase >= 88 and phase < 98",
-	#                  "SELECT * FROM Supernovae where phase >= 98 and phase < 125",
-	#                  "SELECT * FROM Supernovae where phase >= 125 and phase < 180",
-	#                  "SELECT * FROM Supernovae where phase >= 180"
-	#                  ]
 	num_queries = len(query_strings)
 
 	for n in range(num_queries):

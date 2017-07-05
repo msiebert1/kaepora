@@ -257,7 +257,7 @@ if __name__ == "__main__":
 	dm15_x1_interp = dm15_from_fit_params(events, salt2_dict, cfa_dict)
 	dm15_delta_interp = dm15_from_fit_params(events, mlcs31_dict, cfa_dict)
 
-	con = sq3.connect('..\data\SNe_14_phot_1.db')
+	con = sq3.connect('..\data\SNe_15_phot_1.db')
 	con.execute("""DROP TABLE IF EXISTS Photometry""")
 	con.execute("""CREATE TABLE IF NOT EXISTS Photometry (SN TEXT, RA TEXT, DEC TEXT, 
 														  zCMB_salt REAL, e_zCMB_salt REAL, Bmag_salt REAL, e_Bmag_salt REAL, s_salt REAL, e_s_salt REAL, c_salt REAL, e_c_salt REAL, mu_salt REAL, e_mu_salt REAL,
@@ -266,7 +266,7 @@ if __name__ == "__main__":
 														  zCMB_mlcs17 REAL, e_zCMB_mlcs17 REAL, mu_mlcs17 REAL, e_mu_mlcs17 REAL, delta_mlcs17 REAL, e_delta_mlcs17 REAL, av_mlcs17 REAL, e_av_mlcs17 REAL,
 														  glon_host REAL, glat_host REAL, cz_host REAL, czLG_host REAL, czCMB_host REAL, mtype_host TEXT, xpos_host REAL, ypos_host REAL, t1_host REAL, filt_host TEXT, Ebv_host REAL,
 														  zCMB_lc REAL, zhel_lc REAL, mb_lc REAL, e_mb_lc REAL, c_lc REAL, e_c_lc REAL, x1_lc REAL, e_x1_lc REAL, logMst_lc REAL, e_logMst_lc REAL, tmax_lc REAL, e_tmax_lc REAL, cov_mb_s_lc REAL, cov_mb_c_lc REAL, cov_s_c_lc REAL, bias_lc REAL,
-														  av_25 REAL, dm15_cfa Real, dm15_from_fits REAL,
+														  av_25 REAL, dm15_cfa Real, dm15_from_fits REAL, separation REAL,
 														  Photometry BLOB)""")
 
 	salt_none = [None,None,None,None,None,None,None,None,None,None,None,None]
@@ -286,6 +286,10 @@ if __name__ == "__main__":
 		ra_lc,dec_lc,zCMB_lc,zhel_lc,mb_lc,e_mb_lc,c_lc,e_c_lc,x1_lc,e_x1_lc,logMst_lc,e_logMst_lc,tmax_lc,e_tmax_lc,cov_mb_s_lc,cov_mb_c_lc,cov_s_c_lc,bias_lc = lcparams_dict.get(event, lc_none)
 		ras = [ra_salt,ra_salt2,ra_mlcs31,ra_mlcs17,ra_host,ra_lc]
 		decs = [dec_salt,dec_salt2,dec_mlcs31,dec_mlcs17,dec_host,dec_lc]
+
+		sep = None
+		if xpos_host != None and ypos_host != None:
+			sep = (float(xpos_host)**2 + float(ypos_host)**2)**(.5)
 
 		ra = None
 		for r in ras:
@@ -321,7 +325,16 @@ if __name__ == "__main__":
 			if delta_mlcs31 != None:
 				dm15_from_delta = float(dm15_delta_interp(delta_mlcs31))
 
-			dm15_from_fits = np.nanmean([dm15_from_s, dm15_from_x1, dm15_from_delta])
+			# dm15_from_fits = np.nanmean([dm15_from_s, dm15_from_x1, dm15_from_delta])
+			dm15s = [dm15_from_s, dm15_from_x1, dm15_from_delta] #change order to give fits different priority
+			for dm in dm15s:
+				if dm != np.NaN:
+					dm15_from_fits = dm
+					break
+				else:
+					dm15_from_fits = np.NaN
+
+
 			if dm15_from_fits == np.NaN:
 				dm15_from_fits = None
 		else:
@@ -340,16 +353,16 @@ if __name__ == "__main__":
 											           zCMB_mlcs17, e_zCMB_mlcs17, mu_mlcs17, e_mu_mlcs17, delta_mlcs17, e_delta_mlcs17, av_mlcs17, e_av_mlcs17,
 											           glon_host, glat_host, cz_host, czLG_host, czCMB_host, mtype_host, xpos_host, ypos_host, t1_host, filt_host, Ebv_host,
 											           zCMB_lc, zhel_lc, mb_lc, e_mb_lc, c_lc, e_c_lc, x1_lc, e_x1_lc, logMst_lc, e_logMst_lc, tmax_lc, e_tmax_lc, cov_mb_s_lc, cov_mb_c_lc, cov_s_c_lc, bias_lc,
-											           av_25, dm15_cfa, dm15_from_fits,
+											           av_25, dm15_cfa, dm15_from_fits, separation,
 											           Photometry)
-                                VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                                VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                         (event, ra, dec, zCMB_salt, e_zCMB_salt, Bmag_salt, e_Bmag_salt, s_salt, e_s_salt, c_salt, e_c_salt, mu_salt, e_mu_salt,
                         	      zCMB_salt2, e_zCMB_salt2, Bmag_salt2, e_Bmag_salt2, x1_salt2, e_x1_salt2, c_salt2, e_c_salt2, mu_salt2, e_mu_salt2,
                         	      zCMB_mlcs31, e_zCMB_mlcs31, mu_mlcs31, e_mu_mlcs31, delta_mlcs31, e_delta_mlcs31, av_mlcs31, e_av_mlcs31,
                         	      zCMB_mlcs17, e_zCMB_mlcs17, mu_mlcs17, e_mu_mlcs17, delta_mlcs17, e_delta_mlcs17, av_mlcs17, e_av_mlcs17,
                         	      glon_host, glat_host, cz_host, czLG_host, czCMB_host, mtype_host, xpos_host, ypos_host, t1_host, filt_host, Ebv_host,
                         	      zCMB_lc, zhel_lc, mb_lc, e_mb_lc, c_lc, e_c_lc, x1_lc, e_x1_lc, logMst_lc, e_logMst_lc, tmax_lc, e_tmax_lc, cov_mb_s_lc, cov_mb_c_lc, cov_s_c_lc, bias_lc,
-                        	      av_25, dm15_cfa, dm15_from_fits,
+                        	      av_25, dm15_cfa, dm15_from_fits, sep,
                         	      buffer(phot_blob))
                     )
 		print 'Done'

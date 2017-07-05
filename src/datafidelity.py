@@ -159,7 +159,7 @@ def addsky(wavelength, flux, error, med_error):
 
     # Scale sky
     # scale = 285*med_error
-    scale = 400.*med_error #fudge factor provides reasonable scaling of sky lines
+    scale = 50.*med_error #fudge factor provides reasonable scaling of sky lines
     add_flux = scale*add_flux
 
     # Add sky flux to the error
