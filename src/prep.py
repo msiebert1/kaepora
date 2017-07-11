@@ -225,6 +225,7 @@ def compprep(spectrum, sn_name, z, source):
     # new_flux = old_flux
     new_flux = test_flux.value
     old_wave = old_wave.value
+
     new_wave = old_wave/(1.+z)  # Deredshifting
     new_error = old_error  # Placeholder if it needs to be changed
     new_ivar = genivar(new_wave, new_flux, new_error)  # generate new inverse variance

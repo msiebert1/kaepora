@@ -635,69 +635,67 @@ def check_host_corrections(SN_Array):
             has_host_corr.append(SN)
         elif SN.av_mlcs17 != None:
             has_host_corr.append(SN)
+        # else:
+        # 	print SN.name
     SN_Array = has_host_corr
     print len(SN_Array), 'SNs with host corrections'
     return SN_Array
 
 def apply_host_corrections(SN_Array, lengths):
-    corrected_SNs = []
-    for SN in SN_Array:
-        # if SN.wavelength[SN.x2] > 10240 and SN.wavelength[SN.x2] < 10270:
-        #     print SN.filename, '                                  here'
-        print SN.name, SN.filename, SN.phase, SN.dm15_cfa, SN.dm15_from_fits, SN.sep
-        # if np.average(SN.flux[SN.x1:SN.x2]) > 1.e-13:
-            # SN.flux = 1.e-15*SN.flux
-        if SN.av_25 != None:
-            pre_scale = (1.e-15/np.average(SN.flux[SN.x1:SN.x2]))
-            SN.flux = pre_scale*SN.flux
-            SN.ivar = SN.ivar/(pre_scale*pre_scale)
-            old_wave = SN.wavelength*u.Angstrom        # wavelengths
-            old_flux = SN.flux*u.Unit('W m-2 angstrom-1 sr-1')
-            spec1d = Spectrum1D.from_array(old_wave, old_flux)
-            old_ivar = SN.ivar*u.Unit('W m-2 angstrom-1 sr-1')
-            # new_flux = test_dered.dered(sne, SN.name, spec1d.wavelength, spec1d.flux)
-            new_flux, new_ivar = test_dered.host_correction(SN.av_25, 2.5, SN.name, old_wave, old_flux, old_ivar)
-            SN.flux = new_flux.value
-            SN.ivar = new_ivar.value
-            # lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
-            corrected_SNs.append(SN)
-            lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
+	corrected_SNs = []
+	for SN in SN_Array:
+		print SN.name, SN.filename, SN.phase, SN.dm15_cfa, SN.dm15_from_fits, SN.velocity
+		if SN.av_25 != None:
+			pre_scale = (1.e-15/np.average(SN.flux[SN.x1:SN.x2]))
+			SN.flux = pre_scale*SN.flux
+			SN.ivar = SN.ivar/(pre_scale*pre_scale)
+			old_wave = SN.wavelength*u.Angstrom        # wavelengths
+			old_flux = SN.flux*u.Unit('W m-2 angstrom-1 sr-1')
+			spec1d = Spectrum1D.from_array(old_wave, old_flux)
+			old_ivar = SN.ivar*u.Unit('W m-2 angstrom-1 sr-1')
+			# new_flux = test_dered.dered(sne, SN.name, spec1d.wavelength, spec1d.flux)
+			new_flux, new_ivar = test_dered.host_correction(SN.av_25, 2.5, SN.name, old_wave, old_flux, old_ivar)
+			SN.flux = new_flux.value
+			SN.ivar = new_ivar.value
+			# lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
+			corrected_SNs.append(SN)
+			lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
 
-        elif SN.av_mlcs31 != None:
-            pre_scale = (1.e-15/np.average(SN.flux[SN.x1:SN.x2]))
-            SN.flux = pre_scale*SN.flux
-            SN.ivar = SN.ivar/(pre_scale*pre_scale)
-            old_wave = SN.wavelength*u.Angstrom        # wavelengths
-            old_flux = SN.flux*u.Unit('W m-2 angstrom-1 sr-1')
-            spec1d = Spectrum1D.from_array(old_wave, old_flux)
-            old_ivar = SN.ivar*u.Unit('W m-2 angstrom-1 sr-1')
-            # new_flux = test_dered.dered(sne, SN.name, spec1d.wavelength, spec1d.flux)
-            new_flux, new_ivar = test_dered.host_correction(SN.av_mlcs31, 3.1, SN.name, old_wave, old_flux, old_ivar)
-            SN.flux = new_flux.value
-            SN.ivar = new_ivar.value
-            # lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
-            corrected_SNs.append(SN)
-            lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
+		elif SN.av_mlcs31 != None:
+			pre_scale = (1.e-15/np.average(SN.flux[SN.x1:SN.x2]))
+			SN.flux = pre_scale*SN.flux
+			SN.ivar = SN.ivar/(pre_scale*pre_scale)
+			old_wave = SN.wavelength*u.Angstrom        # wavelengths
+			old_flux = SN.flux*u.Unit('W m-2 angstrom-1 sr-1')
+			spec1d = Spectrum1D.from_array(old_wave, old_flux)
+			old_ivar = SN.ivar*u.Unit('W m-2 angstrom-1 sr-1')
+			# new_flux = test_dered.dered(sne, SN.name, spec1d.wavelength, spec1d.flux)
+			new_flux, new_ivar = test_dered.host_correction(SN.av_mlcs31, 3.1, SN.name, old_wave, old_flux, old_ivar)
+			SN.flux = new_flux.value
+			SN.ivar = new_ivar.value
+			# lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
+			corrected_SNs.append(SN)
+			lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
 
-        elif SN.av_mlcs17 != None:
-            pre_scale = (1.e-15/np.average(SN.flux[SN.x1:SN.x2]))
-            SN.flux = pre_scale*SN.flux
-            SN.ivar = SN.ivar/(pre_scale*pre_scale)
-            old_wave = SN.wavelength*u.Angstrom        # wavelengths
-            old_flux = SN.flux*u.Unit('W m-2 angstrom-1 sr-1')
-            spec1d = Spectrum1D.from_array(old_wave, old_flux)
-            old_ivar = SN.ivar*u.Unit('W m-2 angstrom-1 sr-1')
-            # new_flux = test_dered.dered(sne, SN.name, spec1d.wavelength, spec1d.flux)
-            new_flux, new_ivar = test_dered.host_correction(SN.av_mlcs17, 1.7, SN.name, old_wave, old_flux, old_ivar)
-            SN.flux = new_flux.value
-            SN.ivar = new_ivar.value
-            # lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
-            corrected_SNs.append(SN)
-            lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
+		elif SN.av_mlcs17 != None:
+			pre_scale = (1.e-15/np.average(SN.flux[SN.x1:SN.x2]))
+			SN.flux = pre_scale*SN.flux
+			SN.ivar = SN.ivar/(pre_scale*pre_scale)
+			old_wave = SN.wavelength*u.Angstrom        # wavelengths
+			old_flux = SN.flux*u.Unit('W m-2 angstrom-1 sr-1')
+			spec1d = Spectrum1D.from_array(old_wave, old_flux)
+			old_ivar = SN.ivar*u.Unit('W m-2 angstrom-1 sr-1')
+			# new_flux = test_dered.dered(sne, SN.name, spec1d.wavelength, spec1d.flux)
+			new_flux, new_ivar = test_dered.host_correction(SN.av_mlcs17, 1.7, SN.name, old_wave, old_flux, old_ivar)
+			SN.flux = new_flux.value
+			SN.ivar = new_ivar.value
+			# lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
+			corrected_SNs.append(SN)
+			lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
 
-    SN_Array = corrected_SNs
-    print len(SN_Array), 'SNs with host corrections'
-    return SN_Array
+	SN_Array = corrected_SNs
+	print len(SN_Array), 'SNs with host corrections'
+	return SN_Array
 
 
 def remove_tell_files(SN_Array):
@@ -725,8 +723,8 @@ def create_composite(SN_Array, boot, template, medmean):
 	iters_comp = 3
 	boot = False
 
-	bootstrap = 'n'
 	# bootstrap = 'y'
+	bootstrap = 'n'
 	print "Creating composite..."
 	optimize_scales(SN_Array, template, True)
 	(fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, dm15s, 
@@ -743,9 +741,16 @@ def create_composite(SN_Array, boot, template, medmean):
 	# plt.figure(num = 2, dpi = 100, figsize = [30, 20], facecolor = 'w')
 	if bootstrap is 'n':
 		pass
+		# fig, ax = plt.subplots(1,1)
+		# fig.set_size_inches(10, 8, forward = True)
+		# ax.get_yaxis().set_ticks([])
+		# plt.rc('font', family='serif')
 		# for i in range(len(SN_Array)):
-		#     plt.plot(SN_Array[i].wavelength, SN_Array[i].flux)
-		# plt.plot(template.wavelength, template.flux, 'k', linewidth = 4)
+		#     plt.plot(SN_Array[i].wavelength[SN_Array[i].x1:SN_Array[i].x2], SN_Array[i].flux[SN_Array[i].x1:SN_Array[i].x2])
+		# plt.plot(template.wavelength[template.x1:template.x2], template.flux[template.x1:template.x2], 'k', linewidth = 4)
+		# plt.ylabel('Relative Flux')
+		# plt.xlabel('Wavelength ' + "($\mathrm{\AA}$)")
+		# # plt.savefig('../../Paper_Drafts/test.png', dpi = 300, bbox_inches = 'tight')
 		# plt.show()
 
 	#create bootstrap composites
@@ -795,12 +800,31 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
 	print len_before - len(SN_Array), 'spectra with nan ivars removed', len(SN_Array), 'spectra left'
 
 	SN_Array_wo_tell = remove_tell_files(SN_Array)
-	
+
 	# mags = np.sort(mg.ab_mags(SN_Array), axis = 0)
 	# for i in range(len(mags)):
 	#     print mags[i][0], mags[i][1] 
 
+	#UNCOMMENT FOR COMPARISON PLOT
+	# new_arr = []
+	# new_arr.append(copy.copy(SN_Array[0]))
+
 	SN_Array = apply_host_corrections(SN_Array, lengths)
+
+	# new_arr.append(copy.copy(SN_Array[0]))
+	# new_arr[0].flux = new_arr[0].flux*1.e-15
+	# new_arr[0].filename = 'renamed'
+	# new_arr, scales = optimize_scales(new_arr, new_arr[0], True)
+	# fig, ax = plt.subplots(1,1)
+	# fig.set_size_inches(10, 8, forward = True)
+	# ax.get_yaxis().set_ticks([])
+	# plt.rc('font', family='serif')
+	# plt.plot(new_arr[0].wavelength[new_arr[0].x1:new_arr[0].x2], new_arr[0].flux[new_arr[0].x1:new_arr[0].x2], linewidth = 2, color = 'r')
+	# plt.plot(new_arr[1].wavelength[new_arr[1].x1:new_arr[1].x2], new_arr[1].flux[new_arr[1].x1:new_arr[1].x2], linewidth = 2, color = '#3F5D7D')
+	# plt.ylabel('Relative Flux')
+	# plt.xlabel('Wavelength ' + "($\mathrm{\AA}$)")
+	# plt.savefig('../../Paper_Drafts/host_corr.png', dpi = 300, bbox_inches = 'tight')
+	# plt.show()
 
 	temp = [SN for SN in SN_Array if len(SN.flux[np.where(SN.flux!=0)]) == max(lengths)]
 	try:
