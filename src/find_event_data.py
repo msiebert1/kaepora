@@ -4,7 +4,7 @@ import msgpack_numpy as mn
 import numpy as np
 import magnitudes as mag
 
-con = sq3.connect('../data/SNe_14_phot_1.db')
+con = sq3.connect('../data/SNe_15_phot_1.db')
 cur = con.cursor()
 
 # np.set_printoptions(threshold=np.nan)
@@ -60,7 +60,9 @@ def grab_event_phot_data(sql_input):
         PH.zCMB_lc, PH.zhel_lc, PH.mb_lc, PH.e_mb_lc, PH.c_lc, PH.e_c_lc, PH.x1_lc, PH.e_x1_lc, PH.logMst_lc, PH.e_logMst_lc, PH.tmax_lc, PH.e_tmax_lc, PH.cov_mb_s_lc, PH.cov_mb_c_lc, PH.cov_s_c_lc, PH.bias_lc = row[50:66]
         PH.av_25 = row[66]
         PH.dm15_cfa = row[67]
-        PH.light_curves = msg.unpackb(row[68])
+        PH.dm15_from_fits = row[68]
+        PH.sep = row[69]
+        PH.light_curves = msg.unpackb(row[70])
 
         PH_Array.append(PH)    
 

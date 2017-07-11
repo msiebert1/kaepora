@@ -22,9 +22,9 @@ def plot_light_curves(PH):
 	plt.gca().invert_yaxis()
 	plt.show()
 
-# SN_Array, PH_Array = fed.find_data('2001bf')
-# plot_light_curves(PH_Array[0])
-# print PH_Array[0].light_curves
+SN_Array, PH_Array = fed.find_data('2001bf')
+plot_light_curves(PH_Array[0])
+print PH_Array[0].light_curves
 
 PH_Array = fed.grab_event_phot_data("SELECT * FROM Photometry where SN = '2001bf'")
 print len(PH_Array)
