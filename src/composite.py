@@ -69,7 +69,7 @@ def store_phot_data(SN, row):
     SN.dm15_cfa = phot_row[67]
     SN.dm15_from_fits = phot_row[68]
     SN.sep = phot_row[69]
-    # SN.light_curves = msg.unpackb(phot_row[70])
+    SN.light_curves = msg.unpackb(phot_row[70])
 
 def grab(sql_input):
     """Pulls in all columns from the database for the selected query. 
