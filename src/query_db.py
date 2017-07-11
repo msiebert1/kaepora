@@ -201,24 +201,7 @@ def make_animation(composites):
 	animation.FuncAnimation(fig, animate, np.arange(0, len(composites)), repeat = True)
 	plt.show()
 
-if __name__ == "__main__":
-	composites = []
-
-	num_queries = int(sys.argv[1])
-	query_strings = sys.argv[2:]
-
-	num_queries = len(query_strings)
-
-	for n in range(num_queries):
-		composites.append(composite.main(query_strings[n]))
-
-	composite.optimize_scales(composites, composites[0], True)
-	
-	set_min_num_spec(composites, 5)
-	comparison_plot(composites)
-	# scaled_plot(composites)
-	stacked_plot(composites)
-
+def save_comps_to_files(composites):
 	for SN in composites:
 		phase = np.round(np.average(SN.phase_array[SN.x1:SN.x2]), 1)
 		vel = np.round(np.average(SN.vel[SN.x1:SN.x2]), 1)
@@ -248,4 +231,25 @@ if __name__ == "__main__":
 
 		plt.plot(SN.wavelength[SN.x1:SN.x2], SN.flux[SN.x1:SN.x2])
 	plt.show()
+
+if __name__ == "__main__":
+	composites = []
+
+	num_queries = int(sys.argv[1])
+	query_strings = sys.argv[2:]
+
+	num_queries = len(query_strings)
+
+	for n in range(num_queries):
+		composites.append(composite.main(query_strings[n]))
+
+	composite.optimize_scales(composites, composites[0], True)
+	
+	set_min_num_spec(composites, 5)
+	comparison_plot(composites)
+	# scaled_plot(composites)
+	stacked_plot(composites)
+
+	# save_comps_to_files(composites)
+	
 		

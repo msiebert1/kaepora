@@ -71,7 +71,7 @@ def store_phot_data(SN, row):
     SN.sep = phot_row[69]
     SN.light_curves = msg.unpackb(phot_row[70])
 
-def grab(sql_input, corrected = True, multi_epoch = False):
+def grab(sql_input, multi_epoch = False):
     """Pulls in all columns from the database for the selected query. 
        Replaces all NaN values with 0. Returns the array of supernova objects 
        with the newly added attributes.
@@ -181,9 +181,6 @@ def grab(sql_input, corrected = True, multi_epoch = False):
     #Now they become zeros so things work right
 
     #make cuts
-
-    if corrected = False:
-    	return SN_Array
 
     bad_files = qspec.bad_files()
 
