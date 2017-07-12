@@ -43,7 +43,7 @@ class photometry(object):
     """Contains all photometric data for the specified event
     """
 
-def grab_event_phot_data(sql_input):
+def grab_phot_data(sql_input):
 
     PH_Array = []
     cur.execute(sql_input)
