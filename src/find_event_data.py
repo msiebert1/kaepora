@@ -4,7 +4,7 @@ import msgpack_numpy as mn
 import numpy as np
 import magnitudes as mag
 
-con = sq3.connect('../data/SNe_15_phot_1.db')
+con = sq3.connect('../data/SNe_15_phot_2.db')
 cur = con.cursor()
 
 # np.set_printoptions(threshold=np.nan)

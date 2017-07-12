@@ -257,7 +257,7 @@ if __name__ == "__main__":
 	dm15_x1_interp = dm15_from_fit_params(events, salt2_dict, cfa_dict)
 	dm15_delta_interp = dm15_from_fit_params(events, mlcs31_dict, cfa_dict)
 
-	con = sq3.connect('..\data\SNe_15_phot_1.db')
+	con = sq3.connect('..\data\SNe_15_phot_2.db')
 	con.execute("""DROP TABLE IF EXISTS Photometry""")
 	con.execute("""CREATE TABLE IF NOT EXISTS Photometry (SN TEXT, RA TEXT, DEC TEXT, 
 														  zCMB_salt REAL, e_zCMB_salt REAL, Bmag_salt REAL, e_Bmag_salt REAL, s_salt REAL, e_s_salt REAL, c_salt REAL, e_c_salt REAL, mu_salt REAL, e_mu_salt REAL,

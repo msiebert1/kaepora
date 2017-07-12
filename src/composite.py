@@ -71,13 +71,13 @@ def store_phot_data(SN, row):
     SN.sep = phot_row[69]
     SN.light_curves = msg.unpackb(phot_row[70])
 
-def grab(sql_input, multi_epoch = False):
+def grab(sql_input, multi_epoch = False, make_corr = True):
     """Pulls in all columns from the database for the selected query. 
        Replaces all NaN values with 0. Returns the array of supernova objects 
        with the newly added attributes.
     """
     print "Collecting data..."
-    con = sq3.connect('../data/SNe_15_phot_1.db')
+    con = sq3.connect('../data/SNe_15_phot_2.db')
     cur = con.cursor()
 
     SN_Array = []
@@ -114,8 +114,7 @@ def grab(sql_input, multi_epoch = False):
         interp       = msg.unpackb(row[16])
         SN.interp    = interp
         # phot         = msg.unpackb(row[17])
-        phot         = row[17]
-        SN.phot      = phot
+        SN.mjd         = row[17]
 
         if get_phot:
             store_phot_data(SN, row)
@@ -182,21 +181,22 @@ def grab(sql_input, multi_epoch = False):
 
     #make cuts
 
-    bad_files = qspec.bad_files()
+    if make_corr:
+	    bad_files = qspec.bad_files()
 
-    bad_ivars = []
+	    bad_ivars = []
 
-    len_before = len(SN_Array)
-    good_SN_Array = [SN for SN in SN_Array if not is_bad_data(SN, bad_files, bad_ivars)]
-    SN_Array = good_SN_Array
-    print len_before - len(SN_Array), 'questionable spectra removed', len(SN_Array), 'spectra left'
+	    len_before = len(SN_Array)
+	    good_SN_Array = [SN for SN in SN_Array if not is_bad_data(SN, bad_files, bad_ivars)]
+	    SN_Array = good_SN_Array
+	    print len_before - len(SN_Array), 'questionable spectra removed', len(SN_Array), 'spectra left'
 
-    # remove peculiar Ias
-    len_before = len(SN_Array)
-    SN_Array = remove_peculiars(SN_Array,'../data/info_files/pec_Ias.txt')
-    print len_before - len(SN_Array), 'Peculiar Ias removed', len(SN_Array), 'spectra left'
+	    # remove peculiar Ias
+	    len_before = len(SN_Array)
+	    SN_Array = remove_peculiars(SN_Array,'../data/info_files/pec_Ias.txt')
+	    print len_before - len(SN_Array), 'Peculiar Ias removed', len(SN_Array), 'spectra left'
 
-    SN_Array = check_host_corrections(SN_Array)
+	    SN_Array = check_host_corrections(SN_Array)
 
     for SN in SN_Array:
         SN.phase_array = np.array(SN.flux)
@@ -880,7 +880,6 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
 
 	template = create_composite(SN_Array, boot, template, medmean)
 
-	# return table
 	return template
 
 if __name__ == "__main__":

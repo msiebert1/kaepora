@@ -55,7 +55,7 @@ def get_photometry(sn_name):
 		return None	
 
 def find_event_in_osc(sn_name):
-	files = glob.glob("..\..\osc_data\osc_overlap\*.json")
+	files = glob.glob("..\..\osc_data\osc_sns\*.json")
 	for f in files:
 		if sn_name.lower() + '.json' in f.lower():
 			return f
