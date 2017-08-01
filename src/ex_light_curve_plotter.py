@@ -32,7 +32,7 @@ def plot_light_curves(light_curves):
 	else:
 		print 'Insufficient Data'
 
-PH_Array = fed.grab_phot_data("SELECT * FROM Photometry where dm15_cfa < .7 or dm15_from_fits < .7")
+PH_Array = fed.grab_phot_data("SELECT * FROM Photometry")
 print len(PH_Array)
 print PH_Array[1].name
 plot_light_curves(PH_Array[1].light_curves)

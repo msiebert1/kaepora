@@ -162,7 +162,14 @@ def stacked_plot(composites):
 	plt.xlabel('Wavelength (A)')
 	plt.show()
 
-
+def normalize_comps(composites):
+	for comp in composites:
+		norm = 1./np.amax(comp.flux[comp.x1:comp.x2])
+		comp.flux = norm*comp.flux
+		comp.low_conf = norm*comp.low_conf
+		comp.up_conf = norm*comp.up_conf
+		comp.ivar /= (norm)**2
+	return composites
 
 def main(num_queries, query_strings):
 	# num_queries = int(sys.argv[1])
@@ -172,7 +179,8 @@ def main(num_queries, query_strings):
 	for n in range(num_queries):
 		composites.append(composite.main(query_strings[n]))
 
-	composite.optimize_scales(composites, composites[0], True)
+	# composite.optimize_scales(composites, composites[0], True)
+	composites = normalize_comps(composites)
 	return composites
 
 

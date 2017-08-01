@@ -77,7 +77,8 @@ def grab(sql_input, multi_epoch = False, make_corr = True):
        with the newly added attributes.
     """
     print "Collecting data..."
-    con = sq3.connect('../data/SNe_15_phot_2.db')
+    con = sq3.connect('../data/SNe_15_phot_3.db')
+    # con = sq3.connect('../data/SNe_14.db')
     cur = con.cursor()
 
     SN_Array = []
@@ -104,7 +105,7 @@ def grab(sql_input, multi_epoch = False, make_corr = True):
         SN.maxwave   = row[6]
         SN.dm15      = row[7]
         SN.m_b       = row[8]
-        SN.B_minus_v = row[9]
+        SN.B_minus_V = row[9]
         SN.velocity  = row[10]
         SN.morph     = row[11]
         SN.carbon    = row[12]
@@ -113,7 +114,6 @@ def grab(sql_input, multi_epoch = False, make_corr = True):
         SN.resid     = row[15]
         interp       = msg.unpackb(row[16])
         SN.interp    = interp
-        # phot         = msg.unpackb(row[17])
         SN.mjd         = row[17]
 
         if get_phot:
@@ -722,8 +722,8 @@ def create_composite(SN_Array, boot, template, medmean):
 	iters_comp = 3
 	boot = False
 
-	# bootstrap = 'y'
-	bootstrap = 'n'
+	bootstrap = 'y'
+	# bootstrap = 'n'
 	print "Creating composite..."
 	optimize_scales(SN_Array, template, True)
 	(fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, dm15s, 
@@ -736,20 +736,43 @@ def create_composite(SN_Array, boot, template, medmean):
 							reds, phases, ages, vels, dm15s, flux_mask, ivar_mask, dm15_mask, red_mask)
 	print "Done."
 
+
 	#plot composite with the scaled spectra
 	# plt.figure(num = 2, dpi = 100, figsize = [30, 20], facecolor = 'w')
 	if bootstrap is 'n':
 		pass
+		# norm = 1./np.amax(template.flux)
+		# template.flux = template.flux*norm
+		# for SN in SN_Array:
+		# 	SN.flux = SN.flux*norm
+		# plt.rc('font', family='serif')
 		# fig, ax = plt.subplots(1,1)
 		# fig.set_size_inches(10, 8, forward = True)
-		# ax.get_yaxis().set_ticks([])
-		# plt.rc('font', family='serif')
+		# plt.minorticks_on()
+		# plt.xticks(fontsize = 20)
+		# ax.xaxis.set_ticks(np.arange(np.round(template.wavelength[template.x1:template.x2][0],-3), np.round(template.wavelength[template.x1:template.x2][-1],-3),1000))
+		# plt.yticks(fontsize = 20)
+		# plt.tick_params(
+		#     which='major', 
+		#     bottom='on', 
+		#     top='on',
+		#     left='on',
+		#     right='on',
+		#     length=10)
+		# plt.tick_params(
+		# 	which='minor', 
+		# 	bottom='on', 
+		# 	top='on',
+		# 	left='on',
+		# 	right='on',
+		# 	length=5)
 		# for i in range(len(SN_Array)):
-		#     plt.plot(SN_Array[i].wavelength[SN_Array[i].x1:SN_Array[i].x2], SN_Array[i].flux[SN_Array[i].x1:SN_Array[i].x2])
-		# plt.plot(template.wavelength[template.x1:template.x2], template.flux[template.x1:template.x2], 'k', linewidth = 4)
-		# plt.ylabel('Relative Flux')
-		# plt.xlabel('Wavelength ' + "($\mathrm{\AA}$)")
-		# # plt.savefig('../../Paper_Drafts/test.png', dpi = 300, bbox_inches = 'tight')
+		#     plt.plot(SN_Array[i].wavelength[SN_Array[i].x1:SN_Array[i].x2], SN_Array[i].flux[SN_Array[i].x1:SN_Array[i].x2], color = '#7570b3', alpha = .5)
+		# plt.plot(template.wavelength[template.x1:template.x2], template.flux[template.x1:template.x2], 'k', linewidth = 6)
+		# plt.ylabel('Relative Flux', fontsize = 30)
+		# plt.xlabel('Wavelength ' + "($\mathrm{\AA}$)", fontsize = 30)
+		# # "SELECT * from Supernovae inner join Photometry ON Supernovae.SN = Photometry.SN where phase >= -3 and phase <= 3 and morphology >= 9"
+		# # plt.savefig('../../Paper_Drafts/scaled.png', dpi = 300, bbox_inches = 'tight')
 		# plt.show()
 
 	#create bootstrap composites

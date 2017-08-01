@@ -118,16 +118,16 @@ def compprep(spectrum, sn_name, z, source):
     s = scale_composites_in_range(old_flux, new_flux)
     old_flux = s*old_flux
 
-    plt.rc('font', family='serif')
-    fig, ax = plt.subplots(1,1)
-    fig.set_size_inches(10, 8, forward = True)
-    ax.get_yaxis().set_ticks([])
-    plt.plot(old_wave, old_flux, linewidth = 2, color = 'r')
-    plt.plot(old_wave, new_flux, linewidth = 2, color = '#3F5D7D')
-    plt.ylabel('Relative Flux')
-    plt.xlabel('Wavelength ' + "($\mathrm{\AA}$)")
-    plt.savefig('../../Paper_Drafts/MW_corr.png', dpi = 300, bbox_inches = 'tight')
-    plt.show()
+    # plt.rc('font', family='serif')
+    # fig, ax = plt.subplots(1,1)
+    # fig.set_size_inches(10, 8, forward = True)
+    # ax.get_yaxis().set_ticks([])
+    # plt.plot(old_wave, old_flux, linewidth = 2, color = 'r')
+    # plt.plot(old_wave, new_flux, linewidth = 2, color = '#3F5D7D')
+    # plt.ylabel('Relative Flux')
+    # plt.xlabel('Wavelength ' + "($\mathrm{\AA}$)")
+    # # plt.savefig('../../Paper_Drafts/MW_corr.png', dpi = 300, bbox_inches = 'tight')
+    # plt.show()
 
     av = .1294 #2006sr
     name = '2006sr'
@@ -141,15 +141,37 @@ def compprep(spectrum, sn_name, z, source):
     s = scale_composites_in_range(new_flux_host, new_flux)
     new_flux_host = s*new_flux_host
 
+    norm = 1./np.amax(new_flux_host)
+    new_flux_host = new_flux_host*norm
+    new_flux = new_flux*norm
+    old_flux = old_flux*norm
+
     plt.rc('font', family='serif')
     fig, ax = plt.subplots(1,1)
     fig.set_size_inches(10, 8, forward = True)
-    ax.get_yaxis().set_ticks([])
+    plt.minorticks_on()
+    plt.xticks(fontsize = 20)
+    ax.xaxis.set_ticks(np.arange(np.round(old_wave[0],-3),np.round(old_wave[-1],-3),1000))
+    plt.yticks(fontsize = 20)
+    plt.tick_params(
+        which='major', 
+        bottom='on', 
+        top='on',
+        left='on',
+        right='on',
+        length=10)
+    plt.tick_params(
+        which='minor', 
+        bottom='on', 
+        top='on',
+        left='on',
+        right='on',
+        length=5)
     plt.plot(old_wave, old_flux, linewidth = 2, color = '#d95f02')
     plt.plot(old_wave, new_flux, linewidth = 2, color = '#1b9e77')
     plt.plot(host_wave.value, new_flux_host, linewidth = 2, color = '#7570b3')
-    plt.ylabel('Relative Flux')
-    plt.xlabel('Wavelength ' + "($\mathrm{\AA}$)")
+    plt.ylabel('Relative Flux', fontsize = 30)
+    plt.xlabel('Wavelength ' + "($\mathrm{\AA}$)", fontsize = 30)
     plt.savefig('../../Paper_Drafts/red_corr.png', dpi = 300, bbox_inches = 'tight')
     plt.show()
 
@@ -162,32 +184,97 @@ def compprep(spectrum, sn_name, z, source):
     plt.rc('font', family='serif')
     fig, ax = plt.subplots(1,1)
     fig.set_size_inches(10, 8, forward = True)
-    ax.get_yaxis().set_ticks([])
+    plt.minorticks_on()
+    plt.xticks(fontsize = 20)
+    ax.xaxis.set_ticks(np.arange(np.round(old_wave[0],-3),np.round(old_wave[-1],-3),1000))
+    plt.yticks(fontsize = 20)
+    plt.tick_params(
+        which='major', 
+        bottom='on', 
+        top='on',
+        left='on',
+        right='on',
+        length=10)
+    plt.tick_params(
+        which='minor', 
+        bottom='on', 
+        top='on',
+        left='on',
+        right='on',
+        length=5)
     plt.plot(old_wave, new_flux, linewidth = 2, color = 'r')
     plt.plot(newdata[0], newdata[1], linewidth = 2, color = '#3F5D7D')
-    plt.ylabel('Relative Flux')
-    plt.xlabel('Wavelength ' + "($\mathrm{\AA}$)")
+    plt.ylabel('Relative Flux', fontsize = 30)
+    plt.xlabel('Wavelength ' + "($\mathrm{\AA}$)", fontsize = 30)
     plt.savefig('../../Paper_Drafts/interp.png', dpi = 300, bbox_inches = 'tight')
     plt.show()
 
 #    print 'new spectra',newdata
     return newdata, snr
 
-c = 299792.458
-#sn2006sr-20061220.097-ui.flm
-fname = '../data/spectra/bsnip/sn2006sr-20061220.097-ui.flm'
-spectrum = np.loadtxt(fname)
-sn_name = '2006sr'
-source = 'bsnip'
-bsnip_vals = read_bsnip_data('obj_info_table.txt')
-if is_number(fname.split('-')[1][:8]):
-    longdate = fname.split('-')[1][:8]
-else:
-    longdate = fname.split('-')[2][:8]
-data = bsnip_vals[sn_name.lower()+'-'+longdate]
-redshift = data[1]/c
-newdata, snr = compprep(spectrum, sn_name, redshift, source)
+#reddening / interpolation plots
+# c = 299792.458
+# #sn2006sr-20061220.097-ui.flm
+# fname = '../data/spectra/bsnip/sn2006sr-20061220.097-ui.flm'
+# spectrum = np.loadtxt(fname)
+# sn_name = '2006sr'
+# source = 'bsnip'
+# bsnip_vals = read_bsnip_data('obj_info_table.txt')
+# if is_number(fname.split('-')[1][:8]):
+#     longdate = fname.split('-')[1][:8]
+# else:
+#     longdate = fname.split('-')[2][:8]
+# data = bsnip_vals[sn_name.lower()+'-'+longdate]
+# redshift = data[1]/c
+# newdata, snr = compprep(spectrum, sn_name, redshift, source)
 
+fname = '../data/spectra/cfa/sn2003kg/sn2003kg-20031129.12-fast.flm'
+spectrum = np.loadtxt(fname)
+
+old_wave = spectrum[:, 0]
+old_flux = spectrum[:, 1]
+
+real_error = spectrum[:, 2]
+if real_error[0] != 0.:
+    old_error = np.zeros(len(old_wave), float)
+    new_ivar = df.genivar(old_wave, old_flux, old_error)
+    new_var = 1./new_ivar
+    real_var = real_error*real_error
+    scale = scale_composites_in_range(new_var, real_var)
+    # new_var = new_var*scale
+    new_var = new_var*2.02
+    print scale
+
+norm = 1./np.amax(real_var)
+real_var = real_var*norm
+new_var = new_var*norm
+plt.rc('font', family='serif')
+fig, ax = plt.subplots(1,1)
+fig.set_size_inches(10, 8, forward = True)
+plt.minorticks_on()
+plt.xticks(fontsize = 20)
+ax.xaxis.set_ticks(np.arange(np.round(old_wave[0],-3),np.round(old_wave[-1],-3),1000))
+plt.yticks(fontsize = 20)
+plt.tick_params(
+    which='major', 
+    bottom='on', 
+    top='on',
+    left='on',
+    right='on',
+    length=10)
+plt.tick_params(
+    which='minor', 
+    bottom='on', 
+    top='on',
+    left='on',
+    right='on',
+    length=5)
+plt.plot(old_wave, real_var, linewidth = 2, color = '#7570b3', alpha = .8)
+plt.plot(old_wave, new_var, linewidth = 6, color = 'k')
+plt.ylabel('Variance', fontsize = 30)
+plt.xlabel('Wavelength ' + "($\mathrm{\AA}$)", fontsize = 30)
+plt.savefig('../../Paper_Drafts/genvar.png', dpi = 300, bbox_inches = 'tight')
+plt.show()
 
 # plt.subplot(2,1,1)
 # plt.plot(output[0], output[1])
@@ -195,7 +282,6 @@ newdata, snr = compprep(spectrum, sn_name, redshift, source)
 # plt.plot(output[0], output[2])
 # plt.plot()
 # plt.show()
-
 
 # for path, subdirs, files in os.walk('../data/spectra/cfa'):
 # 	if i < 1000:

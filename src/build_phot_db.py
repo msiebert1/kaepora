@@ -195,6 +195,16 @@ def build_av_dict(file):
 
      return av_dict
 
+def build_delt_dict(file):
+     with open(file) as f:
+        lines = f.readlines()
+        delt_dict = {}
+        for line in lines:
+            l = line.split()    
+            if len(l) == 30 and l[0] == 'SN:':
+                delt_dict['sn' + l[1].lower()] = [float(l[16]), float(l[17])]
+     return delt_dict
+
 def build_cfa_dict(data_file):
 	with open(data_file) as data:
 		lines = data.readlines()
@@ -207,11 +217,13 @@ def build_cfa_dict(data_file):
 
 	return cfa_dict
 
-def dm15_from_fit_params(events, fit_dict, cfa_dict):
+def dm15_from_fit_params(events, fit_dict, cfa_dict, stretch='N/A'):
 	dm15_arr = []
 	param_arr = []
+	e_param_arr = []
 	cfa_none = [None,None,None,None,None,None,None,None,None,None,None,None,None,None]
 	fit_none = [None,None,None,None,None,None,None,None,None,None]
+	lowrv_none = [None,None]
 	for event in events:
 		if event != 'sn2001da' and event != 'sn2001cp': #outliers
 			if event in fit_dict and event in cfa_dict:
@@ -219,15 +231,68 @@ def dm15_from_fit_params(events, fit_dict, cfa_dict):
 				if dm15_cfa != '9.99' and dm15_cfa != None:
 					dm15_cfa = float(dm15_cfa)
 					dm15_arr.append(dm15_cfa)
-					param_arr.append(fit_dict.get(event, fit_none)[6]) #stretch param is 6th index of dicts
+					if stretch is 'delta_lowrv':
+						param_arr.append(fit_dict.get(event, lowrv_none)[0])
+						e_param_arr.append(fit_dict.get(event,lowrv_none)[1])
+					else:
+						param_arr.append(fit_dict.get(event, fit_none)[6]) #stretch param is 6th index of dicts
+						e_param_arr.append(fit_dict.get(event,fit_none)[7])
 
-	coeffs = np.polyfit(param_arr, dm15_arr, 2)
-	x = np.linspace(-5, 5.1, 10000)
+	# coeffs = np.polyfit(param_arr, dm15_arr, 2)
+	weights = 1./np.asarray(e_param_arr)
+	coeffs = np.polyfit(dm15_arr, param_arr, 2, w=weights)
+	# x = np.linspace(-5, 5.1, 10000)
+	x = np.linspace(np.amin(dm15_arr), np.amax(dm15_arr), 10000)
 	y = coeffs[0]*x**2. + coeffs[1]*x + coeffs[2]
-	# plt.scatter(param_arr, dm15_arr)
-	# plt.plot(x,y)
+	print y[0], y[-1]
+
+	# plt.rc('font', family='serif')
+	# fig, ax = plt.subplots(1,1)
+	# fig.set_size_inches(10, 8, forward = True)
+	# plt.minorticks_on()
+	# plt.xticks(fontsize = 20)
+	# plt.yticks(fontsize = 20)
+	# plt.tick_params(
+	#     which='major', 
+	#     bottom='on', 
+	#     top='on',
+	#     left='on',
+	#     right='on',
+	#     length=10)
+	# plt.tick_params(
+	# 	which='minor', 
+	# 	bottom='on', 
+	# 	top='on',
+	# 	left='on',
+	# 	right='on',
+	# 	length=5)
+	# plt.plot(x, y, 'k', linewidth=4)
+	# plt.xlim(.6,2.2)
+	# plt.xlabel('$\Delta m_{15}$ (B)', fontsize = 30)
+	# if stretch is 's':
+	# 	plt.errorbar(dm15_arr, param_arr, yerr=e_param_arr, fmt='o', color='#7570b3', ms=10)
+	# 	plt.ylim(.4, 1.3)
+	# 	plt.ylabel('s', fontsize = 30)
+	# 	plt.savefig('../../Paper_Drafts/dm15_s.png', dpi = 300, bbox_inches = 'tight')
+	# elif stretch is 'x1':
+	# 	plt.errorbar(dm15_arr, param_arr, yerr=e_param_arr, fmt='o', color='#1b9e77', ms=10)
+	# 	plt.ylim(-5., 3.)
+	# 	plt.ylabel('$x_1$', fontsize = 30)
+	# 	plt.savefig('../../Paper_Drafts/dm15_x1.png', dpi = 300, bbox_inches = 'tight')
+	# elif stretch is 'delta':
+	# 	plt.errorbar(dm15_arr, param_arr, yerr=e_param_arr, fmt='o', color='#d95f02', ms=10)
+	# 	plt.ylim(-.5, 1.8)
+	# 	plt.ylabel('$\Delta$', fontsize = 30)
+	# 	plt.savefig('../../Paper_Drafts/dm15_delta.png', dpi = 300, bbox_inches = 'tight')
+	# elif stretch is 'delta_lowrv':
+	# 	plt.errorbar(dm15_arr, param_arr, yerr=e_param_arr, fmt='o', color='#d95f02', ms=10)
+	# 	plt.ylim(-.9, 2.0)
+	# 	plt.ylabel('$\Delta$', fontsize = 30)
+	# 	plt.savefig('../../Paper_Drafts/dm15_delta_lowrv.png', dpi = 300, bbox_inches = 'tight')
 	# plt.show()
-	dm15_interp = interp1d(x, y, bounds_error = True)
+
+	# dm15_interp = interp1d(x, y, bounds_error = True)
+	dm15_interp = interp1d(y, x, bounds_error=False, fill_value=None)
 	return dm15_interp
 
 
@@ -242,6 +307,7 @@ if __name__ == "__main__":
 	host_data = ascii.read("..\data\info_files\other_host_data.txt", delimiter = '\s', guess = False)
 
 	av_dict = build_av_dict('..\data\info_files\lowz_rv25_all.fitres')
+	delt_dict = build_delt_dict('..\data\info_files\lowz_rv25_all.fitres')
 	cfa_dict = build_cfa_dict('..\data\spectra\cfa\cfasnIa_param.dat')
 
 	events = find_all_events(salt,salt2,mlcs31,mlcs17,lcparams,host_data,av_dict,cfa_dict)
@@ -253,11 +319,12 @@ if __name__ == "__main__":
 	host_dict = build_host_dict(host_data)
 	lcparams_dict = build_lcparams_dict(lcparams)
 
-	dm15_s_interp = dm15_from_fit_params(events, salt_dict, cfa_dict)
-	dm15_x1_interp = dm15_from_fit_params(events, salt2_dict, cfa_dict)
-	dm15_delta_interp = dm15_from_fit_params(events, mlcs31_dict, cfa_dict)
+	dm15_s_interp = dm15_from_fit_params(events, salt_dict, cfa_dict, stretch='s')
+	dm15_x1_interp = dm15_from_fit_params(events, salt2_dict, cfa_dict, stretch='x1')
+	dm15_delta_interp = dm15_from_fit_params(events, mlcs31_dict, cfa_dict, stretch='delta')
+	dm15_delta_lowrv_interp = dm15_from_fit_params(events, delt_dict, cfa_dict, stretch='delta_lowrv')
 
-	con = sq3.connect('..\data\SNe_15_phot_2.db')
+	con = sq3.connect('..\data\SNe_15_phot_3.db')
 	con.execute("""DROP TABLE IF EXISTS Photometry""")
 	con.execute("""CREATE TABLE IF NOT EXISTS Photometry (SN TEXT, RA TEXT, DEC TEXT, 
 														  zCMB_salt REAL, e_zCMB_salt REAL, Bmag_salt REAL, e_Bmag_salt REAL, s_salt REAL, e_s_salt REAL, c_salt REAL, e_c_salt REAL, mu_salt REAL, e_mu_salt REAL,
@@ -304,6 +371,7 @@ if __name__ == "__main__":
 				break
 
 		av_25 = av_dict.get(event)
+		delta_lowrv = delt_dict.get(event)
 
 		#dm15 estimation
 		dm15_cfa = cfa_dict.get(event, cfa_none)[4]
@@ -325,8 +393,12 @@ if __name__ == "__main__":
 			if delta_mlcs31 != None:
 				dm15_from_delta = float(dm15_delta_interp(delta_mlcs31))
 
+			dm15_from_delta_lowrv = np.NaN
+			if delta_lowrv != None:
+				dm15_from_delta_lowrv = float(dm15_delta_lowrv_interp(delta_lowrv[0]))
+
 			# dm15_from_fits = np.nanmean([dm15_from_s, dm15_from_x1, dm15_from_delta])
-			dm15s = [dm15_from_s, dm15_from_x1, dm15_from_delta] #change order to give fits different priority
+			dm15s = [dm15_from_delta, dm15_from_s, dm15_from_x1, dm15_from_delta_lowrv] #change order to give fits different priority
 			for dm in dm15s:
 				if dm != np.NaN:
 					dm15_from_fits = dm
