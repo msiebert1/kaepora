@@ -89,7 +89,8 @@ def grab(sql_input, multi_epoch = False, make_corr = True):
     #     multi_epoch = False
     # multi_epoch = True
 
-    get_phot = False
+    # get_phot = False
+    get_phot = True
     if "join" in sql_input:
         get_phot = True
 
