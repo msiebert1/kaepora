@@ -7,6 +7,7 @@ import sys
 import time
 import matplotlib.gridspec as gridspec
 import matplotlib.animation as animation
+import argparse
 
 
 def make_colorbar(composites):
@@ -243,13 +244,13 @@ def save_comps_to_files(composites):
 if __name__ == "__main__":
 	composites = []
 
-	num_queries = int(sys.argv[1])
+	boot = sys.argv[1]
 	query_strings = sys.argv[2:]
 
 	num_queries = len(query_strings)
 
 	for n in range(num_queries):
-		composites.append(composite.main(query_strings[n]))
+		composites.append(composite.main(query_strings[n], boot))
 
 	composite.optimize_scales(composites, composites[0], True)
 	

@@ -20,9 +20,15 @@ if __name__ == "__main__":
 	# tab_arr = []
 	# for SN in SN_Array:
 	# 	wav_range = str(int(np.round(SN.minwave, 0))) + ' - ' + str(int(np.round(SN.maxwave, 0)))
+	# 	if SN.SNR != None:
+	# 		SN.SNR = np.round(SN.SNR, 2)
 	# 	ref = '...'
-	# 	tab_arr.append([SN.name, SN.source, SN.mjd, SN.phase, wav_range, ref])
-	# table_1 = tabulate(tab_arr, headers=['SN Name', 'Source', 'mjd', 'Phase', 'Wavelength Range', 'Reference'], tablefmt = 'latex')
+	# 	if SN.ref is not None:
+	# 		ref = SN.ref
+	# 	else:
+	# 		ref = '...'
+	# 	tab_arr.append([SN.name, SN.source, SN.mjd, SN.phase, SN.SNR, wav_range, ref])
+	# table_1 = tabulate(tab_arr, headers=['SN Name', 'Source', 'mjd', 'Phase', 'SNR', 'Wavelength Range', 'Reference'], tablefmt = 'latex')
 	# write_table('table_1.tex', table_1)
 
 	SN_Array = composite.grab("SELECT * from Supernovae inner join Photometry ON Supernovae.SN = Photometry.SN where phase between -.2 and .2", multi_epoch = True)
@@ -44,11 +50,9 @@ if __name__ == "__main__":
 		else:
 			av = None
 
-		if SN.SNR != None:
-			SN.SNR = np.round(SN.SNR, 2)
-		tab_arr.append([SN.name, SN.source, SN.redshift, SN.SNR, dm15, SN.m_b, SN.B_minus_V, SN.velocity, SN.morph, SN.carbon, SN.GasRich, SN.resid, ])
-	table_2 = tabulate(tab_arr, headers=['SN Name', 'Source', 'Redshift', 'SNR', '$\Delta m_15 (B)$', 'M_{B}', 'B - V (mag)', 
-										 'Velocity (km/s)', 'Host Morphology', 'Carbon Presence', 'Gas Rich', 'Hubble Residual', 'A_{V}'], tablefmt = 'latex')
+		tab_arr.append([SN.name, SN.source, SN.redshift, dm15, SN.m_b, SN.B_minus_V, SN.velocity, SN.morph, SN.resid, av])
+	table_2 = tabulate(tab_arr, headers=['SN Name', 'Source', 'Redshift', '$\Delta m_15 (B)$', 'M_{B}', 'B - V (mag)', 
+										 'Velocity (km/s)', 'Host Morphology', 'Hubble Residual', 'A_{V}'], tablefmt = 'latex')
 	write_table('table_2.tex', table_2)
 
 #Photometric metadata:

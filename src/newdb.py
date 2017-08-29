@@ -235,6 +235,17 @@ def build_redshift_dict(bsnipdict, cfadict):
             rsd[item.lower()] = float(bsnipdict[item])
     return rsd
 
+def build_bsnip_ref_dict():
+    with open('../data/info_files/bsnip_references.txt') as f:
+        txt = f.readlines()
+        ref_dict = {}
+        for line in txt:
+            info = line.split()
+            for el in info:
+                if '.flm' in el:
+                    ref_dict[el] = info[-1]
+
+    return ref_dict
 
 def create_short_bsnip_dict(bsnipdict):
     newdict = {}
@@ -261,11 +272,12 @@ vel_dict = build_vel_dict()
 gas_dict = build_gas_dict()
 carbon_dict = build_carbon_dict()
 residual_dict = build_residual_dict()
+ref_dict = build_bsnip_ref_dict()
 ts = time.clock()
 
 #con = sq3.connect('SNe.db')
 # con = sq3.connect('SNe_11.db')
-con = sq3.connect('SNe_15.db')
+con = sq3.connect('SNe_16.db')
 
 #make sure no prior table in db to avoid doubling/multiple copies of same data
 
@@ -302,7 +314,7 @@ con.execute("""CREATE TABLE IF NOT EXISTS Supernovae (Filename
                     Phase REAL, MinWave REAL, MaxWave REAL, Dm15 REAL,
                     M_B REAL, B_mMinusV_m REAL, Velocity REAL,
                     Morphology INTEGER, Carbon TEXT, GasRich INTEGER, snr REAL, 
-                    Hubble_Res Real, Interpolated_Spectra BLOB, MJD REAL)""")
+                    Hubble_Res Real, Interpolated_Spectra BLOB, MJD REAL, Ref Text)""")
 
 #read all bsnip to find corrected
 corr_list = []
@@ -365,6 +377,7 @@ for path, subdirs, files in os.walk(root):
         redshift = None
         source = None
         mjd = None
+        ref = None
 
         f = os.path.join(path, name)
         if f.endswith('.flm') or f.endswith('.dat'):
@@ -424,6 +437,7 @@ for path, subdirs, files in os.walk(root):
                 redshift = float(info[2])
                 phase = float(info[4]) - float(info[3])
                 mjd = float(info[4]) - 2400000.5
+                ref = '2013ApJ...773...53F'
 
             #uv source
             elif 'uv' in path:
@@ -469,6 +483,8 @@ for path, subdirs, files in os.walk(root):
                 else:
                     bm_vm = sn_cfa[11]
 
+                ref = '2012AJ....143..126B'
+
             #bsnip spectra
             elif 'bsnip' in f:
                 source = 'bsnip'
@@ -494,6 +510,9 @@ for path, subdirs, files in os.walk(root):
                 mjd = data[3]
                 if type(mjd) != float:
                     mjd = float(mjd[0:9])
+
+                if name in ref_dict:
+                    ref = ref_dict[name]
 
             waves = spectra[:, 0]
             min_wave = waves[0]
@@ -563,7 +582,6 @@ for path, subdirs, files in os.walk(root):
             else:
                 hubble_residual = None
 
-            print hubble_residual
 
             #add redshift to redshift dictionary if not already present
             if name not in rsd and redshift is not None:
@@ -575,12 +593,13 @@ for path, subdirs, files in os.walk(root):
             con.execute("""INSERT INTO Supernovae(Filename, SN, Source,
                                 Redshift, Phase, MinWave, MaxWave, Dm15, M_B,
                                 B_mMinusV_m, Velocity, Morphology, Carbon,
-                                GasRich, snr, Hubble_Res, Interpolated_Spectra, MJD)
-                                VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                                GasRich, snr, Hubble_Res, Interpolated_Spectra, 
+                                MJD, Ref)
+                                VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                         (name, sn_name, source, redshift, phase,
                          min_wave, max_wave, Dm15, m_b, bm_vm, vel,
                          morph, carbon, gasrich, sig_noise, hubble_residual, 
-                         buffer(interped), mjd))
+                         buffer(interped), mjd, ref))
 
 con.commit()
 te = time.clock()

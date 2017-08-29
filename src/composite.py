@@ -55,7 +55,7 @@ class supernova(object):
 
 def store_phot_data(SN, row):
 
-    phot_row = row[18:]
+    phot_row = row[19:]
     # SN.name      = phot_row[0]
     SN.ra        = phot_row[1]
     SN.dec       = phot_row[2]
@@ -77,7 +77,7 @@ def grab(sql_input, multi_epoch = False, make_corr = True):
        with the newly added attributes.
     """
     print "Collecting data..."
-    con = sq3.connect('../data/SNe_15_phot_3.db')
+    con = sq3.connect('../data/SNe_16_phot_1.db')
     # con = sq3.connect('../data/SNe_14.db')
     cur = con.cursor()
 
@@ -115,6 +115,7 @@ def grab(sql_input, multi_epoch = False, make_corr = True):
         interp       = msg.unpackb(row[16])
         SN.interp    = interp
         SN.mjd         = row[17]
+        SN.ref       = row[18]
 
         if get_phot:
             store_phot_data(SN, row)
@@ -720,10 +721,12 @@ def create_composite(SN_Array, boot, template, medmean):
 	scales  = []
 	iters = 3
 	iters_comp = 3
-	boot = False
+	# boot = False
 
-	bootstrap = 'y'
-	# bootstrap = 'n'
+	if boot is True:
+		bootstrap = 'y'
+	else:
+		bootstrap = 'n'
 	print "Creating composite..."
 	optimize_scales(SN_Array, template, True)
 	(fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, dm15s, 
@@ -796,7 +799,7 @@ def create_composite(SN_Array, boot, template, medmean):
 	template.ivar[template.x2:] = 0.
 	return template
     
-def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
+def main(Full_query, boot = False, medmean = 1, opt = 'n', save_file = 'n'):
 	"""Main function. Finds supernovae that agree with user query, prompts user 
 		on whether to bootstrap or just create a composite, then does so and stores 
 		returns the relevant data for plotting in a table.
@@ -867,8 +870,10 @@ def main(Full_query, showplot = 0, medmean = 1, opt = 'n', save_file = 'n'):
 	scales  = []
 	iters = 3
 	iters_comp = 3
-	boot = False
-
+	if boot == 'b':
+		boot = True
+	else:
+		boot = False
 	# plt.figure(num = 2, dpi = 100, figsize = [30, 20], facecolor = 'w')
 	# for i in range(len(SN_Array)):
 	#     plt.plot(SN_Array[i].wavelength, SN_Array[i].flux)
