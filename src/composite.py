@@ -577,7 +577,6 @@ def bootstrapping (SN_Array, samples, scales, og_template, iters, medmean):
 def is_bad_data(SN, bad_files, bad_ivars):
     for el in bad_files:
         if SN.filename == el:
-            print 'bad file removed'
             return True
     for el in bad_ivars:
         if SN.filename == el:
@@ -644,7 +643,7 @@ def check_host_corrections(SN_Array):
 def apply_host_corrections(SN_Array, lengths):
 	corrected_SNs = []
 	for SN in SN_Array:
-		print SN.name, SN.filename, SN.phase, SN.dm15_cfa, SN.dm15_from_fits, SN.velocity
+		print SN.name, SN.filename
 		if SN.av_25 != None:
 			pre_scale = (1.e-15/np.average(SN.flux[SN.x1:SN.x2]))
 			SN.flux = pre_scale*SN.flux
