@@ -325,7 +325,7 @@ if __name__ == "__main__":
 	dm15_delta_interp = dm15_from_fit_params(events, mlcs31_dict, cfa_dict, stretch='delta')
 	dm15_delta_lowrv_interp = dm15_from_fit_params(events, delt_dict, cfa_dict, stretch='delta_lowrv')
 
-	con = sq3.connect('..\data\SNe_16_phot_1.db')
+	con = sq3.connect('..\data\SNe_16_phot_4.db')
 	con.execute("""DROP TABLE IF EXISTS Photometry""")
 	con.execute("""CREATE TABLE IF NOT EXISTS Photometry (SN TEXT, RA TEXT, DEC TEXT, 
 														  zCMB_salt REAL, e_zCMB_salt REAL, Bmag_salt REAL, e_Bmag_salt REAL, s_salt REAL, e_s_salt REAL, c_salt REAL, e_c_salt REAL, mu_salt REAL, e_mu_salt REAL,
@@ -335,7 +335,7 @@ if __name__ == "__main__":
 														  glon_host REAL, glat_host REAL, cz_host REAL, czLG_host REAL, czCMB_host REAL, mtype_host TEXT, xpos_host REAL, ypos_host REAL, t1_host REAL, filt_host TEXT, Ebv_host REAL,
 														  zCMB_lc REAL, zhel_lc REAL, mb_lc REAL, e_mb_lc REAL, c_lc REAL, e_c_lc REAL, x1_lc REAL, e_x1_lc REAL, logMst_lc REAL, e_logMst_lc REAL, tmax_lc REAL, e_tmax_lc REAL, cov_mb_s_lc REAL, cov_mb_c_lc REAL, cov_s_c_lc REAL, bias_lc REAL,
 														  av_25 REAL, dm15_cfa Real, dm15_from_fits REAL, separation REAL,
-														  Photometry BLOB)""")
+														  Photometry BLOB, csp_photometry BLOB)""")
 
 	salt_none = [None,None,None,None,None,None,None,None,None,None,None,None]
 	salt2_none = salt_none
@@ -344,6 +344,7 @@ if __name__ == "__main__":
 	host_none = [None,None,None,None,None,None,None,None,None,None,None,None,None]
 	lc_none = [None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None]
 	cfa_none = [None,None,None,None,None,None,None,None,None,None,None,None,None,None]
+	
 	for event in events:
 		print 'Adding data for ' + event + '...'
 		ra_salt,dec_salt,zCMB_salt,e_zCMB_salt,Bmag_salt,e_Bmag_salt,s_salt,e_s_salt,c_salt,e_c_salt,mu_salt,e_mu_salt = salt_dict.get(event, salt_none)
@@ -420,6 +421,9 @@ if __name__ == "__main__":
 		sn_phot = phot.get_photometry(event)
 		phot_blob = msg.packb(sn_phot)
 
+		csp_sn_phot = phot.get_csp_photometry(event)
+		csp_phot_blob = msg.packb(csp_sn_phot)
+
 		con.execute("""INSERT INTO Photometry(SN, RA, DEC, zCMB_salt, e_zCMB_salt, Bmag_salt, e_Bmag_salt, s_salt, e_s_salt, c_salt, e_c_salt, mu_salt, e_mu_salt,
 											           zCMB_salt2, e_zCMB_salt2, Bmag_salt2, e_Bmag_salt2, x1_salt2, e_x1_salt2, c_salt2, e_c_salt2, mu_salt2, e_mu_salt2,
 											           zCMB_mlcs31, e_zCMB_mlcs31, mu_mlcs31, e_mu_mlcs31, delta_mlcs31, e_delta_mlcs31, av_mlcs31, e_av_mlcs31,
@@ -427,8 +431,8 @@ if __name__ == "__main__":
 											           glon_host, glat_host, cz_host, czLG_host, czCMB_host, mtype_host, xpos_host, ypos_host, t1_host, filt_host, Ebv_host,
 											           zCMB_lc, zhel_lc, mb_lc, e_mb_lc, c_lc, e_c_lc, x1_lc, e_x1_lc, logMst_lc, e_logMst_lc, tmax_lc, e_tmax_lc, cov_mb_s_lc, cov_mb_c_lc, cov_s_c_lc, bias_lc,
 											           av_25, dm15_cfa, dm15_from_fits, separation,
-											           Photometry)
-                                VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+											           Photometry, csp_Photometry)
+                                VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                         (event, ra, dec, zCMB_salt, e_zCMB_salt, Bmag_salt, e_Bmag_salt, s_salt, e_s_salt, c_salt, e_c_salt, mu_salt, e_mu_salt,
                         	      zCMB_salt2, e_zCMB_salt2, Bmag_salt2, e_Bmag_salt2, x1_salt2, e_x1_salt2, c_salt2, e_c_salt2, mu_salt2, e_mu_salt2,
                         	      zCMB_mlcs31, e_zCMB_mlcs31, mu_mlcs31, e_mu_mlcs31, delta_mlcs31, e_delta_mlcs31, av_mlcs31, e_av_mlcs31,
@@ -436,7 +440,7 @@ if __name__ == "__main__":
                         	      glon_host, glat_host, cz_host, czLG_host, czCMB_host, mtype_host, xpos_host, ypos_host, t1_host, filt_host, Ebv_host,
                         	      zCMB_lc, zhel_lc, mb_lc, e_mb_lc, c_lc, e_c_lc, x1_lc, e_x1_lc, logMst_lc, e_logMst_lc, tmax_lc, e_tmax_lc, cov_mb_s_lc, cov_mb_c_lc, cov_s_c_lc, bias_lc,
                         	      av_25, dm15_cfa, dm15_from_fits, sep,
-                        	      buffer(phot_blob))
+                        	      buffer(phot_blob), buffer(csp_phot_blob))
                     )
 		print 'Done'
 

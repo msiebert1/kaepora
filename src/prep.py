@@ -78,7 +78,6 @@ NOTE:Currently only has SN_name, B, and V values for purposes of Dereddening due
 
 
 def dered(sne, snname, wave, flux):
-    print 'here'
     for j in range(len(sne)):  # go through list of SN parameters
         sn = sne[j][0]
         if sn in snname:  # SN with parameter matches the path
@@ -213,6 +212,8 @@ def compprep(spectrum, sn_name, z, source):
         sne = ReadExtin('extinctionuv.dat')
     if source == 'other':
         sne = ReadExtin('extinctionother.dat')
+    if source == 'swift_uv':
+        sne = ReadExtin('extinctionswiftuv.dat')
 
 #     host_reddened = ReadExtin('../data/info_files/ryan_av.txt')
     newdata = []
@@ -231,5 +232,4 @@ def compprep(spectrum, sn_name, z, source):
     new_ivar = genivar(new_wave, new_flux, new_error)  # generate new inverse variance
     #var = new_flux*0+1
     newdata = Interpo(new_wave, new_flux, new_ivar)  # Do the interpolation
-#    print 'new spectra',newdata
     return newdata, snr

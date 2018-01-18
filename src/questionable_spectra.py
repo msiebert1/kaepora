@@ -85,7 +85,7 @@ def bad_files():
 							'sn2006le-20061111.39-fast.flm', 'sn1999dq-19990904.48-fast.flm',			#bad var, bad var?
 							'sn1995bd-19951228.25-fast.flm','sn2006le-20061027.52-fast.flm',			#bad var, bad var
 							'sn2003it-20031028.34-fast.flm','sn1991t-19910418.flm',						#bad var, very large SNR biases early time composites
-							'1994D_19940323_3465_9203_00.dat']											#reddening wrong
+							'1994D_19940323_3465_9203_00.dat', ]										#reddening wrong,
 
 		print len(bad_files), 'questionable files currently ignored'
 		return bad_files

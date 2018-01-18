@@ -35,24 +35,30 @@ def find_SN(fname, source=None, csplist=None):
 
         return snname
         
-def dered(sne, snname, wave, flux):
+def dered(sne, snname, wave, flux, source='not_swift_uv'):
     corrected = False
     for j in range(len(sne)):  # go through list of SN parameters
         sn = sne[j][0]
         if snname.lower() == sn.lower()[2:]:  # SN with parameter matches the path
             if not corrected:
                 print 'Milky Way correction...'
-                b = sne[j][1].astype(float)
-                v = sne[j][2].astype(float)
-                bv = b-v
-    #            print "B(%s)-V(%s)=%s"%(b,v,bv)
-    #            print "R(v) =",r
-                #or use fm07 model
-                #test1 = spectra_data[i][:,1] * ex.reddening(spectra_data[i][:,0],ebv = bv, model='ccm89')
-                #test2 = spectra_data[i][:,1] * ex.reddening(spectra_data[i][:,0],ebv = bv, model='od94')
-                red = ex.reddening(wave, a_v=3.1*bv, r_v=3.1, model='f99')
-                flux *= red
-                corrected = True
+                if source != 'swift_uv':
+                    b = sne[j][1].astype(float)
+                    v = sne[j][2].astype(float)
+                    bv = b-v
+        #            print "B(%s)-V(%s)=%s"%(b,v,bv)
+        #            print "R(v) =",r
+                    #or use fm07 model
+                    #test1 = spectra_data[i][:,1] * ex.reddening(spectra_data[i][:,0],ebv = bv, model='ccm89')
+                    #test2 = spectra_data[i][:,1] * ex.reddening(spectra_data[i][:,0],ebv = bv, model='od94')
+                    red = ex.reddening(wave, a_v=3.1*bv, r_v=3.1, model='f99')
+                    flux *= red
+                    corrected = True
+                else:
+                    Av = sne[j][1].astype(float)
+                    red = ex.reddening(wave, a_v=Av, r_v=3.1, model='f99')
+                    flux *= red
+                    corrected = True
                 # flux *= ex.reddening(wave, a_v=bv, r_v=3.1, model='f99')
     #            wave /= (1+z)
 

@@ -8,6 +8,7 @@ import time
 import matplotlib.gridspec as gridspec
 import matplotlib.animation as animation
 import argparse
+import spectral_analysis as sa
 
 
 def make_colorbar(composites):
@@ -169,7 +170,7 @@ def normalize_comps(composites):
 		comp.flux = norm*comp.flux
 		comp.low_conf = norm*comp.low_conf
 		comp.up_conf = norm*comp.up_conf
-		comp.ivar /= (norm)**2
+		comp.ivar *= (norm)**2
 	return composites
 
 def main(num_queries, query_strings):
@@ -177,12 +178,15 @@ def main(num_queries, query_strings):
 	# query_strings = sys.argv[2:]
 
 	composites = []
+	sn_arrays = []
 	for n in range(num_queries):
-		composites.append(composite.main(query_strings[n]))
+		comp, arr = composite.main(query_strings[n])
+		composites.append(comp)
+		sn_arrays.append(arr)
 
 	# composite.optimize_scales(composites, composites[0], True)
-	composites = normalize_comps(composites)
-	return composites
+	# composites = normalize_comps(composites)
+	return composites, sn_arrays
 
 
 def make_animation(composites):
@@ -209,6 +213,43 @@ def make_animation(composites):
 
 	animation.FuncAnimation(fig, animate, np.arange(0, len(composites)), repeat = True)
 	plt.show()
+
+def plot_comp_and_all_spectra(comp, SN_Array):
+	# norm = 1./np.amax(comp.flux)
+	# comp.flux = comp.flux*norm
+	# for SN in SN_Array:
+	# 	SN.flux = SN.flux*norm
+	plt.rc('font', family='serif')
+	fig, ax = plt.subplots(1,1)
+	fig.set_size_inches(10, 8, forward = True)
+	plt.minorticks_on()
+	plt.xticks(fontsize = 20)
+	ax.xaxis.set_ticks(np.arange(np.round(comp.wavelength[comp.x1:comp.x2][0],-3), np.round(comp.wavelength[comp.x1:comp.x2][-1],-3),1000))
+	plt.yticks(fontsize = 20)
+	plt.tick_params(
+	    which='major', 
+	    bottom='on', 
+	    top='on',
+	    left='on',
+	    right='on',
+	    length=10)
+	plt.tick_params(
+		which='minor', 
+		bottom='on', 
+		top='on',
+		left='on',
+		right='on',
+		length=5)
+	for i in range(len(SN_Array)):
+	    # plt.plot(SN_Array[i].wavelength[SN_Array[i].x1:SN_Array[i].x2], SN_Array[i].flux[SN_Array[i].x1:SN_Array[i].x2], color = '#7570b3', alpha = .5)
+	    plt.plot(SN_Array[i].wavelength[SN_Array[i].x1:SN_Array[i].x2], SN_Array[i].flux[SN_Array[i].x1:SN_Array[i].x2])
+	plt.plot(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], 'k', linewidth = 6)
+	plt.ylabel('Relative Flux', fontsize = 30)
+	plt.xlabel('Wavelength ' + "($\mathrm{\AA}$)", fontsize = 30)
+	# "SELECT * from Supernovae inner join Photometry ON Supernovae.SN = Photometry.SN where phase >= -3 and phase <= 3 and morphology >= 9"
+	# plt.savefig('../../Paper_Drafts/scaled.png', dpi = 300, bbox_inches = 'tight')
+	plt.show()
+
 
 def save_comps_to_files(composites):
 	for SN in composites:
@@ -243,21 +284,31 @@ def save_comps_to_files(composites):
 
 if __name__ == "__main__":
 	composites = []
+	SN_Arrays = []
 
 	boot = sys.argv[1]
 	query_strings = sys.argv[2:]
 
 	num_queries = len(query_strings)
 
-	for n in range(num_queries):
-		composites.append(composite.main(query_strings[n], boot))
 
-	composite.optimize_scales(composites, composites[0], True)
+	for n in range(num_queries):
+		c, sn_arr = composite.main(query_strings[n], boot)
+		composites.append(c)
+		SN_Arrays.append(sn_arr)
+	# composite.optimize_scales(composites, composites[0], True)
 	
+	plot_comp_and_all_spectra(composites[0], SN_Arrays[0])
 	set_min_num_spec(composites, 5)
+	normalize_comps(composites)
+	# for comp in composites:
+	# 	sa.measure_si_velocity(comp)
+	
+	#plotting rutines to visualize composites
+	# set_min_num_spec(composites, 5)
 	comparison_plot(composites)
-	# scaled_plot(composites)
-	stacked_plot(composites)
+	# # scaled_plot(composites)
+	# stacked_plot(composites)
 
 	# save_comps_to_files(composites)
 	

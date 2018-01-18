@@ -70,6 +70,7 @@ def store_phot_data(SN, row):
     SN.dm15_from_fits = phot_row[68]
     SN.sep = phot_row[69]
     SN.light_curves = msg.unpackb(phot_row[70])
+    SN.csp_light_curves = msg.unpackb(phot_row[71])
 
 def grab(sql_input, multi_epoch = False, make_corr = True):
     """Pulls in all columns from the database for the selected query. 
@@ -77,7 +78,7 @@ def grab(sql_input, multi_epoch = False, make_corr = True):
        with the newly added attributes.
     """
     print "Collecting data..."
-    con = sq3.connect('../data/SNe_16_phot_1.db')
+    con = sq3.connect('../data/SNe_17_phot_1.db')
     # con = sq3.connect('../data/SNe_14.db')
     cur = con.cursor()
 
@@ -129,7 +130,8 @@ def grab(sql_input, multi_epoch = False, make_corr = True):
             SN.flux       = SN.interp[1,:]
             SN.ivar       = SN.interp[2,:]
         except TypeError:
-            continue
+        	print "ERROR: ", SN.filename, SN.interp
+        	continue
         full_array.append(SN)
         SN_Array.append(SN)
 
@@ -205,44 +207,39 @@ def grab(sql_input, multi_epoch = False, make_corr = True):
         SN.red_array   = np.array(SN.flux)
         SN.vel         = np.array(SN.flux)
         # print SN.name, SN.dm15, SN.dm15_cfa, SN.dm15_from_fits, SN.filename
-        for i in range(len(SN.flux)):
-            #Check for NaN
-            if np.isnan(SN.flux[i]):
-                SN.flux[i]         = 0
-                SN.ivar[i]         = 0
-                SN.phase_array[i]  = 0
-                SN.dm15_array[i]   = 0
-                SN.red_array[i]    = 0
-                SN.vel[i]          = 0
-            #Set nonzero values to correct ones
-            if SN.phase_array[i] != 0:
-                if SN.phase != None:
-                    SN.phase_array[i] = SN.phase
-                else:
-                    SN.phase_array[i] = 0
-            if SN.dm15_array[i] != 0 and get_phot:
-                if SN.dm15_cfa != None:
-                    SN.dm15_array[i] = SN.dm15_cfa
-                elif SN.dm15_from_fits != None:
-                    SN.dm15_array[i] = SN.dm15_from_fits
-                else:
-                    SN.dm15_array[i] = 0
-            if SN.red_array[i] != 0:
-                if SN.redshift != None:
-                    SN.red_array[i] = SN.redshift
-                else:
-                    SN.red_array[i] = 0
-            if SN.vel[i] != 0:
-                if SN.velocity != None:
-                    SN.vel[i] = SN.velocity
-                else:
-                    SN.vel[i] = 0
-#        print SN.ivar
-        non_zero_data = np.where(SN.flux != 0)
-        non_zero_data = np.array(non_zero_data[0])
-        if len(non_zero_data) > 0:
-            SN.x1 = non_zero_data[0]
-            SN.x2 = non_zero_data[-1]
+
+        nan_bool_flux = np.isnan(SN.flux)
+        non_nan_data = np.where(nan_bool_flux == False)
+        nan_data = np.where(nan_bool_flux == True)
+        SN.flux[nan_data]         = np.nan
+        SN.ivar[nan_data] 		  = 0
+        SN.phase_array[nan_data]  = np.nan
+        SN.dm15_array[nan_data]   = np.nan
+        SN.red_array[nan_data]    = np.nan
+        SN.vel[nan_data]          = np.nan
+        if SN.phase != None:
+            SN.phase_array[non_nan_data] = SN.phase
+        else:
+            SN.phase_array[non_nan_data] = np.nan
+        if SN.dm15_cfa != None:
+            SN.dm15_array[non_nan_data] = SN.dm15_cfa
+        elif SN.dm15_from_fits != None:
+            SN.dm15_array[non_nan_data] = SN.dm15_from_fits
+        else:
+            SN.dm15_array[non_nan_data] = np.nan
+        if SN.redshift != None:
+            SN.red_array[non_nan_data] = SN.redshift
+        else:
+            SN.red_array[non_nan_data] = np.nan
+        if SN.velocity != None:
+            SN.vel[non_nan_data] = SN.velocity
+        else:
+            SN.vel[i] = np.nan
+
+        non_nan_data = np.array(non_nan_data[0])
+        if len(non_nan_data) > 0:
+            SN.x1 = non_nan_data[0]
+            SN.x2 = non_nan_data[-1]
             SN.x2 += 1
         else:
             SN.x1 = 0
@@ -356,68 +353,89 @@ def mask(SN_Array, boot):
     red_ivars  = []
     dm15_mask  = []
     red_mask   = []
+    # for SN in SN_Array:
+    #     if len(fluxes) == 0:
+    #         fluxes = np.array([SN.flux])
+    #         ivars  = np.array([SN.ivar])
+    #         if not boot:
+    #             reds   = np.array([SN.red_array])
+    #             phases = np.array([SN.phase])
+    #             ages   = np.array([SN.phase_array])
+    #             vels   = np.array([SN.vel])
+    #             dm15s  = np.array([SN.dm15_array])
+    #     else:
+    #         try:
+    #             fluxes = np.append(fluxes, np.array([SN.flux]), axis=0)
+    #             ivars  = np.append(ivars, np.array([SN.ivar]), axis=0)
+    #             if not boot:
+    #                 reds   = np.append(reds, np.array([SN.red_array]), axis = 0)
+    #                 phases = np.append(phases, np.array([SN.phase]), axis = 0)
+    #                 ages   = np.append(ages, np.array([SN.phase_array]), axis = 0)
+    #                 vels   = np.append(vels, np.array([SN.vel]), axis = 0)
+    #                 dm15s  = np.append(dm15s, np.array([SN.dm15_array]), axis = 0)
+    #         except ValueError:
+    #             print "This should never happen!"
     for SN in SN_Array:
-        if len(fluxes) == 0:
-            fluxes = np.array([SN.flux])
-            ivars  = np.array([SN.ivar])
-            if not boot:
-                reds   = np.array([SN.red_array])
-                phases = np.array([SN.phase])
-                ages   = np.array([SN.phase_array])
-                vels   = np.array([SN.vel])
-                dm15s  = np.array([SN.dm15_array])
-        else:
-            try:
-                fluxes = np.append(fluxes, np.array([SN.flux]), axis=0)
-                ivars  = np.append(ivars, np.array([SN.ivar]), axis=0)
-                if not boot:
-                    reds   = np.append(reds, np.array([SN.red_array]), axis = 0)
-                    phases = np.append(phases, np.array([SN.phase]), axis = 0)
-                    ages   = np.append(ages, np.array([SN.phase_array]), axis = 0)
-                    vels   = np.append(vels, np.array([SN.vel]), axis = 0)
-                    dm15s  = np.append(dm15s, np.array([SN.dm15_array]), axis = 0)
-            except ValueError:
-                print "This should never happen!"
-
+    	fluxes.append(SN.flux)
+    	ivars.append(SN.ivar)
+    	if not boot:
+    		reds.append(SN.red_array)
+    		phases.append(SN.phase)
+    		ages.append(SN.phase_array)
+    		vels.append(SN.vel)
+    		dm15s.append(SN.dm15_array)
+    
+    fluxes = np.ma.masked_array(fluxes,np.isnan(fluxes))
+    reds   = np.ma.masked_array(reds,np.isnan(reds))
+    phases = np.ma.masked_array(phases,np.isnan(phases))
+    ages   = np.ma.masked_array(ages,np.isnan(ages))
+    vels   = np.ma.masked_array(vels,np.isnan(vels))
+    dm15s  = np.ma.masked_array(dm15s,np.isnan(dm15s))
+    dm15_ivars = np.ma.masked_array(dm15_ivars,np.isnan(dm15_ivars))
+    red_ivars  = np.ma.masked_array(red_ivars,np.isnan(red_ivars))
+    dm15_mask  = np.ma.masked_array(dm15_mask,np.isnan(dm15_mask))
+    red_mask   = np.ma.masked_array(red_mask,np.isnan(red_mask))
+    flux_mask = []
+    ivar_mask = []
     #Adding masks for every parameter 
-    flux_mask = np.zeros(len(fluxes[0,:]))
-    ivar_mask = np.zeros(len(fluxes[0,:]))
-    if not boot:
-        dm15_mask = np.zeros(len(dm15s[0,:]))
-        red_mask  = np.zeros(len(reds[0,:]))
+    # flux_mask = np.zeros(len(fluxes[0,:]))
+    # ivar_mask = np.zeros(len(fluxes[0,:]))
+    # if not boot:
+    #     dm15_mask = np.zeros(len(dm15s[0,:]))
+    #     red_mask  = np.zeros(len(reds[0,:]))
     
-    have_data = np.where(np.sum(ivars, axis = 0)>0)
-    no_data   = np.where(np.sum(ivars, axis = 0)==0)
-    if not boot:
-        no_dm15   = np.where(np.sum(dm15s, axis = 0)==0)
-        no_reds   = np.where(np.sum(reds, axis = 0)==0)
-        dm15_mask[no_dm15] = 1
+    # have_data = np.where(np.sum(ivars, axis = 0)>0)
+    # no_data   = np.where(np.sum(ivars, axis = 0)==0)
+    # if not boot:
+    #     no_dm15   = np.where(np.sum(dm15s, axis = 0)==0)
+    #     no_reds   = np.where(np.sum(reds, axis = 0)==0)
+    #     dm15_mask[no_dm15] = 0
     
-    ivar_mask[no_data] = 10e6
+    # ivar_mask[no_data] = 10e6
     
-    #Right now all of our spectra have redshift data, so a mask is unnecessary
-    #One day that might change
-    if not boot:
-        red_mask[:]  = 1
+    # #Right now all of our spectra have redshift data, so a mask is unnecessary
+    # #One day that might change
+    # if not boot:
+    #     red_mask[:]  = 0
         
-        dm15_ivars = np.array(ivars)
-        red_ivars  = np.array(ivars)
+    #     dm15_ivars = np.array(ivars)
+    #     red_ivars  = np.array(ivars)
     
-    #Add in flux/ivar mask
-    fluxes = np.append(fluxes, np.array([flux_mask]), axis=0)
-    ivars  = np.append(ivars, np.array([ivar_mask]), axis=0)
-    if not boot:
-        reds   = np.append(reds, np.array([flux_mask]), axis=0)
-        ages   = np.append(ages, np.array([flux_mask]), axis=0)
-        vels   = np.append(vels, np.array([flux_mask]), axis=0)
-        dm15s  = np.append(dm15s, np.array([dm15_mask]), axis=0)
-        dm15_ivars = np.append(dm15_ivars, np.array([dm15_mask]), axis=0)
-        red_ivars  = np.append(red_ivars, np.array([red_mask]), axis=0)
+    # #Add in flux/ivar mask
+    # fluxes = np.append(fluxes, np.array([flux_mask]), axis=0)
+    # ivars  = np.append(ivars, np.array([ivar_mask]), axis=0)
+    # if not boot:
+    #     reds   = np.append(reds, np.array([flux_mask]), axis=0)
+    #     ages   = np.append(ages, np.array([flux_mask]), axis=0)
+    #     vels   = np.append(vels, np.array([flux_mask]), axis=0)
+    #     dm15s  = np.append(dm15s, np.array([dm15_mask]), axis=0)
+    #     dm15_ivars = np.append(dm15_ivars, np.array([dm15_mask]), axis=0)
+    #     red_ivars  = np.append(red_ivars, np.array([red_mask]), axis=0)
         
-        for i in range(len(dm15_ivars)):
-            for j in range(len(dm15_ivars[i])):
-                if dm15_ivars[i,j] == 0.0:
-                    dm15_ivars[i,j] = 1.0
+    #     for i in range(len(dm15_ivars)):
+    #         for j in range(len(dm15_ivars[i])):
+    #             if dm15_ivars[i,j] == 0.0:
+    #                 dm15_ivars[i,j] = 0.0
     
     return (fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, 
             dm15s, flux_mask, ivar_mask, dm15_mask, red_mask)
@@ -429,28 +447,37 @@ def average(SN_Array, template, medmean, boot, fluxes, ivars, dm15_ivars, red_iv
        of the scaled data. Returns the new template supernova. 
     """
     temp_fluxes = []
-    for i in range(len(SN_Array)):
-        fluxes[i] = SN_Array[i].flux
-        ivars[i] = SN_Array[i].ivar
-        if medmean == 2:
-            fluxes[i][fluxes[i] == 0] = np.nan
-            if not boot:
-                ages[i][ages[i] == 0] = np.nan
-                vels[i][vels[i] == 0] = np.nan
-                dm15s[i][dm15s[i] == 0] = np.nan
-                reds[i][reds[i] == 0] = np.nan
+    # for i in range(len(SN_Array)):
+    #     fluxes[i] = SN_Array[i].flux
+    #     ivars[i] = SN_Array[i].ivar
+    #     if medmean == 2:
+    #         fluxes[i][fluxes[i] == 0] = np.nan
+    #         if not boot:
+    #             ages[i][ages[i] == 0] = np.nan
+    #             vels[i][vels[i] == 0] = np.nan
+    #             dm15s[i][dm15s[i] == 0] = np.nan
+    #             reds[i][reds[i] == 0] = np.nan
+
         # temp_fluxes.append(np.ma.masked_where(fluxes[i] == 0, fluxes[i]))    
         # temp_fluxes.append(fluxes[i][fluxes[i] == 0] = np.nan) 
     
     # print temp_fluxes
 
+    # if medmean == 1: 
+    #     template.flux  = np.average(fluxes, weights=ivars, axis=0)
+    #     if not boot:
+    #         template.phase_array   = np.average(ages, weights=ivars, axis=0)
+    #         template.vel   = np.average(vels, weights=ivars, axis=0)
+    #         template.dm15  = np.average(dm15s, weights=dm15_ivars, axis=0)
+    #         template.red_array = np.average(np.array(reds), weights = red_ivars, axis=0)
+    # raise TypeError
     if medmean == 1: 
-        template.flux  = np.average(fluxes, weights=ivars, axis=0)
+        template.flux  = np.ma.average(fluxes, weights=ivars, axis=0).filled(np.nan)
         if not boot:
-            template.phase_array   = np.average(ages, weights=ivars, axis=0)
-            template.vel   = np.average(vels, weights=ivars, axis=0)
-            template.dm15  = np.average(dm15s, weights=dm15_ivars, axis=0)
-            template.red_array = np.average(np.array(reds), weights = red_ivars, axis=0)
+            template.phase_array   = np.ma.average(ages, weights=ivars, axis=0).filled(np.nan)
+            template.vel   = np.ma.average(vels, weights=ivars, axis=0).filled(np.nan)
+            template.dm15  = np.ma.average(dm15s, weights=ivars, axis=0).filled(np.nan)
+            template.red_array = np.ma.average(reds, weights = ivars, axis=0).filled(np.nan)
     if medmean == 2:
         # template.flux  = np.median(fluxes, axis=0)
         # template.flux  = np.ma.median(temp_fluxes, axis=0).filled(0)
@@ -786,11 +813,17 @@ def create_composite(SN_Array, boot, template, medmean):
 		# low_conf, up_conf = bootstrapping(SN_Array, samples, scales, template, iters, medmean)
 		template.low_conf, template.up_conf = bootstrapping(SN_Array, samples, scales, template, iters, medmean)
 
-	non_zero_data = np.where(template.flux != 0)
-	non_zero_data = np.array(non_zero_data[0])
-	if len(non_zero_data) > 0:
-		template.x1 = non_zero_data[0]
-		template.x2 = non_zero_data[-1]
+	# non_zero_data = np.where(template.flux != 0)
+	# if len(non_zero_data) > 0:
+	# 	template.x1 = non_zero_data[0]
+	# 	template.x2 = non_zero_data[-1]
+	# 	template.x2 += 1
+	nan_bool_flux = np.isnan(template.flux)
+	non_nan_data = np.where(nan_bool_flux == False)
+	non_nan_data = np.array(non_nan_data[0])
+	if len(non_nan_data) > 0:
+		template.x1 = non_nan_data[0]
+		template.x2 = non_nan_data[-1]
 		template.x2 += 1
 
 	template.ivar = 1./template.ivar
@@ -798,7 +831,7 @@ def create_composite(SN_Array, boot, template, medmean):
 	template.ivar[template.x2:] = 0.
 	return template
     
-def main(Full_query, boot = False, medmean = 1, opt = 'n', save_file = 'n'):
+def main(Full_query, boot = 'nb', medmean = 1, opt = 'n', save_file = 'n'):
 	"""Main function. Finds supernovae that agree with user query, prompts user 
 		on whether to bootstrap or just create a composite, then does so and stores 
 		returns the relevant data for plotting in a table.
@@ -832,7 +865,6 @@ def main(Full_query, boot = False, medmean = 1, opt = 'n', save_file = 'n'):
 	#UNCOMMENT FOR COMPARISON PLOT
 	# new_arr = []
 	# new_arr.append(copy.copy(SN_Array[0]))
-
 	SN_Array = apply_host_corrections(SN_Array, lengths)
 
 	# new_arr.append(copy.copy(SN_Array[0]))
@@ -851,6 +883,7 @@ def main(Full_query, boot = False, medmean = 1, opt = 'n', save_file = 'n'):
 	# plt.show()
 
 	temp = [SN for SN in SN_Array if len(SN.flux[np.where(SN.flux!=0)]) == max(lengths)]
+
 	try:
 		composite = temp[0]
 	except IndexError:
@@ -907,7 +940,7 @@ def main(Full_query, boot = False, medmean = 1, opt = 'n', save_file = 'n'):
 
 	template = create_composite(SN_Array, boot, template, medmean)
 
-	return template
+	return template, SN_Array
 
 if __name__ == "__main__":
     main()

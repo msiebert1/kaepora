@@ -54,10 +54,38 @@ def get_photometry(sn_name):
 	else:
 		return None	
 
+def get_csp_photometry(sn_name):
+	file = find_csp_phot(sn_name)
+	phot_dict = {}
+	index_dict = {}
+	if file != None:
+		with open(file) as f:
+			lines = f.readlines()
+			for i in range(len(lines[4].split()[1:])):
+				band = lines[4].split()[1:][i]
+				if band != "+/-" and band != "MJD":
+					phot_dict[band] = [[],[],[]]
+					index_dict[band] = i
+			for line in lines[5:]:
+				for b in phot_dict.keys():
+					if line.split()[index_dict[b]] != '99.900':
+						phot_dict[b][0].append(float(line.split()[0]))
+						phot_dict[b][1].append(float(line.split()[index_dict[b]]))
+						phot_dict[b][2].append(float(line.split()[index_dict[b] + 1]))
+			return phot_dict
+	else:
+		return None
+
+def find_csp_phot(sn_name):
+	files = glob.glob("..\..\csp_photometry\CSP_Photometry_DR2\*.dat")
+	for f in files:
+		if sn_name.lower() in f.lower():
+			return f
+	return None
+
 def find_event_in_osc(sn_name):
 	files = glob.glob("..\..\osc_data\osc_sns\*.json")
 	for f in files:
 		if sn_name.lower() + '.json' in f.lower():
 			return f
 	return None
-
