@@ -31,6 +31,7 @@ from specutils import Spectrum1D
 import magnitudes as mg
 import questionable_spectra as qspec
 import telluric_spectra as tspec
+import query_db as qdb
 
 np.set_printoptions(threshold=np.nan)
 mn.patch()
@@ -519,7 +520,7 @@ def bootstrapping (SN_Array, samples, scales, og_template, iters, medmean):
     for i in range(len(strap_matrix)):
         boot_arr.append([])
         for j in range(len(strap_matrix[i])):
-            boot_arr[i].append(SN_Array[strap_matrix[i,j]])
+            boot_arr[i].append(cpy_array[strap_matrix[i,j]])
             
 
     for p in range(len(boot_arr)):
@@ -540,10 +541,8 @@ def bootstrapping (SN_Array, samples, scales, og_template, iters, medmean):
 
     print "scaling boots..."
     temp1, scales = optimize_scales(boots, og_template, True)
-    if medmean == 1:
-        optimize_scales(boots, og_template, False)
 
-    # print "plotting..."
+    print "plotting..."
     # for SN in boots:
     #     plt.plot(SN.wavelength, SN.flux, 'g')
     # plt.plot(og_template.wavelength,og_template.flux, 'k', linewidth = 4)
@@ -599,7 +598,8 @@ def bootstrapping (SN_Array, samples, scales, og_template, iters, medmean):
     # plt.fill_between(og_template.wavelength, low_arr, up_arr, color = 'green')
     # plt.show()
     
-    return np.asarray(low_arr), np.asarray(up_arr)        
+    # SN_Array = cpy_array
+    return np.asarray(low_arr), np.asarray(up_arr), boots        
     
 def is_bad_data(SN, bad_files, bad_ivars):
     for el in bad_files:
@@ -756,24 +756,23 @@ def create_composite(SN_Array, boot, template, medmean):
 	print "Creating composite..."
 	optimize_scales(SN_Array, template, True)
 	(fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, dm15s, 
-	 flux_mask, ivar_mask, dm15_mask, red_mask) = mask(SN_Array, boot)
+	 flux_mask, ivar_mask, dm15_mask, red_mask) = mask(SN_Array, False)
 
 
 	for i in range(iters_comp):
 		SN_Array, scales = optimize_scales(SN_Array, template, False)
-		template = average(SN_Array, template, medmean, boot, fluxes, ivars, dm15_ivars, red_ivars, 
+		template = average(SN_Array, template, medmean, False, fluxes, ivars, dm15_ivars, red_ivars, 
 							reds, phases, ages, vels, dm15s, flux_mask, ivar_mask, dm15_mask, red_mask)
 	print "Done."
-
-
+	boots = None
+	norm = 1./np.amax(template.flux[template.x1:template.x2])
+	template.flux = template.flux*norm
+	for SN in SN_Array:
+		SN.flux = SN.flux*norm
 	#plot composite with the scaled spectra
 	# plt.figure(num = 2, dpi = 100, figsize = [30, 20], facecolor = 'w')
 	if bootstrap is 'n':
 		pass
-		# norm = 1./np.amax(template.flux)
-		# template.flux = template.flux*norm
-		# for SN in SN_Array:
-		# 	SN.flux = SN.flux*norm
 		# plt.rc('font', family='serif')
 		# fig, ax = plt.subplots(1,1)
 		# fig.set_size_inches(10, 8, forward = True)
@@ -811,7 +810,7 @@ def create_composite(SN_Array, boot, template, medmean):
 		# samples = int (raw_input("# of samples:"))
 		samples = 100
 		# low_conf, up_conf = bootstrapping(SN_Array, samples, scales, template, iters, medmean)
-		template.low_conf, template.up_conf = bootstrapping(SN_Array, samples, scales, template, iters, medmean)
+		template.low_conf, template.up_conf, boots = bootstrapping(SN_Array, samples, scales, template, iters, medmean)
 
 	# non_zero_data = np.where(template.flux != 0)
 	# if len(non_zero_data) > 0:
@@ -829,7 +828,8 @@ def create_composite(SN_Array, boot, template, medmean):
 	template.ivar = 1./template.ivar
 	template.ivar[0:template.x1] = 0.
 	template.ivar[template.x2:] = 0.
-	return template
+
+	return template, boots
     
 def main(Full_query, boot = 'nb', medmean = 1, opt = 'n', save_file = 'n'):
 	"""Main function. Finds supernovae that agree with user query, prompts user 
@@ -938,9 +938,9 @@ def main(Full_query, boot = 'nb', medmean = 1, opt = 'n', save_file = 'n'):
 	#     plt.show()
 
 
-	template = create_composite(SN_Array, boot, template, medmean)
+	template, boots = create_composite(SN_Array, boot, template, medmean)
 
-	return template, SN_Array
+	return template, SN_Array, boots
 
 if __name__ == "__main__":
     main()

@@ -173,20 +173,33 @@ def normalize_comps(composites):
 		comp.ivar *= (norm)**2
 	return composites
 
-def main(num_queries, query_strings):
+def normalize_comp(comp):
+	norm = 1./np.amax(comp.flux[comp.x1:comp.x2])
+	comp.flux = norm*comp.flux
+	comp.low_conf = norm*comp.low_conf	
+	comp.up_conf = norm*comp.up_conf
+	comp.ivar *= (norm)**2
+	return comp, norm
+
+def main(num_queries, query_strings, boot='nb'):
 	# num_queries = int(sys.argv[1])
 	# query_strings = sys.argv[2:]
 
 	composites = []
 	sn_arrays = []
+	boot_sn_arrays = []
+	store_boots = True
 	for n in range(num_queries):
-		comp, arr = composite.main(query_strings[n])
+		comp, arr, boots = composite.main(query_strings[n],boot=boot)
+		if store_boots:
+			boot_sn_arrays.append(boots)
 		composites.append(comp)
 		sn_arrays.append(arr)
 
 	# composite.optimize_scales(composites, composites[0], True)
 	# composites = normalize_comps(composites)
-	return composites, sn_arrays
+
+	return composites, sn_arrays, boot_sn_arrays
 
 
 def make_animation(composites):
@@ -219,6 +232,7 @@ def plot_comp_and_all_spectra(comp, SN_Array):
 	# comp.flux = comp.flux*norm
 	# for SN in SN_Array:
 	# 	SN.flux = SN.flux*norm
+	# composite.optimize_scales(SN_Array,comp, True)
 	plt.rc('font', family='serif')
 	fig, ax = plt.subplots(1,1)
 	fig.set_size_inches(10, 8, forward = True)
@@ -272,7 +286,7 @@ def save_comps_to_files(composites):
 		abs_vel = np.absolute(vel)
 		vel_str = str(abs_vel)
 
-		with open('../../high_low_velocity/' + sign + phase_str + 'days' + '-m' + vel_str + 'kmps'+ '.flm', 'w') as file:
+		with open('../../' + sign + phase_str + 'days' + '.flm', 'w') as file:
 			wave = np.array(SN.wavelength[SN.x1:SN.x2])
 			flux = np.array(SN.flux[SN.x1:SN.x2])
 			data = np.array([wave,flux])
@@ -285,18 +299,22 @@ def save_comps_to_files(composites):
 if __name__ == "__main__":
 	composites = []
 	SN_Arrays = []
+	boot_sn_arrays = []
+	store_boots = True
 
 	boot = sys.argv[1]
 	query_strings = sys.argv[2:]
 
 	num_queries = len(query_strings)
 
-
 	for n in range(num_queries):
-		c, sn_arr = composite.main(query_strings[n], boot)
+		c, sn_arr, boots = composite.main(query_strings[n], boot)
 		composites.append(c)
 		SN_Arrays.append(sn_arr)
+		if store_boots:
+			boot_sn_arrays.append(boots)
 	# composite.optimize_scales(composites, composites[0], True)
+
 	
 	plot_comp_and_all_spectra(composites[0], SN_Arrays[0])
 	set_min_num_spec(composites, 5)
