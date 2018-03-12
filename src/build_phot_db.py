@@ -247,50 +247,50 @@ def dm15_from_fit_params(events, fit_dict, cfa_dict, stretch='N/A'):
 	print y[0], y[-1]
 
 	# plotted in lc_fitting_relationships.py
-	# plt.rc('font', family='serif')
-	# fig, ax = plt.subplots(1,1)
-	# fig.set_size_inches(10, 8, forward = True)
-	# plt.minorticks_on()
-	# plt.xticks(fontsize = 20)
-	# plt.yticks(fontsize = 20)
-	# plt.tick_params(
-	#     which='major', 
-	#     bottom='on', 
-	#     top='on',
-	#     left='on',
-	#     right='on',
-	#     length=10)
-	# plt.tick_params(
-	# 	which='minor', 
-	# 	bottom='on', 
-	# 	top='on',
-	# 	left='on',
-	# 	right='on',
-	# 	length=5)
-	# plt.plot(y, x, 'k', linewidth=4)
-	# plt.ylim(.6,2.2)
-	# plt.ylabel('$\Delta m_{15}$ (B)', fontsize = 30)
-	# if stretch is 's':
-	# 	plt.errorbar(param_arr, dm15_arr, xerr=e_param_arr, fmt='o', color='#7570b3', ms=10)
-	# 	plt.xlim(.4, 1.3)
-	# 	plt.xlabel('s', fontsize = 30)
-	# 	plt.savefig('../../Paper_Drafts/dm15_s.png', dpi = 300, bbox_inches = 'tight')
-	# elif stretch is 'x1':
-	# 	plt.errorbar(param_arr, dm15_arr, xerr=e_param_arr, fmt='o', color='#1b9e77', ms=10)
-	# 	plt.xlim(-5., 3.)
-	# 	plt.xlabel('$x_1$', fontsize = 30)
-	# 	plt.savefig('../../Paper_Drafts/dm15_x1.png', dpi = 300, bbox_inches = 'tight')
-	# elif stretch is 'delta':
-	# 	plt.errorbar(param_arr, dm15_arr, xerr=e_param_arr, fmt='o', color='#d95f02', ms=10)
-	# 	plt.xlim(-.5, 1.8)
-	# 	plt.xlabel('$\Delta$', fontsize = 30)
-	# 	plt.savefig('../../Paper_Drafts/dm15_delta.png', dpi = 300, bbox_inches = 'tight')
-	# elif stretch is 'delta_lowrv':
-	# 	plt.errorbar(param_arr, dm15_arr, xerr=e_param_arr, fmt='o', color='#d95f02', ms=10)
-	# 	plt.xlim(-.9, 2.0)
-	# 	plt.xlabel('$\Delta$', fontsize = 30)
-	# 	plt.savefig('../../Paper_Drafts/dm15_delta_lowrv.png', dpi = 300, bbox_inches = 'tight')
-	# plt.show()
+	plt.rc('font', family='serif')
+	fig, ax = plt.subplots(1,1)
+	fig.set_size_inches(10, 8, forward = True)
+	plt.minorticks_on()
+	plt.xticks(fontsize = 20)
+	plt.yticks(fontsize = 20)
+	plt.tick_params(
+	    which='major', 
+	    bottom='on', 
+	    top='on',
+	    left='on',
+	    right='on',
+	    length=10)
+	plt.tick_params(
+		which='minor', 
+		bottom='on', 
+		top='on',
+		left='on',
+		right='on',
+		length=5)
+	plt.plot(y, x, 'k', linewidth=4)
+	plt.ylim(.6,2.2)
+	plt.ylabel('$\Delta m_{15}$ (B)', fontsize = 30)
+	if stretch is 's':
+		plt.errorbar(param_arr, dm15_arr, xerr=e_param_arr, fmt='o', color='#7570b3', ms=10)
+		plt.xlim(.4, 1.3)
+		plt.xlabel('s', fontsize = 30)
+		# plt.savefig('../../Paper_Drafts/dm15_s.pdf', dpi = 300, bbox_inches = 'tight')
+	elif stretch is 'x1':
+		plt.errorbar(param_arr, dm15_arr, xerr=e_param_arr, fmt='o', color='#1b9e77', ms=10)
+		plt.xlim(-5., 3.)
+		plt.xlabel('$x_1$', fontsize = 30)
+		# plt.savefig('../../Paper_Drafts/dm15_x1.pdf', dpi = 300, bbox_inches = 'tight')
+	elif stretch is 'delta':
+		plt.errorbar(param_arr, dm15_arr, xerr=e_param_arr, fmt='o', color='#d95f02', ms=10)
+		plt.xlim(-.5, 1.8)
+		plt.xlabel('$\Delta$', fontsize = 30)
+		# plt.savefig('../../Paper_Drafts/dm15_delta.pdf', dpi = 300, bbox_inches = 'tight')
+	elif stretch is 'delta_lowrv':
+		plt.errorbar(param_arr, dm15_arr, xerr=e_param_arr, fmt='o', color='#d95f02', ms=10)
+		plt.xlim(-.9, 2.0)
+		plt.xlabel('$\Delta$', fontsize = 30)
+		# plt.savefig('../../Paper_Drafts/dm15_delta_lowrv.pdf', dpi = 300, bbox_inches = 'tight')
+	plt.show()
 
 	# dm15_interp = interp1d(x, y, bounds_error = True)
 	dm15_interp = interp1d(y, x, bounds_error=False, fill_value=None)

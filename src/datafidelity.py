@@ -28,7 +28,7 @@ import scipy.signal as sig
 
 def gsmooth(x_array, y_array, var_y, vexp , nsig = 5.0):
     
-    # Check for non-zero variance points, and set to 1E-20
+    # Check for zero variance points, and set to 1E-20
     for i in range(len(var_y)):
         if var_y[i] == 0:
             var_y[i] = 1E-20

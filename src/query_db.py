@@ -128,7 +128,7 @@ def comparison_plot(composites):
 		plt.setp(delt.get_xticklabels(), visible=False)
 		plt.ylabel('$\Delta$m$_{15}$', fontdict = font)
 		# plt.plot(comp.wavelength[comp.x1:comp.x2], comp.dm15[comp.x1:comp.x2], color = s_m.to_rgba(param))
-		plt.plot(comp.wavelength[comp.x1:comp.x2], comp.dm15[comp.x1:comp.x2], linewidth = lw, color = s_m.to_rgba(param))
+		plt.plot(comp.wavelength[comp.x1:comp.x2], comp.dm15_array[comp.x1:comp.x2], linewidth = lw, color = s_m.to_rgba(param))
 
 		plt.subplot(gs[6], sharex = rel_flux)
 		plt.ylabel('Redshift', fontdict = font)
@@ -181,7 +181,7 @@ def normalize_comp(comp):
 	comp.ivar *= (norm)**2
 	return comp, norm
 
-def main(num_queries, query_strings, boot='nb'):
+def main(num_queries, query_strings, boot='nb', medmean = 1):
 	# num_queries = int(sys.argv[1])
 	# query_strings = sys.argv[2:]
 
@@ -190,7 +190,7 @@ def main(num_queries, query_strings, boot='nb'):
 	boot_sn_arrays = []
 	store_boots = True
 	for n in range(num_queries):
-		comp, arr, boots = composite.main(query_strings[n],boot=boot)
+		comp, arr, boots = composite.main(query_strings[n],boot=boot, medmean = medmean)
 		if store_boots:
 			boot_sn_arrays.append(boots)
 		composites.append(comp)
@@ -308,15 +308,21 @@ if __name__ == "__main__":
 	num_queries = len(query_strings)
 
 	for n in range(num_queries):
-		c, sn_arr, boots = composite.main(query_strings[n], boot)
+		c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1)
 		composites.append(c)
 		SN_Arrays.append(sn_arr)
 		if store_boots:
 			boot_sn_arrays.append(boots)
 	# composite.optimize_scales(composites, composites[0], True)
 
-	
 	plot_comp_and_all_spectra(composites[0], SN_Arrays[0])
+	comp = composites[0]
+	# for sn in sn_arr:
+	# 	r = sa.measure_si_ratio(sn.wavelength[sn.x1:sn.x2], sn.flux[sn.x1:sn.x2])
+	# 	print r
+
+	r = sa.measure_si_ratio(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], vexp = .001)
+	print r
 	set_min_num_spec(composites, 5)
 	normalize_comps(composites)
 	# for comp in composites:

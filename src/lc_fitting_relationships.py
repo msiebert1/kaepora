@@ -21,6 +21,9 @@ av_dict = phot_db.build_av_dict('..\data\info_files\lowz_rv25_all.fitres')
 delt_dict = phot_db.build_delt_dict('..\data\info_files\lowz_rv25_all.fitres')
 cfa_dict = phot_db.build_cfa_dict('..\data\spectra\cfa\cfasnIa_param.dat')
 
+print av_dict
+raise TypeError
+
 events = phot_db.find_all_events(salt,salt2,mlcs31,mlcs17,lcparams,host_data,av_dict,cfa_dict)
 
 salt_dict = phot_db.build_salt_dict(salt)
