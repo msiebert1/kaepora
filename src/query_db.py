@@ -16,9 +16,11 @@ def make_colorbar(composites):
 	# for comp in composites:
 	# 	params.append(np.average(comp.dm15_array[comp.x1:comp.x2]))
 	# norm = matplotlib.colors.Normalize(vmin=np.min(params),vmax=np.max(params))
-	norm = matplotlib.colors.Normalize(vmin=1.,vmax=len(composites))
-	c_m = matplotlib.cm.coolwarm
-	# c_m = matplotlib.cm.winter_r
+	# norm = matplotlib.colors.Normalize(vmin=1.,vmax=len(composites))
+	# norm = matplotlib.colors.Normalize(vmin=1.,vmax=len(composites) + .5)
+	norm = matplotlib.colors.Normalize(vmin=1.,vmax=len(composites) + 1.)
+	# c_m = matplotlib.cm.coolwarm
+	c_m = matplotlib.cm.plasma
 	s_m = matplotlib.cm.ScalarMappable(cmap=c_m, norm=norm)
 	s_m.set_array([])
 
@@ -27,10 +29,10 @@ def make_colorbar(composites):
 def scaled_plot(composites):
 
 	font = {'family' : 'serif',
-        'color'  : 'black',
-        'weight' : 'bold',
-        'size'   : 10,
-        }
+		'color'  : 'black',
+		'weight' : 'bold',
+		'size'   : 10,
+		}
 
 	fig = plt.figure(num = 1, dpi = 100, figsize = [10,10], facecolor = 'w')
 	s_m = make_colorbar(composites)
@@ -44,7 +46,7 @@ def scaled_plot(composites):
 		plt.plot(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], color = s_m.to_rgba(phase))
 		if len(comp.low_conf) > 0 and len(comp.up_conf) > 0:
 			plt.fill_between(comp.wavelength[comp.x1:comp.x2], comp.low_conf[comp.x1:comp.x2], 
-				             comp.up_conf[comp.x1:comp.x2], color = s_m.to_rgba(phase), alpha = 0.5)
+							 comp.up_conf[comp.x1:comp.x2], color = s_m.to_rgba(phase), alpha = 0.5)
 
 	plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
 	cb = plt.colorbar(s_m, ax = fig.axes)
@@ -64,18 +66,14 @@ def comparison_plot(composites):
 	# plt.style.use('ggplot')
 	colors = [color['color'] for color in list(plt.rcParams['axes.prop_cycle'])]
 	h = [3,1,1,1,1,1,1]
-	font = {'family' : 'serif',
-        'color'  : 'black',
-        'weight' : 'bold',
-        'size'   : 10,
-        }
 
-	gs = gridspec.GridSpec(7, 1, height_ratios=h, hspace = .001)
-	fig = plt.figure(num = 1, dpi = 100, figsize = [10,10])
+	gs = gridspec.GridSpec(6, 1, height_ratios=h, hspace = .001)
+	fig = plt.figure(num = 1, dpi = 100, figsize = [10,15])
+	plt.rc('font', family='serif')
 	s_m = make_colorbar(composites)
 	lw = 3
 
-	composites, scales = composite.optimize_scales(composites, composites[0], True)
+	composites, scales = composite.optimize_scales(composites, composites[0], False)
 
 	i = 0
 	k = 1
@@ -84,26 +82,63 @@ def comparison_plot(composites):
 		param = k
 
 		rel_flux = plt.subplot(gs[0])
+		plt.minorticks_on()
+		plt.xticks(fontsize = 20)
+		plt.yticks(fontsize = 10)
+		plt.tick_params(
+			which='major', 
+			bottom='on', 
+			top='on',
+			left='on',
+			right='on',
+			length=10)
+		plt.tick_params(
+			which='minor', 
+			bottom='on', 
+			top='on',
+			left='on',
+			right='on',
+			length=5)
 		plt.setp(rel_flux.get_xticklabels(), visible=False)
-		plt.ylabel('Relative Flux', fontdict = font)
-		rel_flux.axes.get_yaxis().set_ticks([])
+		plt.ylabel('Relative Flux')
+		rel_flux.axes.set_ylim([0, 1.05])
+		# plt.gca().axes.yaxis.set_ticklabels([])
 		# plt.plot(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], color = s_m.to_rgba(param))
 		plt.plot(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], linewidth = lw, color = s_m.to_rgba(param))
 		if len(comp.low_conf) > 0 and len(comp.up_conf) > 0:
 			plt.fill_between(comp.wavelength[comp.x1:comp.x2], comp.low_conf[comp.x1:comp.x2], 
-				             comp.up_conf[comp.x1:comp.x2], color = s_m.to_rgba(param), alpha = 0.5)
+							 comp.up_conf[comp.x1:comp.x2], color = s_m.to_rgba(param), alpha = 0.5)
 			# plt.fill_between(comp.wavelength[comp.x1:comp.x2], comp.low_conf[comp.x1:comp.x2], 
 			# 	             comp.up_conf[comp.x1:comp.x2], color = colors[i%len(colors)], alpha = 0.5)
 
-		var = plt.subplot(gs[1], sharex = rel_flux)
-		plt.setp(var.get_xticklabels(), visible=False)
-		plt.ylabel('Variance', fontdict = font)
-		# plt.plot(comp.wavelength[comp.x1:comp.x2], comp.ivar[comp.x1:comp.x2], color = s_m.to_rgba(param))
-		plt.plot(comp.wavelength[comp.x1:comp.x2], comp.ivar[comp.x1:comp.x2], linewidth = lw, color = s_m.to_rgba(param))
+		# var = plt.subplot(gs[1], sharex = rel_flux)
+		# plt.setp(var.get_xticklabels(), visible=False)
+		# plt.ylabel('Variance', fontdict = font)
+		# # plt.plot(comp.wavelength[comp.x1:comp.x2], comp.ivar[comp.x1:comp.x2], color = s_m.to_rgba(param))
+		# plt.plot(comp.wavelength[comp.x1:comp.x2], comp.ivar[comp.x1:comp.x2], linewidth = lw, color = s_m.to_rgba(param))
 
-		res = plt.subplot(gs[2], sharex = rel_flux)
+		res = plt.subplot(gs[1], sharex = rel_flux)
+		# res.yaxis.set_ticks(np.arange(-.11, .23, .07))
+		# res.axes.set_ylim([-.18, .24])
+		plt.minorticks_on()
+		plt.xticks(fontsize = 20)
+		plt.yticks(fontsize = 10)
+		plt.tick_params(
+			which='major', 
+			bottom='on', 
+			top='on',
+			left='on',
+			right='on',
+			length=10)
+		plt.tick_params(
+			which='minor', 
+			bottom='on', 
+			top='on',
+			left='on',
+			right='on',
+			length=5)
 		plt.setp(res.get_xticklabels(), visible=False)
-		plt.ylabel('Residuals', fontdict = font)
+		plt.ylabel('Residuals')
 		# plt.plot(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2] - composites[0].flux[comp.x1:comp.x2], color = s_m.to_rgba(param))
 		plt.plot(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2] - composites[0].flux[comp.x1:comp.x2], linewidth = lw, color = s_m.to_rgba(param))
 		if len(comp.low_conf) > 0 and len(comp.up_conf) > 0:
@@ -112,56 +147,191 @@ def comparison_plot(composites):
 			plt.fill_between(comp.wavelength[comp.x1:comp.x2], low_resid, up_resid, color = s_m.to_rgba(param), alpha = 0.5)
 			# plt.fill_between(comp.wavelength[comp.x1:comp.x2], low_resid, up_resid, color = colors[i%len(colors)], alpha = 0.5)
 
-		spec = plt.subplot(gs[3], sharex = rel_flux)
+		spec = plt.subplot(gs[2], sharex = rel_flux)
+		plt.minorticks_on()
+		plt.xticks(fontsize = 20)
+		plt.yticks(fontsize = 10)
+		plt.tick_params(
+			which='major', 
+			bottom='on', 
+			top='on',
+			left='on',
+			right='on',
+			length=10)
+		plt.tick_params(
+			which='minor', 
+			bottom='on', 
+			top='on',
+			left='on',
+			right='on',
+			length=5)
 		plt.setp(spec.get_xticklabels(), visible=False)
-		plt.ylabel('Spectra/Bin', fontdict = font)
+		plt.ylabel('Spectra/Bin')
 		# plt.plot(comp.wavelength[comp.x1:comp.x2], comp.spec_bin[comp.x1:comp.x2], color = s_m.to_rgba(param))
 		plt.plot(comp.wavelength[comp.x1:comp.x2], comp.spec_bin[comp.x1:comp.x2], linewidth = lw, color = s_m.to_rgba(param))
 
-		phase = plt.subplot(gs[4], sharex = rel_flux)
+		phase = plt.subplot(gs[3], sharex = rel_flux)
+		plt.minorticks_on()
+		plt.xticks(fontsize = 20)
+		plt.yticks(fontsize = 10)
+		plt.tick_params(
+			which='major', 
+			bottom='on', 
+			top='on',
+			left='on',
+			right='on',
+			length=10)
+		plt.tick_params(
+			which='minor', 
+			bottom='on', 
+			top='on',
+			left='on',
+			right='on',
+			length=5)
+		# avg_phase = np.nanmean(comp.phase_array[comp.x1:comp.x2])
+		# avg_phase_rnd = np.round(avg_phase,1)
+		# phase.yaxis.set_ticks(np.arange(avg_phase_rnd-1.5, avg_phase_rnd+1.51, .5))
 		plt.setp(phase.get_xticklabels(), visible=False)
-		plt.ylabel('Phase [d]', fontdict = font)
+		plt.ylabel('Phase (d)')
 		# plt.plot(comp.wavelength[comp.x1:comp.x2], comp.phase_array[comp.x1:comp.x2], color = s_m.to_rgba(param))
 		plt.plot(comp.wavelength[comp.x1:comp.x2], comp.phase_array[comp.x1:comp.x2], linewidth = lw, color = s_m.to_rgba(param))
+		# phase.axes.set_ylim([avg_phase - 2., avg_phase + 2.])
 
-		delt = plt.subplot(gs[5], sharex = rel_flux)
+		delt = plt.subplot(gs[4], sharex = rel_flux)
+		plt.minorticks_on()
+		plt.xticks(fontsize = 20)
+		plt.yticks(fontsize = 10)
+		plt.tick_params(
+			which='major', 
+			bottom='on', 
+			top='on',
+			left='on',
+			right='on',
+			length=10)
+		plt.tick_params(
+			which='minor', 
+			bottom='on', 
+			top='on',
+			left='on',
+			right='on',
+			length=5)
+		# avg_dm15 = np.nanmean(comp.dm15_array[comp.x1:comp.x2])
+		# avg_dm15_rnd = np.round(avg_dm15,2)
+		# delt.yaxis.set_ticks(np.arange(avg_dm15_rnd-.1, avg_dm15_rnd+.11, .05))
 		plt.setp(delt.get_xticklabels(), visible=False)
-		plt.ylabel('$\Delta$m$_{15}$', fontdict = font)
+		plt.ylabel('$\Delta$m$_{15}$')
 		# plt.plot(comp.wavelength[comp.x1:comp.x2], comp.dm15[comp.x1:comp.x2], color = s_m.to_rgba(param))
 		plt.plot(comp.wavelength[comp.x1:comp.x2], comp.dm15_array[comp.x1:comp.x2], linewidth = lw, color = s_m.to_rgba(param))
+		# delt.axes.set_ylim([avg_dm15 - .2, avg_dm15 + .2])
 
-		plt.subplot(gs[6], sharex = rel_flux)
-		plt.ylabel('Redshift', fontdict = font)
+		z = plt.subplot(gs[5], sharex = rel_flux)
+		plt.minorticks_on()
+		plt.xticks(fontsize = 10)
+		plt.yticks(fontsize = 10)
+		plt.tick_params(
+			which='major', 
+			bottom='on', 
+			top='on',
+			left='on',
+			right='on',
+			length=10)
+		plt.tick_params(
+			which='minor', 
+			bottom='on', 
+			top='on',
+			left='on',
+			right='on',
+			length=5)
+		# avg_z = np.nanmean(comp.red_array[comp.x1:comp.x2])
+		# avg_z_rnd = np.round(avg_z,3)
+		# z.yaxis.set_ticks(np.arange(avg_z_rnd-.006, avg_z_rnd+.0061, .005))
+		plt.ylabel('Redshift')
 		# plt.plot(comp.wavelength[comp.x1:comp.x2], comp.red_array[comp.x1:comp.x2], color = s_m.to_rgba(param))
 		plt.plot(comp.wavelength[comp.x1:comp.x2], comp.red_array[comp.x1:comp.x2], linewidth = lw, color = s_m.to_rgba(param))
+		# z.axes.set_ylim([avg_z - .01, avg_z + .01])
+		# z.axes.set_xlim([comp.wavelength[comp.x1]-200., comp.wavelength[comp.x2]+200.])
+		# labels=z.axes.get_yticks().tolist()
+		# labels[-1]=''
+		# print labels
+		# z.set_yticklabels(labels)
+
+		# res.yaxis.set_ticks(np.arange(-.11, .23, .07))
+		# res.axes.set_ylim([-.18, .24])
+
+		# avg_phase = np.nanmean(comp.phase_array[comp.x1:comp.x2])
+		# avg_phase_rnd = np.round(avg_phase,1)
+		# phase.yaxis.set_ticks(np.arange(avg_phase_rnd-1.5, avg_phase_rnd+1.51, .5))
+		# phase.axes.set_ylim([avg_phase - 2., avg_phase + 2.])
+
+		# avg_dm15 = np.nanmean(comp.dm15_array[comp.x1:comp.x2])
+		# avg_dm15_rnd = np.round(avg_dm15,2)
+		# delt.yaxis.set_ticks(np.arange(avg_dm15_rnd-.1, avg_dm15_rnd+.11, .05))
+		# delt.axes.set_ylim([avg_dm15 - .2, avg_dm15 + .2])
+
+		# avg_z = np.nanmean(comp.red_array[comp.x1:comp.x2])
+		# avg_z_rnd = np.round(avg_z,3)
+		# z.yaxis.set_ticks(np.arange(avg_z_rnd-.006, avg_z_rnd+.0061, .005))
+		# z.axes.set_ylim([avg_z - .01, avg_z + .01])
+
+		z.axes.set_xlim([comp.wavelength[comp.x1]-200., comp.wavelength[comp.x2]+200.])
 
 		i+=1
 		k+=1
 
-	plt.xlabel('Rest Wavelength [$\AA$]', fontdict = font)
+	plt.xlabel('Rest Wavelength ($\AA$)')
 	# cb = plt.colorbar(s_m, ax = fig.axes)
 	# cb.set_label('Phase', fontdict = font)
 	# for ax in fig.axes:
 	# 	ax.set_axis_bgcolor('white')
-
+	# plt.savefig('../../Paper_Drafts/multi_panel_composite.pdf', dpi = 300, bbox_inches = 'tight')
+	# plt.savefig('../../Paper_Drafts/multi_panel_host.pdf', dpi = 300, bbox_inches = 'tight')
+	# plt.savefig('../../Paper_Drafts/split_host_lowdm15.pdf', dpi = 300, bbox_inches = 'tight')
 	plt.show()
 
-def stacked_plot(composites):
+def stacked_plot(composites, boot=False):
+	plt.rc('font', family='serif')
 	fig, ax = plt.subplots(1,1)
-	fig.set_size_inches(20, 12., forward = True)
-	ax.get_yaxis().set_ticks([])
-	composites, scales = composite.optimize_scales(composites, composites[0], True)
+#     ax.get_yaxis().set_ticks([])
+#     plt.ylim([-311,12])
+	plt.ylabel('Relative Flux + Const.', fontsize = 20)
+	plt.xlabel('Rest Wavelength ' + "($\mathrm{\AA}$)", fontsize = 20)
+	plt.minorticks_on()
+	plt.xticks(fontsize = 20)
+	plt.yticks(fontsize = 20)
+	plt.tick_params(
+		which='major', 
+		bottom='on', 
+		top='on',
+		left='on',
+		right='on',
+		length=10)
+	plt.tick_params(
+		which='minor', 
+		bottom='on', 
+		top='on',
+		left='on',
+		right='on',
+		length=5)
+	fig.set_size_inches(10.5, 13.5, forward = True)
+	plt.gca().axes.yaxis.set_ticklabels([])
 
 	i = 0
+	if boot:
+		lw=2
+	else:
+		lw=4
 	for comp in composites:
-		dm15 = np.average(comp.dm15[comp.x1:comp.x2])
-		comp.flux = 1.e15*comp.flux 
-		ax.plot(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2] - 2.*i, color = '#3F5D7D', linewidth = 5)
-		plt.text(9700, comp.flux[comp.x2] - 2*i + 1, dm15)
+		dm15 = np.average(comp.dm15_array[comp.x1:comp.x2])
+#         buff = 200*np.log10(phase+20)
+		buff  = i
+		ax.plot(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2] - buff, color = '#3F5D7D', linewidth = lw)
+		if boot:
+			plt.fill_between(comp.wavelength[comp.x1:comp.x2], comp.low_conf[comp.x1:comp.x2]- buff, comp.up_conf[comp.x1:comp.x2] - buff, alpha = 0.5)
+		plt.text(9000, comp.flux[comp.x2] - i + .1, '$\mathbf{\Delta m_{15}}$ = ' + str(round(dm15, 2)), fontsize=20)
+#         plt.title('All Phase Composite Spectra', fontdict = font1, fontsize = 40)
 		i+=1
-
-	plt.ylabel('Relative Flux + const.')
-	plt.xlabel('Wavelength (A)')
+	# plt.ylim([len(composites)*-1., 2])
+	# plt.savefig('../../Paper_Drafts/dm15_split_max.pdf', dpi = 300, bbox_inches = 'tight')
 	plt.show()
 
 def normalize_comps(composites):
@@ -181,7 +351,7 @@ def normalize_comp(comp):
 	comp.ivar *= (norm)**2
 	return comp, norm
 
-def main(num_queries, query_strings, boot='nb', medmean = 1):
+def main(num_queries, query_strings, boot='nb', medmean = 1, selection = 'max_coverage'):
 	# num_queries = int(sys.argv[1])
 	# query_strings = sys.argv[2:]
 
@@ -190,7 +360,7 @@ def main(num_queries, query_strings, boot='nb', medmean = 1):
 	boot_sn_arrays = []
 	store_boots = True
 	for n in range(num_queries):
-		comp, arr, boots = composite.main(query_strings[n],boot=boot, medmean = medmean)
+		comp, arr, boots = composite.main(query_strings[n],boot=boot, medmean = medmean, selection = selection)
 		if store_boots:
 			boot_sn_arrays.append(boots)
 		composites.append(comp)
@@ -241,12 +411,12 @@ def plot_comp_and_all_spectra(comp, SN_Array):
 	ax.xaxis.set_ticks(np.arange(np.round(comp.wavelength[comp.x1:comp.x2][0],-3), np.round(comp.wavelength[comp.x1:comp.x2][-1],-3),1000))
 	plt.yticks(fontsize = 20)
 	plt.tick_params(
-	    which='major', 
-	    bottom='on', 
-	    top='on',
-	    left='on',
-	    right='on',
-	    length=10)
+		which='major', 
+		bottom='on', 
+		top='on',
+		left='on',
+		right='on',
+		length=10)
 	plt.tick_params(
 		which='minor', 
 		bottom='on', 
@@ -255,11 +425,11 @@ def plot_comp_and_all_spectra(comp, SN_Array):
 		right='on',
 		length=5)
 	for i in range(len(SN_Array)):
-	    # plt.plot(SN_Array[i].wavelength[SN_Array[i].x1:SN_Array[i].x2], SN_Array[i].flux[SN_Array[i].x1:SN_Array[i].x2], color = '#7570b3', alpha = .5)
-	    plt.plot(SN_Array[i].wavelength[SN_Array[i].x1:SN_Array[i].x2], SN_Array[i].flux[SN_Array[i].x1:SN_Array[i].x2])
+		# plt.plot(SN_Array[i].wavelength[SN_Array[i].x1:SN_Array[i].x2], SN_Array[i].flux[SN_Array[i].x1:SN_Array[i].x2], color = '#7570b3', alpha = .5)
+		plt.plot(SN_Array[i].wavelength[SN_Array[i].x1:SN_Array[i].x2], SN_Array[i].flux[SN_Array[i].x1:SN_Array[i].x2])
 	plt.plot(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], 'k', linewidth = 6)
 	plt.ylabel('Relative Flux', fontsize = 30)
-	plt.xlabel('Wavelength ' + "($\mathrm{\AA}$)", fontsize = 30)
+	plt.xlabel('Rest Wavelength ' + "($\mathrm{\AA}$)", fontsize = 30)
 	# "SELECT * from Supernovae inner join Photometry ON Supernovae.SN = Photometry.SN where phase >= -3 and phase <= 3 and morphology >= 9"
 	# plt.savefig('../../Paper_Drafts/scaled.png', dpi = 300, bbox_inches = 'tight')
 	plt.show()
@@ -308,21 +478,27 @@ if __name__ == "__main__":
 	num_queries = len(query_strings)
 
 	for n in range(num_queries):
-		c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1)
+		# c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, make_corr=False, multi_epoch=True, selection='max_coverage')
+		c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, selection='max_coverage')
 		composites.append(c)
 		SN_Arrays.append(sn_arr)
 		if store_boots:
 			boot_sn_arrays.append(boots)
 	# composite.optimize_scales(composites, composites[0], True)
 
-	plot_comp_and_all_spectra(composites[0], SN_Arrays[0])
-	comp = composites[0]
+	for i, comp in enumerate(composites):
+		plot_comp_and_all_spectra(comp, SN_Arrays[i])
+	# comp2 = composites[1]
 	# for sn in sn_arr:
 	# 	r = sa.measure_si_ratio(sn.wavelength[sn.x1:sn.x2], sn.flux[sn.x1:sn.x2])
 	# 	print r
 
-	r = sa.measure_si_ratio(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], vexp = .001)
-	print r
+	for comp in composites:
+		r = sa.measure_si_ratio(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], vexp = .001)
+		print r
+	# r = sa.measure_si_ratio(comp2.wavelength[comp2.x1:comp2.x2], comp2.flux[comp2.x1:comp2.x2], vexp = .001)
+	# print r
+	# set_min_num_spec(composites, 10)
 	set_min_num_spec(composites, 5)
 	normalize_comps(composites)
 	# for comp in composites:

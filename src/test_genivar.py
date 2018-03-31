@@ -129,10 +129,10 @@ def compprep(spectrum, sn_name, z, source):
     # # plt.savefig('../../Paper_Drafts/MW_corr.png', dpi = 300, bbox_inches = 'tight')
     # plt.show()
 
-    # av = .1294 #2006sr
-    av = 2.9711 #2005a
-    # name = '2006sr'
-    name = '2005a'
+    av = .1294 #2006sr
+    # av = 2.9711 #2005a
+    name = '2006sr'
+    # name = '2005a'
     host_wave = old_wave*u.Angstrom        # wavelengths
     host_flux = new_flux*u.Unit('W m-2 angstrom-1 sr-1')
     spec1d = Spectrum1D.from_array(host_wave, host_flux)
@@ -173,10 +173,10 @@ def compprep(spectrum, sn_name, z, source):
     plt.plot(old_wave, new_flux, linewidth = 2, color = '#1b9e77')
     plt.plot(host_wave.value, new_flux_host, linewidth = 2, color = '#7570b3')
     plt.ylabel('Relative Flux', fontsize = 30)
-    plt.xlabel('Wavelength ' + "($\mathrm{\AA}$)", fontsize = 30)
-    # plt.savefig('../../Paper_Drafts/red_corr.pdf', dpi = 300, bbox_inches = 'tight')
-    plt.ylim([-.2,1.01])
-    plt.savefig('../../Paper_Drafts/red_corr_large.pdf', dpi = 300, bbox_inches = 'tight')
+    plt.xlabel('Rest Wavelength ' + "($\mathrm{\AA}$)", fontsize = 30)
+    plt.savefig('../../Paper_Drafts/red_corr.pdf', dpi = 300, bbox_inches = 'tight')
+    # plt.ylim([-.2,1.01])
+    # plt.savefig('../../Paper_Drafts/red_corr_large.pdf', dpi = 300, bbox_inches = 'tight')
     plt.show()
 
     # new_wave = old_wave/(1.+z)  # Deredshifting
@@ -211,10 +211,10 @@ def compprep(spectrum, sn_name, z, source):
     plt.plot(old_wave, new_flux, linewidth = 2, color = 'r')
     plt.plot(newdata[0], newdata[1], linewidth = 2, color = '#3F5D7D')
     plt.ylabel('Relative Flux', fontsize = 30)
-    plt.xlabel('Wavelength ' + "($\mathrm{\AA}$)", fontsize = 30)
-    # plt.savefig('../../Paper_Drafts/interp.pdf', dpi = 300, bbox_inches = 'tight')
-    plt.ylim([-.3,1.])
-    plt.savefig('../../Paper_Drafts/interp_large.pdf', dpi = 300, bbox_inches = 'tight')
+    plt.xlabel('Rest Wavelength ' + "($\mathrm{\AA}$)", fontsize = 30)
+    plt.savefig('../../Paper_Drafts/interp.pdf', dpi = 300, bbox_inches = 'tight')
+    # plt.ylim([-.3,1.])
+    # plt.savefig('../../Paper_Drafts/interp_large.pdf', dpi = 300, bbox_inches = 'tight')
     plt.show()
 
 #    print 'new spectra',newdata
@@ -223,23 +223,9 @@ def compprep(spectrum, sn_name, z, source):
 #reddening / interpolation plots
 c = 299792.458
 #sn2006sr-20061220.097-ui.flm
-# fname = '../data/spectra/bsnip/sn2006sr-20061220.097-ui.flm'
-# spectrum = np.loadtxt(fname)
-# sn_name = '2006sr'
-# source = 'bsnip'
-# bsnip_vals = read_bsnip_data('obj_info_table.txt')
-# if is_number(fname.split('-')[1][:8]):
-#     longdate = fname.split('-')[1][:8]
-# else:
-#     longdate = fname.split('-')[2][:8]
-# data = bsnip_vals[sn_name.lower()+'-'+longdate]
-# redshift = data[1]/c
-# newdata, snr = compprep(spectrum, sn_name, redshift, source)
-
-fname = '../data/spectra/bsnip/sn2005a-20050115.357-br.flm'
+fname = '../data/spectra/bsnip/sn2006sr-20061220.097-ui.flm'
 spectrum = np.loadtxt(fname)
-# sn_name = '2006sr'
-sn_name = '2005a'
+sn_name = '2006sr'
 source = 'bsnip'
 bsnip_vals = read_bsnip_data('obj_info_table.txt')
 if is_number(fname.split('-')[1][:8]):
@@ -249,6 +235,20 @@ else:
 data = bsnip_vals[sn_name.lower()+'-'+longdate]
 redshift = data[1]/c
 newdata, snr = compprep(spectrum, sn_name, redshift, source)
+
+# fname = '../data/spectra/bsnip/sn2005a-20050115.357-br.flm'
+# spectrum = np.loadtxt(fname)
+# # sn_name = '2006sr'
+# sn_name = '2005a'
+# source = 'bsnip'
+# bsnip_vals = read_bsnip_data('obj_info_table.txt')
+# if is_number(fname.split('-')[1][:8]):
+#     longdate = fname.split('-')[1][:8]
+# else:
+#     longdate = fname.split('-')[2][:8]
+# data = bsnip_vals[sn_name.lower()+'-'+longdate]
+# redshift = data[1]/c
+# newdata, snr = compprep(spectrum, sn_name, redshift, source)
 
 raise TypeError
 
@@ -296,7 +296,7 @@ plt.tick_params(
 plt.plot(old_wave, real_var, linewidth = 2, color = '#7570b3', alpha = .8)
 plt.plot(old_wave, new_var, linewidth = 6, color = 'k')
 plt.ylabel('Variance', fontsize = 30)
-plt.xlabel('Wavelength ' + "($\mathrm{\AA}$)", fontsize = 30)
+plt.xlabel('Rest Wavelength ' + "($\mathrm{\AA}$)", fontsize = 30)
 # plt.savefig('../../Paper_Drafts/genvar.pdf', dpi = 300, bbox_inches = 'tight')
 plt.show()
 

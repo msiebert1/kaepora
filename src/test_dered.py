@@ -94,9 +94,9 @@ def dered(sne, snname, wave, flux, source='not_swift_uv'):
 #             corrected = True
 #     return flux, ivar, corrected
 
-def host_correction(a_v, r_v, snname, wave, flux, ivar):
+def host_correction(a_v, r_v, snname, wave, flux, ivar, model = 'f99'):
     print 'Host correction...'
-    red = ex.reddening(wave, a_v = a_v, r_v = r_v, model='f99')
+    red = ex.reddening(wave, a_v = a_v, r_v = r_v, model=model)
     flux *= red
     ivar *= 1./(red**2.) #correct ivar too
     return flux, ivar

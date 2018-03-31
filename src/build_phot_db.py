@@ -51,7 +51,9 @@ def find_all_events(salt,salt2,mlcs31,mlcs17,lcparams,host_data,av_dict,cfa_dict
 					'sn1991ay', 'sn2008ez', 'sn2008ey', 'sn2008er', 'sn2003p', 'sn2003ls', 'sn2008s3', 'sn2008gy', 'sn2002hl', 'sn2004di', 'sn2003lb', 'sn2008ee', 'sn2001dn', 'sn2003ax', 
 					'sn2003ay', 'sn1998fc', 'sn2003au', 'sn2003av', 'sn2003ij', 'sn2003ik', 'sn2005ec', 'sn2003an', 'sn2003ah', 'sn1999fz', 'sn1992m', 'sn2000al', 'sn2006ct', 'sn2004cv', 
 					'sn2003hj', 'sn2006ce', 'sn2004cb', 'sn2008hq', 'sn2008hr', 'sn2007qd', 'sn2008hy', 'sn2008hz', 'sn2002jo', 'sn2002bp', 'sn1993c', 'sn2002bk', 'sn2003bi', 'sn2003bh', 
-					'sn2008hj', 'sn2008hk', 'sn2004bz', 'sn2001dd', 'sn2001dm', 'sn2008cd', 'sn2008cf', 'sn2008ca', 'sn2008cb', 'sn2001ds', 'sn2008ct']
+					'sn2008hj', 'sn2008hk', 'sn2004bz', 'sn2001dd', 'sn2001dm', 'sn2008cd', 'sn2008cf', 'sn2008ca', 'sn2008cb', 'sn2001ds', 'sn2008ct', 'ASASSN-14lp','sn2007sr','sn2008Q',
+					'sn2009an','sn2009dc','sn2009ig','sn2009Y','sn2010ev','sn2011aa','sn2011ao','sn2011by','sn2011fe','sn2011iv','sn2012cg','sn2012dn','sn2012fr','sn2012ht','sn2013aa',
+					'sn2013cg','sn2014J','sn2016ccz','sn2016coj','sn2016eiy','sn2016ekg','sn2016eoa','sn2016fff','sn2016gsb','sn2016itd','sn2017cbv','sn2017erp']
 
 	for event in other_events:
 		events.append(event)
@@ -217,6 +219,32 @@ def build_cfa_dict(data_file):
 
 	return cfa_dict
 
+def build_swift_dict(data_file):
+	with open(data_file) as data:
+		lines = data.readlines()
+		swift_dict = {}
+		for line in lines:
+			if not line.startswith('#'):
+				sndata = line.split()
+				# sndict[sndata[0]] = sndata[1:]
+				swift_dict[sndata[0].lower()] = [sndata[1],sndata[3]]
+
+	return swift_dict
+
+def build_NED_host_dict(data_file):
+	with open(data_file) as data:
+		lines = data.readlines()
+		NED_host_dict = {}
+		for line in lines:
+			if not line.startswith('#'):
+				sndata = line.split()
+				# sndict[sndata[0]] = sndata[1:]
+				if sndata[1] != 'None':
+					NED_host_dict['sn' + sndata[0].lower()] = sndata[1]
+				else:
+					NED_host_dict['sn' + sndata[0].lower()] = None
+	return NED_host_dict
+
 def dm15_from_fit_params(events, fit_dict, cfa_dict, stretch='N/A'):
 	dm15_arr = []
 	param_arr = []
@@ -310,6 +338,8 @@ if __name__ == "__main__":
 	av_dict = build_av_dict('..\data\info_files\lowz_rv25_all.fitres')
 	delt_dict = build_delt_dict('..\data\info_files\lowz_rv25_all.fitres')
 	cfa_dict = build_cfa_dict('..\data\spectra\cfa\cfasnIa_param.dat')
+	swift_dict = build_swift_dict('..\..\swift_uvspec\swift_uv_log.txt')
+	NED_host_dict = build_NED_host_dict('..\data\info_files\NED_host_info_simplified.txt')
 
 	events = find_all_events(salt,salt2,mlcs31,mlcs17,lcparams,host_data,av_dict,cfa_dict)
 
@@ -325,7 +355,7 @@ if __name__ == "__main__":
 	dm15_delta_interp = dm15_from_fit_params(events, mlcs31_dict, cfa_dict, stretch='delta')
 	dm15_delta_lowrv_interp = dm15_from_fit_params(events, delt_dict, cfa_dict, stretch='delta_lowrv')
 
-	con = sq3.connect('..\data\SNe_16_phot_4.db')
+	con = sq3.connect('..\data\SNe_17_phot_3.db')
 	con.execute("""DROP TABLE IF EXISTS Photometry""")
 	con.execute("""CREATE TABLE IF NOT EXISTS Photometry (SN TEXT, RA TEXT, DEC TEXT, 
 														  zCMB_salt REAL, e_zCMB_salt REAL, Bmag_salt REAL, e_Bmag_salt REAL, s_salt REAL, e_s_salt REAL, c_salt REAL, e_c_salt REAL, mu_salt REAL, e_mu_salt REAL,
@@ -334,7 +364,7 @@ if __name__ == "__main__":
 														  zCMB_mlcs17 REAL, e_zCMB_mlcs17 REAL, mu_mlcs17 REAL, e_mu_mlcs17 REAL, delta_mlcs17 REAL, e_delta_mlcs17 REAL, av_mlcs17 REAL, e_av_mlcs17 REAL,
 														  glon_host REAL, glat_host REAL, cz_host REAL, czLG_host REAL, czCMB_host REAL, mtype_host TEXT, xpos_host REAL, ypos_host REAL, t1_host REAL, filt_host TEXT, Ebv_host REAL,
 														  zCMB_lc REAL, zhel_lc REAL, mb_lc REAL, e_mb_lc REAL, c_lc REAL, e_c_lc REAL, x1_lc REAL, e_x1_lc REAL, logMst_lc REAL, e_logMst_lc REAL, tmax_lc REAL, e_tmax_lc REAL, cov_mb_s_lc REAL, cov_mb_c_lc REAL, cov_s_c_lc REAL, bias_lc REAL,
-														  av_25 REAL, dm15_cfa Real, dm15_from_fits REAL, separation REAL,
+														  av_25 REAL, dm15_source Real, dm15_from_fits REAL, separation REAL, NED_host REAL,
 														  Photometry BLOB, csp_photometry BLOB)""")
 
 	salt_none = [None,None,None,None,None,None,None,None,None,None,None,None]
@@ -344,6 +374,7 @@ if __name__ == "__main__":
 	host_none = [None,None,None,None,None,None,None,None,None,None,None,None,None]
 	lc_none = [None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None]
 	cfa_none = [None,None,None,None,None,None,None,None,None,None,None,None,None,None]
+	swift_none = [None,None]
 	
 	for event in events:
 		print 'Adding data for ' + event + '...'
@@ -359,6 +390,8 @@ if __name__ == "__main__":
 		sep = None
 		if xpos_host != None and ypos_host != None:
 			sep = (float(xpos_host)**2 + float(ypos_host)**2)**(.5)
+
+		ned_host = NED_host_dict.get(event, None)
 
 		ra = None
 		for r in ras:
@@ -376,13 +409,20 @@ if __name__ == "__main__":
 		delta_lowrv = delt_dict.get(event)
 
 		#dm15 estimation
-		dm15_cfa = cfa_dict.get(event, cfa_none)[4]
-		if dm15_cfa != '9.99' and dm15_cfa != None:
-			dm15_cfa = float(dm15_cfa)
-		elif dm15_cfa == '9.99':
-			dm15_cfa = None
+		dm15_source = cfa_dict.get(event, cfa_none)[4]
+		if dm15_source != '9.99' and dm15_source != None:
+			dm15_source = float(dm15_source)
+		elif dm15_source == '9.99':
+			dm15_source = None
 
-		if dm15_cfa is None:
+		if dm15_source is None:
+			dm15_source = swift_dict.get(event, swift_none)[1]
+			if dm15_source != '-99' and dm15_source != None:
+				dm15_source = float(dm15_source)
+			elif dm15_source == '-99':
+				dm15_source = None
+
+		if dm15_source is None:
 			dm15_from_s = np.NaN
 			if s_salt != None:
 				dm15_from_s = float(dm15_s_interp(s_salt))
@@ -400,7 +440,7 @@ if __name__ == "__main__":
 				dm15_from_delta_lowrv = float(dm15_delta_lowrv_interp(delta_lowrv[0]))
 
 			# dm15_from_fits = np.nanmean([dm15_from_s, dm15_from_x1, dm15_from_delta])
-			dm15s = [dm15_from_delta, dm15_from_s, dm15_from_x1, dm15_from_delta_lowrv] #change order to give fits different priority
+			dm15s = [dm15_from_delta_lowrv, dm15_from_delta, dm15_from_s, dm15_from_x1] #change order to give fits different priority
 			for dm in dm15s:
 				if dm != np.NaN:
 					dm15_from_fits = dm
@@ -413,7 +453,6 @@ if __name__ == "__main__":
 				dm15_from_fits = None
 		else:
 			dm15_from_fits = None
-
 
 		if event[0:2] == 'sn':
 			event = event[2:]
@@ -430,16 +469,16 @@ if __name__ == "__main__":
 											           zCMB_mlcs17, e_zCMB_mlcs17, mu_mlcs17, e_mu_mlcs17, delta_mlcs17, e_delta_mlcs17, av_mlcs17, e_av_mlcs17,
 											           glon_host, glat_host, cz_host, czLG_host, czCMB_host, mtype_host, xpos_host, ypos_host, t1_host, filt_host, Ebv_host,
 											           zCMB_lc, zhel_lc, mb_lc, e_mb_lc, c_lc, e_c_lc, x1_lc, e_x1_lc, logMst_lc, e_logMst_lc, tmax_lc, e_tmax_lc, cov_mb_s_lc, cov_mb_c_lc, cov_s_c_lc, bias_lc,
-											           av_25, dm15_cfa, dm15_from_fits, separation,
+											           av_25, dm15_source, dm15_from_fits, separation, NED_host,
 											           Photometry, csp_Photometry)
-                                VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                                VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                         (event, ra, dec, zCMB_salt, e_zCMB_salt, Bmag_salt, e_Bmag_salt, s_salt, e_s_salt, c_salt, e_c_salt, mu_salt, e_mu_salt,
                         	      zCMB_salt2, e_zCMB_salt2, Bmag_salt2, e_Bmag_salt2, x1_salt2, e_x1_salt2, c_salt2, e_c_salt2, mu_salt2, e_mu_salt2,
                         	      zCMB_mlcs31, e_zCMB_mlcs31, mu_mlcs31, e_mu_mlcs31, delta_mlcs31, e_delta_mlcs31, av_mlcs31, e_av_mlcs31,
                         	      zCMB_mlcs17, e_zCMB_mlcs17, mu_mlcs17, e_mu_mlcs17, delta_mlcs17, e_delta_mlcs17, av_mlcs17, e_av_mlcs17,
                         	      glon_host, glat_host, cz_host, czLG_host, czCMB_host, mtype_host, xpos_host, ypos_host, t1_host, filt_host, Ebv_host,
                         	      zCMB_lc, zhel_lc, mb_lc, e_mb_lc, c_lc, e_c_lc, x1_lc, e_x1_lc, logMst_lc, e_logMst_lc, tmax_lc, e_tmax_lc, cov_mb_s_lc, cov_mb_c_lc, cov_s_c_lc, bias_lc,
-                        	      av_25, dm15_cfa, dm15_from_fits, sep,
+                        	      av_25, dm15_source, dm15_from_fits, sep, ned_host,
                         	      buffer(phot_blob), buffer(csp_phot_blob))
                     )
 		print 'Done'
