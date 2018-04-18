@@ -235,6 +235,17 @@ def build_redshift_dict(bsnipdict, cfadict):
             rsd[item.lower()] = float(bsnipdict[item])
     return rsd
 
+def build_NED_redshift_dict(NED_file):
+    with open(NED_file) as data:
+        lines = data.readlines()
+        NED_red_dict = {}
+        for line in lines:
+            sn_name = line.split()[0]
+            redshift = float(line.split()[1])
+            NED_red_dict[sn_name] = redshift
+
+    return NED_red_dict
+
 def build_bsnip_ref_dict():
     with open('../data/info_files/bsnip_references.txt') as f:
         txt = f.readlines()
@@ -267,6 +278,7 @@ sndict, date_dict = read_cfa_info('../data/spectra/cfa/cfasnIa_param.dat',
 bsnip_vals = read_bsnip_data('obj_info_table.txt')
 short_bsnip_dict = create_short_bsnip_dict(bsnip_vals)
 rsd = build_redshift_dict(short_bsnip_dict, sndict)
+NED_red_dict = build_NED_redshift_dict('../data/info_files/NED_redshift_info.txt')
 morph_dict = build_morph_dict()
 vel_dict = build_vel_dict()
 gas_dict = build_gas_dict()
@@ -277,7 +289,7 @@ ts = time.clock()
 
 #con = sq3.connect('SNe.db')
 # con = sq3.connect('SNe_11.db')
-con = sq3.connect('SNe_16.db')
+con = sq3.connect('../data/SNe_18.db')
 
 #make sure no prior table in db to avoid doubling/multiple copies of same data
 
@@ -410,6 +422,8 @@ for path, subdirs, files in os.walk(root):
                         for line in lines:
                             if line.split()[1] == 'MJD':
                                 mjd = float(line.split()[3])
+                            if line.split()[1] == 'TMAX':
+                                phase = float(line.split()[3])
 
                 if mjd is None:
                     if len(name.split('_')) > 1:
@@ -518,6 +532,9 @@ for path, subdirs, files in os.walk(root):
             min_wave = waves[0]
             max_wave = waves[len(spectra) - 1]
             spec = msg.packb(spectra)
+
+            if sn_name in NED_red_dict:
+                redshift = NED_red_dict[sn_name]
 
             try:
                 interp_spec, sig_noise = prep.compprep(spectra, sn_name, redshift, source)

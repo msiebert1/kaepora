@@ -86,7 +86,7 @@ def bad_files():
 							'sn1995bd-19951228.25-fast.flm','sn2006le-20061027.52-fast.flm',			#bad var, bad var
 							'sn2003it-20031028.34-fast.flm','sn1991t-19910418.flm',						#bad var, very large SNR biases early time composites
 							'1994D_19940323_3465_9203_00.dat','sn2007sr-20071228.39-fixedbg-swift.flm'  #reddening wrong, diverges at low wavelength
-							'2005cf_20050531_3321_9999_00.dat']											#large SNR biases early time composite
+							'2005cf_20050531_3321_9999_00.dat', 'SN06fw_060917_b01_DUP_WF.dat','sn1991bg-19911214.824-iue.flm']			#large SNR biases early time composite, low signal
 
 		print len(bad_files), 'questionable files currently ignored'
 		return bad_files

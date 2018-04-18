@@ -10,7 +10,7 @@ import glob
 mn.patch()
 data_file = '../../swift_uvspec/swift_uv_log.txt'
 files = glob.glob("..\..\swift_uvspec\*.flm")
-con = sq3.connect('../data/SNe_17_phot_1.db')
+con = sq3.connect('../data/SNe_18_phot_8.db')
 with open(data_file) as data:
 	data_dict = {}
 	for line in data.readlines()[1:]:

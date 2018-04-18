@@ -121,7 +121,7 @@ we output the outside values as NAN
 from datafidelity import *  # Get inverse variance from the datafidelity outcome
 
 def Interpo (wave, flux, ivar):
-    wave_min = 1500
+    wave_min = 1000
     wave_max = 12000
     dw = 2
 
@@ -169,7 +169,6 @@ def Interpo (wave, flux, ivar):
     
 #    place = np.where((wavelength > 5800.0 ) & (wavelength < 6000.0 ))
 #    print inter_ivar[place]
-
     missing_data = np.where((wavelength < lower) | (wavelength > upper))
     inter_flux[missing_data] = float('NaN')  # set the bad values to NaN !!!
     inter_ivar[missing_data] = float('NaN')
@@ -197,6 +196,8 @@ def compprep(spectrum, sn_name, z, source):
         old_error = spectrum[:, 2]  # check if supernovae has error array
     except IndexError:
         old_error = np.array([0])  # if not, set default
+    if sn_name == '2011fe' and source == 'other':
+        old_error = np.sqrt(old_error)
     old_ivar = genivar(old_wave, old_flux, old_error)  # generate inverse variance
     snr = getsnr(old_flux, old_ivar)
 

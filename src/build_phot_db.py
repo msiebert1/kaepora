@@ -245,6 +245,22 @@ def build_NED_host_dict(data_file):
 					NED_host_dict['sn' + sndata[0].lower()] = None
 	return NED_host_dict
 
+def build_vel_dict():
+    """
+    Builds a dictionary of the form {sn_name: velocity}
+    """
+    with open('../data/info_files/foley_master_data') as f:
+        txt = f.readlines()
+
+    clean = [x.strip() for x in txt]
+    vel_dict = {}
+    for entry in clean:
+        ents = entry.split()
+        if ents:
+            # vel_dict[ents[0]] = ents[2]
+            vel_dict['sn'+ ents[0].lower()] = [ents[2], ents[3]]
+    return vel_dict
+
 def dm15_from_fit_params(events, fit_dict, cfa_dict, stretch='N/A'):
 	dm15_arr = []
 	param_arr = []
@@ -340,6 +356,7 @@ if __name__ == "__main__":
 	cfa_dict = build_cfa_dict('..\data\spectra\cfa\cfasnIa_param.dat')
 	swift_dict = build_swift_dict('..\..\swift_uvspec\swift_uv_log.txt')
 	NED_host_dict = build_NED_host_dict('..\data\info_files\NED_host_info_simplified.txt')
+	vel_dict = build_vel_dict()
 
 	events = find_all_events(salt,salt2,mlcs31,mlcs17,lcparams,host_data,av_dict,cfa_dict)
 
@@ -355,7 +372,7 @@ if __name__ == "__main__":
 	dm15_delta_interp = dm15_from_fit_params(events, mlcs31_dict, cfa_dict, stretch='delta')
 	dm15_delta_lowrv_interp = dm15_from_fit_params(events, delt_dict, cfa_dict, stretch='delta_lowrv')
 
-	con = sq3.connect('..\data\SNe_17_phot_3.db')
+	con = sq3.connect('..\data\SNe_18_phot_9.db')
 	con.execute("""DROP TABLE IF EXISTS Photometry""")
 	con.execute("""CREATE TABLE IF NOT EXISTS Photometry (SN TEXT, RA TEXT, DEC TEXT, 
 														  zCMB_salt REAL, e_zCMB_salt REAL, Bmag_salt REAL, e_Bmag_salt REAL, s_salt REAL, e_s_salt REAL, c_salt REAL, e_c_salt REAL, mu_salt REAL, e_mu_salt REAL,
@@ -364,7 +381,7 @@ if __name__ == "__main__":
 														  zCMB_mlcs17 REAL, e_zCMB_mlcs17 REAL, mu_mlcs17 REAL, e_mu_mlcs17 REAL, delta_mlcs17 REAL, e_delta_mlcs17 REAL, av_mlcs17 REAL, e_av_mlcs17 REAL,
 														  glon_host REAL, glat_host REAL, cz_host REAL, czLG_host REAL, czCMB_host REAL, mtype_host TEXT, xpos_host REAL, ypos_host REAL, t1_host REAL, filt_host TEXT, Ebv_host REAL,
 														  zCMB_lc REAL, zhel_lc REAL, mb_lc REAL, e_mb_lc REAL, c_lc REAL, e_c_lc REAL, x1_lc REAL, e_x1_lc REAL, logMst_lc REAL, e_logMst_lc REAL, tmax_lc REAL, e_tmax_lc REAL, cov_mb_s_lc REAL, cov_mb_c_lc REAL, cov_s_c_lc REAL, bias_lc REAL,
-														  av_25 REAL, dm15_source Real, dm15_from_fits REAL, separation REAL, NED_host REAL,
+														  av_25 REAL, dm15_source Real, dm15_from_fits REAL, e_dm15 REAL, separation REAL, NED_host REAL, v_at_max REAl, v_err REAL,
 														  Photometry BLOB, csp_photometry BLOB)""")
 
 	salt_none = [None,None,None,None,None,None,None,None,None,None,None,None]
@@ -375,6 +392,7 @@ if __name__ == "__main__":
 	lc_none = [None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None,None]
 	cfa_none = [None,None,None,None,None,None,None,None,None,None,None,None,None,None]
 	swift_none = [None,None]
+	vel_none = [None,None]
 	
 	for event in events:
 		print 'Adding data for ' + event + '...'
@@ -408,19 +426,32 @@ if __name__ == "__main__":
 		av_25 = av_dict.get(event)
 		delta_lowrv = delt_dict.get(event)
 
+		vel = vel_dict.get(event, vel_none)[0]
+		if vel != '-99.0000' and vel != None:
+			vel = float(vel)
+			e_vel = float(vel_dict.get(event, vel_none)[1])
+		else:
+			vel = None
+			e_vel = None
+
 		#dm15 estimation
 		dm15_source = cfa_dict.get(event, cfa_none)[4]
 		if dm15_source != '9.99' and dm15_source != None:
 			dm15_source = float(dm15_source)
+			e_dm15 = float(cfa_dict.get(event, cfa_none)[5])
 		elif dm15_source == '9.99':
 			dm15_source = None
+			e_dm15 = None
 
 		if dm15_source is None:
 			dm15_source = swift_dict.get(event, swift_none)[1]
 			if dm15_source != '-99' and dm15_source != None:
 				dm15_source = float(dm15_source)
+				e_dm15 = 0.
 			elif dm15_source == '-99':
 				dm15_source = None
+				e_dm15 = None
+
 
 		if dm15_source is None:
 			dm15_from_s = np.NaN
@@ -451,6 +482,9 @@ if __name__ == "__main__":
 
 			if dm15_from_fits == np.NaN:
 				dm15_from_fits = None
+				e_dm15 = None
+			else:
+				e_dm15 = .1 # need to calculate this 
 		else:
 			dm15_from_fits = None
 
@@ -469,16 +503,16 @@ if __name__ == "__main__":
 											           zCMB_mlcs17, e_zCMB_mlcs17, mu_mlcs17, e_mu_mlcs17, delta_mlcs17, e_delta_mlcs17, av_mlcs17, e_av_mlcs17,
 											           glon_host, glat_host, cz_host, czLG_host, czCMB_host, mtype_host, xpos_host, ypos_host, t1_host, filt_host, Ebv_host,
 											           zCMB_lc, zhel_lc, mb_lc, e_mb_lc, c_lc, e_c_lc, x1_lc, e_x1_lc, logMst_lc, e_logMst_lc, tmax_lc, e_tmax_lc, cov_mb_s_lc, cov_mb_c_lc, cov_s_c_lc, bias_lc,
-											           av_25, dm15_source, dm15_from_fits, separation, NED_host,
+											           av_25, dm15_source, dm15_from_fits, e_dm15, separation, NED_host, v_at_max, v_err, 
 											           Photometry, csp_Photometry)
-                                VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                                VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                         (event, ra, dec, zCMB_salt, e_zCMB_salt, Bmag_salt, e_Bmag_salt, s_salt, e_s_salt, c_salt, e_c_salt, mu_salt, e_mu_salt,
                         	      zCMB_salt2, e_zCMB_salt2, Bmag_salt2, e_Bmag_salt2, x1_salt2, e_x1_salt2, c_salt2, e_c_salt2, mu_salt2, e_mu_salt2,
                         	      zCMB_mlcs31, e_zCMB_mlcs31, mu_mlcs31, e_mu_mlcs31, delta_mlcs31, e_delta_mlcs31, av_mlcs31, e_av_mlcs31,
                         	      zCMB_mlcs17, e_zCMB_mlcs17, mu_mlcs17, e_mu_mlcs17, delta_mlcs17, e_delta_mlcs17, av_mlcs17, e_av_mlcs17,
                         	      glon_host, glat_host, cz_host, czLG_host, czCMB_host, mtype_host, xpos_host, ypos_host, t1_host, filt_host, Ebv_host,
                         	      zCMB_lc, zhel_lc, mb_lc, e_mb_lc, c_lc, e_c_lc, x1_lc, e_x1_lc, logMst_lc, e_logMst_lc, tmax_lc, e_tmax_lc, cov_mb_s_lc, cov_mb_c_lc, cov_s_c_lc, bias_lc,
-                        	      av_25, dm15_source, dm15_from_fits, sep, ned_host,
+                        	      av_25, dm15_source, dm15_from_fits, e_dm15, sep, ned_host, vel, e_vel,
                         	      buffer(phot_blob), buffer(csp_phot_blob))
                     )
 		print 'Done'

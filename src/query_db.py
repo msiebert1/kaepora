@@ -16,11 +16,11 @@ def make_colorbar(composites):
 	# for comp in composites:
 	# 	params.append(np.average(comp.dm15_array[comp.x1:comp.x2]))
 	# norm = matplotlib.colors.Normalize(vmin=np.min(params),vmax=np.max(params))
-	# norm = matplotlib.colors.Normalize(vmin=1.,vmax=len(composites))
+	norm = matplotlib.colors.Normalize(vmin=1.,vmax=len(composites))
 	# norm = matplotlib.colors.Normalize(vmin=1.,vmax=len(composites) + .5)
-	norm = matplotlib.colors.Normalize(vmin=1.,vmax=len(composites) + 1.)
-	# c_m = matplotlib.cm.coolwarm
-	c_m = matplotlib.cm.plasma
+	# norm = matplotlib.colors.Normalize(vmin=1.,vmax=len(composites) + 1.)
+	c_m = matplotlib.cm.coolwarm
+	# c_m = matplotlib.cm.plasma
 	s_m = matplotlib.cm.ScalarMappable(cmap=c_m, norm=norm)
 	s_m.set_array([])
 
@@ -61,7 +61,7 @@ def set_min_num_spec(composites, num):
 		comp.x1, comp.x2 = valid_range[0], valid_range[-1]
 
 
-def comparison_plot(composites):
+def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_scale = 5):
 
 	# plt.style.use('ggplot')
 	colors = [color['color'] for color in list(plt.rcParams['axes.prop_cycle'])]
@@ -73,7 +73,10 @@ def comparison_plot(composites):
 	s_m = make_colorbar(composites)
 	lw = 3
 
-	composites, scales = composite.optimize_scales(composites, composites[0], False)
+	set_min_num_spec(composites, min_num_scale)
+	composites, scales = composite.optimize_scales(composites, composites[0], scale_type)
+	set_min_num_spec(composites, min_num_show)
+
 
 	i = 0
 	k = 1
@@ -101,7 +104,7 @@ def comparison_plot(composites):
 			length=5)
 		plt.setp(rel_flux.get_xticklabels(), visible=False)
 		plt.ylabel('Relative Flux')
-		rel_flux.axes.set_ylim([0, 1.05])
+		rel_flux.axes.set_ylim([0, 1.4])
 		# plt.gca().axes.yaxis.set_ticklabels([])
 		# plt.plot(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], color = s_m.to_rgba(param))
 		plt.plot(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], linewidth = lw, color = s_m.to_rgba(param))
@@ -249,14 +252,44 @@ def comparison_plot(composites):
 		# plt.plot(comp.wavelength[comp.x1:comp.x2], comp.red_array[comp.x1:comp.x2], color = s_m.to_rgba(param))
 		plt.plot(comp.wavelength[comp.x1:comp.x2], comp.red_array[comp.x1:comp.x2], linewidth = lw, color = s_m.to_rgba(param))
 		# z.axes.set_ylim([avg_z - .01, avg_z + .01])
-		# z.axes.set_xlim([comp.wavelength[comp.x1]-200., comp.wavelength[comp.x2]+200.])
-		# labels=z.axes.get_yticks().tolist()
-		# labels[-1]=''
+		z.axes.set_xlim([comp.wavelength[comp.x1]-200., comp.wavelength[comp.x2]+200.])
+		labels=z.axes.get_yticks().tolist()
+		labels[-1]=''
 		# print labels
-		# z.set_yticklabels(labels)
+		z.set_yticklabels(labels)
+
+		labels=res.axes.get_yticks().tolist()
+		labels[0]=''
+		labels[-1]=''
+		res.set_yticklabels(labels)
+
+		labels=phase.axes.get_yticks().tolist()
+		labels[0]=''
+		labels[-1]=''
+		phase.set_yticklabels(labels)
+
+		labels=delt.axes.get_yticks().tolist()
+		labels[0]=''
+		labels[-1]=''
+		delt.set_yticklabels(labels)
+
+		labels=res.axes.get_yticks().tolist()
+		labels[0]=''
+		labels[-1]=''
+		res.set_yticklabels(labels)
+
+		labels=rel_flux.axes.get_yticks().tolist()
+		labels[0]=''
+		rel_flux.set_yticklabels(labels)
+
+		labels=spec.axes.get_yticks().tolist()
+		labels[0]=''
+		labels[-1]=''
+		spec.set_yticklabels(labels)
 
 		# res.yaxis.set_ticks(np.arange(-.11, .23, .07))
-		# res.axes.set_ylim([-.18, .24])
+		res.axes.set_ylim([-.5, .5])
+		rel_flux.axes.set_ylim([0., 1.1])
 
 		# avg_phase = np.nanmean(comp.phase_array[comp.x1:comp.x2])
 		# avg_phase_rnd = np.round(avg_phase,1)
@@ -284,8 +317,12 @@ def comparison_plot(composites):
 	# for ax in fig.axes:
 	# 	ax.set_axis_bgcolor('white')
 	# plt.savefig('../../Paper_Drafts/multi_panel_composite.pdf', dpi = 300, bbox_inches = 'tight')
+	# plt.savefig('../../FLASH/multi_panel_host.png', dpi = 300, bbox_inches = 'tight')
 	# plt.savefig('../../Paper_Drafts/multi_panel_host.pdf', dpi = 300, bbox_inches = 'tight')
 	# plt.savefig('../../Paper_Drafts/split_host_lowdm15.pdf', dpi = 300, bbox_inches = 'tight')
+	# plt.savefig('../../FLASH/split_host_lowdm15.png', dpi = 300, bbox_inches = 'tight')
+	plt.savefig('../../Paper_Drafts/split_host_highdm15.pdf', dpi = 300, bbox_inches = 'tight')
+	plt.savefig('../../FLASH/split_host_highdm15.png', dpi = 300, bbox_inches = 'tight')
 	plt.show()
 
 def stacked_plot(composites, boot=False):
@@ -296,8 +333,8 @@ def stacked_plot(composites, boot=False):
 	plt.ylabel('Relative Flux + Const.', fontsize = 20)
 	plt.xlabel('Rest Wavelength ' + "($\mathrm{\AA}$)", fontsize = 20)
 	plt.minorticks_on()
-	plt.xticks(fontsize = 20)
-	plt.yticks(fontsize = 20)
+	plt.xticks(fontsize = 10)
+	plt.yticks(fontsize = 10)
 	plt.tick_params(
 		which='major', 
 		bottom='on', 
@@ -312,26 +349,32 @@ def stacked_plot(composites, boot=False):
 		left='on',
 		right='on',
 		length=5)
-	fig.set_size_inches(10.5, 13.5, forward = True)
+	fig.set_size_inches(3.5, 13.5, forward = True)
 	plt.gca().axes.yaxis.set_ticklabels([])
 
 	i = 0
+	color = '#3F5D7D'
 	if boot:
 		lw=2
 	else:
 		lw=4
 	for comp in composites:
+		# if i==1:
+		# 	color = 'darkred'
 		dm15 = np.average(comp.dm15_array[comp.x1:comp.x2])
 #         buff = 200*np.log10(phase+20)
-		buff  = i
-		ax.plot(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2] - buff, color = '#3F5D7D', linewidth = lw)
+		buff  = .5*i
+		ax.plot(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2] - buff, color = color, linewidth = lw)
 		if boot:
 			plt.fill_between(comp.wavelength[comp.x1:comp.x2], comp.low_conf[comp.x1:comp.x2]- buff, comp.up_conf[comp.x1:comp.x2] - buff, alpha = 0.5)
-		plt.text(9000, comp.flux[comp.x2] - i + .1, '$\mathbf{\Delta m_{15}}$ = ' + str(round(dm15, 2)), fontsize=20)
+		# plt.text(9000, comp.flux[comp.x2] - i + .1, '$\mathbf{\Delta m_{15}}$ = ' + str(round(dm15, 2)), fontsize=20)
 #         plt.title('All Phase Composite Spectra', fontdict = font1, fontsize = 40)
 		i+=1
-	# plt.ylim([len(composites)*-1., 2])
+	plt.xlim([5500.,6500.])
+	plt.ylim([-1*len(composites)+3.5,.6])
 	# plt.savefig('../../Paper_Drafts/dm15_split_max.pdf', dpi = 300, bbox_inches = 'tight')
+	# plt.savefig('../../FLASH/host_stack.png', dpi = 300, bbox_inches = 'tight')
+	# plt.savefig('../../FLASH/host_stack_zoom.png', dpi = 300, bbox_inches = 'tight')
 	plt.show()
 
 def normalize_comps(composites):
@@ -478,8 +521,8 @@ if __name__ == "__main__":
 	num_queries = len(query_strings)
 
 	for n in range(num_queries):
-		# c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, make_corr=False, multi_epoch=True, selection='max_coverage')
-		c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, selection='max_coverage')
+		c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, make_corr=False, multi_epoch=True, selection='max_coverage')
+		# c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, selection='max_coverage_choose_uv')
 		composites.append(c)
 		SN_Arrays.append(sn_arr)
 		if store_boots:
@@ -499,7 +542,8 @@ if __name__ == "__main__":
 	# r = sa.measure_si_ratio(comp2.wavelength[comp2.x1:comp2.x2], comp2.flux[comp2.x1:comp2.x2], vexp = .001)
 	# print r
 	# set_min_num_spec(composites, 10)
-	set_min_num_spec(composites, 5)
+	# set_min_num_spec(composites, 5)
+	set_min_num_spec(composites, 1)
 	normalize_comps(composites)
 	# for comp in composites:
 	# 	sa.measure_si_velocity(comp)

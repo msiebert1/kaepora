@@ -47,7 +47,6 @@ class supernova(object):
 	"""Contains all spectral data provided by the associated file.
 	   Attributes can be added
 	"""
-
 #Connect to database
 #Make sure your file is in this location
 
@@ -70,10 +69,13 @@ def store_phot_data(SN, row):
 	SN.av_25 = phot_row[66]
 	SN.dm15_source = phot_row[67]
 	SN.dm15_from_fits = phot_row[68]
-	SN.sep = phot_row[69]
-	SN.ned_host = phot_row[70]
-	SN.light_curves = msg.unpackb(phot_row[71])
-	SN.csp_light_curves = msg.unpackb(phot_row[72])
+	SN.e_dm15 = phot_row[69]
+	SN.sep = phot_row[70]
+	SN.ned_host = phot_row[71]
+	SN.v_at_max = phot_row[72]
+	SN.e_v = phot_row[73]
+	SN.light_curves = msg.unpackb(phot_row[-2])
+	SN.csp_light_curves = msg.unpackb(phot_row[-1])
 
 def grab(sql_input, multi_epoch = False, make_corr = True, selection = 'max_coverage'):
 	"""Pulls in all columns from the database for the selected query. 
@@ -81,7 +83,7 @@ def grab(sql_input, multi_epoch = False, make_corr = True, selection = 'max_cove
 	   with the newly added attributes.
 	"""
 	print "Collecting data..."
-	con = sq3.connect('../data/SNe_17_phot_3.db')
+	con = sq3.connect('../data/SNe_18_phot_9.db')
 	# con = sq3.connect('../data/SNe_14.db')
 	cur = con.cursor()
 
@@ -98,13 +100,14 @@ def grab(sql_input, multi_epoch = False, make_corr = True, selection = 'max_cove
 		get_phot = True
 
 	cur.execute(sql_input)
-	if 'phase' in sql_input:
-		split_query = sql_input.split()
-		p_index = split_query.index('phase')
-		p_low = float(split_query[p_index+2])
-		p_high = float(split_query[p_index+6])
-		p_avg = (p_low+p_high)/2.
-
+	# if 'phase' in sql_input:
+	# 	split_query = sql_input.split()
+	# 	p_index = split_query.index('phase')
+	# 	p_low = float(split_query[p_index+2])
+	# 	p_high = float(split_query[p_index+6])
+	# 	p_avg = (p_low+p_high)/2.
+	# print len(list(cur))
+	# raise TypeError
 	for row in cur:
 		SN           = supernova()
 		SN.filename  = row[0]
@@ -152,6 +155,7 @@ def grab(sql_input, multi_epoch = False, make_corr = True, selection = 'max_cove
 		#         # if abs(SN_Array[i].SNR) > abs(SN_Array[i-1].SNR): # best signal to noise
 		#             del SN_Array[i-1]
 	if not multi_epoch:
+		bad_files = qspec.bad_files()
 		unique_events = []
 		new_SN_Array = []
 		for i in range(len(SN_Array)): 
@@ -175,20 +179,33 @@ def grab(sql_input, multi_epoch = False, make_corr = True, selection = 'max_cove
 				for e in events:
 					if (e.maxwave - e.minwave) > (max_range.maxwave - max_range.minwave):
 						max_range = e
-				new_SN_Array.append(max_range)
+				if not (events[0].name == '2011fe' and events[0].source == 'other'): #ignore high SNR 2011fe data
+					new_SN_Array.append(max_range)
+				# new_SN_Array.append(max_range)
+			elif selection == 'max_coverage_choose_uv':
+				max_range = events[0]
+				for e in events:
+					if e.source == 'swift_uv' or e.source == 'uv' and e.filename not in bad_files:
+						max_range = e
+					elif (e.maxwave - e.minwave) > (max_range.maxwave - max_range.minwave):
+						max_range = e
+				if not (events[0].name == '2011fe' and events[0].source == 'other'): #ignore high SNR 2011fe data
+					new_SN_Array.append(max_range)
 			elif selection == 'max_snr':
 				max_snr = events[0]
 				for e in events:
 				    if e.SNR != None and max_snr.SNR != None and abs(e.SNR) > abs(max_snr.SNR):
 				        max_snr = e
-				new_SN_Array.append(max_snr)
+				if not (events[0].name == '2011fe' and events[0].source == 'other'): #ignore high SNR 2011fe data
+					new_SN_Array.append(max_snr)
 			elif selection == 'accurate_phase':
 				#this should be smarter
 				ac_phase = events[0]
 				for e in events:
 				    if abs(e.phase - p_avg) < abs(ac_phase.phase - p_avg):
 				        ac_phase = e
-				new_SN_Array.append(ac_phase)
+				if not (events[0].name == '2011fe' and events[0].source == 'other'): #ignore high SNR 2011fe data
+					new_SN_Array.append(ac_phase)
 			elif selection == 'max_coverage_splice':
 				max_range = events[0]
 				for e in events:
@@ -215,7 +232,8 @@ def grab(sql_input, multi_epoch = False, make_corr = True, selection = 'max_cove
 					if olap > 0. and olap < .5*(max_range.maxwave - max_range.minwave):
 						if e is not max_range:
 							splice_specs.append(e)
-				new_SN_Array.append(max_range)
+				if not (events[0].name == '2011fe' and events[0].source == 'other'): #ignore high SNR 2011fe data
+					new_SN_Array.append(max_range)
 				for spec in splice_specs:
 					new_SN_Array.append(spec)
 
@@ -731,7 +749,8 @@ def check_host_corrections(SN_Array):
 def apply_host_corrections(SN_Array, lengths, r_v = 2.5):
 	corrected_SNs = []
 	for SN in SN_Array:
-		print SN.name, SN.filename, SN.SNR, SN.dm15_source, SN.dm15_from_fits, SN.phase, SN.source, SN.wavelength[SN.x1], SN.wavelength[SN.x2], SN.morph, SN.ned_host
+
+		print SN.name, SN.filename, SN.SNR, SN.dm15_source, SN.dm15_from_fits, SN.phase, SN.source, SN.mjd, SN.wavelength[SN.x1], SN.wavelength[SN.x2], SN.ned_host
 		# print SN.name, SN.phase
 		if SN.av_25 != None:
 			# print "AV: ", SN.av_25
@@ -832,6 +851,7 @@ def create_composite(SN_Array, boot, template, medmean):
 	print "Done."
 	boots = None
 	norm = 1./np.amax(template.flux[template.x1:template.x2])
+	# norm = 1./np.amax(template.flux[np.where((template.wavelength > 3500.) & (template.wavelength < 8000.))])
 	template.flux = template.flux*norm
 	for SN in SN_Array:
 		SN.flux = SN.flux*norm
