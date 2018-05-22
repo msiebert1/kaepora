@@ -1,4 +1,5 @@
 def bad_files():
+		bad_files = []
 		bad_files =        ['SN05hc_051018_r01_NTT_EM.dat', '2003du_20030501_4066_11015_00.dat',		#bad, bad
 							'2002er_20020901_3213_9175_00.dat', '2003du_20030503_4070_10994_00.dat',	#bad, bad
 							'2003du_20030512_4070_11015_00.dat', 'sn2006nz-20061124-ntt.dat',			#bad, bad
@@ -86,7 +87,9 @@ def bad_files():
 							'sn1995bd-19951228.25-fast.flm','sn2006le-20061027.52-fast.flm',			#bad var, bad var
 							'sn2003it-20031028.34-fast.flm','sn1991t-19910418.flm',						#bad var, very large SNR biases early time composites
 							'1994D_19940323_3465_9203_00.dat','sn2007sr-20071228.39-fixedbg-swift.flm'  #reddening wrong, diverges at low wavelength
-							'2005cf_20050531_3321_9999_00.dat', 'SN06fw_060917_b01_DUP_WF.dat','sn1991bg-19911214.824-iue.flm']			#large SNR biases early time composite, low signal
+							'2005cf_20050531_3321_9999_00.dat', 'SN06fw_060917_b01_DUP_WF.dat',			#large SNR biases early time composite, low signal
+							'sn1991bg-19911214.824-iue.flm','sn1989b-19890215.flm',						#reddening wrong, reddening wrong
+							'sn1998co-19980627.46-fast.flm','sn2006ob-20061201.107-ui.flm']				#reddening wrong, very noisy
 
 		print len(bad_files), 'questionable files currently ignored'
 		return bad_files

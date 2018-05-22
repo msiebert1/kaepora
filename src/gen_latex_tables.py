@@ -51,7 +51,7 @@ if __name__ == "__main__":
 			av = None
 
 		tab_arr.append([SN.name, SN.source, SN.redshift, dm15, SN.m_b, SN.B_minus_V, SN.velocity, SN.morph, SN.resid, av])
-	table_2 = tabulate(tab_arr, headers=['SN Name', 'Source', 'Redshift', '$\Delta m_15 (B)$', 'M_{B}', 'B - V (mag)', 
+	table_2 = tabulate(tab_arr, headers=['SN Name', 'Source', 'Redshift', '$\Delta m_{15} (B)$', 'M_{B}', 'B - V (mag)', 
 										 'Velocity (km/s)', 'Host Morphology', 'Hubble Residual', 'A_{V}'], tablefmt = 'latex')
 	write_table('table_2.tex', table_2)
 

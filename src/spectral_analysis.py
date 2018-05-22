@@ -2,6 +2,41 @@ import datafidelity as df
 import matplotlib.pyplot as plt
 import numpy as np 
 import copy
+from scipy.integrate import simps
+
+def measure_color(SN, c1='B', c2='R', filt_type='Bessel'):
+	
+	c_AAs = 2.99792458e18
+	if filt_type == 'Bessel':
+		filt1_wave, filt1_T = np.loadtxt('../data/filter_functions/Bessel_'+ c1 + '-1.dat',unpack=True)
+		filt2_wave, filt2_T = np.loadtxt('../data/filter_functions/Bessel_'+ c2 + '-1.dat',unpack=True)
+		filt1_wave *= 10.
+		filt2_wave *= 10.
+	spec_wave = SN.wavelength[SN.x1:SN.x2]
+	spec_flux = SN.flux[SN.x1:SN.x2]
+	filt1_T = filt1_T*(1./np.amax(filt1_T))
+	filt2_T = filt2_T*(1./np.amax(filt2_T))
+	filt1_int  = np.interp(spec_wave,filt1_wave,filt1_T)
+	filt2_int  = np.interp(spec_wave,filt2_wave,filt2_T)
+
+	I1_num = simps(spec_flux*filt1_int*spec_wave,spec_wave)
+	I1_den = simps(filt1_int*spec_wave,spec_wave)
+	wave1_p = simps(filt1_int*spec_wave,spec_wave)/simps(filt1_int/spec_wave,spec_wave)
+
+	I2_num = simps(spec_flux*filt2_int*spec_wave,spec_wave)
+	I2_den = simps(filt2_int*spec_wave,spec_wave)
+	wave2_p = simps(filt2_int*spec_wave,spec_wave)/simps(filt2_int/spec_wave,spec_wave)
+
+	f1 = I1_num/I1_den/c_AAs
+	f2 = I2_num/I2_den/c_AAs
+
+	mAB1 = -2.5*np.log10(f1) - 2.5*np.log10(wave1_p*wave1_p/c_AAs) - 48.6
+	mAB2 = -2.5*np.log10(f2) - 2.5*np.log10(wave2_p*wave2_p/c_AAs) - 48.6
+
+	color = mAB1 - mAB2
+	print mAB1, mAB2
+	print c1 + " - " + c2 + " = " + str(color)
+	return color
 
 def find_extrema(wavelength,sm_flux):
 	#input a smoothed spectrum
@@ -18,7 +53,7 @@ def find_extrema(wavelength,sm_flux):
 	return maxima
 
 
-def measure_si_ratio(wavelength,flux, varflux = None, vexp=.002, smooth=True):
+def measure_si_ratio(wavelength,flux, varflux = None, vexp=.002, smooth=True, dm15 = None):
 	if varflux == None:
 		varflux = np.zeros(len(wavelength), float)
 
@@ -53,30 +88,39 @@ def measure_si_ratio(wavelength,flux, varflux = None, vexp=.002, smooth=True):
 	# si_max_wave_2 = si_wave_2[si_max_index_2][0]
 	# si_max_wave_3 = si_wave_3[si_max_index_3][0]
 
-	m1 = None
-	m2 = None
-	m3 = None
+	m1s = []
+	m2s = []
+	m3s = []
 	for m in maxima:
 		if m in si_range_1[0]:
-			m1 = m
+			m1s.append(m)
 		if m in si_range_2[0]:
-			m2 = m
+			m2s.append(m)
 		if m in si_range_3[0]:
-			m3 = m
+			m3s.append(m)
 
-	if m1 is None or m2 is None or m3 is None:
+	if len(m1s) == 0 or len(m2s) == 0 or len(m3s) == 0:
+		m1s = []
+		m2s = []
+		m3s = []
 		sm_flux = df.gsmooth(wavelength, flux, varflux, vexp= vexp+.001)
 		maxima = find_extrema(wavelength,sm_flux)
 		for m in maxima:
 			if m in si_range_1[0]:
-				m1 = m
+				m1s.append(m)
 			if m in si_range_2[0]:
-				m2 = m
+				m2s.append(m)
 			if m in si_range_3[0]:
-				m3 = m
-	if m1 is None or m2 is None or m3 is None:
+				m3s.append(m)
+	if len(m1s) == 0 or len(m2s) == 0 or len(m3s) == 0:
 		print "Could not find maximum in a specified range!"
 		return np.nan
+
+	m1 = m1s[-1]
+	m2 = m2s[-1]
+	m3 = m3s[-1]
+	if dm15 != None and dm15 > 1.7:
+		m1 = m1s[0]
 
 	si_max_wave_1 = wavelength[m1]
 	si_max_wave_2 = wavelength[m2]
@@ -109,14 +153,15 @@ def measure_si_ratio(wavelength,flux, varflux = None, vexp=.002, smooth=True):
 	ratio = weak_line/strong_line
 	ratio = ratio[0]
 
-	# plt.plot(wavelength,flux)
-	# plt.plot(wavelength,sm_flux)
-	# plt.plot(wavelength, interp_flux)
-	# plt.plot(wavelength[si_min_index], interp_flux[si_min_index], 'o', color='orange')
-	# plt.plot(wavelength[si_min_index], sm_flux[si_min_index], 'o', color='orange')
-	# plt.plot(wavelength[si_weak_min_index], interp_flux[si_weak_min_index], 'o', color='orange')
-	# plt.plot(wavelength[si_weak_min_index], sm_flux[si_weak_min_index], 'o', color='orange')
-	# plt.show()
+	if ratio > .5:
+		plt.plot(wavelength,flux)
+		plt.plot(wavelength,sm_flux)
+		plt.plot(wavelength, interp_flux)
+		plt.plot(wavelength[si_min_index], interp_flux[si_min_index], 'o', color='orange')
+		plt.plot(wavelength[si_min_index], sm_flux[si_min_index], 'o', color='orange')
+		plt.plot(wavelength[si_weak_min_index], interp_flux[si_weak_min_index], 'o', color='orange')
+		plt.plot(wavelength[si_weak_min_index], sm_flux[si_weak_min_index], 'o', color='orange')
+		plt.show()
 
 	return ratio
 
@@ -257,6 +302,7 @@ def resample_spectrum(SN):
 	wavelength = SN.wavelength[SN.x1:SN.x2]
 	flux = SN.flux[SN.x1:SN.x2]
 	varflux = 1./SN.ivar[SN.x1:SN.x2]
+
 
 # spec_file = r'..\..\SNIa_maximum_light.flm'
 # with open(spec_file) as spec:

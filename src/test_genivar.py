@@ -221,20 +221,20 @@ def compprep(spectrum, sn_name, z, source):
     return newdata, snr
 
 #reddening / interpolation plots
-c = 299792.458
-#sn2006sr-20061220.097-ui.flm
-fname = '../data/spectra/bsnip/sn2006sr-20061220.097-ui.flm'
-spectrum = np.loadtxt(fname)
-sn_name = '2006sr'
-source = 'bsnip'
-bsnip_vals = read_bsnip_data('obj_info_table.txt')
-if is_number(fname.split('-')[1][:8]):
-    longdate = fname.split('-')[1][:8]
-else:
-    longdate = fname.split('-')[2][:8]
-data = bsnip_vals[sn_name.lower()+'-'+longdate]
-redshift = data[1]/c
-newdata, snr = compprep(spectrum, sn_name, redshift, source)
+# c = 299792.458
+# #sn2006sr-20061220.097-ui.flm
+# fname = '../data/spectra/bsnip/sn2006sr-20061220.097-ui.flm'
+# spectrum = np.loadtxt(fname)
+# sn_name = '2006sr'
+# source = 'bsnip'
+# bsnip_vals = read_bsnip_data('obj_info_table.txt')
+# if is_number(fname.split('-')[1][:8]):
+#     longdate = fname.split('-')[1][:8]
+# else:
+#     longdate = fname.split('-')[2][:8]
+# data = bsnip_vals[sn_name.lower()+'-'+longdate]
+# redshift = data[1]/c
+# newdata, snr = compprep(spectrum, sn_name, redshift, source)
 
 # fname = '../data/spectra/bsnip/sn2005a-20050115.357-br.flm'
 # spectrum = np.loadtxt(fname)
@@ -250,7 +250,7 @@ newdata, snr = compprep(spectrum, sn_name, redshift, source)
 # redshift = data[1]/c
 # newdata, snr = compprep(spectrum, sn_name, redshift, source)
 
-raise TypeError
+# raise TypeError
 
 fname = '../data/spectra/cfa/sn2003kg/sn2003kg-20031129.12-fast.flm'
 spectrum = np.loadtxt(fname)

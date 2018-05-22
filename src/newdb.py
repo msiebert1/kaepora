@@ -289,7 +289,7 @@ ts = time.clock()
 
 #con = sq3.connect('SNe.db')
 # con = sq3.connect('SNe_11.db')
-con = sq3.connect('../data/SNe_18.db')
+con = sq3.connect('../data/SNe_19.db')
 
 #make sure no prior table in db to avoid doubling/multiple copies of same data
 
@@ -449,7 +449,7 @@ for path, subdirs, files in os.walk(root):
                 print f
                 source = 'csp'
                 redshift = float(info[2])
-                phase = float(info[4]) - float(info[3])
+                phase = (float(info[4]) - float(info[3]))/(1.+redshift)
                 mjd = float(info[4]) - 2400000.5
                 ref = '2013ApJ...773...53F'
 
@@ -477,7 +477,7 @@ for path, subdirs, files in os.walk(root):
                 else:
                     #try/except catches and fixes sn2011 errors
                     try:
-                        phase = float(date_dict[name]) - float(sn_cfa[1])
+                        phase = (float(date_dict[name]) - float(sn_cfa[1]))/(1.+redshift)
                         mjd = float(date_dict[name])
                     except:
                         phase = None
@@ -564,8 +564,8 @@ for path, subdirs, files in os.walk(root):
                 else:
                     bm_vm = sndict[sn_name][11]
 
-                if mjd is not None and phase is None and sndict[sn_name][1] != '99999.9':
-                    phase = mjd - float(sndict[sn_name][1])
+                if mjd is not None and phase is None and sndict[sn_name][1] != '99999.9' and redshift is not None:
+                    phase = (mjd - float(sndict[sn_name][1]))/(1.+redshift)
 
             print 'after', phase
             if sn_name in carbon_dict:

@@ -47,6 +47,18 @@ class supernova(object):
 	"""Contains all spectral data provided by the associated file.
 	   Attributes can be added
 	"""
+	def __init__(self, wavelength = None, flux = None, ivar = None):#, spectra):
+		if wavelength is not None:
+			self.wavelength = wavelength
+			self.flux = flux
+			if ivar is None:
+				self.ivar = np.zeros(len(flux))
+			else:
+				self.ivar = ivar
+			self.low_conf = []
+			self.up_conf = []
+			self.x1 = 0
+			self.x2 = len(wavelength) - 1
 #Connect to database
 #Make sure your file is in this location
 
@@ -83,7 +95,7 @@ def grab(sql_input, multi_epoch = False, make_corr = True, selection = 'max_cove
 	   with the newly added attributes.
 	"""
 	print "Collecting data..."
-	con = sq3.connect('../data/SNe_18_phot_9.db')
+	con = sq3.connect('../data/SNe_19_phot_9.db')
 	# con = sq3.connect('../data/SNe_14.db')
 	cur = con.cursor()
 
@@ -187,23 +199,25 @@ def grab(sql_input, multi_epoch = False, make_corr = True, selection = 'max_cove
 				for e in events:
 					if e.source == 'swift_uv' or e.source == 'uv' and e.filename not in bad_files:
 						max_range = e
-					elif (e.maxwave - e.minwave) > (max_range.maxwave - max_range.minwave):
+					# elif (e.maxwave - e.minwave) > (max_range.maxwave - max_range.minwave):
+					# 	max_range = e
+					elif (e.minwave) < (max_range.minwave):
 						max_range = e
 				if not (events[0].name == '2011fe' and events[0].source == 'other'): #ignore high SNR 2011fe data
 					new_SN_Array.append(max_range)
 			elif selection == 'max_snr':
 				max_snr = events[0]
 				for e in events:
-				    if e.SNR != None and max_snr.SNR != None and abs(e.SNR) > abs(max_snr.SNR):
-				        max_snr = e
+					if e.SNR != None and max_snr.SNR != None and abs(e.SNR) > abs(max_snr.SNR):
+						max_snr = e
 				if not (events[0].name == '2011fe' and events[0].source == 'other'): #ignore high SNR 2011fe data
 					new_SN_Array.append(max_snr)
 			elif selection == 'accurate_phase':
 				#this should be smarter
 				ac_phase = events[0]
 				for e in events:
-				    if abs(e.phase - p_avg) < abs(ac_phase.phase - p_avg):
-				        ac_phase = e
+					if abs(e.phase - p_avg) < abs(ac_phase.phase - p_avg):
+						ac_phase = e
 				if not (events[0].name == '2011fe' and events[0].source == 'other'): #ignore high SNR 2011fe data
 					new_SN_Array.append(ac_phase)
 			elif selection == 'max_coverage_splice':
@@ -606,7 +620,7 @@ def bootstrapping (SN_Array, samples, scales, og_template, iters, medmean):
 		for x in range(iters):
 			SN_Array, scales = optimize_scales(boot_arr[p], boot_temp, False)
 			(fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, dm15s, 
-		 	 flux_mask, ivar_mask, dm15_mask, red_mask) = mask(boot_arr[p], boot)
+			 flux_mask, ivar_mask, dm15_mask, red_mask) = mask(boot_arr[p], boot)
 			template = average(boot_arr[p], boot_temp, medmean, boot, fluxes, ivars, dm15_ivars, red_ivars, 
 							   reds, phases, ages, vels, dm15s, flux_mask, ivar_mask, dm15_mask, red_mask)
 		boots.append(copy.copy(template))
@@ -750,7 +764,7 @@ def apply_host_corrections(SN_Array, lengths, r_v = 2.5):
 	corrected_SNs = []
 	for SN in SN_Array:
 
-		print SN.name, SN.filename, SN.SNR, SN.dm15_source, SN.dm15_from_fits, SN.phase, SN.source, SN.mjd, SN.wavelength[SN.x1], SN.wavelength[SN.x2], SN.ned_host
+		print SN.name, SN.filename, SN.SNR, SN.dm15_source, SN.dm15_from_fits, SN.phase, SN.redshift, SN.source, SN.mjd, SN.wavelength[SN.x1], SN.wavelength[SN.x2], SN.ned_host
 		# print SN.name, SN.phase
 		if SN.av_25 != None:
 			# print "AV: ", SN.av_25
@@ -845,7 +859,7 @@ def create_composite(SN_Array, boot, template, medmean):
 	for i in range(iters_comp):
 		SN_Array, scales = optimize_scales(SN_Array, template, False)
 		(fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, dm15s, 
-	 	 flux_mask, ivar_mask, dm15_mask, red_mask) = mask(SN_Array, False)
+		 flux_mask, ivar_mask, dm15_mask, red_mask) = mask(SN_Array, False)
 		template = average(SN_Array, template, medmean, False, fluxes, ivars, dm15_ivars, red_ivars, 
 							reds, phases, ages, vels, dm15s, flux_mask, ivar_mask, dm15_mask, red_mask)
 	print "Done."
