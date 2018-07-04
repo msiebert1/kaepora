@@ -189,7 +189,7 @@ def getsnr(flux, ivar):
     return snr_med
 
 
-def compprep(spectrum, sn_name, z, source):
+def compprep(spectrum, sn_name, z, source, use_old_error=True):
     old_wave = spectrum[:, 0]	    # wavelengths
     old_flux = spectrum[:, 1] 	# fluxes
     try:
@@ -199,7 +199,7 @@ def compprep(spectrum, sn_name, z, source):
     if sn_name == '2011fe' and source == 'other':
         old_error = np.sqrt(old_error)
     old_ivar = genivar(old_wave, old_flux, old_error)  # generate inverse variance
-    snr = getsnr(old_flux, old_ivar)
+    # snr = getsnr(old_flux, old_ivar)
 
     if source == 'cfa':  # choosing source dataset
 #        z = ReadParam()
@@ -221,7 +221,7 @@ def compprep(spectrum, sn_name, z, source):
     old_wave = old_wave*u.Angstrom        # wavelengths
     old_flux = old_flux*u.Unit('W m-2 angstrom-1 sr-1')
     spec1d = Spectrum1D.from_array(old_wave, old_flux)
-    test_flux = test_dered.dered(sne, sn_name, spec1d.wavelength, spec1d.flux)  # Dereddending (see if sne in extinction files match the SN name)
+    test_flux = test_dered.dered(sne, sn_name, spec1d.wavelength, spec1d.flux)  # Dereddening (see if sne in extinction files match the SN name)
 #     new_flux = host_correction(sne, sn_name, old_wave, new_flux)
 
     # new_flux = old_flux
@@ -229,8 +229,12 @@ def compprep(spectrum, sn_name, z, source):
     old_wave = old_wave.value
 
     new_wave = old_wave/(1.+z)  # Deredshifting
-    new_error = old_error  # Placeholder if it needs to be changed
+    if not use_old_error:
+        new_error =  np.zeros(len(old_wave), float)
+    else:
+        new_error = old_error  # Placeholder if it needs to be changed
     new_ivar = genivar(new_wave, new_flux, new_error)  # generate new inverse variance
+    snr = getsnr(old_flux, new_ivar)
     #var = new_flux*0+1
     newdata = Interpo(new_wave, new_flux, new_ivar)  # Do the interpolation
     return newdata, snr

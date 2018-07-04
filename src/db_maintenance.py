@@ -1,5 +1,10 @@
 import sqlite3 as sq3
 import numpy as np 
+import datafidelity as df 
+import prep as prep
+import msgpack as msg
+import composite
+import matplotlib.pyplot as plt
 
 def fix_2011fe_phases():
 	con = sq3.connect('../data/SNe_19_phot_9.db')
@@ -113,7 +118,65 @@ def update_phases_from_mlcs():
 			cur.execute("UPDATE Supernovae SET phase = ? where filename = ?", (phase, filename))
 	con.commit()
 
+def repair_bad_variance_spectra():
+	con = sq3.connect('../data/SNe_19_phot_9.db')
+	cur = con.cursor()
+	sql_input = "SELECT * from Supernovae inner join Photometry ON Supernovae.SN = Photometry.SN"
+	print 'querying'
+	bad_ivars = []
+	SN_Array = composite.grab(sql_input, multi_epoch = True, make_corr = False, selection = 'max_coverage', grab_all=True)
+	for SN in SN_Array:
+		if len(np.where(np.isnan(SN.ivar))[0] == True) == 5500:
+			bad_ivars.append(SN)
+
+	for SN in bad_ivars:
+		if SN.source == 'bsnip':
+			path = '../data/spectra/bsnip/' + SN.filename
+		elif SN.source == 'cfa':
+			path = '../data/spectra/cfa/' + SN.filename.split('-')[0] + '/' + SN.filename
+		spectrum = np.loadtxt(path)
+		newdata, snr = prep.compprep(spectrum, SN.name, SN.redshift, SN.source, use_old_error=False)
+		print snr.value
+		try:
+			interped = msg.packb(newdata)
+			cur.execute("UPDATE Supernovae SET snr = ? where filename = ?", (snr.value, SN.filename))
+			cur.execute("UPDATE Supernovae SET Interpolated_Spectra = ? where filename = ?", (buffer(interped), SN.filename))
+			print "Added: ", SN.filename
+		except Exception, e:
+			print "Interp failed: ", SN.filename
+		# raise TypeError
+		# old_wave = spectrum[:, 0]
+		# old_flux = spectrum[:, 1]
+		# real_error = spectrum[:, 2]
+		# old_error = np.zeros(len(old_wave), float)
+		# new_ivar = df.genivar(old_wave, old_flux, old_error)
+		# new_var = 1./new_ivar
+		# real_var = real_error*real_error
+		# new_var = new_var*2.02
+		# newdata = Interpo(new_wave, new_flux, new_ivar)
+	con.commit()
+	print 'done'
+	# cur.execute(sql_input)
+	# for row in cur:
+	# 	filename  = row[0]
+	# 	interp = msg.unpackb(row[16])
+	# 	print interp[0,:]
+	# 	try:
+	# 		wavelength = interp[0,:]
+	# 		flux       = interp[1,:]
+	# 		ivar       = interp[2,:]
+	# 	except TypeError:
+	# 		print "ERROR: ", filename
+	# 		continue
+	# 	if len(np.where(np.isnan(ivar))[0] == True) == 5500:
+	# 		bad_ivars.append(filename)
+	# print bad_ivars
+#				cur.execute("UPDATE Supernovae SET phase = ? where filename = ?", (phase, filename))
+#				break
+#	con.commit()
+
 if __name__ == "__main__":
 	# fix_2011fe_phases()
 	# delete_swift_data()
-	update_bsnip_refs()
+	# update_bsnip_refs()
+	repair_bad_variance_spectra()

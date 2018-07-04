@@ -89,7 +89,8 @@ def bad_files():
 							'1994D_19940323_3465_9203_00.dat','sn2007sr-20071228.39-fixedbg-swift.flm'  #reddening wrong, diverges at low wavelength
 							'2005cf_20050531_3321_9999_00.dat', 'SN06fw_060917_b01_DUP_WF.dat',			#large SNR biases early time composite, low signal
 							'sn1991bg-19911214.824-iue.flm','sn1989b-19890215.flm',						#reddening wrong, reddening wrong
-							'sn1998co-19980627.46-fast.flm','sn2006ob-20061201.107-ui.flm']				#reddening wrong, very noisy
+							'sn1998co-19980627.46-fast.flm','sn2006ob-20061201.107-ui.flm',             #reddening wrong, very noisy
+							'sn2005cf-20050611-hst.flm','sn2005cf-20050614-hst.flm']				
 
 		print len(bad_files), 'questionable files currently ignored'
 		return bad_files

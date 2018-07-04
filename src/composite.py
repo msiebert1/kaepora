@@ -89,7 +89,7 @@ def store_phot_data(SN, row):
 	SN.light_curves = msg.unpackb(phot_row[-2])
 	SN.csp_light_curves = msg.unpackb(phot_row[-1])
 
-def grab(sql_input, multi_epoch = False, make_corr = True, selection = 'max_coverage'):
+def grab(sql_input, multi_epoch = False, make_corr = True, selection = 'max_coverage', grab_all=False):
 	"""Pulls in all columns from the database for the selected query. 
 	   Replaces all NaN values with 0. Returns the array of supernova objects 
 	   with the newly added attributes.
@@ -112,12 +112,12 @@ def grab(sql_input, multi_epoch = False, make_corr = True, selection = 'max_cove
 		get_phot = True
 
 	cur.execute(sql_input)
-	# if 'phase' in sql_input:
-	# 	split_query = sql_input.split()
-	# 	p_index = split_query.index('phase')
-	# 	p_low = float(split_query[p_index+2])
-	# 	p_high = float(split_query[p_index+6])
-	# 	p_avg = (p_low+p_high)/2.
+	if 'phase' in sql_input:
+		split_query = sql_input.split()
+		p_index = split_query.index('phase')
+		p_low = float(split_query[p_index+2])
+		p_high = float(split_query[p_index+6])
+		p_avg = (p_low+p_high)/2.
 	# print len(list(cur))
 	# raise TypeError
 	for row in cur:
@@ -160,17 +160,47 @@ def grab(sql_input, multi_epoch = False, make_corr = True, selection = 'max_cove
 		full_array.append(SN)
 		SN_Array.append(SN)
 
+	if grab_all:
+		return SN_Array
+
 		
 		# for i in range(len(SN_Array-1)): 
 		#     if SN_Array[i].name == SN_Array[i-1].name and not multi_epoch:
 		#         if abs(SN_Array[i].phase) < abs(SN_Array[i-1].phase): # closest to maximum
 		#         # if abs(SN_Array[i].SNR) > abs(SN_Array[i-1].SNR): # best signal to noise
 		#             del SN_Array[i-1]
+
+	if make_corr:
+		bad_files = qspec.bad_files()
+
+		bad_ivars = []
+		for SN in SN_Array:
+			# print SN.filename 
+			if len(np.where(np.isnan(SN.ivar))[0] == True) == 5500:
+				bad_ivars.append(SN.filename)
+				# plt.plot(SN.wavelength,SN.flux)
+				# plt.show()
+		if len(bad_ivars) > 0:
+			print "Generate variance failed for: ", bad_ivars
+
+		len_before = len(SN_Array)
+		good_SN_Array = [SN for SN in SN_Array if not is_bad_data(SN, bad_files, bad_ivars)]
+		SN_Array = good_SN_Array
+		print len_before - len(SN_Array), 'questionable spectra removed', len(SN_Array), 'spectra left'
+
+		# remove peculiar Ias
+		len_before = len(SN_Array)
+		SN_Array = remove_peculiars(SN_Array,'../data/info_files/pec_Ias.txt')
+		print len_before - len(SN_Array), 'Peculiar Ias removed', len(SN_Array), 'spectra left'
+
+		SN_Array = check_host_corrections(SN_Array)
+
 	if not multi_epoch:
 		bad_files = qspec.bad_files()
 		unique_events = []
 		new_SN_Array = []
 		for i in range(len(SN_Array)): 
+			# print SN_Array[i].name, SN_Array[i].phase, SN_Array[i].source, SN_Array[i].filename, SN_Array[i].minwave, SN_Array[i].maxwave
 			if SN_Array[i].name not in unique_events:
 				unique_events.append(SN_Array[i].name)
 		for i in range(len(unique_events)):
@@ -178,7 +208,6 @@ def grab(sql_input, multi_epoch = False, make_corr = True, selection = 'max_cove
 			for SN in SN_Array:
 				if SN.name == unique_events[i]:
 					events.append(SN)
-
 			# min_phase = events[0]
 			# for e in events:
 			#     if abs(e.phase) < abs(min_phase.phase):
@@ -205,6 +234,13 @@ def grab(sql_input, multi_epoch = False, make_corr = True, selection = 'max_cove
 						max_range = e
 				if not (events[0].name == '2011fe' and events[0].source == 'other'): #ignore high SNR 2011fe data
 					new_SN_Array.append(max_range)
+			elif selection == 'choose_bluest':
+				bluest = events[0]
+				for e in events:
+					if e.minwave < bluest.minwave:
+						bluest = e
+				if not (events[0].name == '2011fe' and events[0].source == 'other'): #ignore high SNR 2011fe data
+					new_SN_Array.append(bluest)
 			elif selection == 'max_snr':
 				max_snr = events[0]
 				for e in events:
@@ -253,33 +289,13 @@ def grab(sql_input, multi_epoch = False, make_corr = True, selection = 'max_cove
 
 		SN_Array = new_SN_Array
 
-	print len(SN_Array), "spectra found"
+	print len(SN_Array), "valid SNe found"
 
 	# print "Creating event file..."
 	# mg.generate_event_list(SN_Array)
 	# print "Event file done."
 	
-	#Within the interpolated spectra there are a lot of 'NaN' values
-	#Now they become zeros so things work right
-
 	#make cuts
-
-	if make_corr:
-		bad_files = qspec.bad_files()
-
-		bad_ivars = []
-
-		len_before = len(SN_Array)
-		good_SN_Array = [SN for SN in SN_Array if not is_bad_data(SN, bad_files, bad_ivars)]
-		SN_Array = good_SN_Array
-		print len_before - len(SN_Array), 'questionable spectra removed', len(SN_Array), 'spectra left'
-
-		# remove peculiar Ias
-		len_before = len(SN_Array)
-		SN_Array = remove_peculiars(SN_Array,'../data/info_files/pec_Ias.txt')
-		print len_before - len(SN_Array), 'Peculiar Ias removed', len(SN_Array), 'spectra left'
-
-		SN_Array = check_host_corrections(SN_Array)
 
 	for SN in SN_Array:
 		SN.phase_array = np.array(SN.flux)
@@ -695,11 +711,15 @@ def bootstrapping (SN_Array, samples, scales, og_template, iters, medmean):
 	return np.asarray(low_arr), np.asarray(up_arr), boots        
 	
 def is_bad_data(SN, bad_files, bad_ivars):
+	bad_sns = ['2002bf']
 	for el in bad_files:
 		if SN.filename == el:
 			return True
 	for el in bad_ivars:
 		if SN.filename == el:
+			return True
+	for el in bad_sns:
+		if SN.name == el:
 			return True
 	return False
 
@@ -757,15 +777,16 @@ def check_host_corrections(SN_Array):
 		# else:
 		# 	print SN.name
 	SN_Array = has_host_corr
-	print len(SN_Array), 'SNs with host corrections'
+	print len(SN_Array), 'spectra with host corrections'
 	return SN_Array
 
-def apply_host_corrections(SN_Array, lengths, r_v = 2.5):
+def apply_host_corrections(SN_Array, lengths, r_v = 2.5, verbose=True):
 	corrected_SNs = []
 	for SN in SN_Array:
+		if verbose:
+			print SN.name, SN.filename, SN.SNR, SN.dm15_source, SN.dm15_from_fits, SN.phase, SN.redshift, SN.source, SN.wavelength[SN.x1], SN.wavelength[SN.x2], SN.ned_host
+		# print SN.name, SN.av_25, SN.av_mlcs31, SN.av_mlcs17
 
-		print SN.name, SN.filename, SN.SNR, SN.dm15_source, SN.dm15_from_fits, SN.phase, SN.redshift, SN.source, SN.mjd, SN.wavelength[SN.x1], SN.wavelength[SN.x2], SN.ned_host
-		# print SN.name, SN.phase
 		if SN.av_25 != None:
 			# print "AV: ", SN.av_25
 			pre_scale = (1.e-15/np.average(SN.flux[SN.x1:SN.x2]))
@@ -836,7 +857,7 @@ def remove_tell_files(SN_Array):
 				SN_Array_wo_tell.append(copy.copy(SN))
 		return SN_Array_wo_tell
 	else:
-		return None
+		return []
 
 	
 
@@ -939,7 +960,7 @@ def create_composite(SN_Array, boot, template, medmean):
 
 	return template, boots
 	
-def main(Full_query, boot = 'nb', medmean = 1, opt = 'n', save_file = 'n', make_corr=True, multi_epoch=False, selection = 'max_coverage'):
+def main(Full_query, boot = 'nb', medmean = 1, opt = 'n', save_file = 'n', make_corr=True, multi_epoch=False, selection = 'max_coverage', verbose=True):
 	"""Main function. Finds supernovae that agree with user query, prompts user 
 		on whether to bootstrap or just create a composite, then does so and stores 
 		returns the relevant data for plotting in a table.
@@ -951,20 +972,16 @@ def main(Full_query, boot = 'nb', medmean = 1, opt = 'n', save_file = 'n', make_
 	SN_Array = grab(Full_query, make_corr=make_corr, multi_epoch=multi_epoch, selection = selection)
 
 	lengths = []
-	bad_files = qspec.bad_files()
+	# bad_files = qspec.bad_files()
 
-	len_before = len(SN_Array)
-	bad_ivars = []
-	for SN in SN_Array:
-		# print SN.filename 
-		if True in np.isnan(SN.ivar):
-			bad_ivars.append(SN.filename)
+	# len_before = len(SN_Array)
 
-	good_SN_Array = [SN for SN in SN_Array if not is_bad_data(SN, bad_files, bad_ivars)]
-	SN_Array = good_SN_Array
-	print len_before - len(SN_Array), 'spectra with nan ivars removed', len(SN_Array), 'spectra left'
+	# good_SN_Array = [SN for SN in SN_Array if not is_bad_data(SN, bad_files, bad_ivars)]
+	# SN_Array = good_SN_Array
+	# print len_before - len(SN_Array), 'spectra with nan ivars removed', len(SN_Array), 'spectra left'
 
 	SN_Array_wo_tell = remove_tell_files(SN_Array)
+	print len(SN_Array) - len(SN_Array_wo_tell), 'spectra may have telluric contamination'
 
 	# for SN in SN_Array:
 	# 	print SN.name
@@ -975,7 +992,7 @@ def main(Full_query, boot = 'nb', medmean = 1, opt = 'n', save_file = 'n', make_
 	#UNCOMMENT FOR COMPARISON PLOT
 	# new_arr = []
 	# new_arr.append(copy.copy(SN_Array[0]))
-	SN_Array = apply_host_corrections(SN_Array, lengths)
+	SN_Array = apply_host_corrections(SN_Array, lengths, verbose=verbose)
 
 	# new_arr.append(copy.copy(SN_Array[0]))
 	# new_arr[0].flux = new_arr[0].flux*1.e-15
