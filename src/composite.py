@@ -112,12 +112,12 @@ def grab(sql_input, multi_epoch = False, make_corr = True, selection = 'max_cove
 		get_phot = True
 
 	cur.execute(sql_input)
-	if 'phase' in sql_input:
-		split_query = sql_input.split()
-		p_index = split_query.index('phase')
-		p_low = float(split_query[p_index+2])
-		p_high = float(split_query[p_index+6])
-		p_avg = (p_low+p_high)/2.
+	# if 'phase' in sql_input:
+	# 	split_query = sql_input.split()
+	# 	p_index = split_query.index('phase')
+	# 	p_low = float(split_query[p_index+2])
+	# 	p_high = float(split_query[p_index+6])
+	# 	p_avg = (p_low+p_high)/2.
 	# print len(list(cur))
 	# raise TypeError
 	for row in cur:

@@ -153,15 +153,15 @@ def measure_si_ratio(wavelength,flux, varflux = None, vexp=.002, smooth=True, dm
 	ratio = weak_line/strong_line
 	ratio = ratio[0]
 
-	if ratio > .5:
-		plt.plot(wavelength,flux)
-		plt.plot(wavelength,sm_flux)
-		plt.plot(wavelength, interp_flux)
-		plt.plot(wavelength[si_min_index], interp_flux[si_min_index], 'o', color='orange')
-		plt.plot(wavelength[si_min_index], sm_flux[si_min_index], 'o', color='orange')
-		plt.plot(wavelength[si_weak_min_index], interp_flux[si_weak_min_index], 'o', color='orange')
-		plt.plot(wavelength[si_weak_min_index], sm_flux[si_weak_min_index], 'o', color='orange')
-		plt.show()
+	# if ratio > .5:
+	# 	plt.plot(wavelength,flux)
+	# 	plt.plot(wavelength,sm_flux)
+	# 	plt.plot(wavelength, interp_flux)
+	# 	plt.plot(wavelength[si_min_index], interp_flux[si_min_index], 'o', color='orange')
+	# 	plt.plot(wavelength[si_min_index], sm_flux[si_min_index], 'o', color='orange')
+	# 	plt.plot(wavelength[si_weak_min_index], interp_flux[si_weak_min_index], 'o', color='orange')
+	# 	plt.plot(wavelength[si_weak_min_index], sm_flux[si_weak_min_index], 'o', color='orange')
+	# 	plt.show()
 
 	return ratio
 
