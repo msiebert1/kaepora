@@ -10,8 +10,9 @@ import glob
 mn.patch()
 obj_file = '../../../maguire_hst/maguire_obj_info.txt'
 spec_file = '../../../maguire_hst/maguire_spec_info.txt'
-files = glob.glob("..\..\..\maguire_hst\*.asci")
-con = sq3.connect('../../../data/SNe_19_phot_9.db')
+files = glob.glob("../../../maguire_hst/*.asci.txt")
+# con = sq3.connect('../../../data/SNe_19_phot_9.db')
+# PTF10fps = SN2010cr, PTF10hmv = SN2010dm, PTF10mwb = SN2010gn, PTF10qyx = SN2010gy, PTF10tce = SN 2010ho, PTF10ufj = SN 2010hs, PTF10ygu = SN 2010jn
 with open(obj_file) as obj:
 	with open(spec_file) as spec:
 		obj_dict = {}
@@ -24,23 +25,18 @@ with open(obj_file) as obj:
 			with open(sp) as spec:
 				spectrum = np.loadtxt(spec)
 				source = 'maguire'
-				print sp	
-				sn_obj_data = obj_dict[sp.split('_')[0]]
-				sn_spec_data = spec_dict[sp.split('_')[0]]
-				if sp.split('_')[0].lower() == 'sn':
-					sn_name = sp.split('_')[0][2:]
+				filename = sp.split('\\')[-1]
+				sn_obj_data = obj_dict[filename.split('_')[0]]
+				sn_spec_data = spec_dict[filename.split('_')[0]]
+				if filename.split('_')[0].lower() == 'sn':
+					sn_name = filename.split('_')[0][2:]
 				else:
-					sn_name = sp.split('_')[0]
+					sn_name = filename.split('_')[0]
 				print sn_name
-				redshift = float(sn_spec_data[5])
-				mjd_max = float(sn_obj_data[1])
-				mjd_spec = float(sn_spec_data[4])
+				redshift = float(sn_spec_data[4])
+				mjd_max = float(sn_obj_data[0])
+				mjd_spec = float(sn_spec_data[3])
 				phase = (mjd_spec - mjd_max)/(1.+redshift)
-				stretch = sn_data[3]
-				if Dm15 == '-99':
-					Dm15 = None
-				else:
-					Dm15 = float(Dm15)
 
 				interp_spec, sig_noise = prep.compprep(spectrum, sn_name, redshift, source)
 				interped = msg.packb(interp_spec)
@@ -56,16 +52,17 @@ with open(obj_file) as obj:
 				gasrich = None
 				hubble_residual = None
 				mjd = None
-				ref = None
+				ref = 'Maguire et al. (2012)'
 
-				con.execute("""INSERT INTO Supernovae(Filename, SN, Source,
-								Redshift, Phase, MinWave, MaxWave, Dm15, M_B,
-								B_mMinusV_m, Velocity, Morphology, Carbon,
-								GasRich, snr, Hubble_Res, Interpolated_Spectra, 
-								MJD, Ref)
-								VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-							(name, sn_name, source, redshift, phase,
-							 min_wave, max_wave, Dm15, m_b, bm_vm, vel,
-							 morph, carbon, gasrich, sig_noise, hubble_residual, 
-							 buffer(interped), mjd, ref))
-con.commit()
+				print sn_name, redshift, mjd_max, mjd_spec, phase, min_wave, max_wave, sig_noise
+#				con.execute("""INSERT INTO Supernovae(Filename, SN, Source,
+							# 	Redshift, Phase, MinWave, MaxWave, Dm15, M_B,
+							# 	B_mMinusV_m, Velocity, Morphology, Carbon,
+							# 	GasRich, snr, Hubble_Res, Interpolated_Spectra, 
+							# 	MJD, Ref)
+							# 	VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+							# (name, sn_name, source, redshift, phase,
+							#  min_wave, max_wave, Dm15, m_b, bm_vm, vel,
+							#  morph, carbon, gasrich, sig_noise, hubble_residual, 
+							#  buffer(interped), mjd, ref))
+# con.commit()
