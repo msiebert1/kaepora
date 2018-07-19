@@ -1071,7 +1071,6 @@ def main(Full_query, boot = 'nb', medmean = 1, opt = 'n', save_file = 'n', make_
 
 	template, boots = create_composite(SN_Array, boot, template, medmean)
 
-
 	return template, SN_Array, boots
 
 if __name__ == "__main__":

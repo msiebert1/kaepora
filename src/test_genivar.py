@@ -327,17 +327,24 @@ def genivar(wavelength, flux, varflux , vexp = 0.0008, nsig = 5.0):
     else:
         ivar = 1 / (varflux**2)
         return ivar
-    
+    plt.plot(wavelength,flux)
     # Smooth original flux
     # new_flux = gsmooth(wavelength, flux, varflux, vexp, nsig)
     new_flux = gsmooth(wavelength, flux, varflux, .002, nsig)
-    
+    # plt.plot(wavelength,flux)
+
+    plt.plot(wavelength,new_flux)
+    plt.show()
     # Generate absolute value of the noise from original flux
     error = abs(flux - new_flux)
+    plt.plot(wavelength,error)
     
     # Smooth noise to find the variance
     # sm_error = gsmooth(wavelength, error, varflux, vexp, nsig)
-    sm_error = gsmooth(wavelength, error, varflux, .007, nsig)
+    # sm_error = gsmooth(wavelength, error, varflux, .007, nsig)
+    sm_error = gsmooth(wavelength, error, varflux, .1, nsig)
+    plt.plot(wavelength,sm_error)
+    plt.show()
 
     # Test wavelength ranges for kecksky overlap
     test1 = np.where((wavelength >= 5000) & (wavelength <= 6000))
@@ -369,27 +376,27 @@ def getsnr(flux, ivar):
     snr_med = np.median(snr)
     return snr_med
 
-fname = '../data/spectra/bsnip/sn2001fg-20011118.251-joined.flm'
+fname = '../data/spectra/cfa/sn2007ob/sn2007ob-20071107.14-fast.flm'
 spectrum = np.loadtxt(fname)
-bad_files = [u'sn2001eu-20011022.342-joined.flm', u'sn2001fg-20011118.251-joined.flm', u'sn2002hd-20021109-joined.flm', u'sn2002he-20021106.649-joined.flm', u'sn2008ha-20081205-ui.flm', 
-             u'sn1994D-19940602.18-fast.flm', u'sn1995ak-19951222.23-fast.flm', u'sn1995bd-19951225.27-fast.flm', u'sn1996bo-19961107.15-fast.flm', u'sn1996by-19970108.33-fast.flm', 
-             u'sn2000fa-20001225.42-fast.flm', u'sn2001C-20010325.19-fast.flm', u'sn2001C-20010328.18-fast.flm', u'sn2001E-20010124.48-fast.flm', u'sn2001E-20010225.37-fast.flm', 
-             u'sn2002dl-20020618.44-fast.flm', u'sn2002do-20020710.33-fast.flm', u'sn2002eu-20020905.49-fast.flm', u'sn2002fb-20020929.42-fast.flm', u'sn2002fk-20021112.36-fast.flm', 
-             u'sn2002hw-20021114.10-fast.flm', u'sn2002kf-20030113.31-fast.flm', u'sn2003ag-20030209.41-fast.flm', u'sn2003ch-20030428.15-fast.flm', u'sn2003gj-20030704.40-mmt.flm', 
-             u'sn2003hu-20030928.12-fast.flm', u'sn2003it-20031123.14-fast.flm', u'sn2003kf-20040216.18-fast.flm', u'sn2003kf-20040318.12-fast.flm', u'sn2003kz-20031219.51-fast.flm', 
-             u'sn2003S-20030127.49-fast.flm', u'sn2003Y-20030131.35-fast.flm', u'sn2004bp-20040511.21-fast.flm', u'sn2004dt-20040908.49-fast.flm', u'sn2004dt-20041015.34-fast.flm', 
-             u'sn2004dt-20041212.18-fast.flm', u'sn2004ef-20040915.30-fast.flm', u'sn2004ef-20040922.22-fast.flm', u'sn2004gs-20050106.40-fast.flm', u'sn2004H-20040127.46-fast.flm', 
-             u'sn2005am-20050517.14-fast.flm', u'sn2005cc-20050617.18-fast.flm', u'sn2005cc-20050628.25-fast.flm', u'sn2005cc-20050709.21-fast.flm', u'sn2005M-20050209.33-fast.flm', 
-             u'sn2005M-20050409.19-fast.flm', u'sn2005mz-20060123.15-fast.flm', u'sn2005na-20060130.24-fast.flm', u'sn2006ac-20060226.34-fast.flm', u'sn2006az-20060403.30-fast.flm', 
-             u'sn2006bb-20060402.20-fast.flm', u'sn2006bq-20060427.35-fast.flm', u'sn2006br-20060430.18-fast.flm', u'sn2006cf-20060521.27-fast.flm', u'sn2006cf-20060522.26-fast.flm', 
-             u'sn2006cj-20060523.33-fast.flm', u'sn2006cj-20060601.28-fast.flm', u'sn2006dt-20060721.20-fast.flm', u'sn2006dv-20060725.43-fast.flm', u'sn2006H-20060203.12-fast.flm', 
-             u'sn2006lf-20061221.21-fast.flm', u'sn2006lf-20061222.24-fast.flm', u'sn2006R-20060129.53-fast.flm', u'sn2006te-20070109.49-fast.flm', u'sn2007af-20070423.32-fast.flm', 
-             u'sn2007al-20070314.26-fast.flm', u'sn2007bj-20070609.28-fast.flm', u'sn2007bj-20070613.29-fast.flm', u'sn2007ci-20070614.18-fast.flm', u'sn2007F-20070116.54-fast.flm', 
-             u'sn2007F-20070121.55-fast.flm', u'sn2007F-20070309.39-fast.flm', u'sn2007F-20070415.31-fast.flm', u'sn2007if-20071010.31-fast.flm', u'sn2007kk-20071015.32-fast.flm', 
-             u'sn2008A-20080226.14-fast.flm', u'sn2008ae-20080210.36-fast.flm', u'sn2008ae-20080214.32-fast.flm', u'sn2008at-20080305.30-fast.flm', u'sn2008C-20080402.14-mmt.flm', 
-             u'sn2008E-20080203.40-fast.flm', u'sn2008Y-20080209.41-fast.flm', u'sn2008Y-20080229.35-fast.flm', u'sn2008Z-20080416.16-fast.flm', u'2005cf_20050601_3243_9720_00.dat', 
-             u'sn2004dt-20040820-hst.flm', u'sn2004dt-20040823-hst.flm', u'sn2004ef-20040914-hst.flm', u'sn2004ef-20040918-hst.flm', u'sn2005cf-20050603-hst.flm', 
-             u'sn2005cf-20050605-hst.flm', u'sn2005cf-20050607-hst.flm', u'sn2005cf-20050611-hst.flm', u'sn2005cf-20050614-hst.flm', u'sn2005m-20050128-hst.flm', u'sn2005m-20050131-hst.flm']
+# bad_files = [u'sn2001eu-20011022.342-joined.flm', u'sn2001fg-20011118.251-joined.flm', u'sn2002hd-20021109-joined.flm', u'sn2002he-20021106.649-joined.flm', u'sn2008ha-20081205-ui.flm', 
+#              u'sn1994D-19940602.18-fast.flm', u'sn1995ak-19951222.23-fast.flm', u'sn1995bd-19951225.27-fast.flm', u'sn1996bo-19961107.15-fast.flm', u'sn1996by-19970108.33-fast.flm', 
+#              u'sn2000fa-20001225.42-fast.flm', u'sn2001C-20010325.19-fast.flm', u'sn2001C-20010328.18-fast.flm', u'sn2001E-20010124.48-fast.flm', u'sn2001E-20010225.37-fast.flm', 
+#              u'sn2002dl-20020618.44-fast.flm', u'sn2002do-20020710.33-fast.flm', u'sn2002eu-20020905.49-fast.flm', u'sn2002fb-20020929.42-fast.flm', u'sn2002fk-20021112.36-fast.flm', 
+#              u'sn2002hw-20021114.10-fast.flm', u'sn2002kf-20030113.31-fast.flm', u'sn2003ag-20030209.41-fast.flm', u'sn2003ch-20030428.15-fast.flm', u'sn2003gj-20030704.40-mmt.flm', 
+#              u'sn2003hu-20030928.12-fast.flm', u'sn2003it-20031123.14-fast.flm', u'sn2003kf-20040216.18-fast.flm', u'sn2003kf-20040318.12-fast.flm', u'sn2003kz-20031219.51-fast.flm', 
+#              u'sn2003S-20030127.49-fast.flm', u'sn2003Y-20030131.35-fast.flm', u'sn2004bp-20040511.21-fast.flm', u'sn2004dt-20040908.49-fast.flm', u'sn2004dt-20041015.34-fast.flm', 
+#              u'sn2004dt-20041212.18-fast.flm', u'sn2004ef-20040915.30-fast.flm', u'sn2004ef-20040922.22-fast.flm', u'sn2004gs-20050106.40-fast.flm', u'sn2004H-20040127.46-fast.flm', 
+#              u'sn2005am-20050517.14-fast.flm', u'sn2005cc-20050617.18-fast.flm', u'sn2005cc-20050628.25-fast.flm', u'sn2005cc-20050709.21-fast.flm', u'sn2005M-20050209.33-fast.flm', 
+#              u'sn2005M-20050409.19-fast.flm', u'sn2005mz-20060123.15-fast.flm', u'sn2005na-20060130.24-fast.flm', u'sn2006ac-20060226.34-fast.flm', u'sn2006az-20060403.30-fast.flm', 
+#              u'sn2006bb-20060402.20-fast.flm', u'sn2006bq-20060427.35-fast.flm', u'sn2006br-20060430.18-fast.flm', u'sn2006cf-20060521.27-fast.flm', u'sn2006cf-20060522.26-fast.flm', 
+#              u'sn2006cj-20060523.33-fast.flm', u'sn2006cj-20060601.28-fast.flm', u'sn2006dt-20060721.20-fast.flm', u'sn2006dv-20060725.43-fast.flm', u'sn2006H-20060203.12-fast.flm', 
+#              u'sn2006lf-20061221.21-fast.flm', u'sn2006lf-20061222.24-fast.flm', u'sn2006R-20060129.53-fast.flm', u'sn2006te-20070109.49-fast.flm', u'sn2007af-20070423.32-fast.flm', 
+#              u'sn2007al-20070314.26-fast.flm', u'sn2007bj-20070609.28-fast.flm', u'sn2007bj-20070613.29-fast.flm', u'sn2007ci-20070614.18-fast.flm', u'sn2007F-20070116.54-fast.flm', 
+#              u'sn2007F-20070121.55-fast.flm', u'sn2007F-20070309.39-fast.flm', u'sn2007F-20070415.31-fast.flm', u'sn2007if-20071010.31-fast.flm', u'sn2007kk-20071015.32-fast.flm', 
+#              u'sn2008A-20080226.14-fast.flm', u'sn2008ae-20080210.36-fast.flm', u'sn2008ae-20080214.32-fast.flm', u'sn2008at-20080305.30-fast.flm', u'sn2008C-20080402.14-mmt.flm', 
+#              u'sn2008E-20080203.40-fast.flm', u'sn2008Y-20080209.41-fast.flm', u'sn2008Y-20080229.35-fast.flm', u'sn2008Z-20080416.16-fast.flm', u'2005cf_20050601_3243_9720_00.dat', 
+#              u'sn2004dt-20040820-hst.flm', u'sn2004dt-20040823-hst.flm', u'sn2004ef-20040914-hst.flm', u'sn2004ef-20040918-hst.flm', u'sn2005cf-20050603-hst.flm', 
+#              u'sn2005cf-20050605-hst.flm', u'sn2005cf-20050607-hst.flm', u'sn2005cf-20050611-hst.flm', u'sn2005cf-20050614-hst.flm', u'sn2005m-20050128-hst.flm', u'sn2005m-20050131-hst.flm']
 old_wave = spectrum[:, 0]
 old_flux = spectrum[:, 1]
 
@@ -407,6 +414,8 @@ new_var = new_var*2.02
 # norm = 1./np.nanmax(real_var)
 # real_var = real_var*norm
 # new_var = new_var*norm
+# plt.plot(old_wave,old_flux)
+# plt.show()
 plt.plot(old_wave, real_var)
 plt.plot(old_wave, new_var)
 plt.show()

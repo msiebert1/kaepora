@@ -6,6 +6,7 @@ import photometry as phot
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.interpolate import interp1d
+import scipy.interpolate as inter
 
 def find_all_events(salt,salt2,mlcs31,mlcs17,lcparams,host_data,av_dict,cfa_dict):
 	events = []
@@ -288,7 +289,36 @@ def dm15_from_fit_params(events, fit_dict, cfa_dict, stretch='N/A'):
 	# x = np.linspace(-5, 5.1, 10000)
 	x = np.linspace(np.amin(dm15_arr), np.amax(dm15_arr), 10000)
 	y = coeffs[0]*x**2. + coeffs[1]*x + coeffs[2]
+	print coeffs
 	print y[0], y[-1]
+
+	clip_param_arr = []
+	clip_e_param_arr = []
+	clip_dm15_arr = []
+	interp_func = inter.splrep(x, y)
+	inter_vals = inter.splev(dm15_arr, interp_func)
+	for i, p in enumerate(param_arr):
+		if np.absolute(p - inter_vals[i])/e_param_arr[i] > 5.:
+			clip_param_arr.append(p)
+			clip_e_param_arr.append(e_param_arr[i])
+			clip_dm15_arr.append(dm15_arr[i])
+
+	new_param_arr = []
+	new_e_param_arr = []
+	new_dm15_arr = []
+	for i, p in enumerate(param_arr):
+		if p not in clip_param_arr:
+			new_param_arr.append(p)
+			new_e_param_arr.append(e_param_arr[i])
+			new_dm15_arr.append(dm15_arr[i])
+
+	weights = 1./np.asarray(new_e_param_arr)
+	coeffs = np.polyfit(new_dm15_arr, new_param_arr, 2, w=weights)
+	# x = np.linspace(-5, 5.1, 10000)
+	new_x = np.linspace(np.amin(new_dm15_arr), np.amax(new_dm15_arr), 10000)
+	new_y = coeffs[0]*x**2. + coeffs[1]*x + coeffs[2]
+	print coeffs
+	print new_y[0], new_y[-1]
 
 	# plotted in lc_fitting_relationships.py
 	plt.rc('font', family='serif')
@@ -312,25 +342,30 @@ def dm15_from_fit_params(events, fit_dict, cfa_dict, stretch='N/A'):
 		right='on',
 		length=5)
 	plt.plot(y, x, 'k', linewidth=4)
+	plt.plot(new_y, new_x, 'g', linewidth=4)
 	plt.ylim(.6,2.2)
 	plt.ylabel('$\Delta m_{15}$ (B)', fontsize = 30)
 	if stretch is 's':
-		plt.errorbar(param_arr, dm15_arr, xerr=e_param_arr, fmt='o', color='#7570b3', ms=10)
+		plt.errorbar(new_param_arr, new_dm15_arr, xerr=new_e_param_arr, fmt='o', color='#7570b3', ms=10)
+		plt.errorbar(clip_param_arr, clip_dm15_arr, xerr=clip_e_param_arr, fmt='x', color='black', ms=30, mew=3)
 		plt.xlim(.4, 1.3)
 		plt.xlabel('s', fontsize = 30)
 		# plt.savefig('../../Paper_Drafts/dm15_s.pdf', dpi = 300, bbox_inches = 'tight')
 	elif stretch is 'x1':
-		plt.errorbar(param_arr, dm15_arr, xerr=e_param_arr, fmt='o', color='#1b9e77', ms=10)
+		plt.errorbar(new_param_arr, new_dm15_arr, xerr=new_e_param_arr, fmt='o', color='#1b9e77', ms=10)
+		plt.errorbar(clip_param_arr, clip_dm15_arr, xerr=clip_e_param_arr, fmt='x', color='black', ms=30, mew=3)
 		plt.xlim(-5., 3.)
 		plt.xlabel('$x_1$', fontsize = 30)
 		# plt.savefig('../../Paper_Drafts/dm15_x1.pdf', dpi = 300, bbox_inches = 'tight')
 	elif stretch is 'delta':
-		plt.errorbar(param_arr, dm15_arr, xerr=e_param_arr, fmt='o', color='#d95f02', ms=10)
+		plt.errorbar(new_param_arr, new_dm15_arr, xerr=new_e_param_arr, fmt='o', color='#d95f02', ms=10)
+		plt.errorbar(clip_param_arr, clip_dm15_arr, xerr=clip_e_param_arr, fmt='x', color='black', ms=30, mew=3)
 		plt.xlim(-.5, 1.8)
 		plt.xlabel('$\Delta$', fontsize = 30)
 		# plt.savefig('../../Paper_Drafts/dm15_delta.pdf', dpi = 300, bbox_inches = 'tight')
 	elif stretch is 'delta_lowrv':
-		plt.errorbar(param_arr, dm15_arr, xerr=e_param_arr, fmt='o', color='#d95f02', ms=10)
+		plt.errorbar(new_param_arr, new_dm15_arr, xerr=new_e_param_arr, fmt='o', color='#d95f02', ms=10)
+		plt.errorbar(clip_param_arr, clip_dm15_arr, xerr=clip_e_param_arr, fmt='x', color='black', ms=30, mew=3)
 		plt.xlim(-.9, 2.0)
 		plt.xlabel('$\Delta$', fontsize = 30)
 		# plt.savefig('../../Paper_Drafts/dm15_delta_lowrv.pdf', dpi = 300, bbox_inches = 'tight')
@@ -354,7 +389,7 @@ if __name__ == "__main__":
 	av_dict = build_av_dict('..\data\info_files\lowz_rv25_all.fitres')
 	delt_dict = build_delt_dict('..\data\info_files\lowz_rv25_all.fitres')
 	cfa_dict = build_cfa_dict('..\data\spectra\cfa\cfasnIa_param.dat')
-	swift_dict = build_swift_dict('..\..\swift_uvspec\swift_uv_log.txt')
+	swift_dict = build_swift_dict('..\..\..\swift_uvspec\swift_uv_log.txt')
 	NED_host_dict = build_NED_host_dict('..\data\info_files\NED_host_info_simplified.txt')
 	vel_dict = build_vel_dict()
 
@@ -371,6 +406,7 @@ if __name__ == "__main__":
 	dm15_x1_interp = dm15_from_fit_params(events, salt2_dict, cfa_dict, stretch='x1')
 	dm15_delta_interp = dm15_from_fit_params(events, mlcs31_dict, cfa_dict, stretch='delta')
 	dm15_delta_lowrv_interp = dm15_from_fit_params(events, delt_dict, cfa_dict, stretch='delta_lowrv')
+	raise TypeError
 
 	con = sq3.connect('..\data\SNe_19_phot_9.db')
 	con.execute("""DROP TABLE IF EXISTS Photometry""")

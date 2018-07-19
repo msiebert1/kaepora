@@ -2,6 +2,7 @@ import composite
 from astropy.table import Table
 import matplotlib
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 import numpy as np
 import sys
 import time
@@ -26,14 +27,15 @@ def make_colorbar(composites):
 
 	return s_m
 
-def scaled_plot(composites, min_num_show = 5, min_num_scale = 5, include_spec_bin = False, savename = None):
+def scaled_plot(composites, min_num_show = 5, min_num_scale = 5, include_spec_bin = False, scaleto=10., legend_labels = None, savename = None):
+	color_dict = {"Comp": "#000080", "Hsiao": "#398036", "Nugent": "#E41A1C", "SALT-II": "#A65628"}
 	if not include_spec_bin:
 		h = [3,1]
-		gs = gridspec.GridSpec(2, 1, height_ratios=h, hspace = .001)
+		gs = gridspec.GridSpec(2, 1, height_ratios=h, hspace = .003)
 		fig = plt.figure(num = 1, dpi = 100, figsize = [10,5], facecolor = 'w')
 	else:
 		h = [3,1,1]
-		gs = gridspec.GridSpec(3, 1, height_ratios=h, hspace = .001)
+		gs = gridspec.GridSpec(3, 1, height_ratios=h, hspace = .003)
 		fig = plt.figure(num = 1, dpi = 100, figsize = [10,6.25], facecolor = 'w')
 
 	s_m = make_colorbar(composites)
@@ -45,61 +47,23 @@ def scaled_plot(composites, min_num_show = 5, min_num_scale = 5, include_spec_bi
 	set_min_num_spec([composites[0]], min_num_show)
 
 	for comp in composites:
+		comp.flux *= scaleto
+		if len(comp.low_conf) > 0 and len(comp.up_conf) > 0:
+			comp.up_conf *= scaleto
+			comp.low_conf *= scaleto
+
+		c = color_dict[comp.name]
+		if comp.name != "Comp":
+			lw = 1.5
+		else:
+			lw = 1
 		# phase = np.average(comp.phase_array[comp.x1:comp.x2])
 		# plt.plot(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], color = s_m.to_rgba(phase))
 		# if len(comp.low_conf) > 0 and len(comp.up_conf) > 0:
 		# 	plt.fill_between(comp.wavelength[comp.x1:comp.x2], comp.low_conf[comp.x1:comp.x2], 
 		# 					 comp.up_conf[comp.x1:comp.x2], color = s_m.to_rgba(phase), alpha = 0.5)
 		rel_flux = plt.subplot(gs[0])
-		plt.ylabel('Relative Flux')
-		plt.ylim([0.,1.1])
-		plt.plot(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2])
-		# plt.ylim([0.,1.3])
-		if len(comp.low_conf) > 0 and len(comp.up_conf) > 0:
-			plt.fill_between(comp.wavelength[comp.x1:comp.x2], comp.low_conf[comp.x1:comp.x2], 
-							 comp.up_conf[comp.x1:comp.x2], alpha = 0.5)
-
-		plt.setp(rel_flux.get_xticklabels(), visible=False)
-		res = plt.subplot(gs[1], sharex = rel_flux)
-		plt.ylabel('Residuals')
-		plt.plot(comp.wavelength[composites[0].x1:composites[0].x2], comp.flux[composites[0].x1:composites[0].x2] - composites[0].flux[composites[0].x1:composites[0].x2])
-		# plt.plot(comp.wavelength[composites[0].x1:composites[0].x2], comp.flux[composites[0].x1:composites[0].x2]/composites[0].flux[composites[0].x1:composites[0].x2])
-		if len(comp.low_conf) > 0 and len(comp.up_conf) > 0:
-			low_resid = comp.low_conf[comp.x1:comp.x2] - composites[0].flux[comp.x1:comp.x2]
-			up_resid = comp.up_conf[comp.x1:comp.x2] - composites[0].flux[comp.x1:comp.x2]
-			# low_resid = comp.low_conf[comp.x1:comp.x2]/composites[0].flux[comp.x1:comp.x2]
-			# up_resid = comp.up_conf[comp.x1:comp.x2]/composites[0].flux[comp.x1:comp.x2]
-			plt.fill_between(comp.wavelength[comp.x1:comp.x2], low_resid, up_resid, alpha = 0.5)
-
-	labels=res.axes.get_yticks().tolist()
-	labels[-2]=''
-	print labels
-	res.set_yticklabels(labels)
-	# cb = plt.colorbar(s_m, ax = fig.axes)
-	# cb.set_label('Phase', fontdict = font)
-	plt.rc('font', family='serif')
-	plt.minorticks_on()
-	plt.xticks(fontsize = 10)
-	plt.yticks(fontsize = 9)
-	plt.tick_params(
-		which='major', 
-		bottom='on', 
-		top='on',
-		left='on',
-		right='on',
-		length=10)
-	plt.tick_params(
-		which='minor', 
-		bottom='on', 
-		top='on',
-		left='on',
-		right='on',
-		length=5)
-	if include_spec_bin:
-		plt.setp(res.get_xticklabels(), visible=False)
-
-	if include_spec_bin:
-		spec = plt.subplot(gs[2], sharex = rel_flux)
+		plt.rc('font', family='serif')
 		plt.minorticks_on()
 		plt.xticks(fontsize = 10)
 		plt.yticks(fontsize = 9)
@@ -117,18 +81,121 @@ def scaled_plot(composites, min_num_show = 5, min_num_scale = 5, include_spec_bi
 			left='on',
 			right='on',
 			length=5)
+		plt.ylabel('Relative Flux')
+		plt.ylim([-.05*scaleto, scaleto + .1*scaleto])
+		plt.plot(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], color=c, linewidth=lw)
+		# plt.ylim([0.,1.3])
+		if len(comp.low_conf) > 0 and len(comp.up_conf) > 0:
+			plt.fill_between(comp.wavelength[comp.x1:comp.x2], comp.low_conf[comp.x1:comp.x2], 
+							 comp.up_conf[comp.x1:comp.x2], color=c, alpha = 0.5)
+
+		plt.setp(rel_flux.get_xticklabels(), visible=False)
+		res = plt.subplot(gs[1], sharex = rel_flux)
+		plt.ylabel('Residuals')
+		plt.plot(comp.wavelength[composites[0].x1:composites[0].x2], comp.flux[composites[0].x1:composites[0].x2] - composites[0].flux[composites[0].x1:composites[0].x2], color=c, linewidth=lw)
+		# plt.plot(comp.wavelength[composites[0].x1:composites[0].x2], comp.flux[composites[0].x1:composites[0].x2]/composites[0].flux[composites[0].x1:composites[0].x2])
+		if len(comp.low_conf) > 0 and len(comp.up_conf) > 0:
+			low_resid = comp.low_conf[comp.x1:comp.x2] - composites[0].flux[comp.x1:comp.x2]
+			up_resid = comp.up_conf[comp.x1:comp.x2] - composites[0].flux[comp.x1:comp.x2]
+			# low_resid = comp.low_conf[comp.x1:comp.x2]/composites[0].flux[comp.x1:comp.x2]
+			# up_resid = comp.up_conf[comp.x1:comp.x2]/composites[0].flux[comp.x1:comp.x2]
+			plt.fill_between(comp.wavelength[comp.x1:comp.x2], low_resid, up_resid, color=c, alpha = 0.5)
+
+	# labels=res.axes.get_yticks().tolist()
+	# labels[-1]=''
+	# print labels
+	# res.set_yticklabels(labels)
+	plt.rc('font', family='serif')
+	res.axes.spines['top'].set_visible(False)
+	plt.minorticks_on()
+	plt.xticks(fontsize = 10)
+	plt.yticks(fontsize = 9)
+	plt.tick_params(
+		which='major', 
+		bottom='on', 
+		top='on',
+		left='on',
+		right='on',
+		length=10)
+	plt.tick_params(
+		which='minor', 
+		bottom='on', 
+		top='on',
+		left='on',
+		right='on',
+		length=5)
+
+	majorLocator = MultipleLocator(1.0)
+	majorFormatter = FormatStrFormatter('%d')
+	minorLocator = MultipleLocator(.5)
+
+	res.axes.yaxis.set_major_locator(majorLocator)
+	res.axes.yaxis.set_major_formatter(majorFormatter)
+
+	res.axes.yaxis.set_minor_locator(minorLocator)
+	plt.ylim([-.25*scaleto, .25*scaleto])
+	# plt.yticks(np.arange(-.25*scaleto, .25*scaleto, .5))
+	# plt.ylim([-.25*scaleto, .25*scaleto])
+	# labels=res.axes.get_yticks().tolist()
+	# labels[0] = ''
+	# labels[2] = ''
+	# labels[4] = ''
+	# labels[6] = ''
+	# labels[8] = ''
+	# print labels
+	# res.set_yticklabels(labels)
+	# ticks=res.axes.get_yticks()
+
+	# cb = plt.colorbar(s_m, ax = fig.axes)
+	# cb.set_label('Phase', fontdict = font)
+	
+	if include_spec_bin:
+		plt.setp(res.get_xticklabels(), visible=False)
+
+	if include_spec_bin:
+		spec = plt.subplot(gs[2], sharex = rel_flux)
+		spec.axes.spines['top'].set_visible(False)
+		plt.minorticks_on()
+		plt.xticks(fontsize = 10)
+		plt.yticks(fontsize = 9)
+		plt.tick_params(
+			which='major', 
+			bottom='on', 
+			top='on',
+			left='on',
+			right='on',
+			length=10)
+		plt.tick_params(
+			which='minor', 
+			bottom='on', 
+			top='on',
+			left='on',
+			right='on',
+			length=5)
+
+		if max(composites[0].spec_bin[composites[0].x1:composites[0].x2]) > 45.: 
+			majorLocator = MultipleLocator(20)
+			majorFormatter = FormatStrFormatter('%d')
+			minorLocator = MultipleLocator(10)
+		else:
+			majorLocator = MultipleLocator(10)
+			majorFormatter = FormatStrFormatter('%d')
+			minorLocator = MultipleLocator(5)
+
+		spec.axes.yaxis.set_major_locator(majorLocator)
+		spec.axes.yaxis.set_major_formatter(majorFormatter)
+
+		spec.axes.yaxis.set_minor_locator(minorLocator)
+
+		plt.ylim([0., 1.1*max(composites[0].spec_bin[composites[0].x1:composites[0].x2])])
 		plt.ylabel('Spectra/Bin')
 		# plt.plot(comp.wavelength[comp.x1:comp.x2], comp.spec_bin[comp.x1:comp.x2], color = s_m.to_rgba(param))
-		plt.plot(composites[0].wavelength[composites[0].x1:composites[0].x2], composites[0].spec_bin[composites[0].x1:composites[0].x2])
-		labels=spec.axes.get_yticks().tolist()
-		labels[-1]=''
-		print labels
-		spec.set_yticklabels(labels)
+		plt.plot(composites[0].wavelength[composites[0].x1:composites[0].x2], composites[0].spec_bin[composites[0].x1:composites[0].x2], color="#000080",linewidth=lw)
 
-	plt.xlim([3000.,10000.])
+	plt.xlim([composites[0].wavelength[composites[0].x1]-100,composites[0].wavelength[composites[0].x2]+100])
 	plt.xlabel('Rest Wavelength ($\mathrm{\AA}$)')
-	# rel_flux.legend(('Composite Spectrum', 'Hsiao', 'Nugent', 'SALT-II'))
-	# rel_flux.legend(('Composite Spectrum', 'Hsiao', 'Nugent', 'SALT-II'))
+	if legend_labels:
+		rel_flux.legend(legend_labels)
 	if savename is not None:
 		plt.savefig('../../../Paper_Drafts/'+savename+'.pdf', dpi = 300, bbox_inches = 'tight')
 	plt.show()
@@ -611,8 +678,8 @@ if __name__ == "__main__":
 	num_queries = len(query_strings)
 
 	for n in range(num_queries):
-		# c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, make_corr=False, multi_epoch=True)
-		c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1)
+		c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, make_corr=False, multi_epoch=True)
+		# c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1)
 		composites.append(c)
 		SN_Arrays.append(sn_arr)
 		if store_boots:
