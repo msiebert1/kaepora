@@ -14,6 +14,7 @@ from math import *
 from scipy import interpolate
 import matplotlib.pyplot as plt
 import pyfits
+import copy
 
 import scipy.signal as sig
 
@@ -26,13 +27,54 @@ import scipy.signal as sig
 ## Optional imputs are smoothing velocity (vexp) and number of sigma (nsig)
 ## Syntax: new_y_array = gsmooth(x_array, y_array, var_y, vexp = 0.01, nsig = 5.0)
 
+def find_vexp(x_array, y_array, var_y=None):
+    if var_y is not None:
+        error = np.sqrt(var_y)
+        new_y_init = gsmooth(x_array, y_array, var_y, .002)
+        SNR = np.median(new_y_init / error)
+    else:
+        new_y_init = gsmooth(x_array, y_array, var_y, .002) #this smoothing should get in right ballpark
+        error = np.absolute(y_array - new_y_init)
+        sm_error = gsmooth(x_array, error, var_y, .008)
+        SNR = np.median(new_y_init / sm_error)
+
+    #TODO: interpolate a function of SNR
+    # vexp_line = np.polyfit([2.5, 80], [.0045, .001], 1)
+    # coeff_0 = vexp_line[0]
+    # coeff_1 = vexp_line[1]
+    # results from above:
+    coeff_0 = -4.51612903e-05
+    coeff_1 = 4.61290323e-03
+    vexp_auto = coeff_0*SNR + coeff_1
+
+    if SNR < 2.5:
+        vexp_auto = .0045
+    if SNR > 80:
+        vexp_auto = .001
+    # if SNR < 5:
+    #     vexp_auto = .0045 
+    # elif 5 <= SNR < 20:
+    #     vexp_auto = .004
+    # elif 20 <= SNR < 40:
+    #     vexp_auto = .003
+    # elif 40 <= SNR < 60:
+    #     vexp_auto = .002
+    # elif 60 <= SNR < 100:
+    #     vexp_auto = .0015
+    # else:
+    #     vexp_auto = .001
+
+    return vexp_auto, SNR
+
 def gsmooth(x_array, y_array, var_y, vexp , nsig = 5.0):
     
     # Check for zero variance points, and set to 1E-20
-    for i in range(len(var_y)):
-        if var_y[i] == 0:
-            var_y[i] = 1E-20
-            # var_y[i] = 1E-31
+    # print x_array
+    # print y_array
+    # print var_y
+
+    if var_y is None:
+        var_y = 1.e-31*np.ones(len(y_array))
     
     # Output y-array
     new_y = np.zeros(len(x_array), float)
@@ -64,39 +106,69 @@ def gsmooth(x_array, y_array, var_y, vexp , nsig = 5.0):
 # Function clip() tries to identify absorption lines and cosmic rays
 # Required input is wavelength, flux and inverse variance arrays
 
-def clip(wave, flux, ivar):
+def clip(wave, flux, var, vexp, testing=False):
     # Create an array of all ones
-    var = np.ones(len(flux), float)
+    # var = np.zeros(len(flux), float)
     
     # Create 2 smoothed fluxes, of varying vexp
-    sflux = gsmooth(wave, flux, var, 0.002)
-    
+    sflux = gsmooth(wave, flux, var, vexp)
+    # print 'sflux', sflux
     # Take the difference of the two fluxes and smooth
-    err = abs(flux - sflux)  
+    err = abs(flux - sflux)
     serr = gsmooth(wave, err, var, 0.008)
 
     # Find the wavelengths that need to be clipped (omitting 5800-6000 region)
-    index = np.where(((err/serr > 4.5) & (wave < 5800.0)) | ((err/serr > 3.5) & (wave > 6000.0)))
-    index_na = np.where((err/serr > 10.5) & ((wave > 5800.0) & (wave < 6000.0)))
+    tol1 = 5.5
+    tol2 = 5.5
+    tol_na1 = 10.5
+    index = np.where(((err/serr > tol1) & (wave < 5800.0)) | ((err/serr > tol2) & (wave > 6000.0)))
+    index_na = np.where((err/serr > tol_na1) & ((wave > 5800.0) & (wave < 6000.0)))
+    # index = np.where(((flux/sflux > tol1*serr) & (wave < 5800.0)) | ((flux/sflux > tol2*serr) & (wave > 6000.0)))
+    # index_na = np.where((flux/sflux > tol_na1*serr) & ((wave > 5800.0) & (wave < 6000.0)))
     bad_wave = wave[index]
     bad_wave_na = wave[index_na]
 
     # Find indices for general clipping
     # bad = np.array([], int)
     bad_ranges = [] # if don't need it to be a numpy array (A.S.)
-    
+    buff = 8
     for i in range(len(bad_wave)):
         # bad = np.append(bad, np.where(abs(wave - bad_wave[i]) < 8))
-        bad_ranges.append((bad_wave[i]-8, bad_wave[i]+8)) # instead save each point as tuple of desired range (A.S.)
+        if bad_wave[i] + buff < wave[-1] and bad_wave[i] - buff >= wave[0]:
+            bad_ranges.append((bad_wave[i]-buff, bad_wave[i]+buff))
+        elif bad_wave[i] + buff >= wave[-1]:
+            bad_ranges.append((bad_wave[i]-buff, wave[-2]))
+        elif bad_wave[i] - buff < wave[0]:
+            bad_ranges.append((wave[0], bad_wave[i]+buff))
+
+
 
     for i in range(len(bad_wave_na)):
         # bad = np.append(bad, np.where(abs(wave - bad_wave[i]) < 8))
-        bad_ranges.append((bad_wave_na[i]-8, bad_wave_na[i]+8))
+        bad_ranges.append((bad_wave_na[i]-buff, bad_wave_na[i]+buff))
 
     # Set ivar to 0 for those points and return
 #    ivar[bad] = 0
 #    return ivar
-    return bad_ranges # return bad_ranges instead of setting ivar[bad] = 0 (A.S.)
+    if testing:
+        plt.plot(wave, flux, 'r-')
+
+    for wave_tuple in bad_ranges:
+#        print wave_tuple
+        clip_points = np.where((wave > wave_tuple[0]) & (wave < wave_tuple[1]))
+        #make sure not at edge of spectrum
+        flux[clip_points] = np.interp(wave[clip_points], [wave_tuple[0], wave_tuple[1]], [flux[clip_points[0][0]-1], flux[clip_points[0][-1]+1]])
+
+        #deweight data (but not to 0), somewhat arbitrary
+        if var is not None:
+            var[clip_points] = np.interp(wave[clip_points], [wave_tuple[0], wave_tuple[1]], [var[clip_points[0][0]-1], var[clip_points[0][-1]+1]])
+
+    if testing:
+        plt.plot(wave, flux, 'b-')
+        plt.plot(wave, sflux, 'y-')
+        plt.show()
+
+    return wave, flux, var # return bad_ranges instead of setting ivar[bad] = 0 (A.S.)
     
 # clip function specifically for lines that need ivar to set to nearby ones
 # Currently only for Na lines (5800-5900)
@@ -159,11 +231,12 @@ def addsky(wavelength, flux, error, med_error):
 
     # Scale sky
     # scale = 285*med_error
+    # print med_error
     scale = 50.*med_error #fudge factor provides reasonable scaling of sky lines
     add_flux = scale*add_flux
 
     # Add sky flux to the error
-    new_error = error
+    new_error = copy.deepcopy(error)
     new_error[good] = error[good] + add_flux
 
     return new_error
@@ -178,25 +251,27 @@ def addsky(wavelength, flux, error, med_error):
 ## genivar(wavelength, flux, float vexp = 0.005, float nsig = 5.0)
 #
 
-def genivar(wavelength, flux, varflux , vexp = 0.0008, nsig = 5.0): 
-
+def genivar(wavelength, flux, varflux, vexp = 0.002, nsig = 5.0, testing=False):
     # Check to see if it has a variance already
-    if len(np.where(varflux == 0)[0]) > 0:
-        varflux = np.ones(len(wavelength))
-    else:
-        ivar = 1 / (varflux**2)
-        return ivar
-    
+
+    #UNCOMMENT WHEN DONE TESTING
+    if varflux is not None and not testing:
+        error = np.sqrt(varflux)
+        SNR = np.median(flux / error)
+        ivar = 1. / (varflux)
+        return ivar, SNR
+
     # Smooth original flux
     # new_flux = gsmooth(wavelength, flux, varflux, vexp, nsig)
-    new_flux = gsmooth(wavelength, flux, varflux, .002, nsig)
+
+    new_flux = gsmooth(wavelength, flux, varflux, vexp, nsig)
     
     # Generate absolute value of the noise from original flux
     error = abs(flux - new_flux)
     
     # Smooth noise to find the variance
     # sm_error = gsmooth(wavelength, error, varflux, vexp, nsig)
-    sm_error = gsmooth(wavelength, error, varflux, .007, nsig)
+    sm_error = gsmooth(wavelength, error, varflux, .015, nsig)
 
     # Test wavelength ranges for kecksky overlap
     test1 = np.where((wavelength >= 5000) & (wavelength <= 6000))
@@ -213,11 +288,37 @@ def genivar(wavelength, flux, varflux , vexp = 0.0008, nsig = 5.0):
         sm_error_new = addsky(wavelength, flux, sm_error, med_err)
     else:
         sm_error_new = sm_error
+
+    if varflux is not None:
+        real_error = np.sqrt(varflux)
+        sm_real_error = gsmooth(wavelength, real_error, None, .008)
+        error_scales = sm_real_error/sm_error
+        scale_fit = np.polyfit(wavelength, error_scales, 1)
+        # print scale_fit
+        scale_func = scale_fit[0]*(wavelength) + scale_fit[1]
     
-    sm_var_new = 2.02*sm_error*sm_error #multiply by ideal fudge factor to account for consistently low variance estimate
+
+    scale_func = -5.01307400136e-05*(wavelength) + 1.61999679746 #RESULTING COEFFS FROM RECENT FITS
+    scaled_error = scale_func*sm_error_new
+
+    if testing:
+        plt.plot(wavelength, error)
+        if varflux is not None:
+            plt.plot(wavelength, sm_real_error)
+        plt.plot(wavelength, sm_error_new)
+        plt.plot(wavelength, scale_func*sm_error_new)
+        if varflux is not None:
+            plt.plot(wavelength, real_error)
+        plt.show()
+        if varflux is not None:
+            plt.plot(wavelength, error_scales)
+            plt.plot(wavelength, scale_func)
+            plt.show()
+            
+    sm_var_new = scaled_error*scaled_error
 
     # Inverse variance
     ivar = 1./(sm_var_new)
-    
+    SNR = np.median(new_flux / scaled_error)
     # Return generated variance
-    return ivar
+    return ivar, SNR

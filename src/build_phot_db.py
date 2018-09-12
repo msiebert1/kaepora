@@ -264,6 +264,7 @@ def build_vel_dict():
 
 def dm15_from_fit_params(events, fit_dict, cfa_dict, stretch='N/A'):
 	dm15_arr = []
+	e_dm15_arr = []
 	param_arr = []
 	e_param_arr = []
 	cfa_none = [None,None,None,None,None,None,None,None,None,None,None,None,None,None]
@@ -276,6 +277,7 @@ def dm15_from_fit_params(events, fit_dict, cfa_dict, stretch='N/A'):
 				if dm15_cfa != '9.99' and dm15_cfa != None:
 					dm15_cfa = float(dm15_cfa)
 					dm15_arr.append(dm15_cfa)
+					e_dm15_arr.append(float(cfa_dict.get(event, cfa_none)[5]))
 					if stretch is 'delta_lowrv':
 						param_arr.append(fit_dict.get(event, lowrv_none)[0])
 						e_param_arr.append(fit_dict.get(event,lowrv_none)[1])
@@ -283,42 +285,117 @@ def dm15_from_fit_params(events, fit_dict, cfa_dict, stretch='N/A'):
 						param_arr.append(fit_dict.get(event, fit_none)[6]) #stretch param is 6th index of dicts
 						e_param_arr.append(fit_dict.get(event,fit_none)[7])
 
-	# coeffs = np.polyfit(param_arr, dm15_arr, 2)
-	weights = 1./np.asarray(e_param_arr)
-	coeffs = np.polyfit(dm15_arr, param_arr, 2, w=weights)
-	# x = np.linspace(-5, 5.1, 10000)
-	x = np.linspace(np.amin(dm15_arr), np.amax(dm15_arr), 10000)
-	y = coeffs[0]*x**2. + coeffs[1]*x + coeffs[2]
-	print coeffs
-	print y[0], y[-1]
+	# weights = 1./np.asarray(e_param_arr)
+	# coeffs = np.polyfit(dm15_arr, param_arr, 2, w=weights)
 
+	# x = np.linspace(np.amin(dm15_arr), np.amax(dm15_arr), 10000)
+	# y = coeffs[0]*x**2. + coeffs[1]*x + coeffs[2]
+	# print coeffs
+	# print y[0], y[-1]
+
+	weights = 1./np.asarray(e_dm15_arr)
+	coeffs = np.polyfit(param_arr, dm15_arr, 2, w=weights)
+
+	# x = np.linspace(np.amin(param_arr), np.amax(param_arr), 10000)
+	if stretch is 's':
+		x = np.linspace(.2, 1.3, 10000)
+	if stretch is 'x1':
+		x = np.linspace(-6., 4., 10000)
+	if stretch is 'delta' or stretch is 'delta_lowrv':
+		x = np.linspace(-1., 2., 10000)
+	y = coeffs[0]*x**2. + coeffs[1]*x + coeffs[2]
+	# print coeffs
+	# print y[0], y[-1]
+
+	nsig = 3.
 	clip_param_arr = []
 	clip_e_param_arr = []
 	clip_dm15_arr = []
-	interp_func = inter.splrep(x, y)
-	inter_vals = inter.splev(dm15_arr, interp_func)
-	for i, p in enumerate(param_arr):
-		if np.absolute(p - inter_vals[i])/e_param_arr[i] > 5.:
-			clip_param_arr.append(p)
+	clip_e_dm15_arr = []
+	sig_away = []
+	resids = []
+	inv_resids = []
+	inv_sig_away = []
+
+	# interp_func = interp1d(y, x, bounds_error=False, fill_value=None)
+	# inter_vals = interp_func(param_arr)
+
+	interp_func = interp1d(x, y, bounds_error=False, fill_value=None)
+	inter_vals = interp_func(param_arr)
+	# plt.plot(x, y, 'ro')
+	# plt.plot(param_arr, dm15_arr, 'bo')
+	# plt.plot(param_arr, inter_vals, 'go')
+	# plt.show()
+
+	inv_interp_func = interp1d(y, x, bounds_error=False, fill_value="extrapolate")
+	inv_inter_vals = inv_interp_func(dm15_arr)
+
+	for i, p in enumerate(dm15_arr):
+		resids.append(p - inter_vals[i])
+		sig_away.append(np.absolute(p - inter_vals[i])/e_dm15_arr[i])
+
+		inv_resids.append(param_arr[i] - inv_inter_vals[i])
+		inv_sig_away.append(np.absolute(param_arr[i] - inv_inter_vals[i])/e_param_arr[i])
+
+		if np.absolute(p - inter_vals[i])/e_dm15_arr[i] > nsig and np.absolute(param_arr[i] - inv_inter_vals[i])/e_param_arr[i] > nsig:
+		# if np.absolute(p - inter_vals[i])/e_dm15_arr[i] > nsig:
+			clip_dm15_arr.append(p)
+			clip_e_dm15_arr.append(e_dm15_arr[i])
+			clip_param_arr.append(param_arr[i])
 			clip_e_param_arr.append(e_param_arr[i])
-			clip_dm15_arr.append(dm15_arr[i])
 
 	new_param_arr = []
 	new_e_param_arr = []
 	new_dm15_arr = []
-	for i, p in enumerate(param_arr):
-		if p not in clip_param_arr:
-			new_param_arr.append(p)
+	new_e_dm15_arr = []
+	new_resids = []
+	# print inv_sig_away
+	for i, p in enumerate(dm15_arr):
+		if sig_away[i] < nsig or inv_sig_away[i] < nsig:
+		# if sig_away[i] < nsig:
+			new_dm15_arr.append(p)
+			new_e_dm15_arr.append(e_dm15_arr[i])
+			new_param_arr.append(param_arr[i])
 			new_e_param_arr.append(e_param_arr[i])
-			new_dm15_arr.append(dm15_arr[i])
+			new_resids.append(resids[i])
 
-	weights = 1./np.asarray(new_e_param_arr)
-	coeffs = np.polyfit(new_dm15_arr, new_param_arr, 2, w=weights)
-	# x = np.linspace(-5, 5.1, 10000)
-	new_x = np.linspace(np.amin(new_dm15_arr), np.amax(new_dm15_arr), 10000)
-	new_y = coeffs[0]*x**2. + coeffs[1]*x + coeffs[2]
+	se = ((1./np.asarray(new_e_dm15_arr))*(np.asarray(new_resids)**2.))/(np.average(1./np.asarray(new_e_dm15_arr)))
+	# se = (np.asarray(new_resids)**2.)
+	mse = np.sum(se)/(len(new_resids) - 3.)
+	rmse = np.sqrt(mse)
+	print 'RMSE: ', rmse
+	print 'Outlier Fraction: ', float(len(clip_dm15_arr))/float(len(dm15_arr))
+	# s
+	# RMSE:  0.0718342630003
+	# Outlier Fraction:  0.0752688172043
+	# [ 1.7240621  -4.66995066  3.93727553]
+
+	# x1
+	# RMSE:  0.066249618878
+	# Outlier Fraction:  0.0504201680672
+	# [ 0.01828958 -0.13430543  1.02585001]
+
+	# delta
+	# RMSE:  0.070183174903
+	# Outlier Fraction:  0.0230769230769
+	# [-0.16315158  0.76583297  1.12697325]
+
+	# delta25 
+	# RMSE:  0.07406417245
+	# Outlier Fraction:  0.139423076923
+	# [-0.04957799  0.56115546  1.11213983]
+
+	# weights = 1./np.asarray(new_e_param_arr)
+	# coeffs = np.polyfit(new_dm15_arr, new_param_arr, 2, w=weights)
+	weights = 1./np.asarray(new_e_dm15_arr)
+	coeffs = np.polyfit(new_param_arr, new_dm15_arr, 2, w=weights)
+	# new_x = np.linspace(np.amin(new_dm15_arr), np.amax(new_dm15_arr), 10000)
+	# new_y = coeffs[0]*new_x**2. + coeffs[1]*new_x + coeffs[2]
+	new_x = np.linspace(np.amin(new_param_arr), np.amax(new_param_arr), 10000)
+	new_y = coeffs[0]*new_x**2. + coeffs[1]*new_x + coeffs[2]
 	print coeffs
-	print new_y[0], new_y[-1]
+	print 
+	# print new_y[0], new_y[-1]
 
 	# plotted in lc_fitting_relationships.py
 	plt.rc('font', family='serif')
@@ -341,38 +418,65 @@ def dm15_from_fit_params(events, fit_dict, cfa_dict, stretch='N/A'):
 		left='on',
 		right='on',
 		length=5)
-	plt.plot(y, x, 'k', linewidth=4)
-	plt.plot(new_y, new_x, 'g', linewidth=4)
-	plt.ylim(.6,2.2)
-	plt.ylabel('$\Delta m_{15}$ (B)', fontsize = 30)
+	# plt.plot(y, x, 'k', linewidth=4)
+	# plt.plot(new_y, new_x, 'g', linewidth=4)
+	# plt.plot(x, y, 'k', linewidth=4)
+	plt.plot(new_x, new_y, 'k', linewidth=4)
+	# plt.ylim(.6,2.2)
+	plt.ylabel('$\Delta m_{15}$ (B) (mag)', fontsize = 30)
 	if stretch is 's':
-		plt.errorbar(new_param_arr, new_dm15_arr, xerr=new_e_param_arr, fmt='o', color='#7570b3', ms=10)
-		plt.errorbar(clip_param_arr, clip_dm15_arr, xerr=clip_e_param_arr, fmt='x', color='black', ms=30, mew=3)
+		plt.errorbar(new_param_arr, new_dm15_arr, xerr=new_e_param_arr, yerr= new_e_dm15_arr, fmt='o', color='#7570b3', ms=10)
+		# plt.errorbar(new_param_arr, new_dm15_arr, xerr=new_e_param_arr, fmt='o', color='#7570b3', ms=10)
+		plt.errorbar(clip_param_arr, clip_dm15_arr, xerr=clip_e_param_arr, yerr=clip_e_dm15_arr, fmt='x', color='black', ms=10, mew=1)
+		# plt.errorbar(clip_param_arr, clip_dm15_arr, xerr=clip_e_param_arr, fmt='x', color='black', ms=30, mew=3)
 		plt.xlim(.4, 1.3)
 		plt.xlabel('s', fontsize = 30)
-		# plt.savefig('../../Paper_Drafts/dm15_s.pdf', dpi = 300, bbox_inches = 'tight')
+		# plt.savefig('../../../Paper_Drafts/reprocessing/dm15_s.pdf', dpi = 300, bbox_inches = 'tight')
 	elif stretch is 'x1':
-		plt.errorbar(new_param_arr, new_dm15_arr, xerr=new_e_param_arr, fmt='o', color='#1b9e77', ms=10)
-		plt.errorbar(clip_param_arr, clip_dm15_arr, xerr=clip_e_param_arr, fmt='x', color='black', ms=30, mew=3)
+		plt.errorbar(new_param_arr, new_dm15_arr, xerr=new_e_param_arr, yerr= new_e_dm15_arr, fmt='o', color='#1b9e77', ms=10)
+		# plt.errorbar(new_param_arr, new_dm15_arr, xerr=new_e_param_arr, fmt='o', color='#1b9e77', ms=10)
+		plt.errorbar(clip_param_arr, clip_dm15_arr, xerr=clip_e_param_arr, yerr=clip_e_dm15_arr, fmt='x', color='black', ms=10, mew=1)
+		# plt.errorbar(clip_param_arr, clip_dm15_arr, xerr=clip_e_param_arr, fmt='x', color='black', ms=30, mew=3)
 		plt.xlim(-5., 3.)
 		plt.xlabel('$x_1$', fontsize = 30)
-		# plt.savefig('../../Paper_Drafts/dm15_x1.pdf', dpi = 300, bbox_inches = 'tight')
+		# plt.savefig('../../../Paper_Drafts/reprocessing/dm15_x1.pdf', dpi = 300, bbox_inches = 'tight')
 	elif stretch is 'delta':
-		plt.errorbar(new_param_arr, new_dm15_arr, xerr=new_e_param_arr, fmt='o', color='#d95f02', ms=10)
-		plt.errorbar(clip_param_arr, clip_dm15_arr, xerr=clip_e_param_arr, fmt='x', color='black', ms=30, mew=3)
+		plt.errorbar(new_param_arr, new_dm15_arr, xerr=new_e_param_arr, yerr= new_e_dm15_arr, fmt='o', color='#d95f02', ms=10)
+		# plt.errorbar(new_param_arr, new_dm15_arr, xerr=new_e_param_arr, fmt='o', color='#d95f02', ms=10)
+		plt.errorbar(clip_param_arr, clip_dm15_arr, xerr=clip_e_param_arr, yerr=clip_e_dm15_arr, fmt='x', color='black', ms=10, mew=1)
+		# plt.errorbar(clip_param_arr, clip_dm15_arr, xerr=clip_e_param_arr, fmt='x', color='black', ms=30, mew=3)
 		plt.xlim(-.5, 1.8)
 		plt.xlabel('$\Delta$', fontsize = 30)
-		# plt.savefig('../../Paper_Drafts/dm15_delta.pdf', dpi = 300, bbox_inches = 'tight')
+		# plt.savefig('../../../Paper_Drafts/reprocessing/dm15_delta.pdf', dpi = 300, bbox_inches = 'tight')
 	elif stretch is 'delta_lowrv':
-		plt.errorbar(new_param_arr, new_dm15_arr, xerr=new_e_param_arr, fmt='o', color='#d95f02', ms=10)
-		plt.errorbar(clip_param_arr, clip_dm15_arr, xerr=clip_e_param_arr, fmt='x', color='black', ms=30, mew=3)
+		plt.errorbar(new_param_arr, new_dm15_arr, xerr=new_e_param_arr, yerr= new_e_dm15_arr, fmt='o', color='#d95f02', ms=10)
+		# plt.errorbar(new_param_arr, new_dm15_arr, xerr=new_e_param_arr, fmt='o', color='#d95f02', ms=10)
+		plt.errorbar(clip_param_arr, clip_dm15_arr, xerr=clip_e_param_arr, yerr=clip_e_dm15_arr, fmt='x', color='black', ms=10, mew=1)
+		# plt.errorbar(clip_param_arr, clip_dm15_arr, xerr=clip_e_param_arr, fmt='x', color='black', ms=30, mew=3)
 		plt.xlim(-.9, 2.0)
 		plt.xlabel('$\Delta$', fontsize = 30)
-		# plt.savefig('../../Paper_Drafts/dm15_delta_lowrv.pdf', dpi = 300, bbox_inches = 'tight')
+		# plt.savefig('../../../Paper_Drafts/reprocessing/dm15_delta_lowrv.pdf', dpi = 300, bbox_inches = 'tight')
 	plt.show()
 
 	# dm15_interp = interp1d(x, y, bounds_error = True)
 	dm15_interp = interp1d(y, x, bounds_error=False, fill_value=None)
+
+	###
+	# RMSE:  0.0718342630003
+	# Outlier Fraction:  0.0752688172043
+	# [ 1.7240621  -4.66995066  3.93727553]
+
+	# RMSE:  0.066249618878
+	# Outlier Fraction:  0.0504201680672
+	# [ 0.01828958 -0.13430543  1.02585001]
+
+	# RMSE:  0.070183174903
+	# Outlier Fraction:  0.0230769230769
+	# [-0.16315158  0.76583297  1.12697325]
+
+	# RMSE:  0.07406417245
+	# Outlier Fraction:  0.139423076923
+	# [-0.04957799  0.56115546  1.11213983]
 	return dm15_interp
 
 
@@ -406,9 +510,9 @@ if __name__ == "__main__":
 	dm15_x1_interp = dm15_from_fit_params(events, salt2_dict, cfa_dict, stretch='x1')
 	dm15_delta_interp = dm15_from_fit_params(events, mlcs31_dict, cfa_dict, stretch='delta')
 	dm15_delta_lowrv_interp = dm15_from_fit_params(events, delt_dict, cfa_dict, stretch='delta_lowrv')
-	raise TypeError
+	# raise TypeError
 
-	con = sq3.connect('..\data\SNe_19_phot_9.db')
+	con = sq3.connect('..\data\SNIaDB_Spec_v20_phot_v10.db')
 	con.execute("""DROP TABLE IF EXISTS Photometry""")
 	con.execute("""CREATE TABLE IF NOT EXISTS Photometry (SN TEXT, RA TEXT, DEC TEXT, 
 														  zCMB_salt REAL, e_zCMB_salt REAL, Bmag_salt REAL, e_Bmag_salt REAL, s_salt REAL, e_s_salt REAL, c_salt REAL, e_c_salt REAL, mu_salt REAL, e_mu_salt REAL,
@@ -507,10 +611,13 @@ if __name__ == "__main__":
 				dm15_from_delta_lowrv = float(dm15_delta_lowrv_interp(delta_lowrv[0]))
 
 			# dm15_from_fits = np.nanmean([dm15_from_s, dm15_from_x1, dm15_from_delta])
-			dm15s = [dm15_from_delta_lowrv, dm15_from_delta, dm15_from_s, dm15_from_x1] #change order to give fits different priority
-			for dm in dm15s:
+			# dm15s = [dm15_from_delta_lowrv, dm15_from_delta, dm15_from_s, dm15_from_x1] #change order to give fits different priority
+			dm15s = [dm15_from_delta, dm15_from_x1, dm15_from_s, dm15_from_delta_lowrv] #change order to give fits different priority
+			e_dm15s = [0.070, 0.066, 0.072, 0.074] #errors from fits
+			for i, dm in enumerate(dm15s):
 				if dm != np.NaN:
 					dm15_from_fits = dm
+					e_dm15 = e_dm15s[i]
 					break
 				else:
 					dm15_from_fits = np.NaN
@@ -519,8 +626,6 @@ if __name__ == "__main__":
 			if dm15_from_fits == np.NaN:
 				dm15_from_fits = None
 				e_dm15 = None
-			else:
-				e_dm15 = .1 # need to calculate this 
 		else:
 			dm15_from_fits = None
 

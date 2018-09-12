@@ -90,7 +90,10 @@ def bad_files():
 							'2005cf_20050531_3321_9999_00.dat', 'SN06fw_060917_b01_DUP_WF.dat',			#large SNR biases early time composite, low signal
 							'sn1991bg-19911214.824-iue.flm','sn1989b-19890215.flm',						#reddening wrong, reddening wrong
 							'sn1998co-19980627.46-fast.flm','sn2006ob-20061201.107-ui.flm',             #reddening wrong, very noisy
-							'sn2005cf-20050611-hst.flm','sn2005cf-20050614-hst.flm']				
+							'sn2005cf-20050611-hst.flm','sn2005cf-20050614-hst.flm',
+							'sn2005A-20050107.25-fast.flm','sn1980n-19801213.495-iue.flm',              #very noisy doesnt scale properly, bad uv spectrum
+							'2003du_20030508_4066_10997_00.dat', 'sn2014j-20140201.37-fixedbg-swift-max.flm', #need to trim, need to trim	
+							'2002bo_20020323_3356_10385_00.dat'] 										#SNR to high
 
 		print len(bad_files), 'questionable files currently ignored'
 		return bad_files

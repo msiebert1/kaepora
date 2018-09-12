@@ -4,6 +4,47 @@ import numpy as np
 import copy
 from scipy.integrate import simps
 
+def autosmooth(x_array, y_array, var_y=None):
+	if var_y is not None:
+		error = np.sqrt(var_y)
+		new_y_init = df.gsmooth(x_array, y_array, var_y, .001)
+		SNR = np.mean(y_array / error)
+		# SNR = np.mean(new_y_init / error)
+	else:
+		var_y = np.ones(len(x_array))
+		new_y_init = df.gsmooth(x_array, y_array, var_y, .002)
+		error = np.absolute(y_array - new_y_init)
+		sm_error = df.gsmooth(x_array, error, var_y, .008)
+		SNR = np.median(new_y_init / sm_error)
+
+	# if SNR < 5:
+	# 	vexp_auto = .0025 #temp value, need to fine tune using SNR in excel spreadsheet
+	# elif 5 <= SNR < 20:
+	# 	vexp_auto = .002
+	# elif 20 <= SNR < 40:
+	# 	vexp_auto = .0015
+	# elif 40 <= SNR < 60:
+	# 	vexp_auto = .001
+	# elif 60 <= SNR < 100:
+	# 	vexp_auto = .00075
+	# else:
+	# 	vexp_auto = .0005
+
+	if SNR < 5:
+		vexp_auto = .0045 #temp value, need to fine tune using SNR in excel spreadsheet
+	elif 5 <= SNR < 20:
+		vexp_auto = .004
+	elif 20 <= SNR < 40:
+		vexp_auto = .003
+	elif 40 <= SNR < 60:
+		vexp_auto = .002
+	elif 60 <= SNR < 100:
+		vexp_auto = .0015
+	else:
+		vexp_auto = .001
+
+	return vexp_auto, SNR
+
 def measure_color(SN, c1='B', c2='R', filt_type='Bessel'):
 	
 	c_AAs = 2.99792458e18
@@ -53,7 +94,7 @@ def find_extrema(wavelength,sm_flux):
 	return maxima
 
 
-def measure_si_ratio(wavelength,flux, varflux = None, vexp=.002, smooth=True, dm15 = None):
+def measure_si_ratio(wavelength,flux, varflux = None, vexp=.002, smooth=True, dm15 = None, plot=True):
 	if varflux == None:
 		varflux = np.zeros(len(wavelength), float)
 
@@ -137,31 +178,56 @@ def measure_si_ratio(wavelength,flux, varflux = None, vexp=.002, smooth=True, dm
 	interp_flux[weak_si_trough] = np.interp(wavelength[weak_si_trough], [si_max_wave_1, si_max_wave_2], [si_max_1, si_max_2])
 	interp_flux[strong_si_trough] = np.interp(wavelength[strong_si_trough], [si_max_wave_2, si_max_wave_3], [si_max_2, si_max_3])
 
-	v_strong, si_min_wave = measure_velocity(wavelength,flux, 5900., 6300.)
-	v_weak, si_weak_min_wave = measure_weak_si_velocity(wavelength,flux)
 
-	si_min_index = np.where(wavelength == si_min_wave)
-	si_weak_min_index = np.where(wavelength == si_weak_min_wave)
+	# v_strong, si_min_wave = measure_velocity(wavelength,flux, 5900., 6300.)
+	# v_weak, si_weak_min_wave = measure_weak_si_velocity(wavelength,flux)
+
+	# si_min_index = np.where(wavelength == si_min_wave)
+	# si_weak_min_index = np.where(wavelength == si_weak_min_wave)
+
+	#find max of diffs instead of finding minimum
+	strong_line_diffs = interp_flux[strong_si_trough] - sm_flux[strong_si_trough]
+	weak_line_diffs = interp_flux[weak_si_trough] - sm_flux[weak_si_trough]
+
 
 	#Line ratio with fractional depths
 	# strong_line = (interp_flux[si_min_index] - sm_flux[si_min_index])/interp_flux[si_min_index]
 	# weak_line = (interp_flux[si_weak_min_index] - sm_flux[si_weak_min_index])/interp_flux[si_weak_min_index]
 
-	strong_line = (interp_flux[si_min_index] - sm_flux[si_min_index])
-	weak_line = (interp_flux[si_weak_min_index] - sm_flux[si_weak_min_index])
+	# strong_line = (interp_flux[si_min_index] - sm_flux[si_min_index])
+	# weak_line = (interp_flux[si_weak_min_index] - sm_flux[si_weak_min_index])
+
+	strong_line = np.amax(strong_line_diffs)
+	weak_line = np.amax(weak_line_diffs)
+	strong_ind = np.where(strong_line_diffs == strong_line)
+	weak_ind = np.where(weak_line_diffs == weak_line)
 
 	ratio = weak_line/strong_line
-	ratio = ratio[0]
+	# ratio = ratio[0]
+
 
 	# if ratio > .5:
-	# 	plt.plot(wavelength,flux)
-	# 	plt.plot(wavelength,sm_flux)
-	# 	plt.plot(wavelength, interp_flux)
-	# 	plt.plot(wavelength[si_min_index], interp_flux[si_min_index], 'o', color='orange')
-	# 	plt.plot(wavelength[si_min_index], sm_flux[si_min_index], 'o', color='orange')
-	# 	plt.plot(wavelength[si_weak_min_index], interp_flux[si_weak_min_index], 'o', color='orange')
-	# 	plt.plot(wavelength[si_weak_min_index], sm_flux[si_weak_min_index], 'o', color='orange')
-	# 	plt.show()
+	if plot:
+		plt.plot(wavelength,flux)
+		plt.plot(wavelength,sm_flux)
+		plt.plot(wavelength, interp_flux)
+		plt.plot(wavelength[strong_si_trough][strong_ind], interp_flux[strong_si_trough][strong_ind], 'o', color='orange')
+		plt.plot(wavelength[strong_si_trough][strong_ind], sm_flux[strong_si_trough][strong_ind], 'o', color='orange')
+		plt.plot(wavelength[weak_si_trough][weak_ind], interp_flux[weak_si_trough][weak_ind], 'o', color='orange')
+		plt.plot(wavelength[weak_si_trough][weak_ind], sm_flux[weak_si_trough][weak_ind], 'o', color='orange')
+		plt.xlim([5000.,7000.])
+		plt.ylim([0.,.6])
+		plt.show()
+
+	# plt.plot(wavelength,flux)
+	# plt.plot(wavelength,sm_flux)
+	# plt.plot(wavelength, interp_flux)
+	# plt.plot(wavelength[si_min_index], interp_flux[si_min_index], 'o', color='orange')
+	# plt.plot(wavelength[si_min_index], sm_flux[si_min_index], 'o', color='orange')
+	# plt.plot(wavelength[si_weak_min_index], interp_flux[si_weak_min_index], 'o', color='orange')
+	# plt.plot(wavelength[si_weak_min_index], sm_flux[si_weak_min_index], 'o', color='orange')
+	# plt.xlim([5000.,7000.])
+	# plt.show()
 
 	return ratio
 
@@ -200,7 +266,7 @@ def measure_ca_ratio(wavelength,flux, varflux = None, wave1 = 3550., wave2=3680.
 
 	return ca_max_2/ca_max_1
 
-def measure_velocity(wavelength, flux, wave1, wave2, vexp=.001, rest_wave=6355., varflux=None):
+def measure_velocity(wavelength, flux, wave1, wave2, vexp=.001, rest_wave=6355., varflux=None, plot=False):
 	if varflux == None:
 		varflux = np.zeros(len(wavelength), float)
 
@@ -218,13 +284,16 @@ def measure_velocity(wavelength, flux, wave1, wave2, vexp=.001, rest_wave=6355.,
 	# rest_wave = 6355. #Angstroms
 
 	v = c*((rest_wave/si_min_wave)**2. - 1)/(1+((rest_wave/si_min_wave)**2.))
-	# plt.plot(wavelength, flux)
-	# plt.plot(wavelength, sm_flux)
-	# plt.plot(si_min_wave, si_min, 'o', color='orange')
-	# plt.show()
+	if plot:
+		plt.plot(wavelength, flux)
+		plt.plot(wavelength, sm_flux)
+		plt.plot(si_min_wave, si_min, 'o', color='orange')
+		plt.xlim([5000.,7000.])
+		plt.ylim([0.,.6])
+		plt.show()
 	return v, si_min_wave
 
-def measure_weak_si_velocity(wavelength, flux, varflux=None):
+def measure_weak_si_velocity(wavelength, flux, varflux=None, plot=True):
 	if varflux == None:
 		varflux = np.zeros(len(wavelength), float)
 
@@ -241,10 +310,13 @@ def measure_weak_si_velocity(wavelength, flux, varflux=None):
 	si_rest_wave = 5979. #Angstroms
 
 	v = c*((si_rest_wave/si_min_wave)**2. - 1)/(1+((si_rest_wave/si_min_wave)**2.))
-	# plt.plot(wavelength, flux)
-	# plt.plot(wavelength, sm_flux)
-	# plt.plot(si_min_wave, si_min, 'o')
-	# plt.show()
+	# if plot:
+	# 	plt.plot(wavelength, flux)
+	# 	plt.plot(wavelength, sm_flux)
+	# 	plt.plot(si_min_wave, si_min, 'o')
+	# 	plt.xlim([5000.,7000.])
+	# 	plt.ylim([0.,.6])
+	# 	plt.show()
 	return v, si_min_wave
 
 	#carbon II is 6580A (2006bt good example)
@@ -268,10 +340,10 @@ def measure_si_velocity_from_raw(wavelength,flux,z, varflux=None):
 	si_rest_wave = 6355. #Angstroms
 	v = c*((si_rest_wave/si_min_wave)**2. - 1)/(1+((si_rest_wave/si_min_wave)**2.))
 	# v = c*(si_min_wave - si_rest_wave)/si_rest_wave
-	plt.plot(wavelength, flux)
-	plt.plot(wavelength, sm_flux)
-	plt.plot(si_min_wave, si_min, 'o', color='orange')
-	plt.show()
+	# plt.plot(wavelength, flux)
+	# plt.plot(wavelength, sm_flux)
+	# plt.plot(si_min_wave, si_min, 'o', color='orange')
+	# plt.show()
 	return v, si_min_wave
 
 def measure_C_velocity_from_raw(wavelength,flux,z, varflux=None):
@@ -292,10 +364,10 @@ def measure_C_velocity_from_raw(wavelength,flux,z, varflux=None):
 	C_rest_wave = 6580. #Angstroms
 	v = c*((C_rest_wave/C_min_wave)**2. - 1)/(1+((C_rest_wave/C_min_wave)**2.))
 	# v = c*(si_min_wave - si_rest_wave)/si_rest_wave
-	plt.plot(wavelength, flux)
-	plt.plot(wavelength, sm_flux)
-	plt.plot(C_min_wave, C_min, 'o', color='orange')
-	plt.show()
+	# plt.plot(wavelength, flux)
+	# plt.plot(wavelength, sm_flux)
+	# plt.plot(C_min_wave, C_min, 'o', color='orange')
+	# plt.show()
 	return v, C_min_wave
 
 def resample_spectrum(SN):

@@ -8,9 +8,9 @@ import os
 import glob
 
 mn.patch()
-data_file = '../../swift_uvspec/swift_uv_log.txt'
-files = glob.glob("..\..\swift_uvspec\*.flm")
-con = sq3.connect('../data/SNe_19_phot_9.db')
+data_file = '../../../swift_uvspec/swift_uv_log.txt'
+files = glob.glob("..\..\..\swift_uvspec\*.flm")
+con = sq3.connect('../data/SNIaDB_Spec_v20_phot_v10.db')
 with open(data_file) as data:
 	data_dict = {}
 	for line in data.readlines()[1:]:
@@ -20,7 +20,7 @@ with open(data_file) as data:
 			spectrum = np.loadtxt(spec)
 			source = 'swift_uv'
 			print spec_file	
-			sn_data = data_dict[spec_file.split('\\')[3]]
+			sn_data = data_dict[spec_file.split('\\')[4]]
 			if sn_data[0][0:2].lower() == 'sn':
 				sn_name = sn_data[0][2:]
 			else:
@@ -36,7 +36,7 @@ with open(data_file) as data:
 
 			interp_spec, sig_noise = prep.compprep(spectrum, sn_name, redshift, source)
 			interped = msg.packb(interp_spec)
-			name = spec_file.split('\\')[3]
+			name = spec_file.split('\\')[4]
 			min_wave = spectrum[0][0]
 			max_wave = spectrum[-1][0]
 
@@ -49,7 +49,6 @@ with open(data_file) as data:
 			hubble_residual = None
 			mjd = None
 			ref = None
-
 			con.execute("""INSERT INTO Supernovae(Filename, SN, Source,
 							Redshift, Phase, MinWave, MaxWave, Dm15, M_B,
 							B_mMinusV_m, Velocity, Morphology, Carbon,

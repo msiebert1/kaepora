@@ -118,7 +118,7 @@ For the spectra that does not cover the whole range of specified wavelength,
 we output the outside values as NAN
 """
 
-from datafidelity import *  # Get inverse variance from the datafidelity outcome
+import datafidelity as df  # Get inverse variance from the datafidelity outcome
 
 def Interpo (wave, flux, ivar):
     wave_min = 1000
@@ -128,7 +128,6 @@ def Interpo (wave, flux, ivar):
     #wavelength = np.linspace(wave_min,wave_max,(wave_max-wave_min)/pix+1)
     wavelength = np.arange(math.ceil(wave_min), math.floor(wave_max),
                            dtype=int, step=dw)  # creates N equally spaced wavelength values
-    bad_points = []
     inter_flux = []
     inter_ivar = []
     output = []
@@ -137,8 +136,7 @@ def Interpo (wave, flux, ivar):
     upper = wave[-1]
 
     #ivar = clip(wave, flux, ivar) #clip bad points in flux (if before interpolation)
-    # ivar = clipmore(wave,flux,ivar)    
-    bad_points = clip(wave, flux, ivar)  # if returned bad points range instead of ivar
+    # ivar = clipmore(wave,flux,ivar)
 #    print 'ivar', ivar
 #    print 'bad points', bad_points
     #ivar[ivar < 0] = 0 # make sure no negative points
@@ -153,17 +151,7 @@ def Interpo (wave, flux, ivar):
     inter_flux = inter.splev(wavelength, influx, ext = 3)	 # fits b-spline over wavelength range
     inter_ivar = inter.splev(wavelength, inivar, ext = 3)   # doing the same with errors
 
-#    inter_ivar = clip(wavelength, inter_flux, inter_var) #clip bad points (if do after interpolation)
-
-    # Then the below code (or something similar) would do it (A.S.)
-    for wave_tuple in bad_points:
-#        print wave_tuple
-        zero_points = np.where((wavelength > wave_tuple[0]) & (wavelength < wave_tuple[1]))
-        #make sure not at edge of spectrum
-        inter_flux[zero_points] = np.interp(wavelength[zero_points], [wave_tuple[0], wave_tuple[1]], [inter_flux[zero_points[0][0]-1], inter_flux[zero_points[0][-1]+1]])
-        #deweight data (but not to 0), somewhat arbitrary
-        inter_ivar[zero_points] = np.interp(wavelength[zero_points], [wave_tuple[0], wave_tuple[1]], [inter_ivar[zero_points[0][0]-1], inter_ivar[zero_points[0][-1]+1]])
-        # inter_ivar[zero_points] = 0
+#    inter_ivar = clip(wavelength, inter_flux, inter_var) #clip bad points (if do after interpolation
 
     inter_ivar[inter_ivar < 0] = 0  # make sure there are no negative points!
     
@@ -189,16 +177,53 @@ def getsnr(flux, ivar):
     return snr_med
 
 
-def compprep(spectrum, sn_name, z, source, use_old_error=True):
+def compprep(spectrum, sn_name, z, source, use_old_error=True, testing=False):
     old_wave = spectrum[:, 0]	    # wavelengths
     old_flux = spectrum[:, 1] 	# fluxes
     try:
         old_error = spectrum[:, 2]  # check if supernovae has error array
     except IndexError:
-        old_error = np.array([0])  # if not, set default
+        old_error = None  # if not, set default
     if sn_name == '2011fe' and source == 'other':
         old_error = np.sqrt(old_error)
-    old_ivar = genivar(old_wave, old_flux, old_error)  # generate inverse variance
+    if old_error is not None:
+        old_var = old_error**2.
+    else:
+        old_var = None
+
+    if old_var is not None:
+        num_non_zeros = np.count_nonzero(old_var)
+        if len(old_var) - num_non_zeros > 100:
+            old_var = None
+        elif old_var[-1] == 0.:
+            old_var[-1] = old_var[-2]
+        elif True in np.isnan(old_var):
+            nan_inds = np.transpose(np.argwhere(np.isnan(old_var)))[0]
+            for ind in nan_inds:
+                if ind != 0:
+                    old_var[ind] = old_var[ind-1]
+                else:
+                    old_var[ind] = old_var[ind+1]
+
+    if testing:
+        plt.plot(old_wave, old_flux)
+        plt.show()
+        if old_var is not None:
+            plt.plot(old_wave, old_var)
+            plt.show()
+    # old_var = None
+    vexp, SNR = df.find_vexp(old_wave, old_flux, var_y=old_var)
+    if testing:
+        print vexp, SNR
+    old_wave, old_flux, old_var = df.clip(old_wave, old_flux, old_var, vexp, testing=testing) #clip emission/absorption lines
+    temp_ivar, SNR = df.genivar(old_wave, old_flux, old_var, vexp=vexp, testing=testing)  # generate inverse variance
+    if testing:
+        print SNR
+
+    if old_var is not None:
+        old_ivar = 1./old_var
+    else:
+        old_ivar = temp_ivar
     # snr = getsnr(old_flux, old_ivar)
 
     if source == 'cfa':  # choosing source dataset
@@ -215,26 +240,36 @@ def compprep(spectrum, sn_name, z, source, use_old_error=True):
         sne = ReadExtin('extinctionother.dat')
     if source == 'swift_uv':
         sne = ReadExtin('extinctionswiftuv.dat')
+    if source == 'foley_hst':
+        sne = ReadExtin('extinctionhst.dat')
 
 #     host_reddened = ReadExtin('../data/info_files/ryan_av.txt')
     newdata = []
     old_wave = old_wave*u.Angstrom        # wavelengths
     old_flux = old_flux*u.Unit('W m-2 angstrom-1 sr-1')
     spec1d = Spectrum1D.from_array(old_wave, old_flux)
-    test_flux = test_dered.dered(sne, sn_name, spec1d.wavelength, spec1d.flux)  # Dereddening (see if sne in extinction files match the SN name)
+    spec1d_ivar = Spectrum1D.from_array(old_wave, old_ivar)
+    dered_flux, dered_ivar = test_dered.dered(sne, sn_name, spec1d.wavelength, spec1d.flux, spec1d_ivar.flux)  # Dereddening (see if sne in extinction files match the SN name)
 #     new_flux = host_correction(sne, sn_name, old_wave, new_flux)
 
     # new_flux = old_flux
-    new_flux = test_flux.value
+    new_flux = dered_flux.value
+    new_ivar = dered_ivar.value
     old_wave = old_wave.value
+
+    if testing:
+        plt.plot(old_wave, old_flux)
+        plt.plot(old_wave, new_flux)
+        plt.show()
+        plt.plot(old_wave, old_ivar)
+        plt.plot(old_wave, new_ivar)
+        plt.show()
 
     new_wave = old_wave/(1.+z)  # Deredshifting
     if not use_old_error:
-        new_error =  np.zeros(len(old_wave), float)
+        new_var = None
     else:
-        new_error = old_error  # Placeholder if it needs to be changed
-    new_ivar = genivar(new_wave, new_flux, new_error)  # generate new inverse variance
-    snr = getsnr(old_flux, new_ivar)
+        new_var = old_var  # Placeholder if it needs to be changed
     #var = new_flux*0+1
     newdata = Interpo(new_wave, new_flux, new_ivar)  # Do the interpolation
-    return newdata, snr
+    return newdata, SNR

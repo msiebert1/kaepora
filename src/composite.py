@@ -33,6 +33,7 @@ import questionable_spectra as qspec
 import telluric_spectra as tspec
 import query_db as qdb
 import spectral_analysis as sa
+import gini
 
 np.set_printoptions(threshold=np.nan)
 mn.patch()
@@ -95,7 +96,7 @@ def grab(sql_input, multi_epoch = False, make_corr = True, selection = 'max_cove
 	   with the newly added attributes.
 	"""
 	print "Collecting data..."
-	con = sq3.connect('../data/SNe_19_phot_9.db')
+	con = sq3.connect('../data/SNIaDB_Spec_v20_phot_v10.db')
 	# con = sq3.connect('../data/SNe_14.db')
 	cur = con.cursor()
 
@@ -308,7 +309,8 @@ def grab(sql_input, multi_epoch = False, make_corr = True, selection = 'max_cove
 		non_nan_data = np.where(nan_bool_flux == False)
 		nan_data = np.where(nan_bool_flux == True)
 		SN.flux[nan_data]         = np.nan
-		SN.ivar[nan_data] 		  = 0
+		# SN.ivar[nan_data] 		  = np.nan
+		SN.ivar[nan_data] 		  = 0.
 		SN.phase_array[nan_data]  = np.nan
 		SN.dm15_array[nan_data]   = np.nan
 		SN.red_array[nan_data]    = np.nan
@@ -582,12 +584,12 @@ def average(SN_Array, template, medmean, boot, fluxes, ivars, dm15_ivars, red_iv
 	if medmean == 2:
 		# template.flux  = np.median(fluxes, axis=0)
 		# template.flux  = np.ma.median(temp_fluxes, axis=0).filled(0)
-		template.flux = np.nanmedian(fluxes, axis=0)
+		template.flux = np.ma.median(fluxes, axis=0).filled(np.nan)
 		if not boot:
-			template.phase_array   = np.nanmedian(ages, axis=0)
-			template.vel   = np.nanmedian(vels, axis=0)
-			template.dm15_array  = np.nanmedian(dm15s, axis=0)
-			template.red_array = np.nanmedian(reds, axis=0)
+			template.phase_array   = np.ma.median(ages, axis=0).filled(np.nan)
+			template.vel   = np.ma.median(vels, axis=0).filled(np.nan)
+			template.dm15_array  = np.ma.median(dm15s, axis=0).filled(np.nan)
+			template.red_array = np.ma.median(reds, axis=0).filled(np.nan)
 	
 	#finds and stores the variance data of the template
 	no_data   = np.where(np.sum(ivars, axis = 0)==0)
@@ -614,14 +616,13 @@ def bootstrapping (SN_Array, samples, scales, og_template, iters, medmean):
 	
 	cpy_array = []
 	for SN in SN_Array:
-		cpy_array.append(copy.copy(SN))
+		cpy_array.append(copy.deepcopy(SN))
 		
 	
 	for i in range(len(strap_matrix)):
 		boot_arr.append([])
 		for j in range(len(strap_matrix[i])):
 			boot_arr[i].append(cpy_array[strap_matrix[i,j]])
-			
 
 	for p in range(len(boot_arr)):
 		# print p
@@ -629,17 +630,17 @@ def bootstrapping (SN_Array, samples, scales, og_template, iters, medmean):
 		for SN in boot_arr[p]:	
 			lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
 		boot_temp = [SN for SN in boot_arr[p] if len(SN.flux[np.where(SN.flux!=0)]) == max(lengths)]
-		boot_temp = copy.copy(boot_temp[0])
+		boot_temp = copy.deepcopy(boot_temp[0])
 		
 		(fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, dm15s, 
 		 flux_mask, ivar_mask, dm15_mask, red_mask) = mask(boot_arr[p], boot)
 		for x in range(iters):
-			SN_Array, scales = optimize_scales(boot_arr[p], boot_temp, False)
+			new_SN_Array, scales = optimize_scales(boot_arr[p], boot_temp, False)
 			(fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, dm15s, 
 			 flux_mask, ivar_mask, dm15_mask, red_mask) = mask(boot_arr[p], boot)
 			template = average(boot_arr[p], boot_temp, medmean, boot, fluxes, ivars, dm15_ivars, red_ivars, 
 							   reds, phases, ages, vels, dm15s, flux_mask, ivar_mask, dm15_mask, red_mask)
-		boots.append(copy.copy(template))
+		boots.append(copy.deepcopy(template))
 
 	print "scaling boots..."
 	temp1, scales = optimize_scales(boots, og_template, True)
@@ -854,18 +855,18 @@ def remove_tell_files(SN_Array):
 		SN_Array_wo_tell = []
 		for SN in SN_Array:
 			if SN.filename not in tell_files:
-				SN_Array_wo_tell.append(copy.copy(SN))
+				SN_Array_wo_tell.append(copy.deepcopy(SN))
 		return SN_Array_wo_tell
 	else:
 		return []
 
 	
 
-def create_composite(SN_Array, boot, template, medmean):
+def create_composite(SN_Array, boot, template, medmean, gini_balance=False):
 	i = 0
 	scales  = []
-	iters = 3
-	iters_comp = 3
+	iters = 1
+	iters_comp = 1
 	# boot = False
 
 	if boot is True:
@@ -873,16 +874,62 @@ def create_composite(SN_Array, boot, template, medmean):
 	else:
 		bootstrap = 'n'
 	print "Creating composite..."
+
 	optimize_scales(SN_Array, template, True)
+
+	# for SN in SN_Array:
+	# 	SN.ivar = np.ones(len(SN_Array[0].ivar))
+
 	(fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, dm15s, 
 	 flux_mask, ivar_mask, dm15_mask, red_mask) = mask(SN_Array, False)
 
+	#deweight high SNR spectra using gini coefficients
+	if gini_balance:
+		imbalanced = True
+		gini_coeffs, num_specs, gini_ranges = gini.gini_coeffs(SN_Array)
+		gini_range_meds = []
+		for g in gini_ranges:
+			sn_meds = []
+			for SN in SN_Array:
+				g_locs = np.where((SN.wavelength >= g[0]) & (SN.wavelength < g[1]) & (SN.ivar > 0.))[0]
+				sn_meds.append(np.nanmedian(SN.ivar[g_locs]))
+			gini_range_meds.append(np.nanmedian(sn_meds))
+
+		# print gini_range_meds
+		# raise TypeError
+		print 'Balancing weights...'
+		i=0
+		first_iter = True
+		prev_swaps = []
+		while imbalanced:
+			print gini_coeffs
+			deweight_SNs, scale_dict, scale_ref_dict = gini.calc_deweight_ranges(SN_Array, gini_coeffs, gini_ranges, gini_range_meds, tol=.8)
+			if len(deweight_SNs) == 0:
+				imbalanced = False
+			else:
+				gini.deweight_biasing_SNe(deweight_SNs, scale_dict, scale_ref_dict)
+				gini_coeffs, num_specs, gini_ranges = gini.gini_coeffs(SN_Array)
+			i+=1
+			if i == 10:
+				imbalanced = False
+			first_iter = False
+		print 'Balanced after', i, 'iterations'
+
+	# qdb.plot_comp_and_all_spectra(template, SN_Array, show_ivar=True)
 	for i in range(iters_comp):
 		SN_Array, scales = optimize_scales(SN_Array, template, False)
+
+		# for SN in SN_Array:
+		# 	SN.ivar = np.ones(len(SN_Array[0].ivar))
+
 		(fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, dm15s, 
 		 flux_mask, ivar_mask, dm15_mask, red_mask) = mask(SN_Array, False)
 		template = average(SN_Array, template, medmean, False, fluxes, ivars, dm15_ivars, red_ivars, 
 							reds, phases, ages, vels, dm15s, flux_mask, ivar_mask, dm15_mask, red_mask)
+		# for SN in SN_Array:
+		# 	plt.plot(SN.wavelength, SN.flux)
+		# plt.plot(template.wavelength, template.flux, 'k-', linewidth=4)
+		# plt.show()
 	print "Done."
 	boots = None
 	norm = 1./np.amax(template.flux[template.x1:template.x2])
@@ -934,6 +981,7 @@ def create_composite(SN_Array, boot, template, medmean):
 		scales  = []
 		print "Bootstrapping"
 		# samples = int (raw_input("# of samples:"))
+		# samples = 100
 		samples = 100
 		# low_conf, up_conf = bootstrapping(SN_Array, samples, scales, template, iters, medmean)
 		template.low_conf, template.up_conf, boots = bootstrapping(SN_Array, samples, scales, template, iters, medmean)
@@ -960,7 +1008,7 @@ def create_composite(SN_Array, boot, template, medmean):
 
 	return template, boots
 	
-def main(Full_query, boot = 'nb', medmean = 1, opt = 'n', save_file = 'n', make_corr=True, multi_epoch=False, selection = 'max_coverage', verbose=True):
+def main(Full_query, boot = 'nb', medmean = 1, opt = 'n', save_file = 'n', make_corr=True, multi_epoch=False, selection = 'max_coverage', gini_balance=False, verbose=True):
 	"""Main function. Finds supernovae that agree with user query, prompts user 
 		on whether to bootstrap or just create a composite, then does so and stores 
 		returns the relevant data for plotting in a table.
@@ -1021,7 +1069,7 @@ def main(Full_query, boot = 'nb', medmean = 1, opt = 'n', save_file = 'n', make_
 
 	#finds range of useable data
 	template = supernova()
-	template = copy.copy(composite)
+	template = copy.deepcopy(composite)
 	template.spec_bin = spectra_per_bin(SN_Array)
 
 	#creates main composite
@@ -1069,7 +1117,7 @@ def main(Full_query, boot = 'nb', medmean = 1, opt = 'n', save_file = 'n', make_
 	# 	plt.show()
 
 
-	template, boots = create_composite(SN_Array, boot, template, medmean)
+	template, boots = create_composite(SN_Array, boot, template, medmean, gini_balance=gini_balance)
 
 	return template, SN_Array, boots
 

@@ -35,14 +35,14 @@ def find_SN(fname, source=None, csplist=None):
 
         return snname
         
-def dered(sne, snname, wave, flux, source='not_swift_uv'):
+def dered(sne, snname, wave, flux, ivar, source='not_swift_uv', ):
     corrected = False
     for j in range(len(sne)):  # go through list of SN parameters
         sn = sne[j][0]
         if snname.lower() == sn.lower()[2:]:  # SN with parameter matches the path
             if not corrected:
                 print 'Milky Way correction...'
-                if source != 'swift_uv':
+                if source != 'swift_uv' and source != 'foley_hst':
                     b = sne[j][1].astype(float)
                     v = sne[j][2].astype(float)
                     bv = b-v
@@ -53,11 +53,13 @@ def dered(sne, snname, wave, flux, source='not_swift_uv'):
                     #test2 = spectra_data[i][:,1] * ex.reddening(spectra_data[i][:,0],ebv = bv, model='od94')
                     red = ex.reddening(wave, a_v=3.1*bv, r_v=3.1, model='f99')
                     flux *= red
+                    ivar *= 1./(red**2.)
                     corrected = True
                 else:
                     Av = sne[j][1].astype(float)
                     red = ex.reddening(wave, a_v=Av, r_v=3.1, model='f99')
                     flux *= red
+                    ivar *= 1./(red**2.)
                     corrected = True
                 # flux *= ex.reddening(wave, a_v=bv, r_v=3.1, model='f99')
     #            wave /= (1+z)
@@ -65,7 +67,7 @@ def dered(sne, snname, wave, flux, source='not_swift_uv'):
                 #print "de-reddened by host galaxy\n",flux*ex.reddening(wave,ebv = 0, r_v = r, model='f99')
                 #host *= ex.reddening(wave,ebv = bv, r_v = r, model='f99')
 
-    return flux
+    return flux, ivar
 
 # def host_correction(sne, snname, wave, flux, ivar):
 #     corrected = False

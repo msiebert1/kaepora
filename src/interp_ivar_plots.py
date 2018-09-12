@@ -111,7 +111,19 @@ def clip(wave, flux, ivar):
     # Set ivar to 0 for those points and return
 #    ivar[bad] = 0
 #    return ivar
-    return bad_ranges # return bad_ranges instead of setting ivar[bad] = 0 (A.S.)
+
+    plt.plot(wave, flux)
+    for wave_tuple in bad_ranges:
+#        print wave_tuple
+        clip_points = np.where((wave > wave_tuple[0]) & (wave < wave_tuple[1]))
+        #make sure not at edge of spectrum
+        flux[clip_points] = np.interp(wave[clip_points], [wave_tuple[0], wave_tuple[1]], [flux[clip_points[0][0]-1], flux[clip_points[0][-1]+1]])
+        #deweight data (but not to 0), somewhat arbitrary
+        ivar[clip_points] = np.interp(wave[clip_points], [wave_tuple[0], wave_tuple[1]], [ivar[clip_points[0][0]-1], ivar[clip_points[0][-1]+1]])
+
+    plt.plot(wave, flux)
+    plt.show()
+    return wave, flux, ivar # return bad_ranges instead of setting ivar[bad] = 0 (A.S.)
 
 def Interpo (wave, flux, ivar, sn_name, plot=False):
     wave_min = 1000
@@ -121,7 +133,7 @@ def Interpo (wave, flux, ivar, sn_name, plot=False):
     #wavelength = np.linspace(wave_min,wave_max,(wave_max-wave_min)/pix+1)
     wavelength = np.arange(math.ceil(wave_min), math.floor(wave_max),
                            dtype=int, step=dw)  # creates N equally spaced wavelength values
-    bad_points = []
+
     inter_flux = []
     inter_ivar = []
     output = []
@@ -131,7 +143,7 @@ def Interpo (wave, flux, ivar, sn_name, plot=False):
 
     #ivar = clip(wave, flux, ivar) #clip bad points in flux (if before interpolation)
     # ivar = clipmore(wave,flux,ivar)    
-    bad_points = clip(wave, flux, ivar)  # if returned bad points range instead of ivar
+    # bad_points = clip(wave, flux, ivar)  # if returned bad points range instead of ivar
 #    print 'ivar', ivar
 #    print 'bad points', bad_points
     #ivar[ivar < 0] = 0 # make sure no negative points
@@ -180,11 +192,11 @@ def Interpo (wave, flux, ivar, sn_name, plot=False):
         if sn_name == '2005a':
             plt.ylim([-.3*scale,1.05*scale])
             plt.legend(loc=4, fontsize=20)
-            plt.savefig('../../../Paper_Drafts/reprocessing/interp_large_av.pdf', dpi = 300, bbox_inches = 'tight')
+            # plt.savefig('../../../Paper_Drafts/reprocessing/interp_large_av.pdf', dpi = 300, bbox_inches = 'tight')
         else:
             plt.ylim([-.05*scale,1.05*scale])
             plt.legend(loc=1, fontsize=20)
-            plt.savefig('../../../Paper_Drafts/reprocessing/interp_small_av.pdf', dpi = 300, bbox_inches = 'tight')
+            # plt.savefig('../../../Paper_Drafts/reprocessing/interp_small_av.pdf', dpi = 300, bbox_inches = 'tight')
         plt.show()
 
 #    inter_ivar = clip(wavelength, inter_flux, inter_var) #clip bad points (if do after interpolation)
@@ -192,14 +204,14 @@ def Interpo (wave, flux, ivar, sn_name, plot=False):
     # Then the below code (or something similar) would do it (A.S.)
     inter_flux_old = np.copy(inter_flux)
 
-    for wave_tuple in bad_points:
-#        print wave_tuple
-        zero_points = np.where((wavelength > wave_tuple[0]) & (wavelength < wave_tuple[1]))
-        #make sure not at edge of spectrum
-        inter_flux[zero_points] = np.interp(wavelength[zero_points], [wave_tuple[0], wave_tuple[1]], [inter_flux[zero_points[0][0]-1], inter_flux[zero_points[0][-1]+1]])
-        #deweight data (but not to 0), somewhat arbitrary
-        inter_ivar[zero_points] = np.interp(wavelength[zero_points], [wave_tuple[0], wave_tuple[1]], [inter_ivar[zero_points[0][0]-1], inter_ivar[zero_points[0][-1]+1]])
-        # inter_ivar[zero_points] = 0
+#     for wave_tuple in bad_points:
+# #        print wave_tuple
+#         zero_points = np.where((wavelength > wave_tuple[0]) & (wavelength < wave_tuple[1]))
+#         #make sure not at edge of spectrum
+#         inter_flux[zero_points] = np.interp(wavelength[zero_points], [wave_tuple[0], wave_tuple[1]], [inter_flux[zero_points[0][0]-1], inter_flux[zero_points[0][-1]+1]])
+#         #deweight data (but not to 0), somewhat arbitrary
+#         inter_ivar[zero_points] = np.interp(wavelength[zero_points], [wave_tuple[0], wave_tuple[1]], [inter_ivar[zero_points[0][0]-1], inter_ivar[zero_points[0][-1]+1]])
+#         # inter_ivar[zero_points] = 0
 
     inter_ivar[inter_ivar < 0] = 0  # make sure there are no negative points!
     
@@ -239,11 +251,11 @@ def Interpo (wave, flux, ivar, sn_name, plot=False):
         if sn_name == '2005a':
             plt.ylim([-.3*scale,1.05*scale])
             plt.legend(loc=4, fontsize=20)
-            plt.savefig('../../../Paper_Drafts/reprocessing/clip_large_av.pdf', dpi = 300, bbox_inches = 'tight')
+            # plt.savefig('../../../Paper_Drafts/reprocessing/clip_large_av.pdf', dpi = 300, bbox_inches = 'tight')
         else:
             plt.ylim([-.05*scale,1.05*scale])
             plt.legend(loc=1, fontsize=20)
-            plt.savefig('../../../Paper_Drafts/reprocessing/clip_small_av.pdf', dpi = 300, bbox_inches = 'tight')
+            # plt.savefig('../../../Paper_Drafts/reprocessing/clip_small_av.pdf', dpi = 300, bbox_inches = 'tight')
         plt.show()
 
 #    print inter_ivar[place]
@@ -283,6 +295,7 @@ def compprep(spectrum, sn_name, z, source):
     new_flux = old_flux*norm
     new_ivar = df.genivar(dered_wave, new_flux, new_error)  # generate new inverse variance
     #var = new_flux*0+1
+    dered_wave, new_flux, new_ivar = clip(dered_wave, new_flux, new_ivar)
     newdata = Interpo(dered_wave, new_flux, new_ivar, sn_name, plot=True)  # Do the interpolation
 
     interp_wave = newdata[0]*u.Angstrom        # wavelengths
@@ -359,10 +372,10 @@ def compprep(spectrum, sn_name, z, source):
     plt.legend(loc=1, fontsize=20)
     if sn_name == '2005a':
         plt.ylim([-.05*scale,1.05*scale])
-        plt.savefig('../../../Paper_Drafts/reprocessing/red_corr_large_av.pdf', dpi = 300, bbox_inches = 'tight')
+        # plt.savefig('../../../Paper_Drafts/reprocessing/red_corr_large_av.pdf', dpi = 300, bbox_inches = 'tight')
     else:
         plt.ylim([-.05*scale,1.05*scale])
-        plt.savefig('../../../Paper_Drafts/reprocessing/red_corr_small_av.pdf', dpi = 300, bbox_inches = 'tight')
+        # plt.savefig('../../../Paper_Drafts/reprocessing/red_corr_small_av.pdf', dpi = 300, bbox_inches = 'tight')
     plt.show()
 
     # new_wave = old_wave/(1.+z)  # Deredshifting
@@ -373,6 +386,9 @@ def compprep(spectrum, sn_name, z, source):
 #reddening / interpolation plots
 c = 299792.458
 #sn2006sr-20061220.097-ui.flm
+
+
+###CODE FOR INTERP AND REDDENING PLOTS
 fname = '../data/spectra/bsnip/sn2006sr-20061220.097-ui.flm'
 spectrum = np.loadtxt(fname)
 sn_name = '2006sr'
@@ -399,56 +415,61 @@ else:
 data = bsnip_vals[sn_name.lower()+'-'+longdate]
 redshift = data[1]/c
 newdata, snr = compprep(spectrum, sn_name, redshift, source)
+raise TypeError
+### ENDS HERE
 
-# raise TypeError
 
-# fname = '../data/spectra/cfa/sn2003kg/sn2003kg-20031129.12-fast.flm'
-# spectrum = np.loadtxt(fname)
 
-# old_wave = spectrum[:, 0]
-# old_flux = spectrum[:, 1]
+fname = '../data/spectra/cfa/sn2003kg/sn2003kg-20031129.12-fast.flm'
+spectrum = np.loadtxt(fname)
 
-# real_error = spectrum[:, 2]
-# if real_error[0] != 0.:
-#     old_error = np.zeros(len(old_wave), float)
-#     new_ivar = df.genivar(old_wave, old_flux, old_error)
-#     new_var = 1./new_ivar
-#     real_var = real_error*real_error
-#     scale = scale_composites_in_range(new_var, real_var)
-#     # new_var = new_var*scale
-#     new_var = new_var*2.02
-#     print scale
+old_wave = spectrum[:, 0]
+old_flux = spectrum[:, 1]
 
-# norm = 1./np.amax(real_var)
-# real_var = real_var*norm
-# new_var = new_var*norm
-# plt.rc('font', family='serif')
-# fig, ax = plt.subplots(1,1)
-# fig.set_size_inches(10, 8, forward = True)
-# plt.minorticks_on()
-# plt.xticks(fontsize = 20)
-# ax.xaxis.set_ticks(np.arange(np.round(old_wave[0],-3),np.round(old_wave[-1],-3),1000))
-# plt.yticks(fontsize = 20)
-# plt.tick_params(
-#     which='major', 
-#     bottom='on', 
-#     top='on',
-#     left='on',
-#     right='on',
-#     length=10)
-# plt.tick_params(
-#     which='minor', 
-#     bottom='on', 
-#     top='on',
-#     left='on',
-#     right='on',
-#     length=5)
-# plt.plot(old_wave, real_var, linewidth = 2, color = '#7570b3', alpha = .8)
-# plt.plot(old_wave, new_var, linewidth = 6, color = 'k')
-# plt.ylabel('Variance', fontsize = 30)
-# plt.xlabel('Rest Wavelength ' + "($\mathrm{\AA}$)", fontsize = 30)
-# # plt.savefig('../../Paper_Drafts/genvar.pdf', dpi = 300, bbox_inches = 'tight')
-# plt.show()
+real_error = spectrum[:, 2]
+if real_error[0] != 0.:
+    old_error = np.zeros(len(old_wave), float)
+    new_ivar = df.genivar(old_wave, old_flux, old_error)
+    new_var = 1./new_ivar
+    real_var = real_error*real_error
+    scale = scale_composites_in_range(new_var, real_var)
+    # new_var = new_var*scale
+    new_var = new_var*2.02
+    print scale
+
+norm = 1./np.amax(real_var)
+real_var = real_var*norm
+new_var = new_var*norm
+plt.rc('font', family='serif')
+fig, ax = plt.subplots(1,1)
+fig.set_size_inches(10, 8, forward = True)
+plt.minorticks_on()
+plt.xticks(fontsize = 20)
+ax.xaxis.set_ticks(np.arange(np.round(old_wave[0],-3),np.round(old_wave[-1],-3),1000))
+plt.yticks(fontsize = 20)
+plt.tick_params(
+    which='major', 
+    bottom='on', 
+    top='on',
+    left='on',
+    right='on',
+    length=10)
+plt.tick_params(
+    which='minor', 
+    bottom='on', 
+    top='on',
+    left='on',
+    right='on',
+    length=5)
+plt.plot(old_wave, real_var, linewidth = 2, color = '#7570b3', alpha = .8, label = 'CfA')
+plt.plot(old_wave, new_var, linewidth = 6, color = 'k', label='Generated')
+plt.ylabel('Variance', fontsize = 30)
+plt.xlabel('Rest Wavelength ' + "($\mathrm{\AA}$)", fontsize = 30)
+plt.xlim([old_wave[0]-200.,old_wave[-1]+200.])
+plt.ylim([0.,1.1])
+plt.legend(fontsize=20)
+# plt.savefig('../../../Paper_Drafts/reprocessing/genvar.pdf', dpi = 300, bbox_inches = 'tight')
+plt.show()
 
 # plt.subplot(2,1,1)
 # plt.plot(output[0], output[1])

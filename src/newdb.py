@@ -272,355 +272,357 @@ def is_number(s):
     except ValueError:
         return False
 
-#build necessary dictionaries
-sndict, date_dict = read_cfa_info('../data/spectra/cfa/cfasnIa_param.dat',
-                                  '../data/spectra/cfa/cfasnIa_mjdspec.dat')
-bsnip_vals = read_bsnip_data('obj_info_table.txt')
-short_bsnip_dict = create_short_bsnip_dict(bsnip_vals)
-rsd = build_redshift_dict(short_bsnip_dict, sndict)
-NED_red_dict = build_NED_redshift_dict('../data/info_files/NED_redshift_info.txt')
-morph_dict = build_morph_dict()
-vel_dict = build_vel_dict()
-gas_dict = build_gas_dict()
-carbon_dict = build_carbon_dict()
-residual_dict = build_residual_dict()
-ref_dict = build_bsnip_ref_dict()
-ts = time.clock()
+if __name__ == "__main__":
+    # raise TypeError #uncomment when building db
+    #build necessary dictionaries
+    sndict, date_dict = read_cfa_info('../data/spectra/cfa/cfasnIa_param.dat',
+                                      '../data/spectra/cfa/cfasnIa_mjdspec.dat')
+    bsnip_vals = read_bsnip_data('obj_info_table.txt')
+    short_bsnip_dict = create_short_bsnip_dict(bsnip_vals)
+    rsd = build_redshift_dict(short_bsnip_dict, sndict)
+    NED_red_dict = build_NED_redshift_dict('../data/info_files/NED_redshift_info.txt')
+    morph_dict = build_morph_dict()
+    vel_dict = build_vel_dict()
+    gas_dict = build_gas_dict()
+    carbon_dict = build_carbon_dict()
+    residual_dict = build_residual_dict()
+    ref_dict = build_bsnip_ref_dict()
+    ts = time.clock()
 
-#con = sq3.connect('SNe.db')
-# con = sq3.connect('SNe_11.db')
-con = sq3.connect('../data/SNe_19.db')
+    #con = sq3.connect('SNe.db')
+    # con = sq3.connect('SNe_11.db')
+    con = sq3.connect('../data/SNIaDB_Spec_v20_phot_v10.db')
 
-#make sure no prior table in db to avoid doubling/multiple copies of same data
+    #make sure no prior table in db to avoid doubling/multiple copies of same data
 
-##version 1
-# con.execute("""DROP TABLE IF EXISTS Supernovae""")
-# con.execute("""CREATE TABLE IF NOT EXISTS Supernovae (Filename
-#                     TEXT PRIMARY KEY, SN Text, Source Text, Redshift REAL,
-#                     Phase REAL, MinWave REAL, MaxWave REAL, Dm15 REAL,
-#                     M_B REAL, B_mMinusV_m REAL, Velocity REAL,
-#                     Morphology INTEGER, Carbon TEXT, GasRich INTEGER, snr REAL,
-#                     Interpolated_Spectra BLOB)""")
+    ##version 1
+    # con.execute("""DROP TABLE IF EXISTS Supernovae""")
+    # con.execute("""CREATE TABLE IF NOT EXISTS Supernovae (Filename
+    #                     TEXT PRIMARY KEY, SN Text, Source Text, Redshift REAL,
+    #                     Phase REAL, MinWave REAL, MaxWave REAL, Dm15 REAL,
+    #                     M_B REAL, B_mMinusV_m REAL, Velocity REAL,
+    #                     Morphology INTEGER, Carbon TEXT, GasRich INTEGER, snr REAL,
+    #                     Interpolated_Spectra BLOB)""")
 
-##version 2
-# con.execute("""DROP TABLE IF EXISTS Supernovae""")
-# con.execute("""CREATE TABLE IF NOT EXISTS Supernovae (Filename
-#                     TEXT PRIMARY KEY, SN Text, Source Text, Redshift REAL,
-#                     Phase REAL, MinWave REAL, MaxWave REAL, Dm15 REAL,
-#                     M_B REAL, B_mMinusV_m REAL, Velocity REAL,
-#                     Morphology INTEGER, Carbon TEXT, GasRich INTEGER, snr REAL, 
-#                     Hubble_Res Real, Interpolated_Spectra BLOB)""")
+    ##version 2
+    # con.execute("""DROP TABLE IF EXISTS Supernovae""")
+    # con.execute("""CREATE TABLE IF NOT EXISTS Supernovae (Filename
+    #                     TEXT PRIMARY KEY, SN Text, Source Text, Redshift REAL,
+    #                     Phase REAL, MinWave REAL, MaxWave REAL, Dm15 REAL,
+    #                     M_B REAL, B_mMinusV_m REAL, Velocity REAL,
+    #                     Morphology INTEGER, Carbon TEXT, GasRich INTEGER, snr REAL, 
+    #                     Hubble_Res Real, Interpolated_Spectra BLOB)""")
 
-##version3
-# con.execute("""DROP TABLE IF EXISTS Supernovae""")
-# con.execute("""CREATE TABLE IF NOT EXISTS Supernovae (Filename
-#                     TEXT PRIMARY KEY, SN Text, Source Text, Redshift REAL,
-#                     Phase REAL, MinWave REAL, MaxWave REAL, Dm15 REAL,
-#                     M_B REAL, B_mMinusV_m REAL, Velocity REAL,
-#                     Morphology INTEGER, Carbon TEXT, GasRich INTEGER, snr REAL, 
-#                     Hubble_Res Real, Interpolated_Spectra BLOB, Photometry BLOB)""")
+    ##version3
+    # con.execute("""DROP TABLE IF EXISTS Supernovae""")
+    # con.execute("""CREATE TABLE IF NOT EXISTS Supernovae (Filename
+    #                     TEXT PRIMARY KEY, SN Text, Source Text, Redshift REAL,
+    #                     Phase REAL, MinWave REAL, MaxWave REAL, Dm15 REAL,
+    #                     M_B REAL, B_mMinusV_m REAL, Velocity REAL,
+    #                     Morphology INTEGER, Carbon TEXT, GasRich INTEGER, snr REAL, 
+    #                     Hubble_Res Real, Interpolated_Spectra BLOB, Photometry BLOB)""")
 
-con.execute("""DROP TABLE IF EXISTS Supernovae""")
-con.execute("""CREATE TABLE IF NOT EXISTS Supernovae (Filename
-                    TEXT PRIMARY KEY, SN Text, Source Text, Redshift REAL,
-                    Phase REAL, MinWave REAL, MaxWave REAL, Dm15 REAL,
-                    M_B REAL, B_mMinusV_m REAL, Velocity REAL,
-                    Morphology INTEGER, Carbon TEXT, GasRich INTEGER, snr REAL, 
-                    Hubble_Res Real, Interpolated_Spectra BLOB, MJD REAL, Ref Text)""")
+    con.execute("""DROP TABLE IF EXISTS Supernovae""")
+    con.execute("""CREATE TABLE IF NOT EXISTS Supernovae (Filename
+                        TEXT PRIMARY KEY, SN Text, Source Text, Redshift REAL,
+                        Phase REAL, MinWave REAL, MaxWave REAL, Dm15 REAL,
+                        M_B REAL, B_mMinusV_m REAL, Velocity REAL,
+                        Morphology INTEGER, Carbon TEXT, GasRich INTEGER, snr REAL, 
+                        Hubble_Res Real, Interpolated_Spectra BLOB, MJD REAL, Ref Text)""")
 
-#read all bsnip to find corrected
-corr_list = []
-allspec = []
-for paths, subdirs, files in os.walk('../data/spectra/bsnip'):
-    for name in files:
-        if name.endswith('.flm'):
-            allspec.append(name)
-            if 'corrected' in name:
-                corr_list.append(name)
-clean1 = [re.sub('\-corrected.flm', '', x) for x in corr_list]
-clean2 = [re.sub('\.flm', '', x) for x in allspec]
-#find files that have both corrected and raw
-res = set(clean1).intersection(set(clean2))
-#have_both contains files to ignore
-have_both = []
-for s in res:
-    s += '.flm'
-    have_both.append(s)
+    #read all bsnip to find corrected
+    corr_list = []
+    allspec = []
+    for paths, subdirs, files in os.walk('../data/spectra/bsnip'):
+        for name in files:
+            if name.endswith('.flm'):
+                allspec.append(name)
+                if 'corrected' in name:
+                    corr_list.append(name)
+    clean1 = [re.sub('\-corrected.flm', '', x) for x in corr_list]
+    clean2 = [re.sub('\.flm', '', x) for x in allspec]
+    #find files that have both corrected and raw
+    res = set(clean1).intersection(set(clean2))
+    #have_both contains files to ignore
+    have_both = []
+    for s in res:
+        s += '.flm'
+        have_both.append(s)
 
-#change this depending on where script is
-root = '../data/spectra'
-bad_files = []
-bad_interp = []
-shiftless = []
+    #change this depending on where script is
+    root = '../data/spectra'
+    bad_files = []
+    bad_interp = []
+    shiftless = []
 
-#ignore bad files
-spectra_ignore = [
-    'SN06mr_061113_g01_BAA_IM.dat',
-    'SN07af_070310_g01_BAA_IM.dat',
-    'SN07ai_070310_g01_BAA_IM.dat',
-    'SN07af_070310_g01_BAA_IM.dat',
-    'SN07ai_070312_g01_BAA_IM.dat',
-    'sn1996ai-19960620.17-fast.flm',
-    'sn1994T-19940612.25-mmt.flm',
-    'sn1994T-19940613.19-fast.flm',
-    'sn2000dn-20001006.25-fast.flm',
-    'sn2006bt-20060502.33-fast.flm',
-    'sn2006bt-20060503.33-fast.flm',
-    'sn1994Q-19940612.32-mmt.flm',
-    'sn2006H-20060206.21-fast.flm',
-    'sn2002dj-20020614.17-fast.flm',
-    'sn1999ek-19991030.47-fast.flm',
-    'sn2003cq-20030408.26-fast.flm',
-    'sn1996ai-19960620.17-fast.flm',
-    ]
-print "Adding information to table"
-count = 1
-for path, subdirs, files in os.walk(root):
-    for name in files:
-        #ignore bad spectra and uncorrected where corrected exist
-        if name in spectra_ignore or name in have_both:
-            continue
-
-        #reset all fields to prevent carrying over from last loop iteration
-        Dm15 = None
-        m_b = None
-        bm_vm = None
-        phase = None
-        redshift = None
-        source = None
-        mjd = None
-        ref = None
-
-        f = os.path.join(path, name)
-        if f.endswith('.flm') or f.endswith('.dat'):
-            if 'cfasnIa' in f:
-                continue
-            try:
-                if 'csp' in path:
-                    spectra, info = read_csp(f)
-                    sn_name = find_SN(name, 'csp', info)
-                else:
-                    spectra = read_cfa_or_bsnip_or_uv(f)
-                    if 'other' in path:
-                        sn_name = find_SN(name, 'other')
-                    else:
-                        sn_name = find_SN(name)
-            except:
-                bad_files.append(f)
+    #ignore bad files
+    spectra_ignore = [
+        'SN06mr_061113_g01_BAA_IM.dat',
+        'SN07af_070310_g01_BAA_IM.dat',
+        'SN07ai_070310_g01_BAA_IM.dat',
+        'SN07af_070310_g01_BAA_IM.dat',
+        'SN07ai_070312_g01_BAA_IM.dat',
+        'sn1996ai-19960620.17-fast.flm',
+        'sn1994T-19940612.25-mmt.flm',
+        'sn1994T-19940613.19-fast.flm',
+        'sn2000dn-20001006.25-fast.flm',
+        'sn2006bt-20060502.33-fast.flm',
+        'sn2006bt-20060503.33-fast.flm',
+        'sn1994Q-19940612.32-mmt.flm',
+        'sn2006H-20060206.21-fast.flm',
+        'sn2002dj-20020614.17-fast.flm',
+        'sn1999ek-19991030.47-fast.flm',
+        'sn2003cq-20030408.26-fast.flm',
+        'sn1996ai-19960620.17-fast.flm',
+        ]
+    print "Adding information to table"
+    count = 1
+    for path, subdirs, files in os.walk(root):
+        for name in files:
+            #ignore bad spectra and uncorrected where corrected exist
+            if name in spectra_ignore or name in have_both:
                 continue
 
-            print count, sn_name
-            count += 1
+            #reset all fields to prevent carrying over from last loop iteration
+            Dm15 = None
+            m_b = None
+            bm_vm = None
+            phase = None
+            redshift = None
+            source = None
+            mjd = None
+            ref = None
 
-            #other source
-            if 'other' in f:
-                print f
-                source = 'other'
-                if 'snifs' in f:
-                    with open(f) as otherfile:
-                        lines = (line for line in f if line.startswith('#'))
-                        for line in lines:
-                            if line.split()[1] == 'MJD':
-                                mjd = float(line.split()[3])
-                            if line.split()[1] == 'TMAX':
-                                phase = float(line.split()[3])
-
-                if mjd is None:
-                    if len(name.split('_')) > 1:
-                        year, month, day = float(name.split('_')[1][0:4]), float(name.split('_')[1][4:6]), float(name.split('_')[1][6:])
+            f = os.path.join(path, name)
+            if f.endswith('.flm') or f.endswith('.dat'):
+                if 'cfasnIa' in f:
+                    continue
+                try:
+                    if 'csp' in path:
+                        spectra, info = read_csp(f)
+                        sn_name = find_SN(name, 'csp', info)
                     else:
-                        year, month, day = float(name.split('-')[1][0:4]), float(name.split('-')[1][4:6]), float(name.split('-')[1][6:])
+                        spectra = read_cfa_or_bsnip_or_uv(f)
+                        if 'other' in path:
+                            sn_name = find_SN(name, 'other')
+                        else:
+                            sn_name = find_SN(name)
+                except:
+                    bad_files.append(f)
+                    continue
 
+                print count, sn_name
+                count += 1
+
+                #other source
+                if 'other' in f:
+                    print f
+                    source = 'other'
+                    if 'snifs' in f:
+                        with open(f) as otherfile:
+                            lines = (line for line in f if line.startswith('#'))
+                            for line in lines:
+                                if line.split()[1] == 'MJD':
+                                    mjd = float(line.split()[3])
+                                if line.split()[1] == 'TMAX':
+                                    phase = float(line.split()[3])
+
+                    if mjd is None:
+                        if len(name.split('_')) > 1:
+                            year, month, day = float(name.split('_')[1][0:4]), float(name.split('_')[1][4:6]), float(name.split('_')[1][6:])
+                        else:
+                            year, month, day = float(name.split('-')[1][0:4]), float(name.split('-')[1][4:6]), float(name.split('-')[1][6:])
+
+                        mjd = jdcal.gcal2jd(year, month, day)[1]
+
+                    if sn_name in rsd:
+                        redshift = rsd[sn_name]
+
+                #cfa source
+                elif 'cfa' in f:
+                    if 'sn2011' not in name:
+                        sn_cfa = sndict[sn_name]
+                    else:
+                        snd = None
+                        sn_cfa = [None] * 14
+
+                #csp source
+                if 'csp' in f:
+                    print f
+                    source = 'csp'
+                    redshift = float(info[2])
+                    phase = (float(info[4]) - float(info[3]))/(1.+redshift)
+                    mjd = float(info[4]) - 2400000.5
+                    ref = '2013ApJ...773...53F'
+
+                #uv source
+                elif 'uv' in path:
+                    print f
+                    print name
+                    source = 'uv'
+                    year = float(name.split('-')[1][0:4])
+                    month = float(name.split('-')[1][4:6])
+                    day = float(name.split('-')[1][6:])
                     mjd = jdcal.gcal2jd(year, month, day)[1]
 
-                if sn_name in rsd:
-                    redshift = rsd[sn_name]
+                    if sn_name in rsd:
+                        redshift = rsd[sn_name]
 
-            #cfa source
-            elif 'cfa' in f:
-                if 'sn2011' not in name:
-                    sn_cfa = sndict[sn_name]
-                else:
-                    snd = None
-                    sn_cfa = [None] * 14
-
-            #csp source
-            if 'csp' in f:
-                print f
-                source = 'csp'
-                redshift = float(info[2])
-                phase = (float(info[4]) - float(info[3]))/(1.+redshift)
-                mjd = float(info[4]) - 2400000.5
-                ref = '2013ApJ...773...53F'
-
-            #uv source
-            elif 'uv' in path:
-                print f
-                print name
-                source = 'uv'
-                year = float(name.split('-')[1][0:4])
-                month = float(name.split('-')[1][4:6])
-                day = float(name.split('-')[1][6:])
-                mjd = jdcal.gcal2jd(year, month, day)[1]
-
-                if sn_name in rsd:
-                    redshift = rsd[sn_name]
-
-            #cfa spectra
-            elif 'cfa' in f:
-                print f
-                source = 'cfa'
-                redshift = float(sn_cfa[0])
-                #if statements assign values to fields if they exist, else none is assigned
-                if sn_cfa[1] == '99999.9':
-                    phase = None
-                else:
-                    #try/except catches and fixes sn2011 errors
-                    try:
-                        phase = (float(date_dict[name]) - float(sn_cfa[1]))/(1.+redshift)
-                        mjd = float(date_dict[name])
-                    except:
+                #cfa spectra
+                elif 'cfa' in f:
+                    print f
+                    source = 'cfa'
+                    redshift = float(sn_cfa[0])
+                    #if statements assign values to fields if they exist, else none is assigned
+                    if sn_cfa[1] == '99999.9':
                         phase = None
-                        mjd = None
-                if sn_cfa[4] == '9.99':
-                    Dm15 = None
+                    else:
+                        #try/except catches and fixes sn2011 errors
+                        try:
+                            phase = (float(date_dict[name]) - float(sn_cfa[1]))/(1.+redshift)
+                            mjd = float(date_dict[name])
+                        except:
+                            phase = None
+                            mjd = None
+                    if sn_cfa[4] == '9.99':
+                        Dm15 = None
+                    else:
+                        Dm15 = sn_cfa[4]
+
+                    if sn_cfa[7] == '-99.99':
+                        m_b = None
+                    else:
+                        m_b = sn_cfa[7]
+
+                    if sn_cfa[11] == '-9.99':
+                        bm_vm = None
+                    else:
+                        bm_vm = sn_cfa[11]
+
+                    ref = '2012AJ....143..126B'
+
+                #bsnip spectra
+                elif 'bsnip' in f:
+                    source = 'bsnip'
+                    """
+                    certain files have words in their name that cause the
+                    split to be misalligned from the typical splits.
+                    """
+                    if is_number(name.split('-')[1][:8]):
+                        longdate = name.split('-')[1][:8]
+                    else:
+                        longdate = name.split('-')[2][:8]
+
+                    data = bsnip_vals[sn_name.lower()+'-'+longdate]
+                    print f
+                    if math.isnan(data[1]):
+                        #skippy shitty redshiftless spectra
+                        shiftless.append(name)
+                        continue
+                    redshift = data[1]/c
+                    #if phase exists, add to db
+                    if not math.isnan(data[2]):
+                        phase = data[2]
+                    mjd = data[3]
+                    if type(mjd) != float:
+                        mjd = float(mjd[0:9])
+
+                    if name in ref_dict:
+                        ref = ref_dict[name]
+
+                waves = spectra[:, 0]
+                min_wave = waves[0]
+                max_wave = waves[len(spectra) - 1]
+                spec = msg.packb(spectra)
+
+                if sn_name in NED_red_dict:
+                    redshift = NED_red_dict[sn_name]
+
+                try:
+                    interp_spec, sig_noise = prep.compprep(spectra, sn_name, redshift, source, testing =False)
+                except Exception, e:
+                    #raise
+                    print e
+                    print "Interp failed"
+                    bad_interp.append(name)
+                    bad_files.append(name)
+                    interp_spec, sig_noise = None, None
+
+
+                print 'before', phase
+                if sn_name in sndict:
+                    if sndict[sn_name][4] == '9.99':
+                        Dm15 = None
+                    else:
+                        Dm15 = sndict[sn_name][4]
+
+                    if sndict[sn_name][7] == '-99.99':
+                        m_b = None
+                    else:
+                        m_b = sndict[sn_name][7]
+
+                    if sndict[sn_name][11] == '-9.99':
+                        bm_vm = None
+                    else:
+                        bm_vm = sndict[sn_name][11]
+
+                    if mjd is not None and phase is None and sndict[sn_name][1] != '99999.9' and redshift is not None:
+                        phase = (mjd - float(sndict[sn_name][1]))/(1.+redshift)
+
+                print 'after', phase
+                if sn_name in carbon_dict:
+                    carbon = carbon_dict[sn_name]
+                elif sn_name == 'SNF20080909-030':
+                    carbon = carbon_dict['2008s5']
+                elif sn_name == 'SNF20080514-002':
+                    carbon = carbon_dict['2008s1']
+                elif sn_name == 'SNF20071021-000':
+                    carbon = carbon_dict['2007s1']
                 else:
-                    Dm15 = sn_cfa[4]
+                    carbon = None
 
-                if sn_cfa[7] == '-99.99':
-                    m_b = None
+                if sn_name in morph_dict:
+                    morph = morph_dict[sn_name]
                 else:
-                    m_b = sn_cfa[7]
+                    morph = None
 
-                if sn_cfa[11] == '-9.99':
-                    bm_vm = None
+                if sn_name in vel_dict:
+                    vel = vel_dict[sn_name]
                 else:
-                    bm_vm = sn_cfa[11]
+                    vel = None
 
-                ref = '2012AJ....143..126B'
-
-            #bsnip spectra
-            elif 'bsnip' in f:
-                source = 'bsnip'
-                """
-                certain files have words in their name that cause the
-                split to be misalligned from the typical splits.
-                """
-                if is_number(name.split('-')[1][:8]):
-                    longdate = name.split('-')[1][:8]
+                if sn_name in gas_dict:
+                    gasrich = gas_dict[sn_name]
                 else:
-                    longdate = name.split('-')[2][:8]
+                    gasrich = None
 
-                data = bsnip_vals[sn_name.lower()+'-'+longdate]
-                print f
-                if math.isnan(data[1]):
-                    #skippy shitty redshiftless spectra
-                    shiftless.append(name)
-                    continue
-                redshift = data[1]/c
-                #if phase exists, add to db
-                if not math.isnan(data[2]):
-                    phase = data[2]
-                mjd = data[3]
-                if type(mjd) != float:
-                    mjd = float(mjd[0:9])
-
-                if name in ref_dict:
-                    ref = ref_dict[name]
-
-            waves = spectra[:, 0]
-            min_wave = waves[0]
-            max_wave = waves[len(spectra) - 1]
-            spec = msg.packb(spectra)
-
-            if sn_name in NED_red_dict:
-                redshift = NED_red_dict[sn_name]
-
-            try:
-                interp_spec, sig_noise = prep.compprep(spectra, sn_name, redshift, source)
-            except Exception, e:
-                #raise
-                print e
-                print "Interp failed"
-                bad_interp.append(name)
-                bad_files.append(name)
-                interp_spec, sig_noise = None, None
-
-
-            print 'before', phase
-            if sn_name in sndict:
-                if sndict[sn_name][4] == '9.99':
-                    Dm15 = None
+                if sn_name in residual_dict:
+                    hubble_residual = residual_dict[sn_name]
                 else:
-                    Dm15 = sndict[sn_name][4]
-
-                if sndict[sn_name][7] == '-99.99':
-                    m_b = None
-                else:
-                    m_b = sndict[sn_name][7]
-
-                if sndict[sn_name][11] == '-9.99':
-                    bm_vm = None
-                else:
-                    bm_vm = sndict[sn_name][11]
-
-                if mjd is not None and phase is None and sndict[sn_name][1] != '99999.9' and redshift is not None:
-                    phase = (mjd - float(sndict[sn_name][1]))/(1.+redshift)
-
-            print 'after', phase
-            if sn_name in carbon_dict:
-                carbon = carbon_dict[sn_name]
-            elif sn_name == 'SNF20080909-030':
-                carbon = carbon_dict['2008s5']
-            elif sn_name == 'SNF20080514-002':
-                carbon = carbon_dict['2008s1']
-            elif sn_name == 'SNF20071021-000':
-                carbon = carbon_dict['2007s1']
-            else:
-                carbon = None
-
-            if sn_name in morph_dict:
-                morph = morph_dict[sn_name]
-            else:
-                morph = None
-
-            if sn_name in vel_dict:
-                vel = vel_dict[sn_name]
-            else:
-                vel = None
-
-            if sn_name in gas_dict:
-                gasrich = gas_dict[sn_name]
-            else:
-                gasrich = None
-
-            if sn_name in residual_dict:
-                hubble_residual = residual_dict[sn_name]
-            else:
-                hubble_residual = None
+                    hubble_residual = None
 
 
-            #add redshift to redshift dictionary if not already present
-            if name not in rsd and redshift is not None:
-                rsd[name] = redshift
+                #add redshift to redshift dictionary if not already present
+                if name not in rsd and redshift is not None:
+                    rsd[name] = redshift
 
-            interped = msg.packb(interp_spec)
+                interped = msg.packb(interp_spec)
 
-            ##version 15
-            con.execute("""INSERT INTO Supernovae(Filename, SN, Source,
-                                Redshift, Phase, MinWave, MaxWave, Dm15, M_B,
-                                B_mMinusV_m, Velocity, Morphology, Carbon,
-                                GasRich, snr, Hubble_Res, Interpolated_Spectra, 
-                                MJD, Ref)
-                                VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                        (name, sn_name, source, redshift, phase,
-                         min_wave, max_wave, Dm15, m_b, bm_vm, vel,
-                         morph, carbon, gasrich, sig_noise, hubble_residual, 
-                         buffer(interped), mjd, ref))
+                ##version 15
+                con.execute("""INSERT INTO Supernovae(Filename, SN, Source,
+                                    Redshift, Phase, MinWave, MaxWave, Dm15, M_B,
+                                    B_mMinusV_m, Velocity, Morphology, Carbon,
+                                    GasRich, snr, Hubble_Res, Interpolated_Spectra, 
+                                    MJD, Ref)
+                                    VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                            (name, sn_name, source, redshift, phase,
+                             min_wave, max_wave, Dm15, m_b, bm_vm, vel,
+                             morph, carbon, gasrich, sig_noise, hubble_residual, 
+                             buffer(interped), mjd, ref))
 
-con.commit()
-te = time.clock()
-print 'bad files', bad_files, len(bad_files)
-print 'bad interps', bad_interp, len(bad_interp)
-print 'no available redshift', shiftless
-print te - ts
+    con.commit()
+    te = time.clock()
+    print 'bad files', bad_files, len(bad_files)
+    print 'bad interps', bad_interp, len(bad_interp)
+    print 'no available redshift', shiftless
+    print te - ts
