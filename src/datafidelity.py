@@ -151,7 +151,29 @@ def clip(wave, flux, var, vexp, testing=False):
 #    ivar[bad] = 0
 #    return ivar
     if testing:
-        plt.plot(wave, flux, 'r-')
+        scale = 10./np.amax(flux)
+        plt.rc('font', family='serif')
+        fig, ax = plt.subplots(1,1)
+        fig.set_size_inches(10, 8, forward = True)
+        plt.minorticks_on()
+        plt.xticks(fontsize = 20)
+        # ax.xaxis.set_ticks(np.arange(np.round(wave[0],-3),np.round(wave[-1],-3),1000))
+        plt.yticks(fontsize = 20)
+        plt.tick_params(
+            which='major', 
+            bottom='on', 
+            top='on',
+            left='on',
+            right='on',
+            length=10)
+        plt.tick_params(
+            which='minor', 
+            bottom='on', 
+            top='on',
+            left='on',
+            right='on',
+            length=5)
+        plt.plot(wave, scale*flux, 'r-', linewidth = 2, label='Before Clipping')
 
     for wave_tuple in bad_ranges:
 #        print wave_tuple
@@ -164,8 +186,14 @@ def clip(wave, flux, var, vexp, testing=False):
             var[clip_points] = np.interp(wave[clip_points], [wave_tuple[0], wave_tuple[1]], [var[clip_points[0][0]-1], var[clip_points[0][-1]+1]])
 
     if testing:
-        plt.plot(wave, flux, 'b-')
-        plt.plot(wave, sflux, 'y-')
+        plt.plot(wave, scale*flux, linewidth = 2, color = '#000080', label='After Clipping')
+        plt.plot(wave, scale*sflux, color='gold', linewidth = 2, label='After Smoothing')
+        plt.ylabel('Relative Flux', fontsize = 30)
+        plt.xlabel('Rest Wavelength ' + "($\mathrm{\AA}$)", fontsize = 30)
+        plt.xlim([wave[0]-200,wave[-1]+200])
+        plt.ylim([0,1.05*10])
+        plt.legend(loc=1, fontsize=20)
+        plt.savefig('../../../Paper_Drafts/reprocessing_updated/clipping.pdf', dpi = 300, bbox_inches = 'tight')
         plt.show()
 
     return wave, flux, var # return bad_ranges instead of setting ivar[bad] = 0 (A.S.)
@@ -302,13 +330,41 @@ def genivar(wavelength, flux, varflux, vexp = 0.002, nsig = 5.0, testing=False):
     scaled_error = scale_func*sm_error_new
 
     if testing:
-        plt.plot(wavelength, error)
+        scale = 10./np.amax(flux)
+        plt.rc('font', family='serif')
+        fig, ax = plt.subplots(1,1)
+        fig.set_size_inches(10, 8, forward = True)
+        plt.minorticks_on()
+        plt.xticks(fontsize = 20)
+        # ax.xaxis.set_ticks(np.arange(np.round(wave[0],-3),np.round(wave[-1],-3),1000))
+        plt.yticks(fontsize = 20)
+        plt.tick_params(
+            which='major', 
+            bottom='on', 
+            top='on',
+            left='on',
+            right='on',
+            length=10)
+        plt.tick_params(
+            which='minor', 
+            bottom='on', 
+            top='on',
+            left='on',
+            right='on',
+            length=5)
+
+        plt.plot(wavelength, scale*error, linewidth = 2, color = '#000080', label='Absolute Residuals')
+        # if varflux is not None:
+        #     plt.plot(wavelength, sm_real_error, linewidth = 2, color = 'g', label='Real Error')
+        plt.plot(wavelength, scale*sm_error_new, linewidth = 2, color = 'orange', label='Smoothed Absolute Residuals')
+        plt.plot(wavelength, scale*scale_func*sm_error_new, linewidth = 2, color = 'magenta', label='Smoothed Absolute Residuals Corrected')
         if varflux is not None:
-            plt.plot(wavelength, sm_real_error)
-        plt.plot(wavelength, sm_error_new)
-        plt.plot(wavelength, scale_func*sm_error_new)
-        if varflux is not None:
-            plt.plot(wavelength, real_error)
+            plt.plot(wavelength, scale*real_error, linewidth = 2, color = 'g', label='Real Error')
+        plt.ylabel('Relative Flux', fontsize = 30)
+        plt.xlabel('Rest Wavelength ' + "($\mathrm{\AA}$)", fontsize = 30)
+        plt.xlim([wavelength[0]-200,wavelength[-1]+200])
+        plt.legend(loc=1, fontsize=20)
+        plt.savefig('../../../Paper_Drafts/reprocessing_updated/genvar.pdf', dpi = 300, bbox_inches = 'tight')
         plt.show()
         if varflux is not None:
             plt.plot(wavelength, error_scales)

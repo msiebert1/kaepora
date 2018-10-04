@@ -27,7 +27,7 @@ def make_colorbar(composites):
 
 	return s_m
 
-def scaled_plot(composites, min_num_show = 5, min_num_scale = 5, include_spec_bin = False, scaleto=10., legend_labels = None, savename = None):
+def scaled_plot(composites, min_num_show = 5, min_num_scale = 5, include_spec_bin = False, scaleto=10., legend_labels = None, rm_last_label=False, expand_ratio=False, savename = None):
 	color_dict = {"Comp": "#000080", "Hsiao": "#398036", "Nugent": "#E41A1C", "SALT-II": "#A65628"}
 	if not include_spec_bin:
 		h = [3,1]
@@ -83,6 +83,7 @@ def scaled_plot(composites, min_num_show = 5, min_num_scale = 5, include_spec_bi
 			length=5)
 		plt.ylabel('Relative Flux')
 		plt.ylim([-.05*scaleto, scaleto + .1*scaleto])
+		# plt.ylim([-.05*scaleto, scaleto + .3*scaleto])
 		plt.plot(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], color=c, linewidth=lw)
 		# plt.ylim([0.,1.3])
 		if len(comp.low_conf) > 0 and len(comp.up_conf) > 0:
@@ -133,7 +134,10 @@ def scaled_plot(composites, min_num_show = 5, min_num_scale = 5, include_spec_bi
 	res.axes.yaxis.set_major_formatter(majorFormatter)
 
 	res.axes.yaxis.set_minor_locator(minorLocator)
-	plt.ylim([0., 2.])
+	if expand_ratio:
+		plt.ylim([0., 5.])
+	else:
+		plt.ylim([0., 2.])
 	# plt.yticks(np.arange(-.25*scaleto, .25*scaleto, .5))
 	# plt.ylim([-.25*scaleto, .25*scaleto])
 	# labels=res.axes.get_yticks().tolist()
@@ -173,27 +177,46 @@ def scaled_plot(composites, min_num_show = 5, min_num_scale = 5, include_spec_bi
 			right='on',
 			length=5)
 
-		if max(composites[0].spec_bin[composites[0].x1:composites[0].x2]) > 45.: 
+		if max(composites[0].spec_bin[composites[0].x1:composites[0].x2]) > 90.: 
+			majorLocator = MultipleLocator(30)
+			majorFormatter = FormatStrFormatter('%d')
+			minorLocator = MultipleLocator(10)
+		elif max(composites[0].spec_bin[composites[0].x1:composites[0].x2]) <= 90 and max(composites[0].spec_bin[composites[0].x1:composites[0].x2]) > 45.:
 			majorLocator = MultipleLocator(20)
 			majorFormatter = FormatStrFormatter('%d')
 			minorLocator = MultipleLocator(10)
-		else:
+		elif max(composites[0].spec_bin[composites[0].x1:composites[0].x2]) <= 45 and max(composites[0].spec_bin[composites[0].x1:composites[0].x2]) > 23.:
 			majorLocator = MultipleLocator(10)
 			majorFormatter = FormatStrFormatter('%d')
 			minorLocator = MultipleLocator(5)
+		elif max(composites[0].spec_bin[composites[0].x1:composites[0].x2]) <= 23 and max(composites[0].spec_bin[composites[0].x1:composites[0].x2]) > 10.:
+			majorLocator = MultipleLocator(5)
+			majorFormatter = FormatStrFormatter('%d')
+			minorLocator = MultipleLocator(1)
+		else:
+			majorLocator = MultipleLocator(2)
+			majorFormatter = FormatStrFormatter('%d')
+			minorLocator = MultipleLocator(1)
+
 
 		spec.axes.yaxis.set_major_locator(majorLocator)
 		spec.axes.yaxis.set_major_formatter(majorFormatter)
-
 		spec.axes.yaxis.set_minor_locator(minorLocator)
 
-		plt.ylim([0., 1.1*max(composites[0].spec_bin[composites[0].x1:composites[0].x2])])
+		plt.ylim([0., 1.25*max(composites[0].spec_bin[composites[0].x1:composites[0].x2])])
 		plt.ylabel('Spectra/Bin')
 		# plt.plot(comp.wavelength[comp.x1:comp.x2], comp.spec_bin[comp.x1:comp.x2], color = s_m.to_rgba(param))
 		plt.plot(composites[0].wavelength[composites[0].x1:composites[0].x2], composites[0].spec_bin[composites[0].x1:composites[0].x2], color="#000080",linewidth=lw)
 
+		if rm_last_label:
+			labels=spec.axes.get_yticks().tolist()
+			labels[-2]=''
+			print labels
+			spec.set_yticklabels(labels)
+
 	plt.xlim([composites[0].wavelength[composites[0].x1]-100,composites[0].wavelength[composites[0].x2]+100])
 	plt.xlabel('Rest Wavelength ($\mathrm{\AA}$)')
+
 	if legend_labels:
 		rel_flux.legend(legend_labels)
 	if savename is not None:
@@ -565,7 +588,7 @@ def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_sc
 	if legend_labels:
 		rel_flux.legend(legend_labels)
 	if savename is not None:
-		plt.savefig('../../../Paper_Drafts/'+savename+'.png', dpi = 300, bbox_inches = 'tight')
+		plt.savefig('../../../Paper_Drafts/'+savename+'.pdf', dpi = 300, bbox_inches = 'tight')
 	plt.show()
 
 def stacked_plot(composites, boot=False, savename = None):
@@ -644,7 +667,7 @@ def normalize_comp(comp):
 	comp.ivar /= (norm)**2
 	return comp, norm
 
-def main(num_queries, query_strings, boot='nb', medmean = 1, selection = 'max_coverage'):
+def main(num_queries, query_strings, boot='nb', medmean = 1, selection = 'max_coverage', gini_balance=False, verbose=True):
 	# num_queries = int(sys.argv[1])
 	# query_strings = sys.argv[2:]
 
@@ -653,7 +676,7 @@ def main(num_queries, query_strings, boot='nb', medmean = 1, selection = 'max_co
 	boot_sn_arrays = []
 	store_boots = True
 	for n in range(num_queries):
-		comp, arr, boots = composite.main(query_strings[n],boot=boot, medmean = medmean, selection = selection)
+		comp, arr, boots = composite.main(query_strings[n],boot=boot, medmean = medmean, selection = selection, gini_balance=gini_balance, verbose=verbose)
 		if store_boots:
 			boot_sn_arrays.append(boots)
 		composites.append(comp)
@@ -768,12 +791,15 @@ def save_comps_to_files(composites):
 	for SN in composites:
 		phase = np.round(np.average(SN.phase_array[SN.x1:SN.x2]), 1)
 		vel = np.round(np.average(SN.vel[SN.x1:SN.x2]), 1)
-		print phase, vel
+		dm15 = np.round(np.average(SN.dm15_array[SN.x1:SN.x2]), 1)
+		
 
 	#save to file
 	for SN in composites:
 		phase = np.round(np.average(SN.phase_array[SN.x1:SN.x2]), 1)
 		vel = np.round(np.average(SN.vel[SN.x1:SN.x2]), 1)
+		dm15 = np.round(np.average(SN.dm15_array[SN.x1:SN.x2]), 1)
+		print phase, vel, dm15
 
 		if phase >= 0.:
 			sign = 'p'
@@ -782,10 +808,11 @@ def save_comps_to_files(composites):
 		abs_phase = np.absolute(phase)
 		phase_str = str(abs_phase)
 
-		abs_vel = np.absolute(vel)
-		vel_str = str(abs_vel)
+		dm15_str = str(dm15)
 
-		with open('../../' + sign + phase_str + 'days' + '.flm', 'w') as file:
+		file_path = '../../../Composites_m5_p5_dm15/' + sign + phase_str + '_days_' + dm15 + '_mag'+'.flm'
+		print file_path
+		with open(file_path, 'w') as file:
 			wave = np.array(SN.wavelength[SN.x1:SN.x2])
 			flux = np.array(SN.flux[SN.x1:SN.x2])
 			data = np.array([wave,flux])
@@ -842,10 +869,13 @@ if __name__ == "__main__":
 	# 		vexp, SNR = sa.autosmooth(SN.wavelength[SN.x1:SN.x2], SN.flux[SN.x1:SN.x2], var_y = var[SN.x1:SN.x2])
 	# 		v, si_min_wave = sa.measure_velocity(SN.wavelength[SN.x1:SN.x2], SN.flux[SN.x1:SN.x2], 5900., 6300., vexp=vexp, plot=True)
 	# 		print SN.name, v
-	# for comp in composites:
-	# 	r = sa.measure_si_ratio(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], vexp = .001)
-	# 	v_strong, si_min_wave = sa.measure_velocity(comp.wavelength[comp.x1:comp.x2],comp.flux[comp.x1:comp.x2], 5900., 6300.)
-	# 	print r, v_strong
+
+	for comp in composites:
+		dm15 = np.round(np.nanmean(comp.dm15_array[comp.x1:comp.x2]),2)
+		r = sa.measure_si_ratio(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], vexp = .001, dm15=dm15)
+		# v_strong, si_min_wave = sa.measure_velocity(comp.wavelength[comp.x1:comp.x2],comp.flux[comp.x1:comp.x2], 5900., 6300.)
+		print r
+	
 	# r = sa.measure_si_ratio(comp2.wavelength[comp2.x1:comp2.x2], comp2.flux[comp2.x1:comp2.x2], vexp = .001)
 	# print r
 	# set_min_num_spec(composites, 10)

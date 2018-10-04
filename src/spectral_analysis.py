@@ -45,6 +45,45 @@ def autosmooth(x_array, y_array, var_y=None):
 
 	return vexp_auto, SNR
 
+def find_vexp(x_array, y_array, var_y=None):
+    if var_y is not None:
+        error = np.sqrt(var_y)
+        new_y_init = df.gsmooth(x_array, y_array, var_y, .002)
+        SNR = np.median(new_y_init / error)
+    else:
+        new_y_init = df.gsmooth(x_array, y_array, var_y, .002) #this smoothing should get in right ballpark
+        error = np.absolute(y_array - new_y_init)
+        sm_error = df.gsmooth(x_array, error, var_y, .008)
+        SNR = np.median(new_y_init / sm_error)
+
+    #TODO: interpolate a function of SNR
+    # vexp_line = np.polyfit([2.5, 80], [.0045, .001], 1)
+    # coeff_0 = vexp_line[0]
+    # coeff_1 = vexp_line[1]
+    # results from above:
+    coeff_0 = -4.51612903e-05
+    coeff_1 = 4.61290323e-03
+    vexp_auto = coeff_0*SNR + coeff_1
+
+    if SNR < 2.5:
+        vexp_auto = .0045
+    if SNR > 80:
+        vexp_auto = .001
+    # if SNR < 5:
+    #     vexp_auto = .0045 
+    # elif 5 <= SNR < 20:
+    #     vexp_auto = .004
+    # elif 20 <= SNR < 40:
+    #     vexp_auto = .003
+    # elif 40 <= SNR < 60:
+    #     vexp_auto = .002
+    # elif 60 <= SNR < 100:
+    #     vexp_auto = .0015
+    # else:
+    #     vexp_auto = .001
+
+    return vexp_auto, SNR
+
 def measure_color(SN, c1='B', c2='R', filt_type='Bessel'):
 	
 	c_AAs = 2.99792458e18
@@ -95,15 +134,17 @@ def find_extrema(wavelength,sm_flux):
 
 
 def measure_si_ratio(wavelength,flux, varflux = None, vexp=.002, smooth=True, dm15 = None, plot=True):
-	if varflux == None:
-		varflux = np.zeros(len(wavelength), float)
-
+	# if varflux == None:
+	# 	varflux = np.zeros(len(wavelength), float)
 	if smooth:
 		sm_flux = df.gsmooth(wavelength, flux, varflux, vexp)
 	else:
 		sm_flux = flux
 
 	maxima = find_extrema(wavelength,sm_flux)
+	max_waves = wavelength[maxima]
+	max_fluxes = sm_flux[maxima]
+
 
 	si_range_1 = np.where((wavelength > 5500.) & (wavelength < 5700.))
 	si_range_2 = np.where((wavelength > 5700.) & (wavelength < 6000.))
@@ -157,11 +198,19 @@ def measure_si_ratio(wavelength,flux, varflux = None, vexp=.002, smooth=True, dm
 		print "Could not find maximum in a specified range!"
 		return np.nan
 
+	f1s = sm_flux[m1s]
+	f2s = sm_flux[m2s]
+	f3s = sm_flux[m3s]
 	m1 = m1s[-1]
 	m2 = m2s[-1]
-	m3 = m3s[-1]
+	m3 = m3s[np.argmax(f3s)]
+
+	# m1 = m1s[0]
+	# m2 = m2s[-1]
+	# m3 = m3s[-1]
 	if dm15 != None and dm15 > 1.7:
 		m1 = m1s[0]
+		m2 = m2s[np.argmax(f2s)]
 
 	si_max_wave_1 = wavelength[m1]
 	si_max_wave_2 = wavelength[m2]
@@ -211,6 +260,7 @@ def measure_si_ratio(wavelength,flux, varflux = None, vexp=.002, smooth=True, dm
 		plt.plot(wavelength,flux)
 		plt.plot(wavelength,sm_flux)
 		plt.plot(wavelength, interp_flux)
+		plt.plot(max_waves, max_fluxes, 'o', color='cyan')
 		plt.plot(wavelength[strong_si_trough][strong_ind], interp_flux[strong_si_trough][strong_ind], 'o', color='orange')
 		plt.plot(wavelength[strong_si_trough][strong_ind], sm_flux[strong_si_trough][strong_ind], 'o', color='orange')
 		plt.plot(wavelength[weak_si_trough][weak_ind], interp_flux[weak_si_trough][weak_ind], 'o', color='orange')
@@ -267,8 +317,6 @@ def measure_ca_ratio(wavelength,flux, varflux = None, wave1 = 3550., wave2=3680.
 	return ca_max_2/ca_max_1
 
 def measure_velocity(wavelength, flux, wave1, wave2, vexp=.001, rest_wave=6355., varflux=None, plot=False):
-	if varflux == None:
-		varflux = np.zeros(len(wavelength), float)
 
 	sm_flux = df.gsmooth(wavelength, flux, varflux, vexp)
 	si_range = np.where((wavelength > wave1) & (wavelength < wave2))

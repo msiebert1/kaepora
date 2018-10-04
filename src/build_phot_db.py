@@ -431,7 +431,7 @@ def dm15_from_fit_params(events, fit_dict, cfa_dict, stretch='N/A'):
 		# plt.errorbar(clip_param_arr, clip_dm15_arr, xerr=clip_e_param_arr, fmt='x', color='black', ms=30, mew=3)
 		plt.xlim(.4, 1.3)
 		plt.xlabel('s', fontsize = 30)
-		# plt.savefig('../../../Paper_Drafts/reprocessing/dm15_s.pdf', dpi = 300, bbox_inches = 'tight')
+		plt.savefig('../../../Paper_Drafts/reprocessing_updated/dm15_s.pdf', dpi = 300, bbox_inches = 'tight')
 	elif stretch is 'x1':
 		plt.errorbar(new_param_arr, new_dm15_arr, xerr=new_e_param_arr, yerr= new_e_dm15_arr, fmt='o', color='#1b9e77', ms=10)
 		# plt.errorbar(new_param_arr, new_dm15_arr, xerr=new_e_param_arr, fmt='o', color='#1b9e77', ms=10)
@@ -439,7 +439,7 @@ def dm15_from_fit_params(events, fit_dict, cfa_dict, stretch='N/A'):
 		# plt.errorbar(clip_param_arr, clip_dm15_arr, xerr=clip_e_param_arr, fmt='x', color='black', ms=30, mew=3)
 		plt.xlim(-5., 3.)
 		plt.xlabel('$x_1$', fontsize = 30)
-		# plt.savefig('../../../Paper_Drafts/reprocessing/dm15_x1.pdf', dpi = 300, bbox_inches = 'tight')
+		plt.savefig('../../../Paper_Drafts/reprocessing_updated/dm15_x1.pdf', dpi = 300, bbox_inches = 'tight')
 	elif stretch is 'delta':
 		plt.errorbar(new_param_arr, new_dm15_arr, xerr=new_e_param_arr, yerr= new_e_dm15_arr, fmt='o', color='#d95f02', ms=10)
 		# plt.errorbar(new_param_arr, new_dm15_arr, xerr=new_e_param_arr, fmt='o', color='#d95f02', ms=10)
@@ -447,7 +447,7 @@ def dm15_from_fit_params(events, fit_dict, cfa_dict, stretch='N/A'):
 		# plt.errorbar(clip_param_arr, clip_dm15_arr, xerr=clip_e_param_arr, fmt='x', color='black', ms=30, mew=3)
 		plt.xlim(-.5, 1.8)
 		plt.xlabel('$\Delta$', fontsize = 30)
-		# plt.savefig('../../../Paper_Drafts/reprocessing/dm15_delta.pdf', dpi = 300, bbox_inches = 'tight')
+		plt.savefig('../../../Paper_Drafts/reprocessing_updated/dm15_delta.pdf', dpi = 300, bbox_inches = 'tight')
 	elif stretch is 'delta_lowrv':
 		plt.errorbar(new_param_arr, new_dm15_arr, xerr=new_e_param_arr, yerr= new_e_dm15_arr, fmt='o', color='#d95f02', ms=10)
 		# plt.errorbar(new_param_arr, new_dm15_arr, xerr=new_e_param_arr, fmt='o', color='#d95f02', ms=10)
@@ -455,11 +455,11 @@ def dm15_from_fit_params(events, fit_dict, cfa_dict, stretch='N/A'):
 		# plt.errorbar(clip_param_arr, clip_dm15_arr, xerr=clip_e_param_arr, fmt='x', color='black', ms=30, mew=3)
 		plt.xlim(-.9, 2.0)
 		plt.xlabel('$\Delta$', fontsize = 30)
-		# plt.savefig('../../../Paper_Drafts/reprocessing/dm15_delta_lowrv.pdf', dpi = 300, bbox_inches = 'tight')
+		plt.savefig('../../../Paper_Drafts/reprocessing_updated/dm15_delta_lowrv.pdf', dpi = 300, bbox_inches = 'tight')
 	plt.show()
 
 	# dm15_interp = interp1d(x, y, bounds_error = True)
-	dm15_interp = interp1d(y, x, bounds_error=False, fill_value=None)
+	dm15_interp = interp1d(new_x, new_y, bounds_error=False, fill_value=None)
 
 	###
 	# RMSE:  0.0718342630003
@@ -594,19 +594,19 @@ if __name__ == "__main__":
 
 
 		if dm15_source is None:
-			dm15_from_s = np.NaN
+			dm15_from_s = np.nan
 			if s_salt != None:
 				dm15_from_s = float(dm15_s_interp(s_salt))
 
-			dm15_from_x1 = np.NaN
+			dm15_from_x1 = np.nan
 			if x1_salt2 != None:
 				dm15_from_x1 = float(dm15_x1_interp(x1_salt2))
 
-			dm15_from_delta = np.NaN
+			dm15_from_delta = np.nan
 			if delta_mlcs31 != None:
 				dm15_from_delta = float(dm15_delta_interp(delta_mlcs31))
 
-			dm15_from_delta_lowrv = np.NaN
+			dm15_from_delta_lowrv = np.nan
 			if delta_lowrv != None:
 				dm15_from_delta_lowrv = float(dm15_delta_lowrv_interp(delta_lowrv[0]))
 
@@ -615,15 +615,15 @@ if __name__ == "__main__":
 			dm15s = [dm15_from_delta, dm15_from_x1, dm15_from_s, dm15_from_delta_lowrv] #change order to give fits different priority
 			e_dm15s = [0.070, 0.066, 0.072, 0.074] #errors from fits
 			for i, dm in enumerate(dm15s):
-				if dm != np.NaN:
+				if ~np.isnan(dm):
 					dm15_from_fits = dm
 					e_dm15 = e_dm15s[i]
 					break
 				else:
-					dm15_from_fits = np.NaN
+					dm15_from_fits = np.nan
 
 
-			if dm15_from_fits == np.NaN:
+			if np.isnan(dm15_from_fits):
 				dm15_from_fits = None
 				e_dm15 = None
 		else:

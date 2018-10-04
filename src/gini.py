@@ -3,8 +3,8 @@ def make_gini_ranges():
     gini_ranges = []
     
 #     x = np.linspace(1000, 12000, num = 45)
-    x = np.linspace(1000, 12000, num = 23)
-    # x = np.linspace(1000, 12000, num = 12)
+    # x = np.linspace(1000, 12000, num = 23)
+    x = np.linspace(1000, 12000, num = 12)
     # x = np.linspace(1000, 12000, num = 2)
     for i in range(len(x)-1):
         gini_ranges.append((x[i], x[i+1]))
@@ -77,37 +77,50 @@ def calc_deweight_ranges(sn_arr, gini_coeffs, gini_ranges, gini_range_meds, tol=
 	# raise TypeError
 	biasing_SNs = []
 	biasing_tuples = []
+
+	#first find where coeffs are greater than tolerance
 	for i in range(len(gini_coeffs)):
 	    if gini_coeffs[i] >= tol:
 	        g_list = []
+	        #populate g_list with individual SN weights in this wave range
 	        for j, SN in enumerate(sn_arr):
 	            g_list.append(SN.g_array[i])
+	        #if SN has no weight, set to nan
 	        for k, g in enumerate(g_list):
 	            if np.isnan(g_list[k]):
 	                g_list[k] = 0.
+	        #sort list to pick out SN with the largest weight in this wave range
 	        g_sort = np.argsort(g_list)
-	        biasing_tuples.append((i, sn_arr[g_sort[-1]]))
+	        g_sort_vals = np.sort(g_list)
+	        biasing_tuples.append((i, sn_arr[g_sort[-1]])) #store index of wave range and biasing SN
 
+
+	#biasing_tuples contains most weighted SN for each gini coeff > tol
+
+	# print g_sort
 	scale_dict = {}
 	scale_ref_dict = {}
 	deweight_SNs = []
 	for tup in biasing_tuples:
-		g = gini_ranges[tup[0]]
-		g_locs = np.where((tup[1].wavelength >= g[0]) & (tup[1].wavelength < g[1]))[0]
+		# print tup[1].g_array[tup[0]]
+		g = gini_ranges[tup[0]] # wavelength range
+		g_locs = np.where((tup[1].wavelength >= g[0]) & (tup[1].wavelength < g[1]))[0] #indices valid for this gini range
+		non_zero_locs = np.where(tup[1].ivar[g_locs] != 0.)
+		# print tup[0], tup[1].name, gini_range_meds[tup[0]], np.nansum(tup[1].ivar[g_locs][non_zero_locs]), gini_range_meds[tup[0]]/np.nansum(tup[1].ivar[g_locs][non_zero_locs])
 		if tup[1].name in scale_dict:
-			scale_dict[tup[1].name] = (scale_dict[tup[1].name] + np.nanmedian(tup[1].ivar[tup[1].x1:tup[1].x2]))/2.
-			scale_ref_dict[tup[1].name] = (scale_ref_dict[tup[1].name] + gini_range_meds[tup[0]])/2.
+			med_in_range = np.nansum(tup[1].ivar[g_locs][non_zero_locs])
+			scale_dict[tup[1].name] = np.amax([scale_dict[tup[1].name],med_in_range]) #store max of biasing SN in the unbalanced region
+			scale_ref_dict[tup[1].name] = np.amax([scale_ref_dict[tup[1].name],gini_range_meds[tup[0]]]) #store max of all SNe in the unbalanced region
 		else:
-			scale_dict[tup[1].name] = np.nanmedian(tup[1].ivar[tup[1].x1:tup[1].x2])
+			scale_dict[tup[1].name] = np.nansum(tup[1].ivar[g_locs][non_zero_locs])
 			scale_ref_dict[tup[1].name] = gini_range_meds[tup[0]]
 		deweight_SNs.append(tup[1])
-
-	for el in scale_dict.keys():
-		print el, scale_dict[el], 'Ref: ', scale_ref_dict[el], 'Fraction: ', scale_dict[el]/scale_ref_dict[el]
+	# for el in scale_dict.keys():
+	# 	print el, scale_dict[el], 'Ref: ', scale_ref_dict[el], 'Fraction: ', scale_dict[el]/scale_ref_dict[el]
 
 	deweight_SNs = set(deweight_SNs)
-	for SN in deweight_SNs:
-		print SN.name
+	# for SN in deweight_SNs:
+	# 	print SN.name
 	# scale_to = np.median(tot_weights)
 	# print scale_to
 	# tot_sort = np.argsort(tot_weights)
@@ -161,5 +174,8 @@ def deweight_biasing_SNe(deweight_SNs, scale_dict, scale_ref_dict):
 		# sn_median = np.nanmedian(SN.ivar[SN.x1:SN.x2])
 		# print sn_median/scale_to
 		# SN.ivar = SN.ivar*(scale_median/sn_median)
-		SN.ivar = SN.ivar*(scale_ref_dict[SN.name]/scale_dict[SN.name])
-		# SN.ivar[g_locs] = np.ma.median(ivars, axis=0).filled(np.nan)
+
+		# print SN.name, scale_ref_dict[SN.name], scale_dict[SN.name], scale_ref_dict[SN.name]/scale_dict[SN.name]
+		scale = scale_ref_dict[SN.name]/scale_dict[SN.name]
+		SN.ivar = SN.ivar*scale
+	# print 

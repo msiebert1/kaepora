@@ -97,7 +97,7 @@ def grab(sql_input, multi_epoch = False, make_corr = True, selection = 'max_cove
 	"""
 	print "Collecting data..."
 	con = sq3.connect('../data/SNIaDB_Spec_v20_phot_v10.db')
-	# con = sq3.connect('../data/SNe_14.db')
+	# con = sq3.connect('../data/SNe_19_phot_9.db')
 	cur = con.cursor()
 
 	SN_Array = []
@@ -180,6 +180,8 @@ def grab(sql_input, multi_epoch = False, make_corr = True, selection = 'max_cove
 			if len(np.where(np.isnan(SN.ivar))[0] == True) == 5500:
 				bad_ivars.append(SN.filename)
 				# plt.plot(SN.wavelength,SN.flux)
+				# plt.show()
+				# plt.plot(SN.wavelength,SN.ivar)
 				# plt.show()
 		if len(bad_ivars) > 0:
 			print "Generate variance failed for: ", bad_ivars
@@ -622,7 +624,7 @@ def bootstrapping (SN_Array, samples, scales, og_template, iters, medmean):
 	for i in range(len(strap_matrix)):
 		boot_arr.append([])
 		for j in range(len(strap_matrix[i])):
-			boot_arr[i].append(cpy_array[strap_matrix[i,j]])
+			boot_arr[i].append(copy.deepcopy(cpy_array[strap_matrix[i,j]]))
 
 	for p in range(len(boot_arr)):
 		# print p
@@ -632,10 +634,12 @@ def bootstrapping (SN_Array, samples, scales, og_template, iters, medmean):
 		boot_temp = [SN for SN in boot_arr[p] if len(SN.flux[np.where(SN.flux!=0)]) == max(lengths)]
 		boot_temp = copy.deepcopy(boot_temp[0])
 		
+
 		(fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, dm15s, 
 		 flux_mask, ivar_mask, dm15_mask, red_mask) = mask(boot_arr[p], boot)
 		for x in range(iters):
-			new_SN_Array, scales = optimize_scales(boot_arr[p], boot_temp, False)
+			# new_SN_Array, scales = optimize_scales(boot_arr[p], boot_temp, False)
+			new_SN_Array, scales = optimize_scales(boot_arr[p], boot_temp, True)
 			(fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, dm15s, 
 			 flux_mask, ivar_mask, dm15_mask, red_mask) = mask(boot_arr[p], boot)
 			template = average(boot_arr[p], boot_temp, medmean, boot, fluxes, ivars, dm15_ivars, red_ivars, 
@@ -646,11 +650,11 @@ def bootstrapping (SN_Array, samples, scales, og_template, iters, medmean):
 	temp1, scales = optimize_scales(boots, og_template, True)
 
 	#examine bootstrap samples
-	print "plotting..."
+	# print "plotting..."
 	# for SN in boots:
 	#     plt.plot(SN.wavelength, SN.flux, 'g')
 	# plt.plot(og_template.wavelength,og_template.flux, 'k', linewidth = 4)
-	# plt.show()
+	plt.show()
 	
 	print "computing confidence intervals..."
 	resid = []
@@ -712,7 +716,7 @@ def bootstrapping (SN_Array, samples, scales, og_template, iters, medmean):
 	return np.asarray(low_arr), np.asarray(up_arr), boots        
 	
 def is_bad_data(SN, bad_files, bad_ivars):
-	bad_sns = ['2002bf']
+	bad_sns = ['2002bf', '2006x', '1991bg']
 	for el in bad_files:
 		if SN.filename == el:
 			return True
@@ -888,37 +892,54 @@ def create_composite(SN_Array, boot, template, medmean, gini_balance=False):
 		imbalanced = True
 		gini_coeffs, num_specs, gini_ranges = gini.gini_coeffs(SN_Array)
 		gini_range_meds = []
-		for g in gini_ranges:
-			sn_meds = []
-			for SN in SN_Array:
-				g_locs = np.where((SN.wavelength >= g[0]) & (SN.wavelength < g[1]) & (SN.ivar > 0.))[0]
-				sn_meds.append(np.nanmedian(SN.ivar[g_locs]))
-			gini_range_meds.append(np.nanmedian(sn_meds))
+		# for g in gini_ranges:
+		# 	sn_meds = []
+		# 	for SN in SN_Array:
+		# 		g_locs = np.where((SN.wavelength >= g[0]) & (SN.wavelength < g[1]) & (SN.ivar > 0.))[0]
+		# 		if np.nansum(SN.ivar[g_locs]) > 0.:
+		# 			sn_meds.append(np.nansum(SN.ivar[g_locs]))
+		# 	gini_range_meds.append(np.nanmedian(sn_meds))
+		# print gini_range_meds
 
 		# print gini_range_meds
 		# raise TypeError
-		print 'Balancing weights...'
+		print 'Gini balancing...'
 		i=0
 		first_iter = True
 		prev_swaps = []
 		while imbalanced:
-			print gini_coeffs
-			deweight_SNs, scale_dict, scale_ref_dict = gini.calc_deweight_ranges(SN_Array, gini_coeffs, gini_ranges, gini_range_meds, tol=.8)
+			# print gini_coeffs
+			# print num_specs
+			gini_range_meds = []
+			for g in gini_ranges:
+				sn_meds = []
+				for SN in SN_Array:
+					g_locs = np.where((SN.wavelength >= g[0]) & (SN.wavelength < g[1]) & (SN.ivar > 0.))[0]
+					if np.nansum(SN.ivar[g_locs]) > 0.:
+						sn_meds.append(np.nansum(SN.ivar[g_locs]))
+				gini_range_meds.append(np.nanmedian(sn_meds))
+			# print gini_range_meds
+			# deweight_SNs, scale_dict, scale_ref_dict = gini.calc_deweight_ranges(SN_Array, gini_coeffs, gini_ranges, gini_range_meds, tol=.85)
+			deweight_SNs, scale_dict, scale_ref_dict = gini.calc_deweight_ranges(SN_Array, gini_coeffs, gini_ranges, gini_range_meds, tol=.6)
 			if len(deweight_SNs) == 0:
 				imbalanced = False
 			else:
 				gini.deweight_biasing_SNe(deweight_SNs, scale_dict, scale_ref_dict)
 				gini_coeffs, num_specs, gini_ranges = gini.gini_coeffs(SN_Array)
 			i+=1
-			if i == 10:
-				imbalanced = False
+			# if i == 10:
+			# 	imbalanced = False
 			first_iter = False
 		print 'Balanced after', i, 'iterations'
 
 	# qdb.plot_comp_and_all_spectra(template, SN_Array, show_ivar=True)
 	for i in range(iters_comp):
-		SN_Array, scales = optimize_scales(SN_Array, template, False)
-
+		# SN_Array, scales = optimize_scales(SN_Array, template, False)
+		SN_Array, scales = optimize_scales(SN_Array, template, True)
+		# for SN in SN_Array:
+		# 	plt.plot(SN.wavelength[SN.x1:SN.x2], SN.flux[SN.x1:SN.x2])
+		# plt.plot(template.wavelength, template.flux, 'k-', linewidth=4)
+		# plt.show()
 		# for SN in SN_Array:
 		# 	SN.ivar = np.ones(len(SN_Array[0].ivar))
 
@@ -938,6 +959,9 @@ def create_composite(SN_Array, boot, template, medmean, gini_balance=False):
 	for SN in SN_Array:
 		SN.flux = SN.flux*norm
 		SN.ivar = SN.ivar/(norm**2.)
+
+		if SN.name == '1991bg':
+			print 'Original:', np.nanmedian(SN.ivar[SN.x1:SN.x2])
 	#plot composite with the scaled spectra
 	# plt.figure(num = 2, dpi = 100, figsize = [30, 20], facecolor = 'w')
 	# for SN in SN_Array:
@@ -945,36 +969,6 @@ def create_composite(SN_Array, boot, template, medmean, gini_balance=False):
 
 	if bootstrap is 'n':
 		template.ivar = np.ones(len(template.wavelength))
-		# plt.rc('font', family='serif')
-		# fig, ax = plt.subplots(1,1)
-		# fig.set_size_inches(10, 8, forward = True)
-		# plt.minorticks_on()
-		# plt.xticks(fontsize = 20)
-		# ax.xaxis.set_ticks(np.arange(np.round(template.wavelength[template.x1:template.x2][0],-3), np.round(template.wavelength[template.x1:template.x2][-1],-3),1000))
-		# plt.yticks(fontsize = 20)
-		# plt.tick_params(
-		#     which='major', 
-		#     bottom='on', 
-		#     top='on',
-		#     left='on',
-		#     right='on',
-		#     length=10)
-		# plt.tick_params(
-		# 	which='minor', 
-		# 	bottom='on', 
-		# 	top='on',
-		# 	left='on',
-		# 	right='on',
-		# 	length=5)
-		# for i in range(len(SN_Array)):
-		#     plt.plot(SN_Array[i].wavelength[SN_Array[i].x1:SN_Array[i].x2], SN_Array[i].flux[SN_Array[i].x1:SN_Array[i].x2], color = '#7570b3', alpha = .5)
-		# plt.plot(template.wavelength[template.x1:template.x2], template.flux[template.x1:template.x2], 'k', linewidth = 6)
-		# plt.ylabel('Relative Flux', fontsize = 30)
-		# plt.xlabel('Rest Wavelength ' + "($\mathrm{\AA}$)", fontsize = 30)
-		# # "SELECT * from Supernovae inner join Photometry ON Supernovae.SN = Photometry.SN where phase >= -3 and phase <= 3 and morphology >= 9"
-		# plt.savefig('../../Paper_Drafts/scaled.pdf', dpi = 300, bbox_inches = 'tight')
-		# plt.show()
-		# raise TypeError
 
 	#create bootstrap composites
 	else:

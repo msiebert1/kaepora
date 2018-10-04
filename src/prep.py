@@ -13,6 +13,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.interpolate as inter
 import math
+import scipy.optimize as opt
+import copy
 #import sqlite3 as sq3
 #import msgpack
 
@@ -176,6 +178,19 @@ def getsnr(flux, ivar):
     snr_med = np.median(snr)
     return snr_med
 
+def scale_composites_in_range(data, comp):
+    scales = []
+    guess = 1.
+    s = opt.minimize(sq_residuals_in_range, guess, args = (data, comp), 
+                 method = 'Nelder-Mead').x
+    return s
+
+def sq_residuals_in_range(s, data, comp):
+    data = s*data
+    res = data - comp
+    sq_res = res*res
+    return np.sum(sq_res)
+
 
 def compprep(spectrum, sn_name, z, source, use_old_error=True, testing=False):
     old_wave = spectrum[:, 0]	    # wavelengths
@@ -253,17 +268,67 @@ def compprep(spectrum, sn_name, z, source, use_old_error=True, testing=False):
 #     new_flux = host_correction(sne, sn_name, old_wave, new_flux)
 
     # new_flux = old_flux
+
+    if testing:
+        new_flux_plot = copy.deepcopy(dered_flux)
+        new_ivar_plot = copy.deepcopy(dered_ivar)
+        old_wave_plot = copy.deepcopy(old_wave)
+
     new_flux = dered_flux.value
     new_ivar = dered_ivar.value
     old_wave = old_wave.value
 
     if testing:
-        plt.plot(old_wave, old_flux)
-        plt.plot(old_wave, new_flux)
+        av_specific = 0.2384 #2005lz
+        r_v=2.5
+        new_flux_host, new_ivar_host = test_dered.host_correction(av_specific, r_v, sn_name, old_wave_plot, new_flux_plot, new_ivar_plot)
+        new_flux_host = new_flux_host.value
+        old_flux = old_flux.value
+
+        s = scale_composites_in_range(new_flux, old_flux)
+        new_flux_scaled = s*new_flux
+        s = scale_composites_in_range(new_flux_host, old_flux)
+        new_flux_host_scaled = s*new_flux_host
+
+        valid_data = np.where(old_wave > 4000)
+        norm = 10./np.nanmax(new_flux_host_scaled[valid_data])
+        old_flux_norm = old_flux*norm
+        new_flux_norm = new_flux_scaled*norm
+        new_flux_host_norm = new_flux_host_scaled*norm
+
+        plt.rc('font', family='serif')
+        fig, ax = plt.subplots(1,1)
+        fig.set_size_inches(10, 8, forward = True)
+        plt.minorticks_on()
+        plt.xticks(fontsize = 20)
+        # ax.xaxis.set_ticks(np.arange(np.round(wave[0],-3),np.round(wave[-1],-3),1000))
+        plt.yticks(fontsize = 20)
+        plt.tick_params(
+            which='major', 
+            bottom='on', 
+            top='on',
+            left='on',
+            right='on',
+            length=10)
+        plt.tick_params(
+            which='minor', 
+            bottom='on', 
+            top='on',
+            left='on',
+            right='on',
+            length=5)
+        plt.plot(old_wave, old_flux_norm, linewidth = 2, color = '#000080', label='Before Dereddening')
+        plt.plot(old_wave, new_flux_norm, linewidth = 2, color = 'gold', label='Milky Way Corrected')
+        plt.plot(old_wave, new_flux_host_norm, linewidth = 2, color = '#d95f02', label='Host Corrected')
+        plt.ylabel('Relative Flux', fontsize = 30)
+        plt.xlabel('Rest Wavelength ' + "($\mathrm{\AA}$)", fontsize = 30)
+        plt.xlim([old_wave[0]-200,old_wave[-1]+200])
+        plt.legend(loc=1, fontsize=20)
+        plt.savefig('../../../Paper_Drafts/reprocessing_updated/red_corr.pdf', dpi = 300, bbox_inches = 'tight')
         plt.show()
-        plt.plot(old_wave, old_ivar)
-        plt.plot(old_wave, new_ivar)
-        plt.show()
+        # plt.plot(old_wave, old_ivar)
+        # plt.plot(old_wave, new_ivar)
+        # plt.show()
 
     new_wave = old_wave/(1.+z)  # Deredshifting
     if not use_old_error:
@@ -272,4 +337,39 @@ def compprep(spectrum, sn_name, z, source, use_old_error=True, testing=False):
         new_var = old_var  # Placeholder if it needs to be changed
     #var = new_flux*0+1
     newdata = Interpo(new_wave, new_flux, new_ivar)  # Do the interpolation
+
+    if testing:
+        newdata_test = Interpo(new_wave, new_flux_host_norm, new_ivar)
+        interp_wave = newdata_test[0,:]
+        interp_flux = newdata_test[1,:]
+        plt.rc('font', family='serif')
+        fig, ax = plt.subplots(1,1)
+        fig.set_size_inches(10, 8, forward = True)
+        plt.minorticks_on()
+        plt.xticks(fontsize = 20)
+        # ax.xaxis.set_ticks(np.arange(np.round(wave[0],-3),np.round(wave[-1],-3),1000))
+        plt.yticks(fontsize = 20)
+        plt.tick_params(
+            which='major', 
+            bottom='on', 
+            top='on',
+            left='on',
+            right='on',
+            length=10)
+        plt.tick_params(
+            which='minor', 
+            bottom='on', 
+            top='on',
+            left='on',
+            right='on',
+            length=5)
+        plt.plot(new_wave, new_flux_host_norm, linewidth = 2, color = '#d95f02', label='Before Interpolation')
+        plt.plot(interp_wave, interp_flux, linewidth = 2, color = 'darkgreen', label='After Interpolation')
+        plt.ylabel('Relative Flux', fontsize = 30)
+        plt.xlabel('Rest Wavelength ' + "($\mathrm{\AA}$)", fontsize = 30)
+        plt.xlim([new_wave[0]-200,new_wave[-1]+200])
+        plt.legend(loc=1, fontsize=20)
+        plt.savefig('../../../Paper_Drafts/reprocessing_updated/interp_deredshift.pdf', dpi = 300, bbox_inches = 'tight')
+        plt.show()
+
     return newdata, SNR
