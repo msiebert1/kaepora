@@ -223,8 +223,8 @@ def grab(sql_input, multi_epoch = False, make_corr = True, selection = 'max_cove
 				for e in events:
 					if (e.maxwave - e.minwave) > (max_range.maxwave - max_range.minwave):
 						max_range = e
-				if not (events[0].name == '2011fe' and events[0].source == 'other'): #ignore high SNR 2011fe data
-					new_SN_Array.append(max_range)
+				# if not (events[0].name == '2011fe' and events[0].source == 'other'): #ignore high SNR 2011fe data
+				new_SN_Array.append(max_range)
 				# new_SN_Array.append(max_range)
 			elif selection == 'max_coverage_choose_uv':
 				max_range = events[0]
@@ -235,30 +235,30 @@ def grab(sql_input, multi_epoch = False, make_corr = True, selection = 'max_cove
 					# 	max_range = e
 					elif (e.minwave) < (max_range.minwave):
 						max_range = e
-				if not (events[0].name == '2011fe' and events[0].source == 'other'): #ignore high SNR 2011fe data
-					new_SN_Array.append(max_range)
+				# if not (events[0].name == '2011fe' and events[0].source == 'other'): #ignore high SNR 2011fe data
+				new_SN_Array.append(max_range)
 			elif selection == 'choose_bluest':
 				bluest = events[0]
 				for e in events:
 					if e.minwave < bluest.minwave:
 						bluest = e
-				if not (events[0].name == '2011fe' and events[0].source == 'other'): #ignore high SNR 2011fe data
-					new_SN_Array.append(bluest)
+				# if not (events[0].name == '2011fe' and events[0].source == 'other'): #ignore high SNR 2011fe data
+				new_SN_Array.append(bluest)
 			elif selection == 'max_snr':
 				max_snr = events[0]
 				for e in events:
 					if e.SNR != None and max_snr.SNR != None and abs(e.SNR) > abs(max_snr.SNR):
 						max_snr = e
-				if not (events[0].name == '2011fe' and events[0].source == 'other'): #ignore high SNR 2011fe data
-					new_SN_Array.append(max_snr)
+				# if not (events[0].name == '2011fe' and events[0].source == 'other'): #ignore high SNR 2011fe data
+				new_SN_Array.append(max_snr)
 			elif selection == 'accurate_phase':
 				#this should be smarter
 				ac_phase = events[0]
 				for e in events:
 					if abs(e.phase - p_avg) < abs(ac_phase.phase - p_avg):
 						ac_phase = e
-				if not (events[0].name == '2011fe' and events[0].source == 'other'): #ignore high SNR 2011fe data
-					new_SN_Array.append(ac_phase)
+				# if not (events[0].name == '2011fe' and events[0].source == 'other'): #ignore high SNR 2011fe data
+				new_SN_Array.append(ac_phase)
 			elif selection == 'max_coverage_splice':
 				max_range = events[0]
 				for e in events:
@@ -267,26 +267,24 @@ def grab(sql_input, multi_epoch = False, make_corr = True, selection = 'max_cove
 				splice_specs = []
 				cur_min = max_range.minwave
 				cur_max = max_range.maxwave
+				print max_range.filename, max_range.minwave, max_range.maxwave
+				max_spec_range = max_range.wavelength[np.where((max_range.wavelength > max_range.minwave) & (max_range.wavelength < max_range.maxwave))]
+				cur_minwave = max_range.minwave
+				cur_maxwave = max_range.maxwave
 				for e in events:
-					if (e.maxwave > cur_min and e.maxwave < cur_max):
-						if (e.minwave < cur_min):
-							olap = e.maxwave - cur_min
-							cur_min = e.minwave
-						else:
-							olap = 0.
-					elif (e.minwave < cur_max and e.minwave > cur_min):
-						if (e.maxwave > cur_max):
-							olap = cur_max - e.minwave
-							cur_max = e.maxwave
-						else:
-							olap = 0.
-					else:
-						olap=0.
-					if olap > 0. and olap < .5*(max_range.maxwave - max_range.minwave):
-						if e is not max_range:
+					if e != max_range:
+						spec_range = e.wavelength[np.where((e.wavelength > e.minwave) & (e.wavelength < e.maxwave))]
+						olap = 2.*len(np.intersect1d(spec_range, max_spec_range))
+						if olap < 500.:
+							if e.minwave < cur_minwave:
+								cur_minwave = e.minwave
+							if e.maxwave < cur_maxwave:
+								cur_maxwave = e.maxwave
+							max_spec_range = max_range.wavelength[np.where((max_range.wavelength >cur_minwave) & (max_range.wavelength < cur_maxwave))]
 							splice_specs.append(e)
-				if not (events[0].name == '2011fe' and events[0].source == 'other'): #ignore high SNR 2011fe data
-					new_SN_Array.append(max_range)
+
+				# if not (events[0].name == '2011fe' and events[0].source == 'other'): #ignore high SNR 2011fe data
+				new_SN_Array.append(max_range)
 				for spec in splice_specs:
 					new_SN_Array.append(spec)
 

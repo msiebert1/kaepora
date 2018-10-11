@@ -69,9 +69,6 @@ def find_vexp(x_array, y_array, var_y=None):
 def gsmooth(x_array, y_array, var_y, vexp , nsig = 5.0):
     
     # Check for zero variance points, and set to 1E-20
-    # print x_array
-    # print y_array
-    # print var_y
 
     if var_y is None:
         var_y = 1.e-31*np.ones(len(y_array))
@@ -193,7 +190,7 @@ def clip(wave, flux, var, vexp, testing=False):
         plt.xlim([wave[0]-200,wave[-1]+200])
         plt.ylim([0,1.05*10])
         plt.legend(loc=1, fontsize=20)
-        plt.savefig('../../../Paper_Drafts/reprocessing_updated/clipping.pdf', dpi = 300, bbox_inches = 'tight')
+        # plt.savefig('../../../Paper_Drafts/reprocessing_updated/clipping.pdf', dpi = 300, bbox_inches = 'tight')
         plt.show()
 
     return wave, flux, var # return bad_ranges instead of setting ivar[bad] = 0 (A.S.)
@@ -364,7 +361,7 @@ def genivar(wavelength, flux, varflux, vexp = 0.002, nsig = 5.0, testing=False):
         plt.xlabel('Rest Wavelength ' + "($\mathrm{\AA}$)", fontsize = 30)
         plt.xlim([wavelength[0]-200,wavelength[-1]+200])
         plt.legend(loc=1, fontsize=20)
-        plt.savefig('../../../Paper_Drafts/reprocessing_updated/genvar.pdf', dpi = 300, bbox_inches = 'tight')
+        # plt.savefig('../../../Paper_Drafts/reprocessing_updated/genvar.pdf', dpi = 300, bbox_inches = 'tight')
         plt.show()
         if varflux is not None:
             plt.plot(wavelength, error_scales)

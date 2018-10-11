@@ -280,6 +280,7 @@ def compprep(spectrum, sn_name, z, source, use_old_error=True, testing=False):
 
     if testing:
         av_specific = 0.2384 #2005lz
+        av_specific = 0.4089 #2007af
         r_v=2.5
         new_flux_host, new_ivar_host = test_dered.host_correction(av_specific, r_v, sn_name, old_wave_plot, new_flux_plot, new_ivar_plot)
         new_flux_host = new_flux_host.value
@@ -369,7 +370,7 @@ def compprep(spectrum, sn_name, z, source, use_old_error=True, testing=False):
         plt.xlabel('Rest Wavelength ' + "($\mathrm{\AA}$)", fontsize = 30)
         plt.xlim([new_wave[0]-200,new_wave[-1]+200])
         plt.legend(loc=1, fontsize=20)
-        plt.savefig('../../../Paper_Drafts/reprocessing_updated/interp_deredshift.pdf', dpi = 300, bbox_inches = 'tight')
+        # plt.savefig('../../../Paper_Drafts/reprocessing_updated/interp_deredshift.pdf', dpi = 300, bbox_inches = 'tight')
         plt.show()
 
     return newdata, SNR

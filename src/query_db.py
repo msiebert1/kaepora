@@ -28,7 +28,7 @@ def make_colorbar(composites):
 	return s_m
 
 def scaled_plot(composites, min_num_show = 5, min_num_scale = 5, include_spec_bin = False, scaleto=10., legend_labels = None, rm_last_label=False, expand_ratio=False, savename = None):
-	color_dict = {"Comp": "#000080", "Hsiao": "#398036", "Nugent": "#E41A1C", "SALT-II": "#A65628"}
+	color_dict = {"Comp": "#000080", "Comp2": "#ff8c00","Hsiao": "#398036", "Nugent": "#E41A1C", "SALT2": "#A65628"}
 	if not include_spec_bin:
 		h = [3,1]
 		gs = gridspec.GridSpec(2, 1, height_ratios=h, hspace = .003)
@@ -93,7 +93,10 @@ def scaled_plot(composites, min_num_show = 5, min_num_scale = 5, include_spec_bi
 		plt.setp(rel_flux.get_xticklabels(), visible=False)
 		res = plt.subplot(gs[1], sharex = rel_flux)
 		plt.ylabel('Ratio')
-		plt.plot(comp.wavelength[composites[0].x1:composites[0].x2], comp.flux[composites[0].x1:composites[0].x2]/composites[0].flux[composites[0].x1:composites[0].x2], color=c, linewidth=lw)
+		if comp.name != "Comp2" and comp.name != "SALT2":
+			plt.plot(comp.wavelength[composites[0].x1:composites[0].x2], comp.flux[composites[0].x1:composites[0].x2]/composites[0].flux[composites[0].x1:composites[0].x2], color=c, linewidth=lw)
+		else:
+			plt.plot(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2]/composites[0].flux[comp.x1:comp.x2], color=c, linewidth=lw)
 		# plt.plot(comp.wavelength[composites[0].x1:composites[0].x2], comp.flux[composites[0].x1:composites[0].x2]/composites[0].flux[composites[0].x1:composites[0].x2])
 		if len(comp.low_conf) > 0 and len(comp.up_conf) > 0:
 			low_resid = comp.low_conf[comp.x1:comp.x2]/composites[0].flux[comp.x1:comp.x2]
@@ -207,6 +210,8 @@ def scaled_plot(composites, min_num_show = 5, min_num_scale = 5, include_spec_bi
 		plt.ylabel('Spectra/Bin')
 		# plt.plot(comp.wavelength[comp.x1:comp.x2], comp.spec_bin[comp.x1:comp.x2], color = s_m.to_rgba(param))
 		plt.plot(composites[0].wavelength[composites[0].x1:composites[0].x2], composites[0].spec_bin[composites[0].x1:composites[0].x2], color="#000080",linewidth=lw)
+		if composites[1].name == "Comp2":
+			plt.plot(composites[1].wavelength[composites[1].x1:composites[1].x2], composites[1].spec_bin[composites[1].x1:composites[1].x2], color="#ff8c00",linewidth=lw)
 
 		if rm_last_label:
 			labels=spec.axes.get_yticks().tolist()
@@ -570,6 +575,7 @@ def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_sc
 		k+=1
 		print np.average(comp.phase_array[comp.x1:comp.x2])
 		print np.average(comp.dm15_array[comp.x1:comp.x2])
+		print np.average(comp.red_array[comp.x1:comp.x2])
 
 	z.axes.set_xlim([min_range.wavelength[min_range.x1]-200., min_range.wavelength[min_range.x2]+200.])
 
@@ -654,16 +660,18 @@ def normalize_comps(composites, scale=1.):
 	for comp in composites:
 		norm =scale/np.amax(comp.flux[comp.x1:comp.x2])
 		comp.flux = norm*comp.flux
-		comp.low_conf = norm*comp.low_conf
-		comp.up_conf = norm*comp.up_conf
+		if len(comp.low_conf) > 0 and len(comp.up_conf) > 0:
+			comp.low_conf = norm*comp.low_conf
+			comp.up_conf = norm*comp.up_conf
 		comp.ivar /= (norm)**2
 	return composites
 
 def normalize_comp(comp):
 	norm = 1./np.amax(comp.flux[comp.x1:comp.x2])
 	comp.flux = norm*comp.flux
-	comp.low_conf = norm*comp.low_conf	
-	comp.up_conf = norm*comp.up_conf
+	if len(comp.low_conf) > 0 and len(comp.up_conf) > 0:
+		comp.low_conf = norm*comp.low_conf	
+		comp.up_conf = norm*comp.up_conf
 	comp.ivar /= (norm)**2
 	return comp, norm
 
@@ -684,6 +692,20 @@ def main(num_queries, query_strings, boot='nb', medmean = 1, selection = 'max_co
 
 	# composite.optimize_scales(composites, composites[0], True)
 	# composites = normalize_comps(composites)
+	for comp in composites:
+		dm15 = np.round(np.nanmean(comp.dm15_array[comp.x1:comp.x2]),2)
+		# r = sa.measure_si_ratio(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], vexp = .001, dm15=dm15)
+		v_strong, si_min_wave = sa.measure_velocity(comp.wavelength[comp.x1:comp.x2],comp.flux[comp.x1:comp.x2], 5900., 6300.)
+		print 'v = ', v_strong
+
+	
+	for boot in boot_sn_arrays:
+		vs = []
+		for b in boot:
+			v_strong, si_min_wave = sa.measure_velocity(b.wavelength[b.x1:b.x2],b.flux[b.x1:b.x2], 5900., 6300.)
+			vs.append(v_strong)
+		v_err = np.nanstd(vs)
+		print 'v_err = ', v_err
 
 	return composites, sn_arrays, boot_sn_arrays
 
@@ -840,11 +862,16 @@ if __name__ == "__main__":
 		SN_Arrays.append(sn_arr)
 		if store_boots:
 			boot_sn_arrays.append(boots)
-		c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = False)
-		composites.append(c)
-		SN_Arrays.append(sn_arr)
-		if store_boots:
-			boot_sn_arrays.append(boots)
+		# c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = True, selection="max_coverage_splice")
+		# composites.append(c)
+		# SN_Arrays.append(sn_arr)
+		# if store_boots:
+		# 	boot_sn_arrays.append(boots)
+		# c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = False)
+		# composites.append(c)
+		# SN_Arrays.append(sn_arr)
+		# if store_boots:
+		# 	boot_sn_arrays.append(boots)
 
 	for i, comp in enumerate(composites):
 		dm15s = []
@@ -872,10 +899,17 @@ if __name__ == "__main__":
 
 	for comp in composites:
 		dm15 = np.round(np.nanmean(comp.dm15_array[comp.x1:comp.x2]),2)
-		r = sa.measure_si_ratio(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], vexp = .001, dm15=dm15)
-		# v_strong, si_min_wave = sa.measure_velocity(comp.wavelength[comp.x1:comp.x2],comp.flux[comp.x1:comp.x2], 5900., 6300.)
-		print r
-	
+		# r = sa.measure_si_ratio(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], vexp = .001, dm15=dm15)
+		v_strong, si_min_wave = sa.measure_velocity(comp.wavelength[comp.x1:comp.x2],comp.flux[comp.x1:comp.x2], 5900., 6300.)
+		print 'v = ', v_strong
+	# vs = []
+	# for b in boot_sn_arrays[0]:
+	# 	v_strong, si_min_wave = sa.measure_velocity(b.wavelength[b.x1:b.x2],b.flux[b.x1:b.x2], 5900., 6300.)
+	# 	vs.append(v_strong)
+	# v_err = np.nanstd(vs)
+	# print 'v_err = ', v_err
+
+
 	# r = sa.measure_si_ratio(comp2.wavelength[comp2.x1:comp2.x2], comp2.flux[comp2.x1:comp2.x2], vexp = .001)
 	# print r
 	# set_min_num_spec(composites, 10)
