@@ -241,7 +241,7 @@ def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_sc
 
 	# plt.style.use('ggplot')
 	colors = [color['color'] for color in list(plt.rcParams['axes.prop_cycle'])]
-	h = [3,1,1,1,1,1,1]
+	h = [3,1,1,1,1,1]
 
 	gs = gridspec.GridSpec(6, 1, height_ratios=h, hspace = .001)
 	fig = plt.figure(num = 1, dpi = 100, figsize = [10,15])
