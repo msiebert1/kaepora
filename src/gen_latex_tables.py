@@ -4,32 +4,77 @@ import query_db
 import composite
 from tabulate import tabulate
 
-def write_table(filename, table):
+def write_table(filename, table, caption = None):
 	with open('../../../Paper_Drafts/' + filename, 'w') as file:
 		file.write('\\begin{table*}[t]\n')
 		file.write('\centering\n')
 		file.write(table)
 		file.write('\n')
-		file.write('\caption{CAPTION}\n')
+		if caption != None:
+			file.write('\caption{%s}\n'%caption)
+		else:
+			file.write('\caption{CAPTION}\n')
 		file.write('\label{tab:1}\n')
 		file.write('\end{table*}')
 		file.close()
 
 if __name__ == "__main__":
-	# SN_Array = composite.grab("SELECT * from Supernovae inner join Photometry ON Supernovae.SN = Photometry.SN where phase between -.2 and .2", multi_epoch = True)
-	# tab_arr = []
-	# for SN in SN_Array:
-	# 	wav_range = str(int(np.round(SN.minwave, 0))) + ' - ' + str(int(np.round(SN.maxwave, 0)))
-	# 	if SN.SNR != None:
-	# 		SN.SNR = np.round(SN.SNR, 2)
-	# 	ref = '...'
-	# 	if SN.ref is not None:
-	# 		ref = SN.ref
-	# 	else:
-	# 		ref = '...'
-	# 	tab_arr.append([SN.name, SN.source, SN.mjd, SN.phase, SN.SNR, wav_range, ref])
-	# table_1 = tabulate(tab_arr, headers=['SN Name', 'Source', 'mjd', 'Phase', 'SNR', 'Wavelength Range', 'Reference'], tablefmt = 'latex')
-	# write_table('table_1.tex', table_1)
+	SN_Array = composite.grab("SELECT * from Supernovae inner join Photometry ON Supernovae.SN = Photometry.SN order by Supernovae.SN", multi_epoch = True, make_corr = False)
+	tab_arr = []
+	refs = []
+	for SN in SN_Array:
+		if SN.ref is not None:
+			ref = SN.ref
+		else:
+			ref = 'Unknown'
+		refs.append(ref)
+
+	ref_set = list(set(refs))
+	ref_dict = {}
+	for i in range(len(ref_set)):
+		ref_dict[ref_set[i]] = i+1
+	for ref in ref_dict:
+		print ref, ref_dict[ref]
+
+	i=1
+	for SN in SN_Array:
+		wav_range = str(int(np.round(SN.minwave, 0))) + ' - ' + str(int(np.round(SN.maxwave, 0)))
+		if SN.SNR != None:
+			SNR = SN.SNR
+		ref = 'Unknown'
+		if SN.ref is not None:
+			ref = SN.ref
+		else:
+			ref = 'Unknown'
+		ref_num = ref_dict[ref]
+
+		if SN.phase != None:
+			phase = '%.1f'%SN.phase
+		else:
+			phase = '...'
+
+		if SN.mjd != None:
+			mjd = '%.1f'%SN.mjd
+		else:
+			mjd = '...'
+
+		tab_arr.append([SN.name, mjd, phase, SNR, wav_range, ref_num])
+		i+=1
+		if i > 22:
+			break
+
+	table_1 = tabulate(tab_arr, headers=['SN Name', 'mjd', 'Phase', 'SNR', 'Wavelength Range', 'Reference'], tablefmt = 'latex', floatfmt=".1f")
+
+	text = " (This table is available in its entirety in a machine-readable form in the online journal. A portion is shown here for guidance regarding its form and content.)"
+	ref_text = 'Full spectral sample. \\textbf{References}: '
+	for i, ref in enumerate(ref_dict):
+		ref_text = ref_text + '(%d) \\citet{%s}'%(ref_dict[ref], ref)
+		if i < len(ref_dict)-1:
+			ref_text = ref_text + '; '
+
+	caption = ref_text + text
+	write_table('table_1.tex', table_1, caption)
+	raise TypeError
 
 	# SN_Array = composite.grab("SELECT * from Supernovae inner join Photometry ON Supernovae.SN = Photometry.SN where phase between -.2 and .2", multi_epoch = True)
 	# tab_arr = []
@@ -53,7 +98,7 @@ if __name__ == "__main__":
 	# 	tab_arr.append([SN.name, SN.source, SN.redshift, dm15, SN.m_b, SN.B_minus_V, SN.velocity, SN.morph, SN.resid, av])
 	# table_2 = tabulate(tab_arr, headers=['SN Name', 'Source', 'Redshift', '$\Delta m_{15} (B)$', 'M_{B}', 'B - V (mag)', 
 	# 									 'Velocity (km/s)', 'Host Morphology', 'Hubble Residual', 'A_{V}'], tablefmt = 'latex')
-	# write_table('table_.tex', table_2)
+	# write_table('table_2.tex', table_2)
 
 	tab_arr = []
 	SN_Array = composite.grab("SELECT * from Supernovae inner join Photometry ON Supernovae.SN = Photometry.SN", multi_epoch = False, make_corr = False)

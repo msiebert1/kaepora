@@ -181,24 +181,32 @@ def repair_bad_variance_spectra():
 		# newdata = Interpo(new_wave, new_flux, new_ivar)
 	con.commit()
 	print 'done'
-	# cur.execute(sql_input)
-	# for row in cur:
-	# 	filename  = row[0]
-	# 	interp = msg.unpackb(row[16])
-	# 	print interp[0,:]
-	# 	try:
-	# 		wavelength = interp[0,:]
-	# 		flux       = interp[1,:]
-	# 		ivar       = interp[2,:]
-	# 	except TypeError:
-	# 		print "ERROR: ", filename
-	# 		continue
-	# 	if len(np.where(np.isnan(ivar))[0] == True) == 5500:
-	# 		bad_ivars.append(filename)
-	# print bad_ivars
-#				cur.execute("UPDATE Supernovae SET phase = ? where filename = ?", (phase, filename))
-#				break
-#	con.commit()
+
+def add_more_host_data():
+	datafile = '../data/info_files/more_host_info.txt'
+	con = sq3.connect('../data/SNIaDB_Spec_v20_phot_v10.db')
+	cur = con.cursor()
+	with open(datafile) as data:
+		lines = data.readlines()
+		for line in lines:
+			sndata = line.split()
+			print sndata[0].lower(), sndata[3]
+			cur.execute("UPDATE Photometry SET NED_host = ? where SN = ?", (sndata[3], sndata[0].lower()))
+	con.commit()
+
+def update_references():
+	datafile = '../data/info_files/more_references.txt'
+	con = sq3.connect('../data/SNIaDB_Spec_v20_phot_v10.db')
+	cur = con.cursor()
+	with open(datafile) as data:
+		lines = data.readlines()
+		for line in lines:
+			filename, ref = line.split()
+			if ref == "Unknown":
+				ref = None
+			print filename, ref
+			cur.execute("UPDATE Supernovae SET Ref = ? where filename = ?", (ref, filename))
+	con.commit()
 
 if __name__ == "__main__":
 	# fix_2011fe_phases()
@@ -206,4 +214,6 @@ if __name__ == "__main__":
 	# update_bsnip_refs()
 	# repair_bad_variance_spectra()
 	# update_phases_from_mlcs()
-	fix_snr_measurements()
+	# fix_snr_measurements()
+	# add_more_host_data()
+	update_references()

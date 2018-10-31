@@ -544,7 +544,7 @@ def mask(SN_Array, boot):
 				
 
 def average(SN_Array, template, medmean, boot, fluxes, ivars, dm15_ivars, red_ivars, 
-				reds, phases, ages, vels, dm15s, flux_mask, ivar_mask, dm15_mask, red_mask):
+				reds, phases, ages, vels, dm15s, flux_mask, ivar_mask, dm15_mask, red_mask, find_RMSE=False):
 	"""Modifies the template supernova to be the inverse variance weighted average
 	   of the scaled data. Returns the new template supernova. 
 	"""
@@ -596,9 +596,15 @@ def average(SN_Array, template, medmean, boot, fluxes, ivars, dm15_ivars, red_iv
 	template.ivar = np.sum(ivars, axis=0)
 	template.ivar[no_data] = 0
 	template.name = "Composite Spectrum"
+
+	template.RMSE = None
+	if find_RMSE:
+		sq_diffs = np.ma.sum(ivars*(fluxes - template.flux)**2., axis=0).filled(np.nan)
+		rmse = np.sqrt(sq_diffs/template.ivar)
+		template.RMSE = rmse
+
 	return template
 
-		
 def bootstrapping (SN_Array, samples, scales, og_template, iters, medmean):
 	"""Creates a matrix of random sets of supernovae from the original sample 
 	   with the same size as the original sample. The number of samples is 
@@ -944,7 +950,7 @@ def create_composite(SN_Array, boot, template, medmean, gini_balance=False):
 		(fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, dm15s, 
 		 flux_mask, ivar_mask, dm15_mask, red_mask) = mask(SN_Array, False)
 		template = average(SN_Array, template, medmean, False, fluxes, ivars, dm15_ivars, red_ivars, 
-							reds, phases, ages, vels, dm15s, flux_mask, ivar_mask, dm15_mask, red_mask)
+							reds, phases, ages, vels, dm15s, flux_mask, ivar_mask, dm15_mask, red_mask, find_RMSE=True)
 		# for SN in SN_Array:
 		# 	plt.plot(SN.wavelength, SN.flux)
 		# plt.plot(template.wavelength, template.flux, 'k-', linewidth=4)
@@ -954,6 +960,10 @@ def create_composite(SN_Array, boot, template, medmean, gini_balance=False):
 	norm = 1./np.amax(template.flux[template.x1:template.x2])
 	# norm = 1./np.amax(template.flux[np.where((template.wavelength > 3500.) & (template.wavelength < 8000.))])
 	template.flux = template.flux*norm
+	template.ivar = template.ivar/(norm**2.)
+	if template.RMSE != None:
+		template.RMSE = template.RMSE*(norm)
+
 	for SN in SN_Array:
 		SN.flux = SN.flux*norm
 		SN.ivar = SN.ivar/(norm**2.)
@@ -965,11 +975,8 @@ def create_composite(SN_Array, boot, template, medmean, gini_balance=False):
 	# for SN in SN_Array:
 	# 	print np.average(SN.flux[SN.x1:SN.x2]), np.average(SN.ivar[SN.x1:SN.x2])
 
-	if bootstrap is 'n':
-		template.ivar = np.ones(len(template.wavelength))
-
 	#create bootstrap composites
-	else:
+	if bootstrap is 'y':
 		scales  = []
 		print "Bootstrapping"
 		# samples = int (raw_input("# of samples:"))
@@ -979,11 +986,11 @@ def create_composite(SN_Array, boot, template, medmean, gini_balance=False):
 		template.low_conf, template.up_conf, boots = bootstrapping(SN_Array, samples, scales, template, iters, medmean)
 		up_diff = template.up_conf - template.flux
 		low_diff = template.flux - template.low_conf
-		template_var = (.5*(up_diff + low_diff))**2.
+		# template_var = (.5*(up_diff + low_diff))**2.
 
-		template.ivar = 1./template_var
-		template.ivar[0:template.x1] = 0.
-		template.ivar[template.x2:] = 0.
+		# template.ivar = 1./template_var
+		# template.ivar[0:template.x1] = 0.
+		# template.ivar[template.x2:] = 0.
 
 	# non_zero_data = np.where(template.flux != 0)
 	# if len(non_zero_data) > 0:

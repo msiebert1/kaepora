@@ -28,7 +28,7 @@ def make_colorbar(composites):
 	return s_m
 
 def scaled_plot(composites, min_num_show = 5, min_num_scale = 5, include_spec_bin = False, scaleto=10., legend_labels = None, rm_last_label=False, expand_ratio=False, savename = None):
-	color_dict = {"Comp": "#000080", "Comp2": "#ff8c00","Hsiao": "#398036", "Nugent": "#E41A1C", "SALT2": "#A65628"}
+	color_dict = {"Comp": "#000080", "Comp0": "#000080", "Comp1": "#ff8c00", "Comp2": "#ff8c00","Hsiao": "#398036", "Nugent": "#E41A1C", "SALT2": "#A65628"}
 	if not include_spec_bin:
 		h = [3,1]
 		gs = gridspec.GridSpec(2, 1, height_ratios=h, hspace = .003)
@@ -104,6 +104,10 @@ def scaled_plot(composites, min_num_show = 5, min_num_scale = 5, include_spec_bi
 			# low_resid = comp.low_conf[comp.x1:comp.x2]/composites[0].flux[comp.x1:comp.x2]
 			# up_resid = comp.up_conf[comp.x1:comp.x2]/composites[0].flux[comp.x1:comp.x2]
 			plt.fill_between(comp.wavelength[comp.x1:comp.x2], low_resid, up_resid, color=c, alpha = 0.5)
+
+		print 'Phase: ', np.average(comp.phase_array[comp.x1:comp.x2])
+		print 'dm15: ', np.average(comp.dm15_array[comp.x1:comp.x2])
+		print 'Redshift: ', np.average(comp.red_array[comp.x1:comp.x2])
 
 	# labels=res.axes.get_yticks().tolist()
 	# labels[-1]=''
@@ -325,6 +329,13 @@ def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_sc
 		if len(comp.low_conf) > 0 and len(comp.up_conf) > 0:
 			plt.fill_between(comp.wavelength[comp.x1:comp.x2], comp.low_conf[comp.x1:comp.x2], 
 							 comp.up_conf[comp.x1:comp.x2], color = s_m.to_rgba(param), alpha = 0.5)
+
+		# if comp.RMSE != None:
+		# 	up_err = comp.flux + comp.RMSE
+		# 	low_err = comp.flux - comp.RMSE
+		# 	plt.fill_between(comp.wavelength[comp.x1:comp.x2], low_err[comp.x1:comp.x2], 
+		# 						 up_err[comp.x1:comp.x2], color = 'gold', alpha = 0.7)
+
 			# plt.fill_between(comp.wavelength[comp.x1:comp.x2], comp.low_conf[comp.x1:comp.x2], 
 			# 	             comp.up_conf[comp.x1:comp.x2], color = colors[i%len(colors)], alpha = 0.5)
 
@@ -355,14 +366,19 @@ def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_sc
 			right='on',
 			length=5)
 		plt.setp(res.get_xticklabels(), visible=False)
-		plt.ylabel('Residuals')
+		plt.ylabel('Ratio')
 		# plt.plot(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2] - composites[0].flux[comp.x1:comp.x2], color = s_m.to_rgba(param))
-		plt.plot(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2] - composites[0].flux[comp.x1:comp.x2], linewidth = lw, color = s_m.to_rgba(param))
+		plt.plot(comp.wavelength[comp.x1:comp.x2], (comp.flux[comp.x1:comp.x2]/composites[0].flux[comp.x1:comp.x2]), linewidth = lw, color = s_m.to_rgba(param))
 		if len(comp.low_conf) > 0 and len(comp.up_conf) > 0:
-			low_resid = comp.low_conf[comp.x1:comp.x2] - composites[0].flux[comp.x1:comp.x2]
-			up_resid = comp.up_conf[comp.x1:comp.x2] - composites[0].flux[comp.x1:comp.x2]
+			low_resid = comp.low_conf[comp.x1:comp.x2]/composites[0].flux[comp.x1:comp.x2]
+			up_resid = comp.up_conf[comp.x1:comp.x2]/composites[0].flux[comp.x1:comp.x2]
 			plt.fill_between(comp.wavelength[comp.x1:comp.x2], low_resid, up_resid, color = s_m.to_rgba(param), alpha = 0.5)
 			# plt.fill_between(comp.wavelength[comp.x1:comp.x2], low_resid, up_resid, color = colors[i%len(colors)], alpha = 0.5)
+		# if comp.RMSE != None:
+		# 	low_resid = low_err[comp.x1:comp.x2]/composites[0].flux[comp.x1:comp.x2]
+		# 	up_resid = up_err[comp.x1:comp.x2]/composites[0].flux[comp.x1:comp.x2]
+		# 	plt.fill_between(comp.wavelength[comp.x1:comp.x2], low_resid, 
+		# 						 up_resid, color = 'gold', alpha = 0.7)
 
 		spec = plt.subplot(gs[2], sharex = rel_flux)
 		plt.minorticks_on()
@@ -436,7 +452,7 @@ def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_sc
 		# avg_dm15_rnd = np.round(avg_dm15,2)
 		# delt.yaxis.set_ticks(np.arange(avg_dm15_rnd-.1, avg_dm15_rnd+.11, .05))
 		plt.setp(delt.get_xticklabels(), visible=False)
-		plt.ylabel('$\Delta$m$_{15}$')
+		plt.ylabel('$\Delta$m$_{15}$ (mag)')
 		# plt.plot(comp.wavelength[comp.x1:comp.x2], comp.dm15[comp.x1:comp.x2], color = s_m.to_rgba(param))
 		plt.plot(comp.wavelength[comp.x1:comp.x2], comp.dm15_array[comp.x1:comp.x2], linewidth = lw, color = s_m.to_rgba(param))
 		# delt.axes.set_ylim([avg_dm15 - .2, avg_dm15 + .2])
@@ -492,7 +508,8 @@ def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_sc
 		res.axes.yaxis.set_major_locator(majorLocator)
 		res.axes.yaxis.set_major_formatter(majorFormatter)
 		res.axes.yaxis.set_minor_locator(minorLocator)
-		res.axes.set_ylim([-.25*scaleto, .25*scaleto])
+		res.axes.set_ylim([0., 2.])
+		# res.axes.set_ylim([-2., 2.])
 
 		if spec_bounds[1] > 45:
 			majorLocator = MultipleLocator(20)
@@ -573,9 +590,9 @@ def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_sc
 
 		i+=1
 		k+=1
-		print np.average(comp.phase_array[comp.x1:comp.x2])
-		print np.average(comp.dm15_array[comp.x1:comp.x2])
-		print np.average(comp.red_array[comp.x1:comp.x2])
+		print 'Phase: ', np.average(comp.phase_array[comp.x1:comp.x2])
+		print 'dm15: ', np.average(comp.dm15_array[comp.x1:comp.x2])
+		print 'Redshift: ', np.average(comp.red_array[comp.x1:comp.x2])
 
 	z.axes.set_xlim([min_range.wavelength[min_range.x1]-200., min_range.wavelength[min_range.x2]+200.])
 
@@ -660,6 +677,10 @@ def normalize_comps(composites, scale=1.):
 	for comp in composites:
 		norm =scale/np.amax(comp.flux[comp.x1:comp.x2])
 		comp.flux = norm*comp.flux
+
+		if comp.RMSE != None:
+			comp.RMSE = comp.RMSE*(norm)
+
 		if len(comp.low_conf) > 0 and len(comp.up_conf) > 0:
 			comp.low_conf = norm*comp.low_conf
 			comp.up_conf = norm*comp.up_conf
@@ -669,6 +690,10 @@ def normalize_comps(composites, scale=1.):
 def normalize_comp(comp):
 	norm = 1./np.amax(comp.flux[comp.x1:comp.x2])
 	comp.flux = norm*comp.flux
+
+	if comp.RMSE != None:
+		comp.RMSE = comp.RMSE*(norm)
+
 	if len(comp.low_conf) > 0 and len(comp.up_conf) > 0:
 		comp.low_conf = norm*comp.low_conf	
 		comp.up_conf = norm*comp.up_conf
@@ -692,20 +717,20 @@ def main(num_queries, query_strings, boot='nb', medmean = 1, selection = 'max_co
 
 	# composite.optimize_scales(composites, composites[0], True)
 	# composites = normalize_comps(composites)
-	for comp in composites:
-		dm15 = np.round(np.nanmean(comp.dm15_array[comp.x1:comp.x2]),2)
-		# r = sa.measure_si_ratio(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], vexp = .001, dm15=dm15)
-		v_strong, si_min_wave = sa.measure_velocity(comp.wavelength[comp.x1:comp.x2],comp.flux[comp.x1:comp.x2], 5900., 6300.)
-		print 'v = ', v_strong
+	# for comp in composites:
+	# 	dm15 = np.round(np.nanmean(comp.dm15_array[comp.x1:comp.x2]),2)
+	# 	# r = sa.measure_si_ratio(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], vexp = .001, dm15=dm15)
+	# 	v_strong, si_min_wave = sa.measure_velocity(comp.wavelength[comp.x1:comp.x2],comp.flux[comp.x1:comp.x2], 5900., 6300.)
+	# 	print 'v = ', v_strong
 
 	
-	for boot in boot_sn_arrays:
-		vs = []
-		for b in boot:
-			v_strong, si_min_wave = sa.measure_velocity(b.wavelength[b.x1:b.x2],b.flux[b.x1:b.x2], 5900., 6300.)
-			vs.append(v_strong)
-		v_err = np.nanstd(vs)
-		print 'v_err = ', v_err
+	# for boot in boot_sn_arrays:
+	# 	vs = []
+	# 	for b in boot:
+	# 		v_strong, si_min_wave = sa.measure_velocity(b.wavelength[b.x1:b.x2],b.flux[b.x1:b.x2], 5900., 6300.)
+	# 		vs.append(v_strong)
+	# 	v_err = np.nanstd(vs)
+	# 	print 'v_err = ', v_err
 
 	return composites, sn_arrays, boot_sn_arrays
 
@@ -857,16 +882,16 @@ if __name__ == "__main__":
 
 	for n in range(num_queries):
 		# c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, make_corr=False, multi_epoch=True)
+		# c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = False)
+		# composites.append(c)
+		# SN_Arrays.append(sn_arr)
+		# if store_boots:
+		# 	boot_sn_arrays.append(boots)
 		c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = True)
 		composites.append(c)
 		SN_Arrays.append(sn_arr)
 		if store_boots:
 			boot_sn_arrays.append(boots)
-		# c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = True, selection="max_coverage_splice")
-		# composites.append(c)
-		# SN_Arrays.append(sn_arr)
-		# if store_boots:
-		# 	boot_sn_arrays.append(boots)
 		# c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = False)
 		# composites.append(c)
 		# SN_Arrays.append(sn_arr)
@@ -897,7 +922,8 @@ if __name__ == "__main__":
 	# 		v, si_min_wave = sa.measure_velocity(SN.wavelength[SN.x1:SN.x2], SN.flux[SN.x1:SN.x2], 5900., 6300., vexp=vexp, plot=True)
 	# 		print SN.name, v
 
-	for comp in composites:
+	for i, comp in enumerate(composites):
+		comp.name = "Comp" + str(i)
 		dm15 = np.round(np.nanmean(comp.dm15_array[comp.x1:comp.x2]),2)
 		# r = sa.measure_si_ratio(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], vexp = .001, dm15=dm15)
 		v_strong, si_min_wave = sa.measure_velocity(comp.wavelength[comp.x1:comp.x2],comp.flux[comp.x1:comp.x2], 5900., 6300.)
@@ -913,7 +939,7 @@ if __name__ == "__main__":
 	# r = sa.measure_si_ratio(comp2.wavelength[comp2.x1:comp2.x2], comp2.flux[comp2.x1:comp2.x2], vexp = .001)
 	# print r
 	# set_min_num_spec(composites, 10)
-	set_min_num_spec(composites, 5)
+	set_min_num_spec(composites, 2)
 	# set_min_num_spec(composites, 20)
 	normalize_comps(composites)
 	# for comp in composites:
@@ -921,8 +947,8 @@ if __name__ == "__main__":
 	
 	#plotting rutines to visualize composites
 	# set_min_num_spec(composites, 5)
-	comparison_plot(composites)
-	# # scaled_plot(composites)
+	# comparison_plot(composites)
+	scaled_plot(composites, min_num_show=2, min_num_scale=2)
 	# stacked_plot(composites)
 
 	# save_comps_to_files(composites)
