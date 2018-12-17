@@ -29,12 +29,18 @@ if __name__ == "__main__":
 			ref = 'Unknown'
 		refs.append(ref)
 
-	ref_set = list(set(refs))
-	ref_dict = {}
+	# ref_set = list(set(refs))
+	ref_set = sorted(set(refs), key=refs.index)
+
+	ref_nums = []
+	# ref_dict = {}
 	for i in range(len(ref_set)):
-		ref_dict[ref_set[i]] = i+1
-	for ref in ref_dict:
-		print ref, ref_dict[ref]
+		# ref_dict[ref_set[i]] = i+1
+		ref_nums.append(i+1)
+	# for ref in ref_dict:
+	# 	print ref, ref_dict[ref]
+	for i, ref in enumerate(ref_set):
+		print ref, ref_nums[i]
 
 	i=1
 	for SN in SN_Array:
@@ -46,7 +52,10 @@ if __name__ == "__main__":
 			ref = SN.ref
 		else:
 			ref = 'Unknown'
-		ref_num = ref_dict[ref]
+
+		if ref in ref_set:
+			ref_num = ref_nums[ref_set.index(ref)]
+		# ref_num = ref_dict[ref]
 
 		if SN.phase != None:
 			phase = '%.1f'%SN.phase
@@ -58,22 +67,31 @@ if __name__ == "__main__":
 		else:
 			mjd = '...'
 
-		tab_arr.append([SN.name, mjd, phase, SNR, wav_range, ref_num])
+		if len(SN.name) == 5:
+			name = SN.name.upper()
+		else:
+			name = SN.name
+
+		tab_arr.append([name, mjd, phase, SNR, wav_range, ref_num])
 		i+=1
 		if i > 22:
 			break
 
-	table_1 = tabulate(tab_arr, headers=['SN Name', 'mjd', 'Phase', 'SNR', 'Wavelength Range', 'Reference'], tablefmt = 'latex', floatfmt=".1f")
+	table_1 = tabulate(tab_arr, headers=['SN Name', 'MJD', 'Phase', 'S/N', 'Wavelength Range', 'Reference'], tablefmt = 'latex', floatfmt=".1f")
 
 	text = " (This table is available in its entirety in a machine-readable form in the online journal. A portion is shown here for guidance regarding its form and content.)"
 	ref_text = 'Full spectral sample. \\textbf{References}: '
-	for i, ref in enumerate(ref_dict):
-		ref_text = ref_text + '(%d) \\citet{%s}'%(ref_dict[ref], ref)
-		if i < len(ref_dict)-1:
+	# for i, ref in enumerate(ref_dict):
+	# 	ref_text = ref_text + '(%d) \\citet{%s}'%(ref_dict[ref], ref)
+	# 	if i < len(ref_dict)-1:
+	# 		ref_text = ref_text + '; '
+	for i, ref in enumerate(ref_set):
+		ref_text = ref_text + '(%d) \\citet{%s}'%(ref_nums[i], ref)
+		if i < len(ref_set)-1:
 			ref_text = ref_text + '; '
 
 	caption = ref_text + text
-	write_table('table_1.tex', table_1, caption)
+	write_table('table_1.tex', table_1, caption) #lccrcc
 	raise TypeError
 
 	# SN_Array = composite.grab("SELECT * from Supernovae inner join Photometry ON Supernovae.SN = Photometry.SN where phase between -.2 and .2", multi_epoch = True)

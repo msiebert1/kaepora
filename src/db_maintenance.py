@@ -208,12 +208,36 @@ def update_references():
 			cur.execute("UPDATE Supernovae SET Ref = ? where filename = ?", (ref, filename))
 	con.commit()
 
+def add_swift_metadata():
+	data_file = '../../../swift_uvspec/swift_uv_log.txt'
+	con = sq3.connect('../data/SNIaDB_Spec_v20_phot_v10.db')
+	cur = con.cursor()
+	with open(data_file) as data:
+		for line in data.readlines()[1:]:
+			redshift = float(line.split()[1])
+			phase = float(line.split()[2])
+			Dm15 = line.split()[3]
+			fname = line.split()[4]
+			sn_name = line.split()[0].lower()
+			if sn_name.startswith('sn'):
+				sn_name=sn_name[2:]
+				if sn_name[-2].isdigit():
+					sn_name=sn_name.upper()
+			if Dm15 == '-99':
+				Dm15 = None
+			else:
+				Dm15 = float(Dm15)
+			print sn_name, phase, Dm15
+			cur.execute("UPDATE Photometry SET dm15_source = ? where SN = ?", (Dm15, sn_name))
+	con.commit()
+
 if __name__ == "__main__":
-	# fix_2011fe_phases()
+	fix_2011fe_phases()
 	# delete_swift_data()
 	# update_bsnip_refs()
 	# repair_bad_variance_spectra()
 	# update_phases_from_mlcs()
 	# fix_snr_measurements()
 	# add_more_host_data()
-	update_references()
+	# update_references()
+	# add_swift_metadata()

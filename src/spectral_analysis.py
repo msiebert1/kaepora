@@ -17,19 +17,6 @@ def autosmooth(x_array, y_array, var_y=None):
 		sm_error = df.gsmooth(x_array, error, var_y, .008)
 		SNR = np.median(new_y_init / sm_error)
 
-	# if SNR < 5:
-	# 	vexp_auto = .0025 #temp value, need to fine tune using SNR in excel spreadsheet
-	# elif 5 <= SNR < 20:
-	# 	vexp_auto = .002
-	# elif 20 <= SNR < 40:
-	# 	vexp_auto = .0015
-	# elif 40 <= SNR < 60:
-	# 	vexp_auto = .001
-	# elif 60 <= SNR < 100:
-	# 	vexp_auto = .00075
-	# else:
-	# 	vexp_auto = .0005
-
 	if SNR < 5:
 		vexp_auto = .0045 #temp value, need to fine tune using SNR in excel spreadsheet
 	elif 5 <= SNR < 20:
@@ -69,54 +56,9 @@ def find_vexp(x_array, y_array, var_y=None):
         vexp_auto = .0045
     if SNR > 80:
         vexp_auto = .001
-    # if SNR < 5:
-    #     vexp_auto = .0045 
-    # elif 5 <= SNR < 20:
-    #     vexp_auto = .004
-    # elif 20 <= SNR < 40:
-    #     vexp_auto = .003
-    # elif 40 <= SNR < 60:
-    #     vexp_auto = .002
-    # elif 60 <= SNR < 100:
-    #     vexp_auto = .0015
-    # else:
-    #     vexp_auto = .001
 
     return vexp_auto, SNR
 
-def measure_color(SN, c1='B', c2='R', filt_type='Bessel'):
-	
-	c_AAs = 2.99792458e18
-	if filt_type == 'Bessel':
-		filt1_wave, filt1_T = np.loadtxt('../data/filter_functions/Bessel_'+ c1 + '-1.dat',unpack=True)
-		filt2_wave, filt2_T = np.loadtxt('../data/filter_functions/Bessel_'+ c2 + '-1.dat',unpack=True)
-		filt1_wave *= 10.
-		filt2_wave *= 10.
-	spec_wave = SN.wavelength[SN.x1:SN.x2]
-	spec_flux = SN.flux[SN.x1:SN.x2]
-	filt1_T = filt1_T*(1./np.amax(filt1_T))
-	filt2_T = filt2_T*(1./np.amax(filt2_T))
-	filt1_int  = np.interp(spec_wave,filt1_wave,filt1_T)
-	filt2_int  = np.interp(spec_wave,filt2_wave,filt2_T)
-
-	I1_num = simps(spec_flux*filt1_int*spec_wave,spec_wave)
-	I1_den = simps(filt1_int*spec_wave,spec_wave)
-	wave1_p = simps(filt1_int*spec_wave,spec_wave)/simps(filt1_int/spec_wave,spec_wave)
-
-	I2_num = simps(spec_flux*filt2_int*spec_wave,spec_wave)
-	I2_den = simps(filt2_int*spec_wave,spec_wave)
-	wave2_p = simps(filt2_int*spec_wave,spec_wave)/simps(filt2_int/spec_wave,spec_wave)
-
-	f1 = I1_num/I1_den/c_AAs
-	f2 = I2_num/I2_den/c_AAs
-
-	mAB1 = -2.5*np.log10(f1) - 2.5*np.log10(wave1_p*wave1_p/c_AAs) - 48.6
-	mAB2 = -2.5*np.log10(f2) - 2.5*np.log10(wave2_p*wave2_p/c_AAs) - 48.6
-
-	color = mAB1 - mAB2
-	print mAB1, mAB2
-	print c1 + " - " + c2 + " = " + str(color)
-	return color
 
 def find_extrema(wavelength,sm_flux):
 	#input a smoothed spectrum
@@ -424,13 +366,3 @@ def resample_spectrum(SN):
 	varflux = 1./SN.ivar[SN.x1:SN.x2]
 
 
-# spec_file = r'..\..\SNIa_maximum_light.flm'
-# with open(spec_file) as spec:
-# 	spectrum = np.transpose(np.loadtxt(spec))
-# 	wavelength = spectrum[0]
-# 	flux = spectrum[1]
-# 	measure_si_ratio(wavelength,flux)
-# 	measure_ca_ratio(wavelength,flux)
-	# z = 0.005274
-	# # print  measure_si_velocity_from_raw(wavelength, flux, z)
-	# print  measure_C_velocity_from_raw(wavelength, flux, z)

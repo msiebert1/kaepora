@@ -97,7 +97,7 @@ def bad_files():
 							'sn1999gh-19991205-uvoir.flm', 'sn1986g-19860529.301-iue.flm',				#ivar causes problems, ivar not crorrect
 							'sn2007ca-20070609.277-ui-corrected.flm','sn2014j-20140207.61-fixedbg-swift-p7.flm', #ivar causes problems, needs to be clipped
 							'sn2014j-20140208.77-fixedbg-swift-p8.flm', 'sn2007sr-20071228.39-fixedbg-swift.flm',#needs to be clipped, needs to be clipped
-							'sn1994t-19940715-ui.flm'] 													#spectrum is garbage
+							'sn1994t-19940715-ui.flm', '2002dj_20020620_3210_9231_00.dat'] 				#spectrum is garbage, ivar causes gini problems
 
 		print len(bad_files), 'questionable files currently ignored'
 		return bad_files

@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.interpolate import interp1d
 import scipy.interpolate as inter
+import matplotlib.gridspec as gridspec
 
 def find_all_events(salt,salt2,mlcs31,mlcs17,lcparams,host_data,av_dict,cfa_dict):
 	events = []
@@ -267,6 +268,7 @@ def dm15_from_fit_params(events, fit_dict, cfa_dict, stretch='N/A'):
 	e_dm15_arr = []
 	param_arr = []
 	e_param_arr = []
+	event_arr = []
 	cfa_none = [None,None,None,None,None,None,None,None,None,None,None,None,None,None]
 	fit_none = [None,None,None,None,None,None,None,None,None,None]
 	lowrv_none = [None,None]
@@ -281,9 +283,11 @@ def dm15_from_fit_params(events, fit_dict, cfa_dict, stretch='N/A'):
 					if stretch is 'delta_lowrv':
 						param_arr.append(fit_dict.get(event, lowrv_none)[0])
 						e_param_arr.append(fit_dict.get(event,lowrv_none)[1])
+						event_arr.append(event)
 					else:
 						param_arr.append(fit_dict.get(event, fit_none)[6]) #stretch param is 6th index of dicts
 						e_param_arr.append(fit_dict.get(event,fit_none)[7])
+						event_arr.append(event)
 
 	# weights = 1./np.asarray(e_param_arr)
 	# coeffs = np.polyfit(dm15_arr, param_arr, 2, w=weights)
@@ -316,6 +320,7 @@ def dm15_from_fit_params(events, fit_dict, cfa_dict, stretch='N/A'):
 	resids = []
 	inv_resids = []
 	inv_sig_away = []
+	clip_event_arr = []
 
 	# interp_func = interp1d(y, x, bounds_error=False, fill_value=None)
 	# inter_vals = interp_func(param_arr)
@@ -343,6 +348,7 @@ def dm15_from_fit_params(events, fit_dict, cfa_dict, stretch='N/A'):
 			clip_e_dm15_arr.append(e_dm15_arr[i])
 			clip_param_arr.append(param_arr[i])
 			clip_e_param_arr.append(e_param_arr[i])
+			clip_event_arr.append(event_arr[i])
 
 	new_param_arr = []
 	new_e_param_arr = []
@@ -365,25 +371,67 @@ def dm15_from_fit_params(events, fit_dict, cfa_dict, stretch='N/A'):
 	rmse = np.sqrt(mse)
 	print 'RMSE: ', rmse
 	print 'Outlier Fraction: ', float(len(clip_dm15_arr))/float(len(dm15_arr))
-	# s
+	
 	# RMSE:  0.0718342630003
 	# Outlier Fraction:  0.0752688172043
 	# [ 1.7240621  -4.66995066  3.93727553]
+	# sn2006et
+	# sn1994t
+	# sn1995ac
+	# sn2000dk
+	# sn2002bf
+	# sn2005ls
+	# sn1999aa
 
-	# x1
 	# RMSE:  0.066249618878
 	# Outlier Fraction:  0.0504201680672
 	# [ 0.01828958 -0.13430543  1.02585001]
+	# sn1994t
+	# sn1995ac
+	# sn2002dj
+	# sn1999dq
+	# sn2007bz
+	# sn1999aa
 
-	# delta
 	# RMSE:  0.070183174903
 	# Outlier Fraction:  0.0230769230769
 	# [-0.16315158  0.76583297  1.12697325]
+	# sn2003iv
+	# sn1995ac
+	# sn1999aa
 
-	# delta25 
 	# RMSE:  0.07406417245
 	# Outlier Fraction:  0.139423076923
 	# [-0.04957799  0.56115546  1.11213983]
+	# sn2007af
+	# sn2006eu
+	# sn1997e
+	# sn1999by
+	# sn2003iv
+	# sn2006x
+	# sn2006n
+	# sn1999ej
+	# sn1995ac
+	# sn1995al
+	# sn2005be
+	# sn2002dj
+	# sn2004dt
+	# sn2000dk
+	# sn2006hb
+	# sn2005el
+	# sn2000cx
+	# sn2007if
+	# sn2005hk
+	# sn2002cx
+	# sn2001fh
+	# sn2006al
+	# sn1997br
+	# sn2005lu
+	# sn2006cm
+	# sn2006cj
+	# sn1999aa
+	# sn1999ac
+	# sn2006bz
 
 	# weights = 1./np.asarray(new_e_param_arr)
 	# coeffs = np.polyfit(new_dm15_arr, new_param_arr, 2, w=weights)
@@ -394,69 +442,76 @@ def dm15_from_fit_params(events, fit_dict, cfa_dict, stretch='N/A'):
 	new_x = np.linspace(np.amin(new_param_arr), np.amax(new_param_arr), 10000)
 	new_y = coeffs[0]*new_x**2. + coeffs[1]*new_x + coeffs[2]
 	print coeffs
+	for e in clip_event_arr:
+		print e
 	print 
 	# print new_y[0], new_y[-1]
 
 	# plotted in lc_fitting_relationships.py
-	plt.rc('font', family='serif')
-	fig, ax = plt.subplots(1,1)
-	fig.set_size_inches(10, 8, forward = True)
-	plt.minorticks_on()
-	plt.xticks(fontsize = 20)
-	plt.yticks(fontsize = 20)
-	plt.tick_params(
-	    which='major', 
-	    bottom='on', 
-	    top='on',
-	    left='on',
-	    right='on',
-	    length=10)
-	plt.tick_params(
-		which='minor', 
-		bottom='on', 
-		top='on',
-		left='on',
-		right='on',
-		length=5)
+	# plt.rc('font', family='serif')
+	# fig, ax = plt.subplots(1,1)
+	# fig.set_size_inches(10, 8, forward = True)
+	# plt.minorticks_on()
+	# plt.xticks(fontsize = 20)
+	# plt.yticks(fontsize = 20)
+	# plt.tick_params(
+	#     which='major', 
+	#     bottom='on', 
+	#     top='on',
+	#     left='on',
+	#     right='on',
+	#     length=10)
+	# plt.tick_params(
+	# 	which='minor', 
+	# 	bottom='on', 
+	# 	top='on',
+	# 	left='on',
+	# 	right='on',
+	# 	length=5)
 	# plt.plot(y, x, 'k', linewidth=4)
 	# plt.plot(new_y, new_x, 'g', linewidth=4)
 	# plt.plot(x, y, 'k', linewidth=4)
-	plt.plot(new_x, new_y, 'k', linewidth=4)
-	# plt.ylim(.6,2.2)
-	plt.ylabel('$\Delta m_{15}$ (B) (mag)', fontsize = 30)
-	if stretch is 's':
-		plt.errorbar(new_param_arr, new_dm15_arr, xerr=new_e_param_arr, yerr= new_e_dm15_arr, fmt='o', color='#7570b3', ms=10)
-		# plt.errorbar(new_param_arr, new_dm15_arr, xerr=new_e_param_arr, fmt='o', color='#7570b3', ms=10)
-		plt.errorbar(clip_param_arr, clip_dm15_arr, xerr=clip_e_param_arr, yerr=clip_e_dm15_arr, fmt='x', color='black', ms=10, mew=1)
-		# plt.errorbar(clip_param_arr, clip_dm15_arr, xerr=clip_e_param_arr, fmt='x', color='black', ms=30, mew=3)
-		plt.xlim(.4, 1.3)
-		plt.xlabel('s', fontsize = 30)
-		plt.savefig('../../../Paper_Drafts/reprocessing_updated/dm15_s.pdf', dpi = 300, bbox_inches = 'tight')
-	elif stretch is 'x1':
-		plt.errorbar(new_param_arr, new_dm15_arr, xerr=new_e_param_arr, yerr= new_e_dm15_arr, fmt='o', color='#1b9e77', ms=10)
-		# plt.errorbar(new_param_arr, new_dm15_arr, xerr=new_e_param_arr, fmt='o', color='#1b9e77', ms=10)
-		plt.errorbar(clip_param_arr, clip_dm15_arr, xerr=clip_e_param_arr, yerr=clip_e_dm15_arr, fmt='x', color='black', ms=10, mew=1)
-		# plt.errorbar(clip_param_arr, clip_dm15_arr, xerr=clip_e_param_arr, fmt='x', color='black', ms=30, mew=3)
-		plt.xlim(-5., 3.)
-		plt.xlabel('$x_1$', fontsize = 30)
-		plt.savefig('../../../Paper_Drafts/reprocessing_updated/dm15_x1.pdf', dpi = 300, bbox_inches = 'tight')
-	elif stretch is 'delta':
-		plt.errorbar(new_param_arr, new_dm15_arr, xerr=new_e_param_arr, yerr= new_e_dm15_arr, fmt='o', color='#d95f02', ms=10)
-		# plt.errorbar(new_param_arr, new_dm15_arr, xerr=new_e_param_arr, fmt='o', color='#d95f02', ms=10)
-		plt.errorbar(clip_param_arr, clip_dm15_arr, xerr=clip_e_param_arr, yerr=clip_e_dm15_arr, fmt='x', color='black', ms=10, mew=1)
-		# plt.errorbar(clip_param_arr, clip_dm15_arr, xerr=clip_e_param_arr, fmt='x', color='black', ms=30, mew=3)
-		plt.xlim(-.5, 1.8)
-		plt.xlabel('$\Delta$', fontsize = 30)
-		plt.savefig('../../../Paper_Drafts/reprocessing_updated/dm15_delta.pdf', dpi = 300, bbox_inches = 'tight')
-	elif stretch is 'delta_lowrv':
-		plt.errorbar(new_param_arr, new_dm15_arr, xerr=new_e_param_arr, yerr= new_e_dm15_arr, fmt='o', color='#d95f02', ms=10)
-		# plt.errorbar(new_param_arr, new_dm15_arr, xerr=new_e_param_arr, fmt='o', color='#d95f02', ms=10)
-		plt.errorbar(clip_param_arr, clip_dm15_arr, xerr=clip_e_param_arr, yerr=clip_e_dm15_arr, fmt='x', color='black', ms=10, mew=1)
-		# plt.errorbar(clip_param_arr, clip_dm15_arr, xerr=clip_e_param_arr, fmt='x', color='black', ms=30, mew=3)
-		plt.xlim(-.9, 2.0)
-		plt.xlabel('$\Delta$', fontsize = 30)
-		plt.savefig('../../../Paper_Drafts/reprocessing_updated/dm15_delta_lowrv.pdf', dpi = 300, bbox_inches = 'tight')
-	plt.show()
+	# plt.plot(new_x, new_y, 'k', linewidth=4)
+	# # plt.ylim(.6,2.2)
+	# plt.ylabel('$\Delta m_{15}$ (B) (mag)', fontsize = 30)
+	# if stretch is 's':
+	# 	plt.errorbar(new_param_arr, new_dm15_arr, xerr=new_e_param_arr, yerr= new_e_dm15_arr, fmt='o', color='#7570b3', ms=10)
+	# 	# plt.errorbar(new_param_arr, new_dm15_arr, xerr=new_e_param_arr, fmt='o', color='#7570b3', ms=10)
+	# 	plt.errorbar(clip_param_arr, clip_dm15_arr, xerr=clip_e_param_arr, yerr=clip_e_dm15_arr, fmt='x', color='black', ms=10, mew=1)
+	# 	# plt.errorbar(clip_param_arr, clip_dm15_arr, xerr=clip_e_param_arr, fmt='x', color='black', ms=30, mew=3)
+	# 	plt.xlim(.4, 1.3)
+	# 	plt.ylim(.6, 2.5)
+	# 	plt.xlabel('s', fontsize = 30)
+	# 	# plt.savefig('../../../Paper_Drafts/reprocessing_updated/dm15_s.pdf', dpi = 300, bbox_inches = 'tight')
+	# elif stretch is 'x1':
+	# 	plt.errorbar(new_param_arr, new_dm15_arr, xerr=new_e_param_arr, yerr= new_e_dm15_arr, fmt='o', color='#1b9e77', ms=10)
+	# 	# plt.errorbar(new_param_arr, new_dm15_arr, xerr=new_e_param_arr, fmt='o', color='#1b9e77', ms=10)
+	# 	plt.errorbar(clip_param_arr, clip_dm15_arr, xerr=clip_e_param_arr, yerr=clip_e_dm15_arr, fmt='x', color='black', ms=10, mew=1)
+	# 	# plt.errorbar(clip_param_arr, clip_dm15_arr, xerr=clip_e_param_arr, fmt='x', color='black', ms=30, mew=3)
+	# 	plt.xlim(-5., 3.)
+	# 	plt.ylim(.6, 2.5)
+	# 	plt.xlabel('$x_1$', fontsize = 30)
+	# 	# plt.savefig('../../../Paper_Drafts/reprocessing_updated/dm15_x1.pdf', dpi = 300, bbox_inches = 'tight')
+	# elif stretch is 'delta':
+	# 	plt.errorbar(new_param_arr, new_dm15_arr, xerr=new_e_param_arr, yerr= new_e_dm15_arr, fmt='o', color='#d95f02', ms=10)
+	# 	# plt.errorbar(new_param_arr, new_dm15_arr, xerr=new_e_param_arr, fmt='o', color='#d95f02', ms=10)
+	# 	plt.errorbar(clip_param_arr, clip_dm15_arr, xerr=clip_e_param_arr, yerr=clip_e_dm15_arr, fmt='x', color='black', ms=10, mew=1)
+	# 	# plt.errorbar(clip_param_arr, clip_dm15_arr, xerr=clip_e_param_arr, fmt='x', color='black', ms=30, mew=3)
+	# 	plt.xlim(-.5, 1.8)
+	# 	plt.ylim(.6, 2.5)
+	# 	plt.xlabel('$\Delta$', fontsize = 30)
+	# 	# plt.savefig('../../../Paper_Drafts/reprocessing_updated/dm15_delta.pdf', dpi = 300, bbox_inches = 'tight')
+	# elif stretch is 'delta_lowrv':
+	# 	print len(new_dm15_arr)
+	# 	plt.errorbar(new_param_arr, new_dm15_arr, xerr=new_e_param_arr, yerr= new_e_dm15_arr, fmt='o', color='#d95f02', ms=10)
+	# 	# plt.errorbar(new_param_arr, new_dm15_arr, xerr=new_e_param_arr, fmt='o', color='#d95f02', ms=10)
+	# 	plt.errorbar(clip_param_arr, clip_dm15_arr, xerr=clip_e_param_arr, yerr=clip_e_dm15_arr, fmt='x', color='black', ms=10, mew=1)
+	# 	# plt.errorbar(clip_param_arr, clip_dm15_arr, xerr=clip_e_param_arr, fmt='x', color='black', ms=30, mew=3)
+	# 	plt.xlim(-.9, 2.0)
+	# 	plt.ylim(.6, 2.5)
+	# 	plt.xlabel('$\Delta$', fontsize = 30)
+		# plt.savefig('../../../Paper_Drafts/reprocessing_updated/dm15_delta_lowrv.pdf', dpi = 300, bbox_inches = 'tight')
+	# plt.show()
 
 	# dm15_interp = interp1d(x, y, bounds_error = True)
 	dm15_interp = interp1d(new_x, new_y, bounds_error=False, fill_value=None)
@@ -477,7 +532,122 @@ def dm15_from_fit_params(events, fit_dict, cfa_dict, stretch='N/A'):
 	# RMSE:  0.07406417245
 	# Outlier Fraction:  0.139423076923
 	# [-0.04957799  0.56115546  1.11213983]
-	return dm15_interp
+	return dm15_interp, (new_x, new_y, new_param_arr, new_dm15_arr, new_e_param_arr, 
+						new_e_dm15_arr, clip_param_arr, clip_dm15_arr, clip_e_param_arr, clip_e_dm15_arr)
+
+def plot_dm15_fits(s_results, x1_results, delta_results, delta_lowrv_results):
+	gs = gridspec.GridSpec(1, 4, wspace = .0003)
+	fig = plt.figure(num = 1, dpi = 100, figsize = [23,7], facecolor = 'w')
+
+	s_plot = plt.subplot(gs[0])
+	plt.rc('font', family='serif')
+	plt.minorticks_on()
+	plt.xticks(fontsize = 20)
+	plt.yticks(fontsize = 20)
+	plt.tick_params(
+	    which='major', 
+	    bottom='on', 
+	    top='on',
+	    left='on',
+	    right='on',
+	    length=10)
+	plt.tick_params(
+		which='minor', 
+		bottom='on', 
+		top='on',
+		left='on',
+		right='on',
+		length=5)
+	plt.plot(s_results[0], s_results[1], 'k', linewidth=4)
+	plt.ylabel('$\Delta m_{15}$ (B) (mag)', fontsize = 30)
+	plt.errorbar(s_results[2], s_results[3], xerr=s_results[4], yerr= s_results[5], fmt='o', color='#7570b3', ms=10)
+	plt.errorbar(s_results[6], s_results[7], xerr=s_results[8], yerr=s_results[9], fmt='x', color='black', ms=10, mew=1)
+	plt.xlim(.4, 1.25)
+	plt.ylim(.6, 2.5)
+	plt.xlabel('s', fontsize = 30)
+
+	x1_plot = plt.subplot(gs[1], sharey=s_plot)
+	plt.rc('font', family='serif')
+	plt.minorticks_on()
+	plt.xticks(fontsize = 20)
+	plt.yticks(fontsize = 20)
+	plt.tick_params(
+	    which='major', 
+	    bottom='on', 
+	    top='on',
+	    left='on',
+	    right='on',
+	    length=10)
+	plt.tick_params(
+		which='minor', 
+		bottom='on', 
+		top='on',
+		left='on',
+		right='on',
+		length=5)
+	plt.plot(x1_results[0], x1_results[1], 'k', linewidth=4)
+	plt.errorbar(x1_results[2], x1_results[3], xerr=x1_results[4], yerr= x1_results[5], fmt='o', color='#1b9e77', ms=10)
+	plt.errorbar(x1_results[6], x1_results[7], xerr=x1_results[8], yerr=x1_results[9], fmt='x', color='black', ms=10, mew=1)
+	plt.xlim(-4.9, 2.9)
+	plt.ylim(.6, 2.5)
+	plt.xlabel('$x_1$', fontsize = 30)
+	plt.setp(x1_plot.get_yticklabels(), visible=False)
+
+	delta_plot = plt.subplot(gs[2], sharey=s_plot)
+	plt.rc('font', family='serif')
+	plt.minorticks_on()
+	plt.xticks(fontsize = 20)
+	plt.yticks(fontsize = 20)
+	plt.tick_params(
+	    which='major', 
+	    bottom='on', 
+	    top='on',
+	    left='on',
+	    right='on',
+	    length=10)
+	plt.tick_params(
+		which='minor', 
+		bottom='on', 
+		top='on',
+		left='on',
+		right='on',
+		length=5)
+	plt.plot(delta_results[0], delta_results[1], 'k', linewidth=4)
+	plt.errorbar(delta_results[2], delta_results[3], xerr=delta_results[4], yerr= delta_results[5], fmt='o', color='#d95f02', ms=10)
+	plt.errorbar(delta_results[6], delta_results[7], xerr=delta_results[8], yerr= delta_results[9], fmt='x', color='black', ms=10, mew=1)
+	plt.xlim(-.85, 1.95)
+	plt.ylim(.6, 2.5)
+	plt.xlabel('$\Delta$', fontsize = 30)
+	plt.setp(delta_plot.get_yticklabels(), visible=False)
+
+	delta_lowrv_plot = plt.subplot(gs[3], sharey=s_plot)
+	plt.rc('font', family='serif')
+	plt.minorticks_on()
+	plt.xticks(fontsize = 20)
+	plt.yticks(fontsize = 20)
+	plt.tick_params(
+	    which='major', 
+	    bottom='on', 
+	    top='on',
+	    left='on',
+	    right='on',
+	    length=10)
+	plt.tick_params(
+		which='minor', 
+		bottom='on', 
+		top='on',
+		left='on',
+		right='on',
+		length=5)
+	plt.plot(delta_lowrv_results[0], delta_lowrv_results[1], 'k', linewidth=4)
+	plt.errorbar(delta_lowrv_results[2], delta_lowrv_results[3], xerr=delta_lowrv_results[4], yerr= delta_lowrv_results[5], fmt='o', color='#d95f02', ms=10)
+	plt.errorbar(delta_lowrv_results[6], delta_lowrv_results[7], xerr=delta_lowrv_results[8], yerr= delta_lowrv_results[9], fmt='x', color='black', ms=10, mew=1)
+	plt.xlim(-.85, 2.0)
+	plt.ylim(.6, 2.5)
+	plt.xlabel('$\Delta$', fontsize = 30)
+	plt.setp(delta_lowrv_plot.get_yticklabels(), visible=False)
+	plt.savefig('../../../Paper_Drafts/reprocessing_updated/dm15_from_fits.pdf', dpi = 300, bbox_inches = 'tight')
+	plt.show()
 
 
 if __name__ == "__main__":
@@ -506,11 +676,40 @@ if __name__ == "__main__":
 	host_dict = build_host_dict(host_data)
 	lcparams_dict = build_lcparams_dict(lcparams)
 
-	dm15_s_interp = dm15_from_fit_params(events, salt_dict, cfa_dict, stretch='s')
-	dm15_x1_interp = dm15_from_fit_params(events, salt2_dict, cfa_dict, stretch='x1')
-	dm15_delta_interp = dm15_from_fit_params(events, mlcs31_dict, cfa_dict, stretch='delta')
-	dm15_delta_lowrv_interp = dm15_from_fit_params(events, delt_dict, cfa_dict, stretch='delta_lowrv')
-	# raise TypeError
+	#NEED TO MAKE SALT, SALT2, mlcs, and delt reduced dicts with same samples
+	salt_set = set(salt_dict.keys())
+	salt2_set = set(salt2_dict.keys())
+	mlcs31_set = set(mlcs31_dict.keys())
+	delt_set = set(delt_dict.keys())
+	common_SNe = set.intersection(salt_set, salt2_set, delt_set)
+
+	# need this to determine outlier fractions:
+	# s: 7/85, x1: 3/85, delta: 2/85, delta25: 6/85
+	# RMS from original fit:
+	# s: .071, x1: .066, delta: .074
+	# salt_dict_new = {}
+	# salt2_dict_new = {}
+	# mlcs31_dict_new = {}
+	# delt_dict_new = {}
+	# for cSN in common_SNe:
+	# 	salt_dict_new[cSN] = salt_dict[cSN]
+	# 	salt2_dict_new[cSN] = salt2_dict[cSN]
+	# 	mlcs31_dict_new[cSN] = mlcs31_dict[cSN]
+	# 	delt_dict_new[cSN] = delt_dict[cSN]
+
+	# dm15_s_interp, s_results = dm15_from_fit_params(events, salt_dict_new, cfa_dict, stretch='s')
+	# dm15_x1_interp, x1_results = dm15_from_fit_params(events, salt2_dict_new, cfa_dict, stretch='x1')
+	# dm15_delta_interp, delta_results = dm15_from_fit_params(events, mlcs31_dict_new, cfa_dict, stretch='delta')
+	# dm15_delta_lowrv_interp, delta_lowrv_fit_results = dm15_from_fit_params(events, delt_dict_new, cfa_dict, stretch='delta_lowrv')
+
+
+	dm15_s_interp, s_results = dm15_from_fit_params(events, salt_dict, cfa_dict, stretch='s')
+	dm15_x1_interp, x1_results = dm15_from_fit_params(events, salt2_dict, cfa_dict, stretch='x1')
+	dm15_delta_interp, delta_fit_results = dm15_from_fit_params(events, mlcs31_dict, cfa_dict, stretch='delta')
+	dm15_delta_lowrv_interp, delta_lowrv_fit_results = dm15_from_fit_params(events, delt_dict, cfa_dict, stretch='delta_lowrv')
+	print len(delt_dict)
+	plot_dm15_fits(s_results, x1_results, delta_fit_results, delta_lowrv_fit_results)
+	raise TypeError
 
 	con = sq3.connect('..\data\SNIaDB_Spec_v20_phot_v10.db')
 	con.execute("""DROP TABLE IF EXISTS Photometry""")

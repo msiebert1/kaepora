@@ -13,7 +13,8 @@ import numpy as np
 from math import *
 from scipy import interpolate
 import matplotlib.pyplot as plt
-import pyfits
+# import pyfits
+import astropy.io.fits as pyfits
 import copy
 
 import scipy.signal as sig
@@ -356,12 +357,12 @@ def genivar(wavelength, flux, varflux, vexp = 0.002, nsig = 5.0, testing=False):
         plt.plot(wavelength, scale*sm_error_new, linewidth = 2, color = 'orange', label='Smoothed Absolute Residuals')
         plt.plot(wavelength, scale*scale_func*sm_error_new, linewidth = 2, color = 'magenta', label='Smoothed Absolute Residuals Corrected')
         if varflux is not None:
-            plt.plot(wavelength, scale*real_error, linewidth = 2, color = 'g', label='Real Error')
-        plt.ylabel('Relative Flux', fontsize = 30)
+            plt.plot(wavelength, scale*real_error, linewidth = 2, color = 'g', label='Real Uncertainty')
+        plt.ylabel('Uncertainty (Scaled Flux)', fontsize = 30)
         plt.xlabel('Rest Wavelength ' + "($\mathrm{\AA}$)", fontsize = 30)
         plt.xlim([wavelength[0]-200,wavelength[-1]+200])
         plt.legend(loc=1, fontsize=20)
-        # plt.savefig('../../../Paper_Drafts/reprocessing_updated/genvar.pdf', dpi = 300, bbox_inches = 'tight')
+        plt.savefig('../../../Paper_Drafts/reprocessing_updated/genvar.pdf', dpi = 300, bbox_inches = 'tight')
         plt.show()
         if varflux is not None:
             plt.plot(wavelength, error_scales)
