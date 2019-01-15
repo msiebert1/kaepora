@@ -373,7 +373,7 @@ def set_min_num_spec(composites, num):
 		comp.x1, comp.x2 = valid_range[0], valid_range[-1]
 
 
-def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_scale = 5, template=None, scaleto=10., legend_labels = None, cmap_kind='diff', zoom_ratio=False, savename=None):
+def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_scale = 2, template=None, scaleto=10., legend_labels = None, cmap_kind='diff', zoom_ratio=False, savename=None):
 
 	# plt.style.use('ggplot')
 	colors = [color['color'] for color in list(plt.rcParams['axes.prop_cycle'])]
@@ -883,9 +883,11 @@ def stacked_plot(composites, boot=False, savename = None):
 		plt.savefig('../../../Paper_Drafts/'+savename+'.pdf', dpi = 300, bbox_inches = 'tight')
 	plt.show()
 
-def normalize_comps(composites, scale=1.):
+def normalize_comps(composites, scale=1., w1=3500, w2=9000.):
 	for comp in composites:
-		norm =scale/np.amax(comp.flux[comp.x1:comp.x2])
+		scale_range = np.where((comp.wavelength > w1) & (comp.wavelength < w2))
+		# norm = scale/np.amax(comp.flux[comp.x1:comp.x2])
+		norm = scale/np.nanmax(comp.flux[scale_range])
 		comp.flux = norm*comp.flux
 
 		# if len(comp.RMSE) > 0:
@@ -898,7 +900,7 @@ def normalize_comps(composites, scale=1.):
 	return composites
 
 def normalize_comp(comp):
-	norm = 1./np.amax(comp.flux[comp.x1:comp.x2])
+	norm = 1./np.nanmax(comp.flux[comp.x1:comp.x2])
 	comp.flux = norm*comp.flux
 
 	if len(comp.RMSE) > 0:
@@ -910,7 +912,7 @@ def normalize_comp(comp):
 	comp.ivar /= (norm)**2
 	return comp, norm
 
-def main(num_queries, query_strings, boot='nb', medmean = 1, selection = 'max_coverage', gini_balance=False, verbose=True, multi_epoch=False, low_av_test=None):
+def main(num_queries, query_strings, boot='nb', medmean = 1, selection = 'max_coverage', gini_balance=False, verbose=True, multi_epoch=True, combine=True, low_av_test=None):
 	# num_queries = int(sys.argv[1])
 	# query_strings = sys.argv[2:]
 
@@ -920,7 +922,7 @@ def main(num_queries, query_strings, boot='nb', medmean = 1, selection = 'max_co
 	store_boots = True
 	for n in range(num_queries):
 		comp, arr, boots = composite.main(query_strings[n],boot=boot, medmean = medmean, 
-											selection = selection, gini_balance=gini_balance, 
+											selection = selection, gini_balance=gini_balance, combine=combine,
 											verbose=verbose, multi_epoch=multi_epoch, low_av_test=low_av_test)
 		if store_boots:
 			boot_sn_arrays.append(boots)
@@ -929,11 +931,11 @@ def main(num_queries, query_strings, boot='nb', medmean = 1, selection = 'max_co
 
 	composite.optimize_scales(composites, composites[0], True)
 	composites = normalize_comps(composites)
-	for comp in composites:
-		dm15 = np.round(np.nanmean(comp.dm15_array[comp.x1:comp.x2]),2)
-		# r = sa.measure_si_ratio(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], vexp = .001, dm15=dm15)
-		v_strong, si_min_wave = sa.measure_velocity(comp.wavelength[comp.x1:comp.x2],comp.flux[comp.x1:comp.x2], 5900., 6300.)
-		print 'v = ', v_strong
+	# for comp in composites:
+	# 	dm15 = np.round(np.nanmean(comp.dm15_array[comp.x1:comp.x2]),2)
+	# 	# r = sa.measure_si_ratio(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], vexp = .001, dm15=dm15)
+	# 	v_strong, si_min_wave = sa.measure_velocity(comp.wavelength[comp.x1:comp.x2],comp.flux[comp.x1:comp.x2], 5900., 6300.)
+	# 	print 'v = ', v_strong
 
 	
 	# for boot in boot_sn_arrays:
@@ -1179,22 +1181,25 @@ if __name__ == "__main__":
 	num_queries = len(query_strings)
 
 	for n in range(num_queries):
-		# c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, make_corr=False, multi_epoch=True)
-		# c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = False)
+		# c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, make_corr=True, multi_epoch=True, combine=False)
+		# c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = False, multi_epoch=True, combine=True) 
 		# composites.append(c)
 		# SN_Arrays.append(sn_arr)
 		# if store_boots:
 		# 	boot_sn_arrays.append(boots)
-		c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = True)
+
+		#use this for good composites
+		c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = True, verbose=True, multi_epoch=True, combine=True)
 		composites.append(c)
 		SN_Arrays.append(sn_arr)
 		if store_boots:
 			boot_sn_arrays.append(boots)
-		# c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = False)
-		# composites.append(c)
-		# SN_Arrays.append(sn_arr)
-		# if store_boots:
-		# 	boot_sn_arrays.append(boots)
+			
+		c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = False, verbose=True, multi_epoch=True, combine=True)
+		composites.append(c)
+		SN_Arrays.append(sn_arr)
+		if store_boots:
+			boot_sn_arrays.append(boots)
 
 	for i, comp in enumerate(composites):
 		dm15s = []

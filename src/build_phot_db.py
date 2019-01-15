@@ -709,9 +709,9 @@ if __name__ == "__main__":
 	dm15_delta_lowrv_interp, delta_lowrv_fit_results = dm15_from_fit_params(events, delt_dict, cfa_dict, stretch='delta_lowrv')
 	print len(delt_dict)
 	plot_dm15_fits(s_results, x1_results, delta_fit_results, delta_lowrv_fit_results)
-	raise TypeError
+	# raise TypeError
 
-	con = sq3.connect('..\data\SNIaDB_Spec_v20_phot_v10.db')
+	con = sq3.connect('..\data\SNIaDB_Spec_v21_phot_v10.db')
 	con.execute("""DROP TABLE IF EXISTS Photometry""")
 	con.execute("""CREATE TABLE IF NOT EXISTS Photometry (SN TEXT, RA TEXT, DEC TEXT, 
 														  zCMB_salt REAL, e_zCMB_salt REAL, Bmag_salt REAL, e_Bmag_salt REAL, s_salt REAL, e_s_salt REAL, c_salt REAL, e_c_salt REAL, mu_salt REAL, e_mu_salt REAL,

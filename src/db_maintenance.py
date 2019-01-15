@@ -7,7 +7,7 @@ import composite
 import matplotlib.pyplot as plt
 
 def fix_2011fe_phases():
-	con = sq3.connect('../data/SNIaDB_Spec_v20_phot_v10.db')
+	con = sq3.connect('../data/SNIaDB_Spec_v21_phot_v10.db')
 	cur = con.cursor()
 	sql_input = "SELECT * from Supernovae inner join Photometry ON Supernovae.SN = Photometry.SN where Supernovae.SN = '2011fe' and source = 'other'"
 	print 'querying'
@@ -25,7 +25,7 @@ def fix_2011fe_phases():
 	con.commit()
 
 def update_bsnip_refs():
-	con = sq3.connect('../data/SNIaDB_Spec_v20_phot_v10.db')
+	con = sq3.connect('../data/SNIaDB_Spec_v21_phot_v10.db')
 	cur = con.cursor()
 	sql_input = "SELECT * from Supernovae inner join Photometry ON Supernovae.SN = Photometry.SN where source = 'bsnip'"
 	print 'querying'
@@ -44,7 +44,7 @@ def update_bsnip_refs():
 	con.commit()
 
 def delete_swift_data():
-	con = sq3.connect('../data/SNIaDB_Spec_v20_phot_v10.db')
+	con = sq3.connect('../data/SNIaDB_Spec_v21_phot_v10.db')
 	cur = con.cursor()
 	cur.execute("DELETE FROM Supernovae where source = 'swift_uv'")
 	con.commit()
@@ -93,7 +93,7 @@ def read_cfa_info(data_file, dates_file):
 
 def update_phases_from_mlcs():
 	#updates phases using time of max from David's mlcs fits
-	con = sq3.connect('../data/SNIaDB_Spec_v20_phot_v10.db')
+	con = sq3.connect('../data/SNIaDB_Spec_v21_phot_v10.db')
 	cur = con.cursor()
 	sql_input = "SELECT * from Supernovae inner join Photometry ON Supernovae.SN = Photometry.SN where Supernovae.SN"
 	print 'querying'
@@ -118,7 +118,7 @@ def update_phases_from_mlcs():
 			cur.execute("UPDATE Supernovae SET phase = ? where filename = ?", (phase, filename))
 	con.commit()
 def fix_snr_measurements():
-	con = sq3.connect('../data/SNIaDB_Spec_v20_phot_v10.db')
+	con = sq3.connect('../data/SNIaDB_Spec_v21_phot_v10.db')
 	cur = con.cursor()
 	sql_input = "SELECT * from Supernovae inner join Photometry ON Supernovae.SN = Photometry.SN"
 	print 'querying'
@@ -140,7 +140,7 @@ def fix_snr_measurements():
 	print 'done'
 
 def repair_bad_variance_spectra():
-	con = sq3.connect('../data/SNIaDB_Spec_v20_phot_v10.db')
+	con = sq3.connect('../data/SNIaDB_Spec_v21_phot_v10.db')
 	cur = con.cursor()
 	sql_input = "SELECT * from Supernovae inner join Photometry ON Supernovae.SN = Photometry.SN"
 	print 'querying'
@@ -161,7 +161,7 @@ def repair_bad_variance_spectra():
 		elif SN.source == 'uv':
 			path = '../data/spectra/uv/' + SN.filename
 		spectrum = np.loadtxt(path)
-		newdata, snr = prep.compprep(spectrum, SN.name, SN.redshift, SN.source, use_old_error=False, testing = True)
+		newdata, snr = prep.compprep(spectrum, SN.name, SN.redshift, SN.source, use_old_error=False, testing = False)
 		try:
 			interped = msg.packb(newdata)
 			cur.execute("UPDATE Supernovae SET snr = ? where filename = ?", (snr.value, SN.filename))
@@ -184,7 +184,7 @@ def repair_bad_variance_spectra():
 
 def add_more_host_data():
 	datafile = '../data/info_files/more_host_info.txt'
-	con = sq3.connect('../data/SNIaDB_Spec_v20_phot_v10.db')
+	con = sq3.connect('../data/SNIaDB_Spec_v21_phot_v10.db')
 	cur = con.cursor()
 	with open(datafile) as data:
 		lines = data.readlines()
@@ -196,7 +196,7 @@ def add_more_host_data():
 
 def update_references():
 	datafile = '../data/info_files/more_references.txt'
-	con = sq3.connect('../data/SNIaDB_Spec_v20_phot_v10.db')
+	con = sq3.connect('../data/SNIaDB_Spec_v21_phot_v10.db')
 	cur = con.cursor()
 	with open(datafile) as data:
 		lines = data.readlines()
@@ -210,7 +210,7 @@ def update_references():
 
 def add_swift_metadata():
 	data_file = '../../../swift_uvspec/swift_uv_log.txt'
-	con = sq3.connect('../data/SNIaDB_Spec_v20_phot_v10.db')
+	con = sq3.connect('../data/SNIaDB_Spec_v21_phot_v10.db')
 	cur = con.cursor()
 	with open(data_file) as data:
 		for line in data.readlines()[1:]:
@@ -232,12 +232,11 @@ def add_swift_metadata():
 	con.commit()
 
 if __name__ == "__main__":
-	fix_2011fe_phases()
-	# delete_swift_data()
+	# fix_2011fe_phases()
 	# update_bsnip_refs()
 	# repair_bad_variance_spectra()
-	# update_phases_from_mlcs()
-	# fix_snr_measurements()
-	# add_more_host_data()
-	# update_references()
-	# add_swift_metadata()
+	update_phases_from_mlcs()
+	fix_snr_measurements()
+	add_more_host_data()
+	update_references()
+	add_swift_metadata()

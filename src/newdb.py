@@ -119,7 +119,7 @@ def find_SN(fname, source=None, csplist=None):
     """
     if source == 'csp':
         snname = csplist[0]
-        return snname[2:]
+        return snname[2:].lower()
     elif source == 'other':
         snname = fname.replace('_', '-').split('-')
         if snname[0][:2] == 'sn':
@@ -291,7 +291,8 @@ if __name__ == "__main__":
 
     #con = sq3.connect('SNe.db')
     # con = sq3.connect('SNe_11.db')
-    con = sq3.connect('../data/SNIaDB_Spec_v20_phot_v10.db')
+    # con = sq3.connect('../data/SNIaDB_Spec_v20_phot_v10.db')
+    con = sq3.connect('../data/SNIaDB_Spec_v21_phot_v10.db')
 
     #make sure no prior table in db to avoid doubling/multiple copies of same data
 
@@ -374,6 +375,24 @@ if __name__ == "__main__":
         'sn1999ek-19991030.47-fast.flm',
         'sn2003cq-20030408.26-fast.flm',
         'sn1996ai-19960620.17-fast.flm',
+
+        'SN05hc_051018_r01_NTT_EM.dat', 
+        '2002er_20020901_3213_9175_00.dat',
+        '2005cf_20050601_3243_9720_00.dat', 
+        'sn1994S-19940612.26-mmt.flm',
+        'sn1995ac-19950929.27-fast.flm', 
+        'sn2006lf-20061028.51-fast.flm',
+        'sn1994M-19940612.22-mmt.flm', 
+        '2002er_20020901_3213_9175_00.dat',
+        '2002bo_20020328_3099_8801_00.dat',
+        '2005cf_20050603_3721_8786_00.dat',
+        'sn1996ai-19960620-uo.flm', 
+        'SN07N_070131_b01_NTT_EM.dat',
+        'sn2007sr-20071228.39-fixedbg-swift.flm', 
+        'sn2006ob-20061201.107-ui.flm',
+        'sn2005A-20050107.25-fast.flm',
+        'sn1986g-19860529.301-iue.flm',
+        'sn1994t-19940715-ui.flm'
         ]
     print "Adding information to table"
     count = 1

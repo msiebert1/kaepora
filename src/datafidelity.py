@@ -362,7 +362,7 @@ def genivar(wavelength, flux, varflux, vexp = 0.002, nsig = 5.0, testing=False):
         plt.xlabel('Rest Wavelength ' + "($\mathrm{\AA}$)", fontsize = 30)
         plt.xlim([wavelength[0]-200,wavelength[-1]+200])
         plt.legend(loc=1, fontsize=20)
-        plt.savefig('../../../Paper_Drafts/reprocessing_updated/genvar.pdf', dpi = 300, bbox_inches = 'tight')
+        # plt.savefig('../../../Paper_Drafts/reprocessing_updated/genvar.pdf', dpi = 300, bbox_inches = 'tight')
         plt.show()
         if varflux is not None:
             plt.plot(wavelength, error_scales)
