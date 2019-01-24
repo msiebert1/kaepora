@@ -102,7 +102,7 @@ def gsmooth(x_array, y_array, var_y, vexp , nsig = 5.0):
 ############################################################################
 #
 # Function clip() tries to identify absorption lines and cosmic rays
-# Required input is wavelength, flux and inverse variance arrays
+# Required input is rest-frame wavelength, flux and inverse variance arrays
 
 def clip(wave, flux, var, vexp, testing=False):
     # Create an array of all ones
@@ -112,38 +112,61 @@ def clip(wave, flux, var, vexp, testing=False):
     sflux = gsmooth(wave, flux, var, vexp)
     # print 'sflux', sflux
     # Take the difference of the two fluxes and smooth
+    diff = flux - sflux
     err = abs(flux - sflux)
     serr = gsmooth(wave, err, var, 0.008)
 
-    # Find the wavelengths that need to be clipped (omitting 5800-6000 region)
-    tol1 = 5.5
-    tol2 = 5.5
-    tol_na1 = 10.5
-    index = np.where(((err/serr > tol1) & (wave < 5800.0)) | ((err/serr > tol2) & (wave > 6000.0)))
-    index_na = np.where((err/serr > tol_na1) & ((wave > 5800.0) & (wave < 6000.0)))
-    # index = np.where(((flux/sflux > tol1*serr) & (wave < 5800.0)) | ((flux/sflux > tol2*serr) & (wave > 6000.0)))
-    # index_na = np.where((flux/sflux > tol_na1*serr) & ((wave > 5800.0) & (wave < 6000.0)))
-    bad_wave = wave[index]
-    bad_wave_na = wave[index_na]
+    # Avoid clipping absorption at Ca H&K 3934, Na I D 5890/5896, K I 7665/7699, DIB 5780
+    regions_avoid = np.where(((wave > 3919.0) & (wave < 3949.0)) | ((wave > 5875.0) & (wave < 5911.0)) | 
+                             ((wave > 7650.0) & (wave < 7714.0)) | ((wave > 5765.0) & (wave < 5795.0)))
+    tol1 = 5.
+    tol2 = 10.
+    bad_inds_pos_avoid = np.where((diff[regions_avoid] > 0) & (err[regions_avoid]/serr[regions_avoid] > tol1))
+    bad_inds_neg_avoid = np.where((diff[regions_avoid] < 0) & (err[regions_avoid]/serr[regions_avoid] > tol2))
+
+    regions_normal = np.where((wave <= 3919.0) | ((wave >= 3949.0) & (wave <= 5765.0)) | 
+                              ((wave >= 5795.0) & (wave <= 5875.0)) | ((wave >= 5911.0) & (wave <= 7650.0)) | 
+                              (wave >= 7714.0))
+
+    bad_inds_normal = np.where((err[regions_normal]/serr[regions_normal] > tol1))
+
+    bad_wave_normal = wave[regions_normal][bad_inds_normal]
+    bad_wave_pos_avoid = wave[regions_avoid][bad_inds_pos_avoid]
+    bad_wave_neg_avoid = wave[regions_avoid][bad_inds_neg_avoid]
+
+    # print bad_wave_normal
+    # print bad_wave_neg_avoid
+    # print bad_wave_pos_avoid
+    # plt.plot(wave, diff)
+    # for w in bad_wave_normal:
+    #     plt.axvline(x=w, color='r')
+    # plt.show()
+    # plt.plot(wave, err)
+    # plt.plot(wave, serr)
+    # for w in bad_wave_normal:
+    #     plt.axvline(x=w, color='r')
+    # plt.show()
+    # plt.plot(wave, err/serr)
+    # for w in bad_wave_normal:
+    #     plt.axvline(x=w, color='r')
+    # plt.show()
 
     # Find indices for general clipping
-    # bad = np.array([], int)
-    bad_ranges = [] # if don't need it to be a numpy array (A.S.)
+    bad_ranges = [] 
     buff = 8
-    for i in range(len(bad_wave)):
-        # bad = np.append(bad, np.where(abs(wave - bad_wave[i]) < 8))
-        if bad_wave[i] + buff < wave[-1] and bad_wave[i] - buff >= wave[0]:
-            bad_ranges.append((bad_wave[i]-buff, bad_wave[i]+buff))
-        elif bad_wave[i] + buff >= wave[-1]:
-            bad_ranges.append((bad_wave[i]-buff, wave[-2]))
-        elif bad_wave[i] - buff < wave[0]:
-            bad_ranges.append((wave[0], bad_wave[i]+buff))
+    for i in range(len(bad_wave_normal)):
+        if bad_wave_normal[i] + buff < wave[-1] and bad_wave_normal[i] - buff >= wave[0]:
+            bad_ranges.append((bad_wave_normal[i]-buff, bad_wave_normal[i]+buff))
+        elif bad_wave_normal[i] + buff >= wave[-1]:
+            bad_ranges.append((bad_wave_normal[i]-buff, wave[-2]))
+        elif bad_wave_normal[i] - buff < wave[0]:
+            bad_ranges.append((wave[0], bad_wave_normal[i]+buff))
 
 
-
-    for i in range(len(bad_wave_na)):
-        # bad = np.append(bad, np.where(abs(wave - bad_wave[i]) < 8))
-        bad_ranges.append((bad_wave_na[i]-buff, bad_wave_na[i]+buff))
+    for i in range(len(bad_wave_pos_avoid)):
+        bad_ranges.append((bad_wave_pos_avoid[i]-buff, bad_wave_pos_avoid[i]+buff))
+    for i in range(len(bad_wave_neg_avoid)):
+        bad_ranges.append((bad_wave_neg_avoid[i]-buff, bad_wave_neg_avoid[i]+buff))
 
     # Set ivar to 0 for those points and return
 #    ivar[bad] = 0
@@ -235,15 +258,24 @@ def clipmore(wave, flux, ivar) :
 #
 # Function to add sky over a wavelength range
 #
-def addsky(wavelength, flux, error, med_error):
+def addsky(wavelength, flux, error, med_error, source = None):
 
     # Open kecksky spectrum from fits file and create arrays
-    sky = pyfits.open('../personal/AdamSnyder/kecksky.fits')
-    
+    # sky = pyfits.open('../personal/AdamSnyder/kecksky.fits')
+    if source.lower() == 'bsnip':
+        sky = pyfits.open('../data/sky_spectra/licksky.fits')
+    else:
+        sky = pyfits.open('../data/sky_spectra/kecksky.fits')
+
     crval = sky[0].header['CRVAL1']
     delta = sky[0].header['CDELT1']
-    skyflux = sky[0].data[0]
+    if source.lower() == 'bsnip':
+        skyflux = sky[0].data
+    else:
+        skyflux = sky[0].data[0]
     start = crval
+    print skyflux
+    print delta
     stop = crval + ceil(len(skyflux)*delta)
     skywave = [(start+delta*i) for i in range(len(skyflux))]
     # Find wavelength overlap
@@ -253,13 +285,19 @@ def addsky(wavelength, flux, error, med_error):
         return error
 
     spline_rep = interpolate.splrep(skywave, skyflux)
-    add_flux = interpolate.splev(wavelength[good], spline_rep)    
+    add_flux = interpolate.splev(wavelength[good], spline_rep) 
+    plt.plot(skywave, skyflux)   
+    plt.show()
 
     # Scale sky
     # scale = 285*med_error
     # print med_error
-    scale = 50.*med_error #fudge factor provides reasonable scaling of sky lines
-    add_flux = scale*add_flux
+    # scale = 50.*med_error #fudge factor provides reasonable scaling of sky lines
+    # add_flux = scale*add_flux
+
+    scale = med_error/np.median(add_flux)
+    print .004*scale/med_error
+    add_flux = 0.004*scale*add_flux
 
     # Add sky flux to the error
     new_error = copy.deepcopy(error)
@@ -277,7 +315,7 @@ def addsky(wavelength, flux, error, med_error):
 ## genivar(wavelength, flux, float vexp = 0.005, float nsig = 5.0)
 #
 
-def genivar(wavelength, flux, varflux, vexp = 0.002, nsig = 5.0, testing=False):
+def genivar(wavelength, flux, varflux, vexp = 0.002, nsig = 5.0, testing=False, source=None):
     # Check to see if it has a variance already
 
     #UNCOMMENT WHEN DONE TESTING
@@ -305,13 +343,13 @@ def genivar(wavelength, flux, varflux, vexp = 0.002, nsig = 5.0, testing=False):
     test3 = np.where((wavelength >= 7000) & (wavelength <= 8000))
     if len(test1[0]) > 40:
         med_err = np.median(sm_error[test1])
-        sm_error_new = addsky(wavelength, flux, sm_error, med_err)
+        sm_error_new = addsky(wavelength, flux, sm_error, med_err, source=source)
     elif len(test2[0]) > 40:
         med_err = np.median(sm_error[test2])
-        sm_error_new = addsky(wavelength, flux, sm_error, med_err)
+        sm_error_new = addsky(wavelength, flux, sm_error, med_err, source=source)
     elif len(test3[0]) > 40:
         med_err = np.median(sm_error[test3])
-        sm_error_new = addsky(wavelength, flux, sm_error, med_err)
+        sm_error_new = addsky(wavelength, flux, sm_error, med_err, source=source)
     else:
         sm_error_new = sm_error
 

@@ -307,8 +307,11 @@ def compprep(spectrum, sn_name, z, source, use_old_error=True, testing=False):
     vexp, SNR = df.find_vexp(old_wave, old_flux, var_y=old_var)
     if testing:
         print vexp, SNR
+
+    old_wave = old_wave/(1.+z) #deredshift for clipping 
     old_wave, old_flux, old_var = df.clip(old_wave, old_flux, old_var, vexp, testing=testing) #clip emission/absorption lines
-    temp_ivar, SNR = df.genivar(old_wave, old_flux, old_var, vexp=vexp, testing=testing)  # generate inverse variance
+    old_wave = old_wave*(1.+z) #reredshift for MW extinction correction 
+    temp_ivar, SNR = df.genivar(old_wave, old_flux, old_var, vexp=vexp, testing=testing, source=source)  # generate inverse variance
     if testing:
         print SNR
 

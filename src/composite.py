@@ -46,6 +46,7 @@ class supernova(object):
             self.up_conf =up_conf
             self.x1 = 0
             self.x2 = len(wavelength) - 1
+            self.filename=None
 
 def store_phot_data(SN, row):
     """Assigns attributes to a supernova object from the Photometry table in the
@@ -338,6 +339,7 @@ def grab(sql_input, multi_epoch = False, make_corr = True,
         SN.dm15_array  = np.array(SN.flux)
         SN.red_array   = np.array(SN.flux)
         SN.vel         = np.array(SN.flux)
+        SN.morph_array = np.array(SN.flux)
 
         nan_bool_flux = np.isnan(SN.flux)
         non_nan_data = np.where(nan_bool_flux == False)
@@ -348,6 +350,7 @@ def grab(sql_input, multi_epoch = False, make_corr = True,
         SN.dm15_array[nan_data]   = np.nan
         SN.red_array[nan_data]    = np.nan
         SN.vel[nan_data]          = np.nan
+        SN.morph_array[nan_data]  = np.nan
         if SN.phase != None:
             SN.phase_array[non_nan_data] = SN.phase
         else:
@@ -369,6 +372,10 @@ def grab(sql_input, multi_epoch = False, make_corr = True,
             SN.vel[non_nan_data] = SN.velocity
         else:
             SN.vel[non_nan_data] = np.nan
+        if SN.ned_host != None:
+            SN.morph_array[non_nan_data] = SN.ned_host
+        else:
+            SN.morph_array[non_nan_data] = np.nan
 
         non_nan_data = np.array(non_nan_data[0])
         if len(non_nan_data) > 0:
@@ -432,6 +439,9 @@ def optimize_scales(SN_Array, template, initial, scale_range=False, wave1=3000, 
     guess = 1.0
 
     for uSN in unique_arr:
+        #keep from weighting low flux parts of iue spectra by too much
+        if uSN.filename != None and '-iue' in uSN.filename:
+            uSN.x1 = (uSN.x1+uSN.x2)/2.
         guess = np.average(template.flux[template.x1:template.x2])/np.average(uSN.flux[uSN.x1:uSN.x2])
         u = opt.minimize(sq_residuals, guess, args = (uSN, template, initial, scale_range, wave1, wave2), 
                          method = 'Nelder-Mead').x
@@ -439,6 +449,8 @@ def optimize_scales(SN_Array, template, initial, scale_range=False, wave1=3000, 
         # if u < 1.e-5:
         #     # u=1.
         #     print uSN.filename
+        # if uSN.name == '1990n':
+        #     print u
         scales.append(u)
         
     for i in range(len(unique_arr)):
@@ -521,6 +533,7 @@ def mask(SN_Array, boot):
     phases = []
     ages   = []
     vels   = []
+    morphs = []
     dm15s  = []
     dm15_ivars = []
     red_ivars  = []
@@ -535,6 +548,7 @@ def mask(SN_Array, boot):
             phases.append(SN.phase)
             ages.append(SN.phase_array)
             vels.append(SN.vel)
+            morphs.append(SN.morph_array)
             dm15s.append(SN.dm15_array)
 
     fluxes = np.ma.masked_array(fluxes,np.isnan(fluxes))
@@ -542,6 +556,7 @@ def mask(SN_Array, boot):
     phases = np.ma.masked_array(phases,np.isnan(phases))
     ages   = np.ma.masked_array(ages,np.isnan(ages))
     vels   = np.ma.masked_array(vels,np.isnan(vels))
+    morphs  = np.ma.masked_array(morphs,np.isnan(morphs))
     dm15s  = np.ma.masked_array(dm15s,np.isnan(dm15s))
     dm15_ivars = np.ma.masked_array(dm15_ivars,np.isnan(dm15_ivars))
     red_ivars  = np.ma.masked_array(red_ivars,np.isnan(red_ivars))
@@ -550,12 +565,12 @@ def mask(SN_Array, boot):
     flux_mask = []
     ivar_mask = []
     
-    return (fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, 
+    return (fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, morphs,
             dm15s, flux_mask, ivar_mask, dm15_mask, red_mask)
                 
 
 def average(SN_Array, template, medmean, boot, fluxes, ivars, dm15_ivars, 
-            red_ivars, reds, phases, ages, vels, dm15s, flux_mask, ivar_mask, 
+            red_ivars, reds, phases, ages, vels, morphs, dm15s, flux_mask, ivar_mask, 
             dm15_mask, red_mask, find_RMSE=False, name='Composite Spectrum'):
     """Modifies the template supernova to be the inverse variance weighted 
     average of the scaled data.
@@ -585,6 +600,7 @@ def average(SN_Array, template, medmean, boot, fluxes, ivars, dm15_ivars,
             template.vel   = np.ma.average(vels, weights=ivars, axis=0).filled(np.nan)
             template.dm15_array  = np.ma.average(dm15s, weights=ivars, axis=0).filled(np.nan)
             template.red_array = np.ma.average(reds, weights = ivars, axis=0).filled(np.nan)
+            template.morph_array = np.ma.average(morphs, weights = ivars, axis=0).filled(np.nan)
     if medmean == 2:
         template.flux = np.ma.median(fluxes, axis=0).filled(np.nan)
         if not boot:
@@ -592,6 +608,7 @@ def average(SN_Array, template, medmean, boot, fluxes, ivars, dm15_ivars,
             template.vel   = np.ma.median(vels, axis=0).filled(np.nan)
             template.dm15_array  = np.ma.median(dm15s, axis=0).filled(np.nan)
             template.red_array = np.ma.median(reds, axis=0).filled(np.nan)
+            template.morph_array = np.ma.median(morphs, axis=0).filled(np.nan)
     
     #finds and stores the variance data of the template
     no_data   = np.where(np.sum(ivars, axis = 0)==0)
@@ -656,15 +673,15 @@ def bootstrapping (SN_Array, samples, og_template, iters, medmean):
         boot_temp = copy.deepcopy(boot_temp[0])
         
 
-        (fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, dm15s, 
+        (fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, morphs, dm15s, 
          flux_mask, ivar_mask, dm15_mask, red_mask) = mask(boot_arr[p], boot)
         for x in range(iters):
             new_SN_Array, scales = optimize_scales(boot_arr[p], boot_temp, True)
-            (fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, dm15s, 
+            (fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, morphs, dm15s, 
              flux_mask, ivar_mask, dm15_mask, red_mask) = mask(boot_arr[p], boot)
             template = average(boot_arr[p], boot_temp, medmean, boot, fluxes, 
                                 ivars, dm15_ivars, red_ivars, reds, phases, ages, 
-                                vels, dm15s, flux_mask, ivar_mask, dm15_mask, red_mask)
+                                vels, morphs, dm15s, flux_mask, ivar_mask, dm15_mask, red_mask)
         boots.append(copy.deepcopy(template))
 
     print "scaling boots..."
@@ -743,7 +760,8 @@ def is_bad_data(SN, bad_files, bad_ivars):
     #2008ia is not deredshifted
     #2006X, 2002bf have anomalous velocity
     #1991bg variance spectrum seem wrong
-    bad_sns = ['2002bf', '2006x', '1991bg', '2008ia']
+    # bad_sns = ['2002bf', '2006x', '1991bg', '2008ia']
+    bad_sns = ['2008ia', '2006bt']
     for el in bad_files:
         if SN.filename == el:
             return True
@@ -1039,7 +1057,7 @@ def create_composite(SN_Array, boot, template, medmean, gini_balance=False, aggr
     # for SN in SN_Array:
     #   SN.ivar = np.ones(len(SN_Array[0].ivar))
 
-    (fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, dm15s, 
+    (fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, morphs, dm15s, 
      flux_mask, ivar_mask, dm15_mask, red_mask) = mask(SN_Array, False)
 
     #deweight high SNR spectra using gini coefficients
@@ -1097,10 +1115,10 @@ def create_composite(SN_Array, boot, template, medmean, gini_balance=False, aggr
         # for SN in SN_Array:
         #   SN.ivar = np.ones(len(SN_Array[0].ivar))
 
-        (fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, dm15s, 
+        (fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, morphs, dm15s, 
          flux_mask, ivar_mask, dm15_mask, red_mask) = mask(SN_Array, False)
         template = average(SN_Array, template, medmean, False, fluxes, ivars, 
-                            dm15_ivars, red_ivars, reds, phases, ages, vels, 
+                            dm15_ivars, red_ivars, reds, phases, ages, vels, morphs, 
                             dm15s, flux_mask, ivar_mask, dm15_mask, red_mask, find_RMSE=True, name=name)
         # for SN in SN_Array:
         #   plt.plot(SN.wavelength, SN.flux)
@@ -1271,13 +1289,13 @@ def main(Full_query, boot = 'nb', medmean = 1, make_corr=True, multi_epoch=False
     #       plt.plot(SN.wavelength[SN.x1:SN.x2], SN.flux[SN.x1:SN.x2])
     #   plt.plot(template.wavelength[SN.x1:SN.x2], template.flux[SN.x1:SN.x2], 'k', linewidth = 4)
     #   plt.subplot(2,1,2)
-    #   # plt.plot(sub_sns[-1].wavelength, sub_sns[-1].ivar)
+    #   plt.plot(sub_sns[-1].wavelength, sub_sns[-1].ivar)
     #   for SN in sub_sns:
     #       plt.plot(SN.wavelength[SN.x1:SN.x2], SN.ivar[SN.x1:SN.x2])
-    #       r = sa.measure_si_ratio(SN.wavelength[SN.x1:SN.x2], SN.flux[SN.x1:SN.x2])
-    #       print 'SN Si Ratio: ', r
-    #   r = sa.measure_si_ratio(template.wavelength[template.x1:template.x2], template.flux[template.x1:template.x2], vexp = .001)
-    #   print 'Comp Si Ratio: ', r
+    #   #     r = sa.measure_si_ratio(SN.wavelength[SN.x1:SN.x2], SN.flux[SN.x1:SN.x2])
+    #   #     print 'SN Si Ratio: ', r
+    #   # r = sa.measure_si_ratio(template.wavelength[template.x1:template.x2], template.flux[template.x1:template.x2], vexp = .001)
+    #   # print 'Comp Si Ratio: ', r
     #   plt.show()
 
     template, boots = create_composite(SN_Array, boot, template, 

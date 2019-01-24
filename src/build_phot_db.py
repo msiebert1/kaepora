@@ -195,7 +195,8 @@ def build_av_dict(file):
         for line in lines:
             l = line.split()    
             if len(l) == 30 and l[0] == 'SN:':
-                av_dict['sn' + l[1].lower()] = float(l[18])
+            	if 'sn' + l[1].lower() not in av_dict.keys():
+                	av_dict['sn' + l[1].lower()] = float(l[18])
 
      return av_dict
 

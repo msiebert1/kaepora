@@ -1,0 +1,36 @@
+Table 2 
+Properties of our M_Ch Delayed-detonation Models and Two Double-detonation Models (HeD6 and HeD10)
+
+
+Model	M_MS	Z	M_WD	rho_c	rho_tr	M_Ni	M_V	Deltam_15,s(V)	M_B	Deltam_15,s(B)	(B - V)_max	t_s	s_BV	log(L_bol)	References	
+	( M_sun)	( Z_sun)	( M_sun)	(10^9 g cm^-3)	(10^6 g cm^-3)	( mag)	( mag)	( mag day^-1)	( mag)	( mag day^-1)	( mag)	( day)		( erg s^-1)		
+08	5.0	1.0	M_Ch	2.0	8.0	0.095	-17.22	1.41	-16.76	1.99	0.487	14.38	0.33-0.60	42.21	(1)	
+08r1	5.0	1.0	M_Ch	1.1	8.0	0.154	-17.45	1.40	-17.01	1.95	0.45	14.98	0.31-0.55	42.54	 ... 	
+08r2	5.0	1.0	M_Ch	0.5	8.0	0.188	-17.63	1.39	-17.24	1.93	0.41	15.26	0.29-0.53	42.70	 ... 	
+10	5.0	1.0	M_Ch	2.0	10.0	0.107	-17.35	1.38	-16.94	1.89	0.427	14.47	0.40-0.60	42.49	(1)	
+12	5.0	1.0	M_Ch	2.0	12.0	0.137	-17.63	1.28	-17.26	1.85	0.397	14.73	0.44-0.63	42.57	(1)	
+14	5.0	1.0	M_Ch	2.0	14.0	0.154	-17.82	1.24	-17.50	1.81	0.237	14.86	0.47-0.63	42.69	(1)	
+16	5.0	1.0	M_Ch	2.0	16.0	0.268	-18.37	1.18	-18.22	1.67	0.157	15.37	0.50-0.67	42.84	(1)	
+16r1	5.0	1.0	M_Ch	1.1	16.0	0.324	-18.46	1.16	-18.29	1.65	0.152	15.97	0.48-0.65	42.90	 ... 	
+16r2	5.0	1.0	M_Ch	0.5	16.0	0.353	-18.57	1.15	-18.43	1.61	0.15	16.37	0.46-0.64	42.91	 ... 	
+18	5.0	1.0	M_Ch	2.0	18.0	0.365	-18.72	1.08	-18.64	1.57	0.107	16.62	0.57-0.69	42.98	(1)	
+18mix	5.0	1.0	M_Ch	2.0	18.0	0.365	-18.71	0.8	-18.58	1.37	-0.012	16.62	0.75-0.92	42.96	Mixed^a	
+20	5.0	1.0	M_Ch	2.0	20.0	0.454	-18.96	0.89	-18.94	1.47	0.037	17.35	0.64-0.70	43.06	(1)	
+23	5.0	1.0	M_Ch	2.0	23.0	0.561	-19.21	0.73	-19.24	1.23	-0.012	18.24	0.78-0.86	43.17	(1)	
+23m2	1.5	1.0	M_Ch	2.0	23.0	0.589	-19.25	0.76	-19.32	1.29	0.037	18.12	0.78-0.86	43.15	(2)	
+23m3	3.0	1.0	M_Ch	2.0	23.0	0.567	-19.20	0.77	-19.29	1.31	-0.062	18.19	0.79-0.86	43.15	(2)	
+23m4	7.0	1.0	M_Ch	2.0	23.0	0.516	-19.11	0.74	-19.18	1.25	-0.0425	19.74	0.84-0.90	43.13	(2)	
+23z2	5.0	0.01	M_Ch	2.0	23.0	0.549	-19.15	0.73	-19.28	1.23	-0.082	18.52	0.80-0.87	43.17	(2)	
+23z3	5.0	0.1	M_Ch	2.0	23.0	0.541	-19.14	0.73	-19.25	1.25	-0.0625	18.92	0.81-0.87	43.17	(2)	
+23d1	5.0	1.0	M_Ch	0.5	23.0	0.65	-19.24	0.72	-19.29	1.23	-0.014	18.2	0.78-0.90	43.20	(3, 4)^b	
+23d2	5.0	1.0	M_Ch	1.1	23.0	0.61	-19.23	0.72	-19.28	1.23	-0.013	18.2	0.78-0.88	43.19	(3, 4)^b	
+23d4	5.0	1.0	M_Ch	4.0	23.0	0.55	-19.19	0.73	-19.21	1.24	-0.010	18.2	0.78-0.84	43.16	(3, 4)^b	
+23d5	5.0	1.0	M_Ch	6.0	23.0	0.54	-19.17	0.73	-19.19	1.24	-0.009	18.2	0.78-0.82	43.16	(3, 4)^b	
+25	5.0	1.0	M_Ch	2.0	25.0	0.603	-19.29	0.68	-19.32	1.24	-0.0125	18.58	0.92-1.02	43.22	(1)	
+27	5.0	1.0	M_Ch	2.0	27.0	0.645	-19.35	0.64	-19.38	0.95	-0.003	18.80	0.99-1.08	43.25	(1)	
+HeD6	n/a	1.0	0.6+0.22	0.013	n/a	0.252	-18.46	1.14	-18.36	1.45	0.09	14.2	1.0-1.6	42.89	(5)	
+HeD10	n/a	1.0	0.8+0.16	0.029	n/a	0.526	-19.49	1.03	-19.42	1.35	0.05	15.0	0.8-1.1	43.35	(5)	
+Notes. We give the main-sequence mass M_MS, metallicity Z, central density rho_c, transition density rho_tr, and the resulting total ^56Ni production M_Ni. For the HeD models, we assume a C/O = 1 core plus a He shell with solar metallicities. The optical properties, decline rate Deltam_15,s, peak magnitudes M_B,V, color and rise time at V-band maximum (B - V)_max, and t_s are given in the natural system of the Swope and du Pont telescopes. In addition, we give the color-stretch parameter s_BV, taking into account the model uncertainties in t_max and the time of maximum in (B - V). For the uncertainties of the observables, see the text and the corresponding references given in the last column. Note that the HeD models are based on low-resolution calculations with 274 depth points. The properties of the reference model are given in bold.
+^a Same as Model 18 but the abundances have been allowed to mix up to an expansion velocity of 8000 km s^-1.
+^b To produce very similar outer layers, DDT has been triggered at the same pre-expansion corresponding to small variations in rho_tr < 3% within the 23d series.
+References. (1) Hoeflich et al. (2002). (2) Dominguez et al. (2001). (3) Hoflich et al. (2006). (4) Diamond et al. (2015). (5) Hoeflich & Khokhlov (1996).
