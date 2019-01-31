@@ -7,10 +7,10 @@ import composite
 import matplotlib.pyplot as plt
 
 def fix_2011fe_phases():
-	con = sq3.connect('../data/SNIaDB_Spec_v21_phot_v10.db')
+	con = sq3.connect('../data/kaepora_v1.db')
 	cur = con.cursor()
-	sql_input = "SELECT * from Supernovae inner join Photometry ON Supernovae.SN = Photometry.SN where Supernovae.SN = '2011fe' and source = 'other'"
-	print 'querying'
+	sql_input = "SELECT * from Spectra inner join Events ON Spectra.SN = Events.SN where Spectra.SN = '2011fe' and source = 'other'"
+	print 'Updating metadata step 6/7'
 	cur.execute(sql_input)
 	for row in cur.fetchall():
 		filename  = row[0]
@@ -19,16 +19,16 @@ def fix_2011fe_phases():
 			for line in lines:
 				if len(line.split()) > 1 and line.split()[1] == 'TMAX':
 					phase = float(line.split()[3])
-					print filename, float(line.split()[3])
-					cur.execute("UPDATE Supernovae SET phase = ? where filename = ?", (phase, filename))
+					# print filename, float(line.split()[3])
+					cur.execute("UPDATE Spectra SET phase = ? where filename = ?", (phase, filename))
 					break
 	con.commit()
 
 def update_bsnip_refs():
-	con = sq3.connect('../data/SNIaDB_Spec_v21_phot_v10.db')
+	con = sq3.connect('../data/kaepora_v1.db')
 	cur = con.cursor()
-	sql_input = "SELECT * from Supernovae inner join Photometry ON Supernovae.SN = Photometry.SN where source = 'bsnip'"
-	print 'querying'
+	sql_input = "SELECT * from Spectra inner join Events ON Spectra.SN = Events.SN where source = 'bsnip'"
+	print 'Updating metadata step 7/7'
 	cur.execute(sql_input)
 	file = '../data/info_files/bsnip_references.txt'
 	with open(file) as f:
@@ -38,15 +38,15 @@ def update_bsnip_refs():
 			ref       = row[18]
 			for line in lines:
 				if filename in line:
-					print filename, ref, line.split()[-1]
+					# print filename, ref, line.split()[-1]
 					new_ref = line.split()[-1]
-					cur.execute("UPDATE Supernovae SET Ref = ? where filename = ?", (new_ref, filename))
+					cur.execute("UPDATE Spectra SET Ref = ? where filename = ?", (new_ref, filename))
 	con.commit()
 
 def delete_swift_data():
-	con = sq3.connect('../data/SNIaDB_Spec_v21_phot_v10.db')
+	con = sq3.connect('../data/kaepora_v1.db')
 	cur = con.cursor()
-	cur.execute("DELETE FROM Supernovae where source = 'swift_uv'")
+	cur.execute("DELETE FROM Spectra where source = 'swift_uv'")
 	con.commit()
 
 def build_peak_dict(file):
@@ -93,35 +93,43 @@ def read_cfa_info(data_file, dates_file):
 
 def update_phases_from_mlcs():
 	#updates phases using time of max from David's mlcs fits
-	con = sq3.connect('../data/SNIaDB_Spec_v21_phot_v10.db')
+	con = sq3.connect('../data/kaepora_v1.db')
 	cur = con.cursor()
-	sql_input = "SELECT * from Supernovae inner join Photometry ON Supernovae.SN = Photometry.SN where Supernovae.SN"
-	print 'querying'
+	sql_input = "SELECT * from Spectra inner join Events ON Spectra.SN = Events.SN where Spectra.SN"
+	print 'Updating metadata step 1/7'
 	peak_mjd_dict = build_peak_dict('..\data\info_files\lowz_rv25_all.fitres')
 	sndict, date_dict = read_cfa_info('../data/spectra/cfa/cfasnIa_param.dat',
                                   '../data/spectra/cfa/cfasnIa_mjdspec.dat')
 	cur.execute(sql_input)
 	for row in cur.fetchall():
+		# filename  = row[0]
+		# name      = row[1]
+		# source    = row[2]
+		# redshift  = row[3]
+		# phase     = row[4]
+		# mjd         = row[17]
+
 		filename  = row[0]
 		name      = row[1]
 		source    = row[2]
-		redshift  = row[3]
-		phase     = row[4]
-		mjd         = row[17]
+		redshift  = row[10:][74]
+		phase     = row[3]
+		mjd         = row[8]
+
 		# if mjd is None and source == 'cfa':
 		# 	print name, source, float(date_dict[filename])
 		# 	mjd = float(date_dict[filename])
-		# 	cur.execute("UPDATE Supernovae SET mjd = ? where filename = ?", (mjd, filename))
+		# 	cur.execute("UPDATE Spectra SET mjd = ? where filename = ?", (mjd, filename))
 		if name in peak_mjd_dict and mjd is not None and redshift is not None:
-			print name, filename, source, mjd, peak_mjd_dict[name], phase
 			phase = (mjd - peak_mjd_dict[name])/(1.+redshift)
-			cur.execute("UPDATE Supernovae SET phase = ? where filename = ?", (phase, filename))
+			# print name, filename, source, mjd, peak_mjd_dict[name], phase
+			cur.execute("UPDATE Spectra SET phase = ? where filename = ?", (phase, filename))
 	con.commit()
 def fix_snr_measurements():
-	con = sq3.connect('../data/SNIaDB_Spec_v21_phot_v10.db')
+	con = sq3.connect('../data/kaepora_v1.db')
 	cur = con.cursor()
-	sql_input = "SELECT * from Supernovae inner join Photometry ON Supernovae.SN = Photometry.SN"
-	print 'querying'
+	sql_input = "SELECT * from Spectra inner join Events ON Spectra.SN = Events.SN"
+	print 'Updating metadata step 2/7'
 	bad_ivars = []
 	SN_Array = composite.grab(sql_input, multi_epoch = True, make_corr = False, selection = 'max_coverage', grab_all=True)
 	for SN in SN_Array:
@@ -133,16 +141,15 @@ def fix_snr_measurements():
 			x2 = non_nan_data[-1]
 			error = 1./np.sqrt(SN.ivar[x1:x2])
 			snr = np.nanmedian(SN.flux[x1:x2] / error)
-			print SN.filename, SN.SNR, snr
+			# print SN.filename, SN.SNR, snr
 			if not np.isnan(snr):
-				cur.execute("UPDATE Supernovae SET snr = ? where filename = ?", (snr, SN.filename))
+				cur.execute("UPDATE Spectra SET snr = ? where filename = ?", (snr, SN.filename))
 	con.commit()
-	print 'done'
 
 def repair_bad_variance_spectra():
-	con = sq3.connect('../data/SNIaDB_Spec_v21_phot_v10.db')
+	con = sq3.connect('../data/kaepora_v1.db')
 	cur = con.cursor()
-	sql_input = "SELECT * from Supernovae inner join Photometry ON Supernovae.SN = Photometry.SN"
+	sql_input = "SELECT * from Spectra inner join Events ON Spectra.SN = Events.SN"
 	print 'querying'
 	bad_ivars = []
 	SN_Array = composite.grab(sql_input, multi_epoch = True, make_corr = False, selection = 'max_coverage', grab_all=True)
@@ -164,8 +171,8 @@ def repair_bad_variance_spectra():
 		newdata, snr = prep.compprep(spectrum, SN.name, SN.redshift, SN.source, use_old_error=False, testing = False)
 		try:
 			interped = msg.packb(newdata)
-			cur.execute("UPDATE Supernovae SET snr = ? where filename = ?", (snr.value, SN.filename))
-			cur.execute("UPDATE Supernovae SET Interpolated_Spectra = ? where filename = ?", (buffer(interped), SN.filename))
+			cur.execute("UPDATE Spectra SET snr = ? where filename = ?", (snr.value, SN.filename))
+			cur.execute("UPDATE Spectra SET Interpolated_Spectra = ? where filename = ?", (buffer(interped), SN.filename))
 			print "Added: ", SN.filename
 		except Exception, e:
 			print "Interp failed: ", SN.filename
@@ -184,34 +191,37 @@ def repair_bad_variance_spectra():
 
 def add_more_host_data():
 	datafile = '../data/info_files/more_host_info.txt'
-	con = sq3.connect('../data/SNIaDB_Spec_v21_phot_v10.db')
+	con = sq3.connect('../data/kaepora_v1.db')
 	cur = con.cursor()
+	print 'Updating metadata step 3/7'
 	with open(datafile) as data:
 		lines = data.readlines()
 		for line in lines:
 			sndata = line.split()
-			print sndata[0].lower(), sndata[3]
-			cur.execute("UPDATE Photometry SET NED_host = ? where SN = ?", (sndata[3], sndata[0].lower()))
+			# print sndata[0].lower(), sndata[3]
+			cur.execute("UPDATE Events SET NED_host = ? where SN = ?", (sndata[3], sndata[0].lower()))
 	con.commit()
 
 def update_references():
 	datafile = '../data/info_files/more_references.txt'
-	con = sq3.connect('../data/SNIaDB_Spec_v21_phot_v10.db')
+	con = sq3.connect('../data/kaepora_v1.db')
 	cur = con.cursor()
+	print 'Updating metadata step 4/7'
 	with open(datafile) as data:
 		lines = data.readlines()
 		for line in lines:
 			filename, ref = line.split()
 			if ref == "Unknown":
 				ref = None
-			print filename, ref
-			cur.execute("UPDATE Supernovae SET Ref = ? where filename = ?", (ref, filename))
+			# print filename, ref
+			cur.execute("UPDATE Spectra SET Ref = ? where filename = ?", (ref, filename))
 	con.commit()
 
 def add_swift_metadata():
-	data_file = '../../../swift_uvspec/swift_uv_log.txt'
-	con = sq3.connect('../data/SNIaDB_Spec_v21_phot_v10.db')
+	data_file = '../data/spectra/swift_uvspec/swift_uv_log.txt'
+	con = sq3.connect('../data/kaepora_v1.db')
 	cur = con.cursor()
+	print 'Updating metadata step 5/7'
 	with open(data_file) as data:
 		for line in data.readlines()[1:]:
 			redshift = float(line.split()[1])
@@ -227,16 +237,19 @@ def add_swift_metadata():
 				Dm15 = None
 			else:
 				Dm15 = float(Dm15)
-			print sn_name, phase, Dm15
-			cur.execute("UPDATE Photometry SET dm15_source = ? where SN = ?", (Dm15, sn_name))
+			# print sn_name, phase, Dm15
+			cur.execute("UPDATE Events SET dm15_source = ? where SN = ?", (Dm15, sn_name))
+			cur.execute("UPDATE Events SET Redshift = ? where SN = ?", (redshift, sn_name))
 	con.commit()
 
-if __name__ == "__main__":
-	# fix_2011fe_phases()
-	# update_bsnip_refs()
-	# repair_bad_variance_spectra()
+def main():
 	update_phases_from_mlcs()
 	fix_snr_measurements()
 	add_more_host_data()
 	update_references()
 	add_swift_metadata()
+	fix_2011fe_phases()
+	update_bsnip_refs()
+
+if __name__ == "__main__":
+	main()

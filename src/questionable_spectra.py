@@ -63,7 +63,8 @@ def bad_files():
 							'sn2005cf-20050607-hst.flm', 'sn2005m-20050128-hst.flm',					#ivar very wrong, ivar very wrong
 							'sn2005m-20050131-hst.flm', 'sn2001eh-20011004.523-hst.flm',				#ivar very wrong, doesn't scale_properly
 							'sn1995e-19950422-ui.flm', 'SN07af_070304_b01_NTT_EM.dat',					#ivar very low at blue end, spectrum is whack
-							'2000E_20000127_3213_7513_00.dat', '2000E_20000210_3217_7484_00.dat'] 		#reddening wrong, reddening wrong		
+							'2000E_20000127_3213_7513_00.dat', '2000E_20000210_3217_7484_00.dat',		#reddening wrong, reddening wrong
+							'2002bo_20020615_9394_16509_00.dat', ] 										#IR spectrum
 
 		print len(bad_files), 'questionable files currently ignored'
 		return bad_files

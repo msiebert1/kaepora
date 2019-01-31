@@ -108,7 +108,7 @@ import datafidelity as df  # Get inverse variance from the datafidelity outcome
 def Interpo_flux_conserving(wave, flux, ivar, dw=2, testing=False):
     var = 1./ivar
     pixel_scale = np.median(np.diff(wave))
-    print pixel_scale
+    # print pixel_scale
 
     wave_min = 999
     wave_max = 12001
@@ -188,12 +188,12 @@ def Interpo_flux_conserving(wave, flux, ivar, dw=2, testing=False):
         interp_wave = output[0,:]
         interp_flux = output[1,:]
         interp_ivar = output[2,:]
-        print scale
+        # print scale
         plt.plot(wave,var)
         plt.plot(interp_wave,var_final)
         plt.plot(interp_wave,1./interp_ivar)
-        plt.xlim([4000,4200])
-        plt.ylim([0.1e-29,.5e-29])
+        plt.xlim([7000,7100])
+        plt.ylim([-.05e-32,2.e-32])
         plt.show()
 
     return output, scale, var_final

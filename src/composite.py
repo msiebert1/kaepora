@@ -64,7 +64,9 @@ def store_phot_data(SN, row):
         indicates that the user wants event specific metadata. 
     """
 
-    phot_row = row[19:]
+    phot_row = row[10:]
+    # phot_row = row[19:]
+
     SN.ra = phot_row[1]
     SN.dec = phot_row[2]
     SN.zCMB_salt, SN.e_zCMB_salt, SN.Bmag_salt, SN.e_Bmag_salt, SN.s_salt, SN.e_s_salt, \
@@ -80,7 +82,9 @@ def store_phot_data(SN, row):
     SN.zCMB_lc, SN.zhel_lc, SN.mb_lc, SN.e_mb_lc, SN.c_lc, SN.e_c_lc, SN.x1_lc, \
     SN.e_x1_lc, SN.logMst_lc, SN.e_logMst_lc, SN.tmax_lc, SN.e_tmax_lc, \
     SN.cov_mb_s_lc, SN.cov_mb_c_lc, SN.cov_s_c_lc, SN.bias_lc = phot_row[50:66]
+
     SN.av_25 = phot_row[66]
+
     SN.dm15_source = phot_row[67]
     SN.dm15_from_fits = phot_row[68]
     SN.e_dm15 = phot_row[69]
@@ -88,6 +92,16 @@ def store_phot_data(SN, row):
     SN.ned_host = phot_row[71]
     SN.v_at_max = phot_row[72]
     SN.e_v = phot_row[73]
+
+    SN.redshift = phot_row[74]
+    SN.m_b_cfa = phot_row[75]
+    SN.m_b_cfa_err = phot_row[76]
+    SN.b_minus_v_cfa = phot_row[77]
+    SN.b_minus_v_cfa_err = phot_row[78]
+    SN.carbon = phot_row[79]
+    SN.na = phot_row[80]
+    SN.hubble_res = phot_row[81]
+
     SN.light_curves = msg.unpackb(phot_row[-2])
     SN.csp_light_curves = msg.unpackb(phot_row[-1])
 
@@ -130,7 +144,8 @@ def grab(sql_input, multi_epoch = False, make_corr = True,
     print "Collecting data..."
     #Connect to database
     #Make sure your database file is in this location
-    con = sq3.connect('../data/SNIaDB_Spec_v21_phot_v10.db')
+    # con = sq3.connect('../data/SNIaDB_Spec_v21_phot_v10.db')
+    con = sq3.connect('../data/kaepora_v1.db')
     cur = con.cursor()
 
     SN_Array = []
@@ -155,26 +170,39 @@ def grab(sql_input, multi_epoch = False, make_corr = True,
         """
 
         SN           = supernova()
+        # SN.filename  = row[0]
+        # SN.name      = row[1]
+        # SN.source    = row[2]
+        # SN.redshift  = row[3]
+        # SN.phase     = row[4]
+        # SN.minwave   = row[5]
+        # SN.maxwave   = row[6]
+        # SN.dm15      = row[7]
+        # SN.m_b       = row[8]
+        # SN.B_minus_V = row[9]
+        # SN.velocity  = row[10]
+        # SN.morph     = row[11]
+        # SN.carbon    = row[12]
+        # SN.GasRich   = row[13]
+        # SN.SNR       = row[14]
+        # SN.resid     = row[15]
+        # interp       = msg.unpackb(row[16])
+        # SN.interp    = interp
+        # SN.mjd         = row[17]
+        # SN.ref       = row[18]
+
         SN.filename  = row[0]
         SN.name      = row[1]
         SN.source    = row[2]
-        SN.redshift  = row[3]
-        SN.phase     = row[4]
-        SN.minwave   = row[5]
-        SN.maxwave   = row[6]
-        SN.dm15      = row[7]
-        SN.m_b       = row[8]
-        SN.B_minus_V = row[9]
-        SN.velocity  = row[10]
-        SN.morph     = row[11]
-        SN.carbon    = row[12]
-        SN.GasRich   = row[13]
-        SN.SNR       = row[14]
-        SN.resid     = row[15]
-        interp       = msg.unpackb(row[16])
+        SN.phase     = row[3]
+        SN.minwave   = row[4]
+        SN.maxwave   = row[5]        
+        SN.SNR       = row[6]
+        interp       = msg.unpackb(row[7])
         SN.interp    = interp
-        SN.mjd         = row[17]
-        SN.ref       = row[18]
+        SN.mjd         = row[8]
+        SN.ref       = row[9]
+
 
         #retrieve event specific metadata if desired
         if get_phot:
@@ -193,8 +221,13 @@ def grab(sql_input, multi_epoch = False, make_corr = True,
             continue
         SN_Array.append(SN)
 
+    print len(SN_Array), 'Total Spectra found'
+    # for SN in SN_Array:
+    #     print SN.name, SN.filename, SN.phase
+    # raise TypeError
     if grab_all:
         return SN_Array
+
 
     if make_corr:
         """remove flagged files from questionable_spectra.py, remove spectra
@@ -202,7 +235,6 @@ def grab(sql_input, multi_epoch = False, make_corr = True,
         remove spectra marked as 'peculiar' (currently only Iax)
         """
         bad_files = qspec.bad_files()
-
         bad_ivars = []
         for SN in SN_Array:
             # print SN.filename 
@@ -227,7 +259,6 @@ def grab(sql_input, multi_epoch = False, make_corr = True,
         SN_Array = remove_peculiars(SN_Array,'../data/info_files/pec_Ias.txt')
         print (len_before - len(SN_Array), 'Peculiar Ias removed', 
                len(SN_Array), 'spectra left')
-
         SN_Array = check_host_corrections(SN_Array)
 
     if not multi_epoch:
@@ -332,6 +363,7 @@ def grab(sql_input, multi_epoch = False, make_corr = True,
         SN_Array = new_SN_Array
 
     print len(SN_Array), "valid spectra found"
+    
 
     for SN in SN_Array:
         #assign more attributes
@@ -368,8 +400,8 @@ def grab(sql_input, multi_epoch = False, make_corr = True,
             SN.red_array[non_nan_data] = SN.redshift
         else:
             SN.red_array[non_nan_data] = np.nan
-        if SN.velocity != None:
-            SN.vel[non_nan_data] = SN.velocity
+        if SN.v_at_max != None:
+            SN.vel[non_nan_data] = SN.v_at_max
         else:
             SN.vel[non_nan_data] = np.nan
         if SN.ned_host != None:
@@ -440,8 +472,12 @@ def optimize_scales(SN_Array, template, initial, scale_range=False, wave1=3000, 
 
     for uSN in unique_arr:
         #keep from weighting low flux parts of iue spectra by too much
-        if uSN.filename != None and '-iue' in uSN.filename:
-            uSN.x1 = (uSN.x1+uSN.x2)/2.
+        # if uSN.filename != None and '-iue' in uSN.filename:
+        #     uSN.x1 = (uSN.x1+uSN.x2)/2.
+        # if ((uSN.wavelength[uSN.x1] >= template.wavelength[template.x2]) or 
+        #         (uSN.wavelength[uSN.x2] <= template.wavelength[template.x1])):
+        #     print uSN.name, template.filename, uSN.wavelength[uSN.x2], uSN.flux[uSN.x1]
+
         guess = np.average(template.flux[template.x1:template.x2])/np.average(uSN.flux[uSN.x1:uSN.x2])
         u = opt.minimize(sq_residuals, guess, args = (uSN, template, initial, scale_range, wave1, wave2), 
                          method = 'Nelder-Mead').x
@@ -460,6 +496,7 @@ def optimize_scales(SN_Array, template, initial, scale_range=False, wave1=3000, 
             unique_arr[i].low_conf = scales[i]*unique_arr[i].low_conf
             unique_arr[i].up_conf = scales[i]*unique_arr[i].up_conf
 
+    # print scales
     return SN_Array, scales
     
     
@@ -478,7 +515,6 @@ def sq_residuals(s,SN,comp, initial, scale_range, wave1, wave2):
         The sum of the square resiudal or weighted square residuals in the 
         region where the two spectra overlap.
     """
-    s = np.absolute(s)
     #This is dumb but its works
     if SN.x1 <= comp.x1 and SN.x2 >= comp.x2:
         pos1 = comp.x1
@@ -506,6 +542,7 @@ def sq_residuals(s,SN,comp, initial, scale_range, wave1, wave2):
     res = temp_flux[pos1:pos2] - comp.flux[pos1:pos2]
     sq_res = res*res
     if initial:
+        # print np.sum(sq_res)
         return np.sum(sq_res)
     else:
         temp_ivar = SN.ivar/(s*s)
@@ -667,9 +704,11 @@ def bootstrapping (SN_Array, samples, og_template, iters, medmean):
         # print p
         lengths = []
         for SN in boot_arr[p]:  
-            lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
-        boot_temp = [SN for SN in boot_arr[p] 
-                     if len(SN.flux[np.where(SN.flux!=0)]) == max(lengths)]
+            lengths.append(SN.wavelength[SN.x2] - SN.wavelength[SN.x1])
+
+        boot_temp = [SN for SN in SN_Array if SN.wavelength[SN.x2] - SN.wavelength[SN.x1] == max(lengths)]
+        # boot_temp = [SN for SN in boot_arr[p] 
+        #              if len(SN.flux[np.where(SN.flux!=0)]) == max(lengths)]
         boot_temp = copy.deepcopy(boot_temp[0])
         
 
@@ -689,10 +728,11 @@ def bootstrapping (SN_Array, samples, og_template, iters, medmean):
 
     #examine bootstrap samples
     # print "plotting..."
+    # print scales
     # for SN in boots:
     #     plt.plot(SN.wavelength, SN.flux, 'g')
     # plt.plot(og_template.wavelength,og_template.flux, 'k', linewidth = 4)
-    plt.show()
+    # plt.show()
     
     print "computing confidence intervals..."
     resid = []
@@ -702,6 +742,13 @@ def bootstrapping (SN_Array, samples, og_template, iters, medmean):
 
     for SN in boots:
         resid.append(SN.flux - og_template.flux)
+        nan_bool_flux = np.isnan(SN.flux)
+        non_nan_data = np.where(nan_bool_flux == False)
+        non_nan_data = np.array(non_nan_data[0])
+        if len(non_nan_data) > 0:
+            SN.x1 = non_nan_data[0]
+            SN.x2 = non_nan_data[-1]
+            # SN.x2 += 1
         
     resid_trans = np.transpose(resid)
     resid_sort = np.sort(resid_trans)
@@ -843,7 +890,8 @@ def apply_host_corrections(SN_Array, lengths, r_v = 2.5, verbose=True, low_av_te
 
         if SN.av_25 != None and SN.av_25 < cutoff:
             if SN.av_25 > low_av_test or low_av_test == None:
-                pre_scale = (1.e-15/np.average(SN.flux[SN.x1:SN.x2]))
+                # pre_scale = (1.e-15/np.average(SN.flux[SN.x1:SN.x2]))
+                pre_scale = (1./np.amax(SN.flux[SN.x1:SN.x2]))
                 SN.flux = pre_scale*SN.flux
                 SN.ivar = SN.ivar/(pre_scale*pre_scale)
                 old_wave = SN.wavelength*u.Angstrom
@@ -855,15 +903,16 @@ def apply_host_corrections(SN_Array, lengths, r_v = 2.5, verbose=True, low_av_te
                 SN.flux = new_flux.value
                 SN.ivar = new_ivar.value
                 corrected_SNs.append(SN)
-                lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
+                lengths.append(SN.wavelength[SN.x2] - SN.wavelength[SN.x1])
             else:
                 print SN.filename, 'has low reddening!'
                 corrected_SNs.append(SN)
-                lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
+                lengths.append(SN.wavelength[SN.x2] - SN.wavelength[SN.x1])
 
         elif SN.av_mlcs31 != None and SN.av_mlcs31 < cutoff:
             if SN.av_mlcs31 > low_av_test or low_av_test == None:
-                pre_scale = (1.e-15/np.average(SN.flux[SN.x1:SN.x2]))
+                # pre_scale = (1.e-15/np.average(SN.flux[SN.x1:SN.x2]))
+                pre_scale = (1./np.amax(SN.flux[SN.x1:SN.x2]))
                 SN.flux = pre_scale*SN.flux
                 SN.ivar = SN.ivar/(pre_scale*pre_scale)
                 old_wave = SN.wavelength*u.Angstrom
@@ -875,15 +924,16 @@ def apply_host_corrections(SN_Array, lengths, r_v = 2.5, verbose=True, low_av_te
                 SN.flux = new_flux.value
                 SN.ivar = new_ivar.value
                 corrected_SNs.append(SN)
-                lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
+                lengths.append(SN.wavelength[SN.x2] - SN.wavelength[SN.x1])
             else:
                 print SN.filename, 'has low reddening!'
                 corrected_SNs.append(SN)
-                lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
+                lengths.append(SN.wavelength[SN.x2] - SN.wavelength[SN.x1])
 
         elif SN.av_mlcs17 != None and SN.av_mlcs17 < cutoff:
             if SN.av_mlcs17 > low_av_test or low_av_test == None:
-                pre_scale = (1.e-15/np.average(SN.flux[SN.x1:SN.x2]))
+                # pre_scale = (1.e-15/np.average(SN.flux[SN.x1:SN.x2]))
+                pre_scale = (1./np.amax(SN.flux[SN.x1:SN.x2]))
                 SN.flux = pre_scale*SN.flux
                 SN.ivar = SN.ivar/(pre_scale*pre_scale)
                 old_wave = SN.wavelength*u.Angstrom
@@ -895,14 +945,14 @@ def apply_host_corrections(SN_Array, lengths, r_v = 2.5, verbose=True, low_av_te
                 SN.flux = new_flux.value
                 SN.ivar = new_ivar.value
                 corrected_SNs.append(SN)
-                lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
+                lengths.append(SN.wavelength[SN.x2] - SN.wavelength[SN.x1])
             else:
                 print SN.filename, 'has low reddening!'
                 corrected_SNs.append(SN)
-                lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
+                lengths.append(SN.wavelength[SN.x2] - SN.wavelength[SN.x1])
 
     SN_Array = corrected_SNs
-    print len(SN_Array), 'SNs with host corrections'
+    print len(SN_Array), 'SNe with host corrections'
     return SN_Array
 
 
@@ -953,6 +1003,23 @@ def check_for_no_olap_w_template(SN_Array, template):
             SNs_no_overlap.append(SN.filename)
     return SNs_no_overlap
 
+def prelim_norm(SN_Array):
+    for SN in SN_Array:
+        norm = 1./np.nanmax(SN.flux)
+        SN.flux = norm*SN.flux
+        SN.ivar /= (norm)**2.
+    return SN_Array
+
+def fix_negative_ivars(SN_Array):
+    for SN in SN_Array:
+        bad_vals = np.where(SN.ivar < 0.)[0]
+        if len(bad_vals)>0:
+            for r in bad_vals:
+                SN.ivar[r] = np.median(SN.ivar[r-20:r+20])
+    #         print SN.name, SN.filename
+    #         plt.plot(SN.wavelength, SN.ivar)
+    # plt.show()
+    return SN_Array
 
 def combine_SN_spectra(SN_Array):
     event_dict = {}
@@ -979,21 +1046,20 @@ def combine_SN_spectra(SN_Array):
 
             if len(spectra_to_combine) > 0:
                 for SN in spectra_to_combine:
-                    lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
-                template = [SN for SN in spectra_to_combine 
-                             if len(SN.flux[np.where(SN.flux!=0)]) == max(lengths)]
+                    lengths.append(SN.wavelength[SN.x2] - SN.wavelength[SN.x1])
+                template = [SN for SN in SN_Array if SN.wavelength[SN.x2] - SN.wavelength[SN.x1] == max(lengths)]
                 template = copy.deepcopy(template[0])
                 combined_SN, boots = create_composite(spectra_to_combine, False, template, 1, name= e + '_combined')
-                # fig, ax = plt.subplots(2,1)
-                # fig.set_size_inches(10, 8, forward = True)
-                # for sn in spectra_to_combine:
-                #     print sn.name, sn.filename, sn.phase, sn.SNR
-                #     ax[0].plot(sn.wavelength, sn.flux, alpha=.6)
-                #     ax[1].plot(sn.wavelength, sn.ivar, alpha=.6)
-                # print combined_SN.name, combined_SN.phase, combined_SN.SNR
-                # ax[0].plot(combined_SN.wavelength, combined_SN.flux, 'k-', linewidth=5)
-                # ax[1].plot(combined_SN.wavelength, combined_SN.ivar, 'k-', linewidth=5)
-                # plt.show()
+                fig, ax = plt.subplots(2,1)
+                fig.set_size_inches(10, 8, forward = True)
+                for sn in spectra_to_combine:
+                    print sn.name, sn.filename, sn.phase, sn.SNR
+                    ax[0].plot(sn.wavelength, sn.flux, alpha=.6)
+                    ax[1].plot(sn.wavelength, sn.ivar, alpha=.6)
+                print combined_SN.name, combined_SN.phase, combined_SN.SNR
+                ax[0].plot(combined_SN.wavelength, combined_SN.flux, 'k-', linewidth=5)
+                ax[1].plot(combined_SN.wavelength, combined_SN.ivar, 'k-', linewidth=5)
+                plt.show()
             else:
                 combined_SN = None
             if combined_SN != None:
@@ -1008,7 +1074,6 @@ def combine_SN_spectra(SN_Array):
         if SN.name not in combine_SN_names:
             new_SN_Array.append(SN)
         if SN.filename in spectra_to_add:
-            print 'here'
             new_SN_Array.append(SN)
     print len(new_SN_Array), 'total SNe'
     return new_SN_Array
@@ -1052,7 +1117,6 @@ def create_composite(SN_Array, boot, template, medmean, gini_balance=False, aggr
     # print "Creating composite..."
     # no_olap_files = check_for_no_olap_w_template(SN_Array, template)
     SN_Array, scales = optimize_scales(SN_Array, template, True)
-    # print scales
 
     # for SN in SN_Array:
     #   SN.ivar = np.ones(len(SN_Array[0].ivar))
@@ -1125,6 +1189,7 @@ def create_composite(SN_Array, boot, template, medmean, gini_balance=False, aggr
         # plt.plot(template.wavelength, template.flux, 'k-', linewidth=4)
         # plt.show()
     # print "Done."
+
     boots = None
     norm = 1./np.nanmax(template.flux[template.x1:template.x2])
     template.flux = template.flux*norm
@@ -1135,9 +1200,9 @@ def create_composite(SN_Array, boot, template, medmean, gini_balance=False, aggr
     for SN in SN_Array:
         SN.flux = SN.flux*norm
         SN.ivar = SN.ivar/(norm**2.)
-
-        if SN.name == '1991bg':
-            print 'Original:', np.nanmedian(SN.ivar[SN.x1:SN.x2])
+    
+        # if SN.name == '1991bg':
+        #     print 'Original:', np.nanmedian(SN.ivar[SN.x1:SN.x2])
 
     #create bootstrap composites
     if bootstrap is 'y':
@@ -1230,17 +1295,18 @@ def main(Full_query, boot = 'nb', medmean = 1, make_corr=True, multi_epoch=False
     print len(SN_Array) - len(SN_Array_wo_tell), 'spectra may have telluric contamination'
 
     #TODO: combine spectra from the same object before making composite
+    SN_Array = prelim_norm(SN_Array)
+    SN_Array = fix_negative_ivars(SN_Array)
+
     if combine:
         SN_Array = combine_SN_spectra(SN_Array)
 
-    # if not make_corr:
-    #     for SN in SN_Array:
-    #         print SN.name, SN.redshift, SN.source
-    #         lengths.append(len(SN.flux[np.where(SN.flux != 0)]))
-    # else:
     SN_Array = apply_host_corrections(SN_Array, lengths, verbose=verbose, low_av_test=low_av_test)
 
-    temp = [SN for SN in SN_Array if len(SN.flux[np.where(SN.flux!=0)]) == max(lengths)]
+    SN_Array = prelim_norm(SN_Array)
+
+    # print lengths
+    temp = [SN for SN in SN_Array if SN.wavelength[SN.x2] - SN.wavelength[SN.x1] == max(lengths)]
     try:
         composite = temp[0]
     except IndexError:
@@ -1272,31 +1338,33 @@ def main(Full_query, boot = 'nb', medmean = 1, make_corr=True, multi_epoch=False
     #for updating one spectrum at a time
     # num_plots = len(SN_Array)
     # for i in range(num_plots):
-    #   sub_sns = copy.copy(SN_Array[0:i+1])
-    #   print SN_Array[i].filename, SN_Array[i].phase, SN_Array[i].source, SN_Array[i].SNR, np.average(SN_Array[i].ivar[SN_Array[i].x1:SN_Array[i].x2])
-    #   optimize_scales(sub_sns, template, True)
-    #   (fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, dm15s, 
-    #    flux_mask, ivar_mask, dm15_mask, red_mask) = mask(sub_sns, boot)
-    #   for j in range(iters_comp):
-    #       SN_Array, scales = optimize_scales(SN_Array, template, False)
-    #       template = average(sub_sns, template, medmean, boot, fluxes, ivars, dm15_ivars, red_ivars, 
-    #                          reds, phases, ages, vels, dm15s, flux_mask, ivar_mask, dm15_mask, red_mask)
+    #     sub_sns = copy.copy(SN_Array[0:i+1])
+    #     print SN_Array[i].name, SN_Array[i].phase, SN_Array[i].source, SN_Array[i].SNR, np.average(SN_Array[i].ivar[SN_Array[i].x1:SN_Array[i].x2])
+    #     SN_Array, scales, optimize_scales(sub_sns, template, True)
+    #     (fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, morphs,
+    #         dm15s, flux_mask, ivar_mask, dm15_mask, red_mask) = mask(sub_sns, boot)
+    #     for j in range(iters_comp):
+    #       SN_Array, scales = optimize_scales(SN_Array, template, True)
+    #       template = average(sub_sns, template, medmean, boot, fluxes, ivars, 
+    #                             dm15_ivars, red_ivars, reds, phases, ages, vels, morphs,
+    #                             dm15s, flux_mask, ivar_mask, dm15_mask, red_mask)
 
-    #   plt.figure(num = 2, dpi = 100, figsize = [30, 15], facecolor = 'w')
-    #   plt.subplot(2,1,1)
-    #   # plt.plot(sub_sns[-1].wavelength, sub_sns[-1].flux)
-    #   for SN in sub_sns:
+    #     # print scales
+    #     plt.figure(num = 2, dpi = 100, figsize = [30, 15], facecolor = 'w')
+    #     plt.subplot(2,1,1)
+    #     # plt.plot(sub_sns[-1].wavelength, sub_sns[-1].flux)
+    #     for SN in sub_sns:
     #       plt.plot(SN.wavelength[SN.x1:SN.x2], SN.flux[SN.x1:SN.x2])
-    #   plt.plot(template.wavelength[SN.x1:SN.x2], template.flux[SN.x1:SN.x2], 'k', linewidth = 4)
-    #   plt.subplot(2,1,2)
-    #   plt.plot(sub_sns[-1].wavelength, sub_sns[-1].ivar)
-    #   for SN in sub_sns:
+    #     plt.plot(template.wavelength[SN.x1:SN.x2], template.flux[SN.x1:SN.x2], 'k', linewidth = 4)
+    #     plt.subplot(2,1,2)
+    #     plt.plot(sub_sns[-1].wavelength, sub_sns[-1].ivar)
+    #     for SN in sub_sns:
     #       plt.plot(SN.wavelength[SN.x1:SN.x2], SN.ivar[SN.x1:SN.x2])
-    #   #     r = sa.measure_si_ratio(SN.wavelength[SN.x1:SN.x2], SN.flux[SN.x1:SN.x2])
-    #   #     print 'SN Si Ratio: ', r
-    #   # r = sa.measure_si_ratio(template.wavelength[template.x1:template.x2], template.flux[template.x1:template.x2], vexp = .001)
-    #   # print 'Comp Si Ratio: ', r
-    #   plt.show()
+    #     #     r = sa.measure_si_ratio(SN.wavelength[SN.x1:SN.x2], SN.flux[SN.x1:SN.x2])
+    #     #     print 'SN Si Ratio: ', r
+    #     # r = sa.measure_si_ratio(template.wavelength[template.x1:template.x2], template.flux[template.x1:template.x2], vexp = .001)
+    #     # print 'Comp Si Ratio: ', r
+    #     plt.show()
 
     template, boots = create_composite(SN_Array, boot, template, 
                                         medmean, gini_balance=gini_balance, aggro=aggro)

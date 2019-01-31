@@ -19,107 +19,74 @@ def write_table(filename, table, caption = None):
 		file.close()
 
 if __name__ == "__main__":
-	SN_Array = composite.grab("SELECT * from Supernovae inner join Photometry ON Supernovae.SN = Photometry.SN order by Supernovae.SN", multi_epoch = True, make_corr = False)
-	tab_arr = []
-	refs = []
-	for SN in SN_Array:
-		if SN.ref is not None:
-			ref = SN.ref
-		else:
-			ref = 'Unknown'
-		refs.append(ref)
-
-	# ref_set = list(set(refs))
-	ref_set = sorted(set(refs), key=refs.index)
-
-	ref_nums = []
-	# ref_dict = {}
-	for i in range(len(ref_set)):
-		# ref_dict[ref_set[i]] = i+1
-		ref_nums.append(i+1)
-	# for ref in ref_dict:
-	# 	print ref, ref_dict[ref]
-	for i, ref in enumerate(ref_set):
-		print ref, ref_nums[i]
-
-	i=1
-	for SN in SN_Array:
-		wav_range = str(int(np.round(SN.minwave, 0))) + ' - ' + str(int(np.round(SN.maxwave, 0)))
-		if SN.SNR != None:
-			SNR = SN.SNR
-		ref = 'Unknown'
-		if SN.ref is not None:
-			ref = SN.ref
-		else:
-			ref = 'Unknown'
-
-		if ref in ref_set:
-			ref_num = ref_nums[ref_set.index(ref)]
-		# ref_num = ref_dict[ref]
-
-		if SN.phase != None:
-			phase = '%.1f'%SN.phase
-		else:
-			phase = '...'
-
-		if SN.mjd != None:
-			mjd = '%.1f'%SN.mjd
-		else:
-			mjd = '...'
-
-		if len(SN.name) == 5:
-			name = SN.name.upper()
-		else:
-			name = SN.name
-
-		tab_arr.append([name, mjd, phase, SNR, wav_range, ref_num])
-		i+=1
-		if i > 22:
-			break
-
-	table_1 = tabulate(tab_arr, headers=['SN Name', 'MJD', 'Phase', 'S/N', 'Wavelength Range', 'Reference'], tablefmt = 'latex', floatfmt=".1f")
-
-	text = " (This table is available in its entirety in a machine-readable form in the online journal. A portion is shown here for guidance regarding its form and content.)"
-	ref_text = 'Full spectral sample. \\textbf{References}: '
-	# for i, ref in enumerate(ref_dict):
-	# 	ref_text = ref_text + '(%d) \\citet{%s}'%(ref_dict[ref], ref)
-	# 	if i < len(ref_dict)-1:
-	# 		ref_text = ref_text + '; '
-	for i, ref in enumerate(ref_set):
-		ref_text = ref_text + '(%d) \\citet{%s}'%(ref_nums[i], ref)
-		if i < len(ref_set)-1:
-			ref_text = ref_text + '; '
-
-	caption = ref_text + text
-	write_table('table_1.tex', table_1, caption) #lccrcc
-	raise TypeError
-
-	# SN_Array = composite.grab("SELECT * from Supernovae inner join Photometry ON Supernovae.SN = Photometry.SN where phase between -.2 and .2", multi_epoch = True)
+	# SN_Array = composite.grab("SELECT * from Spectra inner join Events ON Spectra.SN = Events.SN order by Spectra.SN", multi_epoch = True, make_corr = False, grab_all=True)
 	# tab_arr = []
+	# refs = []
 	# for SN in SN_Array:
-	# 	if SN.dm15_cfa != None:
-	# 		dm15 = str(np.round(SN.dm15_cfa, 2))
-	# 	elif SN.dm15_from_fits != None:
-	# 		dm15 = str(np.round(SN.dm15_from_fits, 2)) + '*'
+	# 	if SN.ref is not None:
+	# 		ref = SN.ref
 	# 	else:
-	# 		dm15 = None
+	# 		ref = 'Unknown'
+	# 	refs.append(ref)
 
-	# 	if SN.av_25 != None:
-	# 		av = SN.av_25
-	# 	elif SN.av_mlcs31 != None:
-	# 		av = SN.av_mlcs31
-	# 	elif SN.av_mlcs17 != None:
-	# 		av = SN.av_mlcs17
+	# ref_set = sorted(set(refs), key=refs.index)
+
+	# ref_nums = []
+	# for i in range(len(ref_set)):
+	# 	ref_nums.append(i+1)
+	# for i, ref in enumerate(ref_set):
+	# 	print ref, ref_nums[i]
+
+	# i=1
+	# for SN in SN_Array:
+	# 	wav_range = str(int(np.round(SN.minwave, 0))) + ' - ' + str(int(np.round(SN.maxwave, 0)))
+	# 	if SN.SNR != None:
+	# 		SNR = SN.SNR
+	# 	ref = 'Unknown'
+	# 	if SN.ref is not None:
+	# 		ref = SN.ref
 	# 	else:
-	# 		av = None
+	# 		ref = 'Unknown'
 
-	# 	tab_arr.append([SN.name, SN.source, SN.redshift, dm15, SN.m_b, SN.B_minus_V, SN.velocity, SN.morph, SN.resid, av])
-	# table_2 = tabulate(tab_arr, headers=['SN Name', 'Source', 'Redshift', '$\Delta m_{15} (B)$', 'M_{B}', 'B - V (mag)', 
-	# 									 'Velocity (km/s)', 'Host Morphology', 'Hubble Residual', 'A_{V}'], tablefmt = 'latex')
-	# write_table('table_2.tex', table_2)
+	# 	if ref in ref_set:
+	# 		ref_num = ref_nums[ref_set.index(ref)]
+	# 	# ref_num = ref_dict[ref]
+
+	# 	if SN.phase != None:
+	# 		phase = '%.1f'%SN.phase
+	# 	else:
+	# 		phase = '...'
+
+	# 	if SN.mjd != None:
+	# 		mjd = '%.1f'%SN.mjd
+	# 	else:
+	# 		mjd = '...'
+
+	# 	if len(SN.name) == 5:
+	# 		name = SN.name.upper()
+	# 	else:
+	# 		name = SN.name
+
+	# 	tab_arr.append([name, mjd, phase, SNR, wav_range, ref_num])
+	# 	i+=1
+	# 	if i > 22:
+	# 		break
+
+	# table_1 = tabulate(tab_arr, headers=['SN Name', 'MJD', 'Phase', 'S/N', 'Wavelength Range', 'Reference'], tablefmt = 'latex', floatfmt=".1f")
+
+	# text = " (This table is available in its entirety in a machine-readable form in the online journal. A portion is shown here for guidance regarding its form and content.)"
+	# ref_text = 'Full spectral sample. \\textbf{References}: '
+	# for i, ref in enumerate(ref_set):
+	# 	ref_text = ref_text + '(%d) \\citet{%s}'%(ref_nums[i], ref)
+	# 	if i < len(ref_set)-1:
+	# 		ref_text = ref_text + '; '
+
+	# caption = ref_text + text
+	# write_table('table_1_updated.tex', table_1, caption) #lccrcc
+	# raise TypeError
 
 	tab_arr = []
-	SN_Array = composite.grab("SELECT * from Supernovae inner join Photometry ON Supernovae.SN = Photometry.SN", multi_epoch = False, make_corr = False)
+	SN_Array = composite.grab("SELECT * from Spectra inner join Events ON Spectra.SN = Events.SN", multi_epoch = False, make_corr = False)
 	num_tmax = 0
 	num_red = 0
 	num_dm15 = 0
@@ -142,6 +109,8 @@ if __name__ == "__main__":
 			num_tmax+=1
 		if SN.redshift != None:
 			num_red+=1
+		else:
+			print SN.name, SN.filename, SN.source
 		if SN.dm15_source != None:
 			num_dm15+=1
 		if SN.dm15_source is None and SN.dm15_from_fits != None:
@@ -150,17 +119,17 @@ if __name__ == "__main__":
 			num_av+=1
 		if SN.ned_host != None:
 			num_host+=1
-		if SN.m_b != None:
+		if SN.m_b_cfa != None:
 			num_mb+=1
-		if SN.B_minus_V != None:
+		if SN.b_minus_v_cfa != None:
 			num_bmv+=1
 		if SN.v_at_max != None:
 			num_vel+=1
 		if SN.carbon != None:
 			num_carbon+=1
-		if SN.GasRich != None:
+		if SN.na != None:
 			num_gas+=1
-		if SN.resid != None:
+		if SN.hubble_res != None:
 			num_hubres+=1
 	# tab_arr.append(['Redshift', num_red])
 	# tab_arr.append(['$\Delta m_{15} (B)$', num_dm15])
@@ -178,6 +147,7 @@ if __name__ == "__main__":
 	# tab_arr.append(['Gas Rich', num_gas])
 	# tab_arr.append(['Hubble Residual', num_hubres])
 
+	print len(SN_Array), 'total events'
 	print 'tmax', num_tmax
 	print 'Redshift', num_red
 	print '$\Delta m_{15} (B)$', num_dm15

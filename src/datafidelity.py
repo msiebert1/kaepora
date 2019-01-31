@@ -214,7 +214,7 @@ def clip(wave, flux, var, vexp, testing=False):
         plt.xlim([wave[0]-200,wave[-1]+200])
         plt.ylim([0,1.05*10])
         plt.legend(loc=1, fontsize=20)
-        # plt.savefig('../../../Paper_Drafts/reprocessing_updated/clipping.pdf', dpi = 300, bbox_inches = 'tight')
+        plt.savefig('../../../Paper_Drafts/reprocessing_updated/clipping.pdf', dpi = 300, bbox_inches = 'tight')
         plt.show()
 
     return wave, flux, var # return bad_ranges instead of setting ivar[bad] = 0 (A.S.)
@@ -274,8 +274,6 @@ def addsky(wavelength, flux, error, med_error, source = None):
     else:
         skyflux = sky[0].data[0]
     start = crval
-    print skyflux
-    print delta
     stop = crval + ceil(len(skyflux)*delta)
     skywave = [(start+delta*i) for i in range(len(skyflux))]
     # Find wavelength overlap
@@ -286,8 +284,6 @@ def addsky(wavelength, flux, error, med_error, source = None):
 
     spline_rep = interpolate.splrep(skywave, skyflux)
     add_flux = interpolate.splev(wavelength[good], spline_rep) 
-    plt.plot(skywave, skyflux)   
-    plt.show()
 
     # Scale sky
     # scale = 285*med_error
@@ -296,7 +292,7 @@ def addsky(wavelength, flux, error, med_error, source = None):
     # add_flux = scale*add_flux
 
     scale = med_error/np.median(add_flux)
-    print .004*scale/med_error
+    # print .004*scale/med_error
     add_flux = 0.004*scale*add_flux
 
     # Add sky flux to the error
@@ -400,7 +396,7 @@ def genivar(wavelength, flux, varflux, vexp = 0.002, nsig = 5.0, testing=False, 
         plt.xlabel('Rest Wavelength ' + "($\mathrm{\AA}$)", fontsize = 30)
         plt.xlim([wavelength[0]-200,wavelength[-1]+200])
         plt.legend(loc=1, fontsize=20)
-        # plt.savefig('../../../Paper_Drafts/reprocessing_updated/genvar.pdf', dpi = 300, bbox_inches = 'tight')
+        plt.savefig('../../../Paper_Drafts/reprocessing_updated/genvar.pdf', dpi = 300, bbox_inches = 'tight')
         plt.show()
         if varflux is not None:
             plt.plot(wavelength, error_scales)
