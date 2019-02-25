@@ -144,7 +144,6 @@ def grab(sql_input, multi_epoch = False, make_corr = True,
     print "Collecting data..."
     #Connect to database
     #Make sure your database file is in this location
-    # con = sq3.connect('../data/SNIaDB_Spec_v21_phot_v10.db')
     con = sq3.connect('../data/kaepora_v1.db')
     cur = con.cursor()
 

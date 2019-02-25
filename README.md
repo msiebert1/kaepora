@@ -1,78 +1,46 @@
 # kaepora
 
-Type Ia Supernova spectral database and tools for creating composite spectra.
+An open-source SQL relational database for Type Ia Supernova spectra. This repository provides tools for contructing and interacting with the database, and routines to produce composite spectra. 
 
 
 ## Getting Started
 
-
+It appears that the time has finally come for you to start your adventure! You will encounter many hardships ahead... That is your fate. Don't feel discouraged, even during the toughest times! I can hopefully lend you a wing. 
 
 ### Prerequisites
 
 Python 2.7
 
 numpy
+
 matplotlib
+
 sqlite3
+
 scipy
+
 astropy
+
 specutils
 
 Version specific dependencies:
+
 msgpack-python version 0.4.6
-msgpack-numpy version 0.3.5 or 0.3.6
+
+msgpack-numpy version 0.3.5
+
+
+### Building the Database
+
+In your terminal, navigate to the /kaepora/src folder and execute the following command:
 
 ```
-Give examples
+python build_kaepora.py
 ```
 
-### Installing
+This process uses multiple scripts to build the database from scratch and takes several hours. The resulting '.db' file is stored in the /kaepora/data folder. Alternatively, you can download the most recent version of the database from <here> and place it in /kaepora/data.
 
-A step by step series of examples that tell you how to get a development env running
+## Running Tests
 
-Say what the step will be
 
-```
-Give the example
-```
-
-And repeat
-
-```
-until finished
-```
-
-End with an example of getting some data out of the system or using it for a little demo
-
-## Running the tests
-
-Explain how to run the automated tests for this system
-
-### Break down into end to end tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
-
-### And coding style tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
-
-kaepora
-=======
-Spectral template code using an SQL database for Type Ia Supernova observations.
-
-Version specific dependencies:
-msgpack-python version 0.4.6
-msgpack-numpy version 0.3.5 or 0.3.6
-
-Example Query:
-python query_db.py nb "SELECT * from Supernovae inner join Photometry ON Supernovae.SN = Photometry.SN and phase between -1 and 1"
-
-	First argument "b" additionally estimates errors via bootstrap resampling for template spectra. "nb" generates template spectra without errors (much faster).
+Did you get all that?

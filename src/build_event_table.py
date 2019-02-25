@@ -116,6 +116,14 @@ def build_salt2_dict(salt2):
         
     return salt2_dict
 
+def build_salt2_hub_res_dict(salt2_hub_res):
+    salt2_hub_res_dict = {}
+    for SN in salt2_hub_res:
+        res = float(SN['MURES'])
+        salt2_hub_res_dict['sn'+SN['CID'].lower()] = res
+        
+    return salt2_hub_res_dict
+
 def build_mlcs31_dict(mlcs31):
     mlcs31_dict = {}
     for SN in mlcs31:
@@ -827,6 +835,7 @@ def main():
 
     salt = ascii.read("..\data\info_files\salt_params_dists.txt", delimiter = '\s', guess = False)
     salt2 = ascii.read("..\data\info_files\salt2_params_dists.txt", delimiter = '\s', guess = False)
+    salt2_hub_res = ascii.read("..\data\info_files\SALT2mu_fpan.fitres", delimiter = '\s', guess = False)
     mlcs31 = ascii.read("..\data\info_files\mlcs31_params.txt", delimiter = '\s', guess = False)
     mlcs17 = ascii.read("..\data\info_files\mlcs17_params.txt", delimiter = '\s', guess = False)
     lcparams = ascii.read("..\data\info_files\lc_params.txt", delimiter = '\s', guess = False)
@@ -855,6 +864,7 @@ def main():
 
     salt_dict = build_salt_dict(salt)
     salt2_dict = build_salt2_dict(salt2)
+    salt2_hub_res_dict = build_salt2_hub_res_dict(salt2_hub_res)
     mlcs31_dict = build_mlcs31_dict(mlcs31)
     mlcs17_dict = build_mlcs17_dict(mlcs17)
     host_dict = build_host_dict(host_data)
@@ -984,7 +994,8 @@ def main():
         na = gas_dict.get(event, None)
 
         #hubble residual
-        hubble_res = residual_dict.get(event, None)
+        # hubble_res = residual_dict.get(event, None)
+        hubble_res = salt2_hub_res_dict.get(event, None)
 
         #MLCS reddening
         av_25 = av_dict.get(event)
