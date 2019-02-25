@@ -1,11 +1,8 @@
 import composite
-from astropy.table import Table
-import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 import numpy as np
 import sys
-import time
 import matplotlib.gridspec as gridspec
 import matplotlib.animation as animation
 import argparse
@@ -30,7 +27,7 @@ def make_colorbar(composites, cmap_kind='diff'):
 
 	return s_m
 
-def scaled_plot(composites, min_num_show = 5, min_num_scale = 5, include_spec_bin = False, scaleto=10., zoom=True, fs=[15,12], ticks=[13,8], xlim=None, include_phase_dm15=False,
+def scaled_plot(composites, min_num_show = 5, min_num_scale = 10, include_spec_bin = False, scaleto=10., zoom=True, fs=[15,12], ticks=[13,8], xlim=None, include_phase_dm15=False,
 				 legend_labels = None, rm_last_label=False, expand_ratio=False, text = '', dashes = None, savename = None):
 	color_dict = {"Comp": "#000080", "Comp0": "#000080", "Comp1": "#ff8c00", "Comp2": "limegreen", "Comp3": "orange", "Hsiao": "orange", "Foley": "crimson", "Nugent": "turquoise", "SALT2": "black"}
 	# order_dict = {"Comp": 2, "Comp0": 2, "Comp1": 2, "Comp2": 2,"Hsiao": 3, "Foley08": 1, "Nugent": 4, "SALT2": 5}
@@ -445,7 +442,7 @@ def scaled_plot(composites, min_num_show = 5, min_num_scale = 5, include_spec_bi
 			length=ticks[1],
 			zorder=20)
 
-		plt.setp(delt.get_xticklabels(), visible=False)
+		plt.setp(delt.get_xticklabels(), visible=True)
 		plt.ylabel('$\Delta$m$_{15}$ (mag)')
 		# plt.plot(comp.wavelength[comp.x1:comp.x2], comp.spec_bin[comp.x1:comp.x2], color = s_m.to_rgba(param))
 		plt.plot(composites[0].wavelength[composites[0].x1:composites[0].x2], composites[0].dm15_array[composites[0].x1:composites[0].x2], color="#000080",linewidth=lw)
@@ -750,13 +747,24 @@ def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_sc
 		avg_z = np.nanmean(comp.red_array[comp.x1:comp.x2])
 		# avg_z_rnd = np.round(avg_z,3)
 		# z.yaxis.set_ticks(np.arange(avg_z_rnd-.006, avg_z_rnd+.0061, .005))
-		plt.ylabel('Redshift')
 		# plt.plot(comp.wavelength[comp.x1:comp.x2], comp.red_array[comp.x1:comp.x2], color = s_m.to_rgba(param))
 		if not morph:
+			plt.ylabel('Redshift')
 			plt.plot(comp.wavelength[comp.x1:comp.x2], comp.red_array[comp.x1:comp.x2], linewidth = lw, color = s_m.to_rgba(param))
+			z.axes.set_ylim([avg_z - .015, avg_z + .01])
 		else:
+			plt.ylabel('Morphology')
+			# ['E', 'E0', 'E1', 'E2', 'E23', 'E3', 'E6', 'S0', 'S0a', 'Sa', 'Sab', 'Sb', 'Sbc', 'Sc', 'Scd', 'Sd', 'Sdm', 'Sm', 'Sp']
+			avg_m1 = np.nanmean(composites[0].morph_array[comp.x1:comp.x2])
+			avg_m2 = np.nanmean(composites[1].morph_array[comp.x1:comp.x2])
+			avg_m = (avg_m1 + avg_m2)/2.
 			plt.plot(comp.wavelength[comp.x1:comp.x2], comp.morph_array[comp.x1:comp.x2], linewidth = lw, color = s_m.to_rgba(param))
-		z.axes.set_ylim([avg_z - .015, avg_z + .01])
+			z.axes.set_ylim([avg_m - 7, avg_m + 7])
+			y = [5,10,15]
+			labels = ['E','Sa', 'Scd']
+			plt.yticks(y, labels)
+		
+
 		z.axes.set_xlim([comp.wavelength[comp.x1]-200., comp.wavelength[comp.x2]+200.])
 		# labels=z.axes.get_yticks().tolist()
 		# labels[-1]=''
@@ -840,7 +848,7 @@ def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_sc
 		delt.axes.yaxis.set_major_locator(majorLocator)
 		delt.axes.yaxis.set_major_formatter(majorFormatter)
 		delt.axes.yaxis.set_minor_locator(minorLocator)
-		delt.axes.set_ylim([dm15_bounds[0] - .12, dm15_bounds[1] + .12])
+		delt.axes.set_ylim([dm15_bounds[0] - .1, dm15_bounds[1] + .1])
 
 		# labels=res.axes.get_yticks().tolist()
 		# labels[0]=''
@@ -896,7 +904,7 @@ def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_sc
 	# plt.savefig('../../Paper_Drafts/split_host_highdm15.pdf', dpi = 300, bbox_inches = 'tight')
 	# plt.savefig('../../FLASH/split_host_highdm15.png', dpi = 300, bbox_inches = 'tight')
 	if legend_labels:
-		rel_flux.legend(legend_labels)
+		rel_flux.legend(legend_labels, bbox_to_anchor=(0.5, 0.45, 0.48, 0.5))
 	if savename is not None:
 		plt.savefig('../../../Paper_Drafts/'+savename+'.pdf', dpi = 300, bbox_inches = 'tight')
 	plt.show()
@@ -1005,7 +1013,7 @@ def stacked_plot(composites, boot=False, savename = None):
 		lw=2
 	for comp in composites:
 		if i ==5:
-			scale = .5*.75
+			scale = .5*.8
 		# if i==1:
 		# 	color = 'darkred'
 		dm15 = np.average(comp.dm15_array[comp.x1:comp.x2])
@@ -1058,18 +1066,26 @@ def normalize_comp(comp):
 	comp.ivar /= (norm)**2
 	return comp, norm
 
-def main(num_queries, query_strings, boot='nb', medmean = 1, selection = 'max_coverage', gini_balance=False, verbose=True, multi_epoch=True, combine=True, low_av_test=None, measure_vs = False):
+def main(num_queries, query_strings, boot='nb', medmean = 1, selection = 'max_coverage', gini_balance=False, verbose=True, 
+		 multi_epoch=True, combine=True, low_av_test=None, measure_vs = False, og_arr=False):
 	# num_queries = int(sys.argv[1])
 	# query_strings = sys.argv[2:]
 
 	composites = []
 	sn_arrays = []
+	og_sn_arrays = []
 	boot_sn_arrays = []
 	store_boots = True
 	for n in range(num_queries):
-		comp, arr, boots = composite.main(query_strings[n],boot=boot, medmean = medmean, 
+		if og_arr:
+			comp, arr, og_arr, boots = composite.main(query_strings[n],boot=boot, medmean = medmean, 
 											selection = selection, gini_balance=gini_balance, combine=combine,
-											verbose=verbose, multi_epoch=multi_epoch, low_av_test=low_av_test)
+											verbose=verbose, multi_epoch=multi_epoch, low_av_test=low_av_test, og_arr=og_arr)
+			og_sn_arrays.append(og_arr)
+		else:
+			comp, arr, boots = composite.main(query_strings[n],boot=boot, medmean = medmean, 
+											selection = selection, gini_balance=gini_balance, combine=combine,
+											verbose=verbose, multi_epoch=multi_epoch, low_av_test=low_av_test, og_arr=og_arr)
 		if store_boots:
 			boot_sn_arrays.append(boots)
 		composites.append(comp)
@@ -1093,7 +1109,10 @@ def main(num_queries, query_strings, boot='nb', medmean = 1, selection = 'max_co
 			v_err = np.nanstd(vs)
 			print 'v_err = ', v_err
 
-	return composites, sn_arrays, boot_sn_arrays
+	if og_arr:
+		return composites, sn_arrays, og_sn_arrays, boot_sn_arrays
+	else:
+		return composites, sn_arrays, boot_sn_arrays
 
 
 def make_animation(composites):
@@ -1274,6 +1293,7 @@ def plot_comp_and_all_spectra(comp, SN_Array, show_ivar = False, comp2=None, com
 			ax[0].plot(SN_Array[i].wavelength, SN_Array[i].flux, drawstyle='steps-mid')
 			ax[1].plot(SN_Array[i].wavelength, SN_Array[i].ivar, drawstyle='steps-mid')
 		ax[0].plot(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], 'k', linewidth = 6, drawstyle='steps-mid')
+		ax[0].axvline(x=5890.)
 		ax[0].set_ylabel('Relative Flux', fontsize = 30)
 		ax[1].set_xlabel('Rest Wavelength ' + "($\mathrm{\AA}$)", fontsize = 30)
 		# "SELECT * from Supernovae inner join Photometry ON Supernovae.SN = Photometry.SN where phase >= -3 and phase <= 3 and morphology >= 9"
@@ -1328,7 +1348,7 @@ if __name__ == "__main__":
 	num_queries = len(query_strings)
 
 	for n in range(num_queries):
-		# c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = False, make_corr=True, multi_epoch=True, combine=False)
+		c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = False, make_corr=False, multi_epoch=True, combine=False)
 		# c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = False, multi_epoch=True, combine=True) 
 		# composites.append(c)
 		# SN_Arrays.append(sn_arr)
@@ -1342,7 +1362,7 @@ if __name__ == "__main__":
 		# if store_boots:
 		# 	boot_sn_arrays.append(boots)
 			
-		c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = False, verbose=True, multi_epoch=True, combine=True)
+		# c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = True, verbose=True, multi_epoch=True, combine=True)
 		composites.append(c)
 		SN_Arrays.append(sn_arr)
 		if store_boots:
@@ -1366,7 +1386,8 @@ if __name__ == "__main__":
 	bad_vels = ['1995bd','2012cg','1991t','1998ab','2006oa','2009ig','2012fr','1995ac', '2001ah',
             '1997br','2008ia','2012ht','2007sr','2002do','2007ax','2003fa','1998aq','2011fe']
 	# for SN in SN_Arrays[0]:
-	# 	if SN.name not in bad_vels and SN.source != 'swift_uv':
+	# 	# if SN.name not in bad_vels and SN.source != 'swift_uv':
+	# 	if SN.name and SN.source != 'swift_uv':
 	# 		var = 1./SN.ivar
 	# 		vexp, SNR = sa.autosmooth(SN.wavelength[SN.x1:SN.x2], SN.flux[SN.x1:SN.x2], var_y = var[SN.x1:SN.x2])
 	# 		v, si_min_wave = sa.measure_velocity(SN.wavelength[SN.x1:SN.x2], SN.flux[SN.x1:SN.x2], 5900., 6300., vexp=vexp, plot=True)

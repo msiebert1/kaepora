@@ -297,21 +297,27 @@ def compprep(spectrum, sn_name, z, source, use_old_error=True, testing=False):
                 else:
                     old_var[ind] = old_var[ind+1]
 
-    if testing:
-        plt.plot(old_wave, old_flux)
-        plt.show()
-        if old_var is not None:
-            plt.plot(old_wave, old_var)
-            plt.show()
+    # if testing:
+    #     plt.plot(old_wave, old_flux)
+    #     plt.plot(old_wave/(1.+z), old_flux)
+    #     plt.plot(old_wave*(1.+z), old_flux)
+    #     plt.xlim(5800,6000)
+    #     # plt.show()
+    #     if old_var is not None:
+    #         plt.plot(old_wave, old_var)
+    #         plt.show()
     # old_var = None
     vexp, SNR = df.find_vexp(old_wave, old_flux, var_y=old_var)
     if testing:
         print vexp, SNR
 
-    old_wave = old_wave/(1.+z) #deredshift for clipping 
+    if source != 'csp': #already deredshifted
+        old_wave = old_wave/(1.+z) #deredshift for clipping 
+        
     old_wave, old_flux, old_var = df.clip(old_wave, old_flux, old_var, vexp, testing=testing) #clip emission/absorption lines
     old_wave = old_wave*(1.+z) #reredshift for MW extinction correction 
     temp_ivar, SNR = df.genivar(old_wave, old_flux, old_var, vexp=vexp, testing=testing, source=source)  # generate inverse variance
+
     if testing:
         print SNR
 
@@ -328,7 +334,6 @@ def compprep(spectrum, sn_name, z, source, use_old_error=True, testing=False):
         sne = ReadExtin('extinctionbsnip.dat')
     if source == 'csp':
         sne = ReadExtin('extinctioncsp.dat')
-        old_wave *= 1+float(z)  # Redshift back
     if source == 'uv':
         sne = ReadExtin('extinctionuv.dat')
     if source == 'other':
@@ -412,6 +417,7 @@ def compprep(spectrum, sn_name, z, source, use_old_error=True, testing=False):
         # plt.show()
 
     new_wave = old_wave/(1.+z)  # Deredshifting
+
     if not use_old_error:
         new_var = None
     else:

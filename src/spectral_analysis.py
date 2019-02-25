@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np 
 import copy
 from scipy.integrate import simps
+import random 
 
 def autosmooth(x_array, y_array, var_y=None):
     if var_y is not None:
@@ -289,38 +290,62 @@ def measure_velocity(wavelength, flux, wave1, wave2, vexp=.001, rest_wave=6355.,
 
 
 #adapted from Rodrigo 
-def max_wave(sn, w1, w2, w3):
+def max_wave(wavelength, flux, w1, w2, w3, vexp=.001, sys_error=False):
     
-    sm_flux= df.gsmooth(sn.wavelength[sn.x1:sn.x2], sn.flux[sn.x1:sn.x2], None, .001)
+    sm_flux= df.gsmooth(wavelength, flux, None, vexp)
 
-    wave_domain_1 = (sn.wavelength[sn.x1:sn.x2] > w1) & (sn.wavelength[sn.x1:sn.x2] < w2)
+    wave_domain_1 = (wavelength > w1) & (wavelength < w2)
     elem_flux_1 = np.argmax(sm_flux[wave_domain_1]) #find minimum value within these flux vales to locate "dip
-    max_wave_1 = sn.wavelength[sn.x1:sn.x2][wave_domain_1][elem_flux_1] #find the corresponding wavelength
+    max_wave_1 = wavelength[wave_domain_1][elem_flux_1] #find the corresponding wavelength
     
-    wave_domain_2 = (sn.wavelength[sn.x1:sn.x2] > w2) & (sn.wavelength[sn.x1:sn.x2] < w3)
+    wave_domain_2 = (wavelength > w2) & (wavelength < w3)
     elem_flux_2 = np.argmax(sm_flux[wave_domain_2]) #find minimum value within these flux vales to locate "dip
-    max_wave_2 = sn.wavelength[sn.x1:sn.x2][wave_domain_2][elem_flux_2] #find the corresponding wavelength
+    max_wave_2 = wavelength[wave_domain_2][elem_flux_2] #find the corresponding wavelength
+
+    if sys_error:
+        #change continuum locations by a random even integer (at most 100 Angstroms)
+        max_wave_1 = max_wave_1 + random.randint(-24, 24)*2.
+        max_wave_2 = max_wave_2 + random.randint(-24, 24)*2.
 
     return max_wave_1, max_wave_2, sm_flux
 
-def measure_boot_EWs(boot_sn_array, w1=7600., w2=8200., w3=9000.):
+def measure_EWs(sn_array, w1=7600., w2=8200., w3=9000., error=False):
     EWs = []
-    for i, bSN in enumerate(boot_sn_array):
-        ew = measure_EW(bSN, w1, w2, w3, plot=True)
-        print i, ew
-        if not np.isnan(ew):
-            EWs.append(ew)
+    phases = []
+    errs = []
+    morphs = []
+    SNs = []
+    for i, SN in enumerate(sn_array):
+        if SN.wavelength[SN.x2] >= w3:
+            vexp_auto, SNR = autosmooth(SN.wavelength[SN.x1:SN.x2], SN.flux[SN.x1:SN.x2], var_y=None)
+            ew, domain = measure_EW(SN.wavelength[SN.x1:SN.x2], SN.flux[SN.x1:SN.x2], w1, w2, w3, vexp=vexp_auto, plot=True)
+            if error:
+                stat_err = ew_stat_error(SN.wavelength[SN.x1:SN.x2], SN.flux[SN.x1:SN.x2], SN.ivar[SN.x1:SN.x2], w1, w2, w3, domain, vexp=vexp_auto, num=50)
+                sys_err = ew_sys_error(SN.wavelength[SN.x1:SN.x2], SN.flux[SN.x1:SN.x2], SN.ivar[SN.x1:SN.x2], w1, w2, w3, domain, vexp=vexp_auto, num=50)
+            else:
+                stat_err = None
+                sys_err = None
+            print i, ew, sys_err, stat_err, SN.phase
+            err_tot = np.sqrt(sys_err**2. + stat_err**2.)
+            if not np.isnan(ew) and ew < 500. and stat_err < 100.:
+                EWs.append(ew)
+                phases.append(SN.phase)
+                errs.append(err_tot)
+                morphs.append(SN.ned_host)
+                SN.nir_EW = ew
+                SN.nir_EW_err = err_tot
+                SNs.append(SN)
     mean_EW = np.nanmean(EWs)
     var_EW = np.nanstd(EWs)**2
 
-    return mean_EW, var_EW, EWs
+    return mean_EW, var_EW, EWs, errs, phases, morphs, SNs
 
 def measure_comp_diff_EW(boot_sn_arrays, w1=7600., w2=8200., w3=9000.):
     means = []
     varis = []
     EW_arrs = []
     for arr in boot_sn_arrays:
-        mean_ew, var_EW, EWs = measure_boot_EWs(arr, w1=w1, w2=w2, w3=w3)
+        mean_ew, var_EW, EWs = measure_EWs(arr, w1=w1, w2=w2, w3=w3)
         means.append(mean_ew)
         varis.append(var_EW)
         EW_arrs.append(EWs)
@@ -335,16 +360,18 @@ def measure_comp_diff_EW(boot_sn_arrays, w1=7600., w2=8200., w3=9000.):
     return diff, err, means, varis, EWs
 
 #adapted from Rodrigo 
-def measure_EW(sn, w1, w2, w3, plot=False):
+def measure_EW(wavelength, flux, w1, w2, w3, vexp=.001, plot=False, sys_error=False):
     
-    max_1, max_2, sm_flux = max_wave(sn, w1, w2, w3)
+    max_1, max_2, sm_flux = max_wave(wavelength, flux, w1, w2, w3, vexp=vexp, sys_error=sys_error)
     
-    domain = (sn.wavelength[sn.x1:sn.x2] >= max_1) & (sn.wavelength[sn.x1:sn.x2] <= max_2)
-    wave_range = sn.wavelength[sn.x1:sn.x2][domain]
-    flux_range = sn.flux[sn.x1:sn.x2][domain]
 
-    line_elem = np.polyfit([max_1, max_2], [sm_flux[np.where(sn.wavelength[sn.x1:sn.x2] == max_1)],
-                                            sm_flux[np.where(sn.wavelength[sn.x1:sn.x2] == max_2)]], 1)
+    domain = (wavelength >= max_1) & (wavelength <= max_2)
+    roi = (wavelength > w1) & (wavelength < w3)
+    wave_range = wavelength[domain]
+    flux_range = flux[domain]
+
+    line_elem = np.polyfit([max_1, max_2], [sm_flux[np.where(wavelength == max_1)],
+                                            sm_flux[np.where(wavelength == max_2)]], 1)
     line = line_elem[0] * wave_range + line_elem[1]
     norm = flux_range / line
 
@@ -354,39 +381,47 @@ def measure_EW(sn, w1, w2, w3, plot=False):
     
     if plot==True:
         plt.figure()
-        plt.plot(sn.wavelength[sn.x1:sn.x2][np.where((sn.wavelength[sn.x1:sn.x2]>w1) & (sn.wavelength[sn.x1:sn.x2]<w3))],
-            sn.flux[sn.x1:sn.x2][np.where((sn.wavelength[sn.x1:sn.x2]>w1) & (sn.wavelength[sn.x1:sn.x2]<w3))])
-        plt.plot(sn.wavelength[sn.x1:sn.x2][np.where((sn.wavelength[sn.x1:sn.x2]>w1) & (sn.wavelength[sn.x1:sn.x2]<w3))],
-            sm_flux[np.where((sn.wavelength[sn.x1:sn.x2]>w1) & (sn.wavelength[sn.x1:sn.x2]<w3))], color='g')
+        plt.plot(wavelength[np.where((wavelength>w1) & (wavelength<w3))],
+            flux[np.where((wavelength>w1) & (wavelength<w3))])
+        plt.plot(wavelength[np.where((wavelength>w1) & (wavelength<w3))],
+            sm_flux[np.where((wavelength>w1) & (wavelength<w3))], color='g')
 #         plt.xlim([6200.,6400.])
         # plt.ylim([0.,3.])
         plt.axvline (x=max_1, color = 'red')
         plt.axvline (x=max_2, color = 'red')
-        plt.plot(sn.wavelength[sn.x1:sn.x2][domain],line, color='orange')
+        plt.plot(wavelength[domain],line, color='orange')
         plt.xlabel('Wavelength')
         plt.ylabel('Flux')
         plt.show()
-        
-#         plt.figure()
-#         plt.plot(sn.wavelength[sn.x1:sn.x2][np.where((sn.wavelength[sn.x1:sn.x2]>6200.) & (sn.wavelength[sn.x1:sn.x2]<6400.))],
-#           sn.flux[sn.x1:sn.x2][np.where((sn.wavelength[sn.x1:sn.x2]>6200.) & (sn.wavelength[sn.x1:sn.x2]<6400.))])
-#         plt.plot(sn.wavelength[sn.x1:sn.x2][np.where((sn.wavelength[sn.x1:sn.x2]>6200.) & (sn.wavelength[sn.x1:sn.x2]<6400.))],
-#           sm_flux[np.where((sn.wavelength[sn.x1:sn.x2]>6200.) & (sn.wavelength[sn.x1:sn.x2]<6400.))], color='blue')
-# #         plt.xlim([6200.,6400.])
-# #         plt.ylim([20.,30.])
-#         plt.axvline (x=max_1, color = 'red')
-#         plt.axvline (x=max_2, color = 'red')
-#         plt.plot(sn.wavelength[sn.x1:sn.x2][domain],line, color='orange')
-#         plt.xlabel('Wavelength')
-#         plt.ylabel('Flux')
-#         plt.show()
+    
+    return eq_width, roi
 
-#         plt.plot(norm, color = 'black')
-#         plt.plot(wave_range, norm, color = "orange")
-#         plt.plot(wave_range , 1, color = "yellow")
-#         plt.axvline (x=max_1, color = 'red')
-#         plt.axvline (x=max_2, color = 'blue')
-    return eq_width
+def ew_stat_error(wavelength, flux, ivar, w1, w2, w3, roi, vexp=.001, num=100):
+    sm_flux = df.gsmooth(wavelength[roi], flux[roi], 1/ivar[roi], vexp)
+    err = np.sqrt((1./ivar[roi]))
+    # err = np.absolute(flux[roi] - sm_flux)
+    sig = np.median(err)
+    ews = []
+    for i in range(0, num):
+        new_flux = copy.deepcopy(sm_flux)
+        delta_flux = np.random.normal(loc=0, scale=sig, size=len(new_flux))
+        new_flux = new_flux + delta_flux
+        ew, roi_ignore = measure_EW(wavelength[roi], new_flux, w1, w2, w3, vexp=vexp, plot=False)
+        ews.append(ew)
+    stat_err = np.std(ews)
+
+    return stat_err
+
+def ew_sys_error(wavelength, flux, ivar, w1, w2, w3, roi, vexp=.001, num=100):
+    ews = []
+    for i in range(0, num):
+        # vexp = random.uniform(0.001, 0.0045)
+        ew, roi_ignore = measure_EW(wavelength[roi], flux[roi], w1, w2, w3, vexp=vexp, plot=False, sys_error=True)
+        ews.append(ew)
+    sys_err = np.std(ews)
+
+    return sys_err
+
 
 def measure_weak_si_velocity(wavelength, flux, varflux=None, plot=True):
     if varflux == None:

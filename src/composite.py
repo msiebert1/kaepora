@@ -376,6 +376,7 @@ def grab(sql_input, multi_epoch = False, make_corr = True,
         nan_bool_flux = np.isnan(SN.flux)
         non_nan_data = np.where(nan_bool_flux == False)
         nan_data = np.where(nan_bool_flux == True)
+        nan_data = nan_data
         SN.flux[nan_data]         = np.nan
         SN.ivar[nan_data]         = 0.
         SN.phase_array[nan_data]  = np.nan
@@ -887,6 +888,9 @@ def apply_host_corrections(SN_Array, lengths, r_v = 2.5, verbose=True, low_av_te
             print SN.name, SN.filename, SN.SNR, SN.dm15,\
                     SN.phase, SN.source,\
                     SN.ned_host, SN.av_25, SN.wavelength[SN.x1], SN.wavelength[SN.x2]
+            # print SN.name, SN.filename, SN.SNR, SN.dm15,\
+            #         SN.phase, SN.source,\
+            #         SN.ned_host, SN.av_25, SN.minwave, SN.maxwave
 
         if SN.av_25 != None and SN.av_25 < cutoff:
             if SN.av_25 > low_av_test or low_av_test == None:
@@ -952,7 +956,7 @@ def apply_host_corrections(SN_Array, lengths, r_v = 2.5, verbose=True, low_av_te
                 lengths.append(SN.wavelength[SN.x2] - SN.wavelength[SN.x1])
 
     SN_Array = corrected_SNs
-    print len(SN_Array), 'SNe with host corrections'
+    # print len(SN_Array), 'SNe with host corrections'
     return SN_Array
 
 
@@ -1016,9 +1020,16 @@ def fix_negative_ivars(SN_Array):
         if len(bad_vals)>0:
             for r in bad_vals:
                 SN.ivar[r] = np.median(SN.ivar[r-20:r+20])
-    #         print SN.name, SN.filename
-    #         plt.plot(SN.wavelength, SN.ivar)
-    # plt.show()
+        nan_bool_flux = np.isnan(SN.flux)
+        non_nan_data = np.where(nan_bool_flux == False)[0]
+        # nan_data = np.where(nan_bool_flux == True)
+        # print SN.ivar[SN.x1:SN.x2]
+        # print SN.ivar[SN.x1:SN.x2][2]
+        # print SN.ivar[SN.x1:SN.x2][2]==0.
+        # raise TypeError
+        z_inds = [i for i, e in enumerate(SN.ivar[non_nan_data]) if e == 0.]
+        for z in z_inds:
+            SN.ivar[non_nan_data[z]]= np.median(SN.ivar[non_nan_data][z-2:z+2])
     return SN_Array
 
 def combine_SN_spectra(SN_Array):
@@ -1050,16 +1061,16 @@ def combine_SN_spectra(SN_Array):
                 template = [SN for SN in SN_Array if SN.wavelength[SN.x2] - SN.wavelength[SN.x1] == max(lengths)]
                 template = copy.deepcopy(template[0])
                 combined_SN, boots = create_composite(spectra_to_combine, False, template, 1, name= e + '_combined')
-                fig, ax = plt.subplots(2,1)
-                fig.set_size_inches(10, 8, forward = True)
-                for sn in spectra_to_combine:
-                    print sn.name, sn.filename, sn.phase, sn.SNR
-                    ax[0].plot(sn.wavelength, sn.flux, alpha=.6)
-                    ax[1].plot(sn.wavelength, sn.ivar, alpha=.6)
-                print combined_SN.name, combined_SN.phase, combined_SN.SNR
-                ax[0].plot(combined_SN.wavelength, combined_SN.flux, 'k-', linewidth=5)
-                ax[1].plot(combined_SN.wavelength, combined_SN.ivar, 'k-', linewidth=5)
-                plt.show()
+                # fig, ax = plt.subplots(2,1)
+                # fig.set_size_inches(10, 8, forward = True)
+                # for sn in spectra_to_combine:
+                #     print sn.name, sn.filename, sn.phase, sn.SNR
+                #     ax[0].plot(sn.wavelength, sn.flux, alpha=.6)
+                #     ax[1].plot(sn.wavelength, sn.ivar, alpha=.6)
+                # print combined_SN.name, combined_SN.phase, combined_SN.SNR
+                # ax[0].plot(combined_SN.wavelength, combined_SN.flux, 'k-', linewidth=5)
+                # ax[1].plot(combined_SN.wavelength, combined_SN.ivar, 'k-', linewidth=5)
+                # plt.show()
             else:
                 combined_SN = None
             if combined_SN != None:
@@ -1070,10 +1081,14 @@ def combine_SN_spectra(SN_Array):
     for cSN in combined_SNs:
         combine_SN_names.append(cSN.name.split('_')[0])
         new_SN_Array.append(cSN)
+
+    added = []
     for SN in SN_Array:
-        if SN.name not in combine_SN_names:
+        if SN.name not in combine_SN_names and SN.filename not in added:
+            added.append(SN.filename)
             new_SN_Array.append(SN)
-        if SN.filename in spectra_to_add:
+        if SN.filename in spectra_to_add and SN.filename not in added:
+            added.append(SN.filename)
             new_SN_Array.append(SN)
     print len(new_SN_Array), 'total SNe'
     return new_SN_Array
@@ -1133,6 +1148,7 @@ def create_composite(SN_Array, boot, template, medmean, gini_balance=False, aggr
         i=0
         first_iter = True
         prev_swaps = []
+        # print gini_coeffs
         while imbalanced:
             # print gini_coeffs
             # print num_specs
@@ -1165,6 +1181,7 @@ def create_composite(SN_Array, boot, template, medmean, gini_balance=False, aggr
             # if i == 10:
             #   imbalanced = False
             first_iter = False
+        # print gini_coeffs
         print 'Balanced after', i, 'iterations'
 
     # qdb.plot_comp_and_all_spectra(template, SN_Array, show_ivar=True)
@@ -1203,8 +1220,8 @@ def create_composite(SN_Array, boot, template, medmean, gini_balance=False, aggr
     
         # if SN.name == '1991bg':
         #     print 'Original:', np.nanmedian(SN.ivar[SN.x1:SN.x2])
-
     #create bootstrap composites
+
     if bootstrap is 'y':
         scales  = []
         print "Bootstrapping"
@@ -1239,7 +1256,7 @@ def create_composite(SN_Array, boot, template, medmean, gini_balance=False, aggr
     
 def main(Full_query, boot = 'nb', medmean = 1, make_corr=True, multi_epoch=False, 
         selection = 'max_coverage', gini_balance=False, aggro=.5, verbose=True, 
-        low_av_test = None, combine=True):
+        low_av_test = None, combine=True, og_arr=False):
     """Main function. Finds spectra that satisfy the users query and creates a 
     composite spectrum based on the given arguments.
         
@@ -1294,14 +1311,26 @@ def main(Full_query, boot = 'nb', medmean = 1, make_corr=True, multi_epoch=False
     SN_Array_wo_tell = remove_tell_files(SN_Array)
     print len(SN_Array) - len(SN_Array_wo_tell), 'spectra may have telluric contamination'
 
-    #TODO: combine spectra from the same object before making composite
     SN_Array = prelim_norm(SN_Array)
     SN_Array = fix_negative_ivars(SN_Array)
+    og_SN_Array = copy.deepcopy(SN_Array)
 
     if combine:
         SN_Array = combine_SN_spectra(SN_Array)
 
     SN_Array = apply_host_corrections(SN_Array, lengths, verbose=verbose, low_av_test=low_av_test)
+    og_SN_Array = apply_host_corrections(og_SN_Array, lengths, verbose=False, low_av_test=low_av_test)
+    print 'removed SNe without host corrections'
+
+    events = []
+    for SN in SN_Array:
+        if 'combined' in SN.name:
+            events.append(SN.name.split('_')[0])
+        else:
+            events.append(SN.name)
+    event_set = set(events)
+
+    print 'Using', len(og_SN_Array), 'spectra of', len(event_set), 'SNe'
 
     SN_Array = prelim_norm(SN_Array)
 
@@ -1369,7 +1398,10 @@ def main(Full_query, boot = 'nb', medmean = 1, make_corr=True, multi_epoch=False
     template, boots = create_composite(SN_Array, boot, template, 
                                         medmean, gini_balance=gini_balance, aggro=aggro)
 
-    return template, SN_Array, boots
+    if og_arr:
+        return template, SN_Array, og_SN_Array, boots
+    else:
+        return template, SN_Array, boots
 
 if __name__ == "__main__":
     main()
