@@ -216,7 +216,7 @@ def grab(sql_input, multi_epoch = False, make_corr = True,
             SN.flux       = SN.interp[1,:]
             SN.ivar       = SN.interp[2,:]
         except TypeError:
-            print "ERROR: ", SN.filename, SN.interp
+            # print "ERROR: ", SN.filename, SN.interp
             continue
         SN_Array.append(SN)
 
@@ -250,14 +250,12 @@ def grab(sql_input, multi_epoch = False, make_corr = True,
         good_SN_Array = [SN for SN in SN_Array 
                             if not is_bad_data(SN, bad_files, bad_ivars)]
         SN_Array = good_SN_Array
-        print (len_before - len(SN_Array), 'questionable spectra removed', 
-               len(SN_Array), 'spectra left')
+        print len_before - len(SN_Array), 'flagged spectra removed', len(SN_Array), 'spectra left'
 
         # remove peculiar Ias
         len_before = len(SN_Array)
         SN_Array = remove_peculiars(SN_Array,'../data/info_files/pec_Ias.txt')
-        print (len_before - len(SN_Array), 'Peculiar Ias removed', 
-               len(SN_Array), 'spectra left')
+        print len_before - len(SN_Array), 'spectra of peculiar Ias removed', len(SN_Array), 'spectra left'
         SN_Array = check_host_corrections(SN_Array)
 
     if not multi_epoch:
@@ -361,7 +359,7 @@ def grab(sql_input, multi_epoch = False, make_corr = True,
 
         SN_Array = new_SN_Array
 
-    print len(SN_Array), "valid spectra found"
+    print len(SN_Array), "spectra of SNe with host reddening corrections"
     
 
     for SN in SN_Array:
@@ -1253,7 +1251,7 @@ def create_composite(SN_Array, boot, template, medmean, gini_balance=False, aggr
 
     return template, boots
     
-def main(Full_query, boot = 'nb', medmean = 1, make_corr=True, multi_epoch=False, 
+def main(Full_query, boot = False, medmean = 1, make_corr=True, multi_epoch=False, 
         selection = 'max_coverage', gini_balance=False, aggro=.5, verbose=True, 
         low_av_test = None, combine=True, og_arr=False):
     """Main function. Finds spectra that satisfy the users query and creates a 
@@ -1317,9 +1315,10 @@ def main(Full_query, boot = 'nb', medmean = 1, make_corr=True, multi_epoch=False
     if combine:
         SN_Array = combine_SN_spectra(SN_Array)
 
-    SN_Array = apply_host_corrections(SN_Array, lengths, verbose=verbose, low_av_test=low_av_test)
-    og_SN_Array = apply_host_corrections(og_SN_Array, lengths, verbose=False, low_av_test=low_av_test)
-    print 'removed SNe without host corrections'
+    av_cutoff=2
+    SN_Array = apply_host_corrections(SN_Array, lengths, verbose=verbose, cutoff=av_cutoff)
+    og_SN_Array = apply_host_corrections(og_SN_Array, lengths, verbose=False, cutoff=av_cutoff)
+    print 'removed spectra of SNe with A_V >', av_cutoff
 
     events = []
     for SN in SN_Array:
@@ -1329,6 +1328,7 @@ def main(Full_query, boot = 'nb', medmean = 1, make_corr=True, multi_epoch=False
             events.append(SN.name)
     event_set = set(events)
 
+    print 
     print 'Using', len(og_SN_Array), 'spectra of', len(event_set), 'SNe'
 
     SN_Array = prelim_norm(SN_Array)
@@ -1353,10 +1353,6 @@ def main(Full_query, boot = 'nb', medmean = 1, make_corr=True, multi_epoch=False
     scales  = []
     iters = 3
     iters_comp = 3
-    if boot == 'b':
-        boot = True
-    else:
-        boot = False
     # plt.figure(num = 2, dpi = 100, figsize = [30, 20], facecolor = 'w')
     # for i in range(len(SN_Array)):
     #     plt.plot(SN_Array[i].wavelength, SN_Array[i].flux)

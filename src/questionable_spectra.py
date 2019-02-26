@@ -66,7 +66,7 @@ def bad_files():
 							'2000E_20000127_3213_7513_00.dat', '2000E_20000210_3217_7484_00.dat',		#reddening wrong, reddening wrong
 							'2002bo_20020615_9394_16509_00.dat', ] 										#IR spectrum
 
-		print len(bad_files), 'questionable files currently ignored'
+		# print len(bad_files), 'questionable files currently ignored'
 		return bad_files
 		#SN05hc_051018_r01_NTT_EM.dat very noisy
 		#2003du_20030501_4066_11015_00.dat very large negative value
