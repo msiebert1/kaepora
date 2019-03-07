@@ -5,6 +5,7 @@ import argparse
 import spectral_analysis as sa
 import kaepora_plot as kplot
 import warnings
+from tabulate import tabulate
 warnings.filterwarnings("ignore")
 
 def set_min_num_spec(composites, num):
@@ -98,19 +99,16 @@ def make_composite(num_queries, query_strings, boot=False, medmean = 1, selectio
 		return composites, sn_arrays, boot_sn_arrays
 
 
-def save_comps_to_files(composites):
-	for SN in composites:
-		phase = np.round(np.average(SN.phase_array[SN.x1:SN.x2]), 1)
-		vel = np.round(np.average(SN.vel[SN.x1:SN.x2]), 1)
-		dm15 = np.round(np.average(SN.dm15_array[SN.x1:SN.x2]), 1)
-		
-
+def save_comps_to_files(composites, prefix):
 	#save to file
 	for SN in composites:
-		phase = np.round(np.average(SN.phase_array[SN.x1:SN.x2]), 1)
-		vel = np.round(np.average(SN.vel[SN.x1:SN.x2]), 1)
-		dm15 = np.round(np.average(SN.dm15_array[SN.x1:SN.x2]), 1)
-		print phase, vel, dm15
+		set_min_num_spec(composites, 5)
+		phase = np.round(np.average(SN.phase_array[SN.x1:SN.x2]), 2)
+		dm15 = np.round(np.average(SN.dm15_array[SN.x1:SN.x2]), 2)
+		z = np.round(np.average(SN.red_array[SN.x1:SN.x2]), 3)
+		num = np.amax(np.array(SN.spec_bin[SN.x1:SN.x2]))
+		print phase, dm15, z
+		set_min_num_spec(composites, 1)
 
 		if phase >= 0.:
 			sign = 'p'
@@ -118,20 +116,27 @@ def save_comps_to_files(composites):
 			sign = 'm'
 		abs_phase = np.absolute(phase)
 		phase_str = str(abs_phase)
-
 		dm15_str = str(dm15)
+		z_str = str(z)
+		num_str = str(SN.num_sne)
+		num_spec_str = str(SN.num_spec)
 
-		file_path = '../../../Composites_m5_p5_dm15/' + sign + phase_str + '_days_' + dm15 + '_mag'+'.flm'
+		file_path = '../data/S19_Composite_Spectra/' + prefix + '_N=' + num_str + '_Nspec=' + num_spec_str + '_phase='+ sign + phase_str + '_dm15=' + dm15_str + '_z=' + z_str+'.txt'
 		print file_path
 		with open(file_path, 'w') as file:
+			file.write('# SQL Query: ' + SN.query + '\n')
 			wave = np.array(SN.wavelength[SN.x1:SN.x2])
 			flux = np.array(SN.flux[SN.x1:SN.x2])
-			data = np.array([wave,flux])
-			data = data.T
-			np.savetxt(file, data)
-
-		plt.plot(SN.wavelength[SN.x1:SN.x2], SN.flux[SN.x1:SN.x2])
-	plt.show()
+			up_conf = np.array(SN.up_conf[SN.x1:SN.x2]) - flux
+			low_conf = flux - np.array(SN.low_conf[SN.x1:SN.x2])
+			phase_arr = np.array(SN.phase_array[SN.x1:SN.x2])
+			dm15_arr = np.array(SN.dm15_array[SN.x1:SN.x2])
+			red_arr = np.array(SN.red_array[SN.x1:SN.x2])
+			spec_per_sn_arr = np.array(SN.spec_bin[SN.x1:SN.x2])
+			data = np.c_[wave,flux,low_conf,up_conf,phase_arr,dm15_arr, red_arr, spec_per_sn_arr]
+			table = tabulate(data, headers=['Wavelength', 'Flux', '1-Sigma Lower', '1-Sigma Upper', 'Phase', 'Dm15', 'Redshift', 'SNe per Bin'], 
+												tablefmt = 'ascii')
+			file.write(table)
 
 if __name__ == "__main__":
 	composites = []

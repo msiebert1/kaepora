@@ -8,6 +8,7 @@ import matplotlib.gridspec as gridspec
 import matplotlib.animation as animation
 import argparse
 import spectral_analysis as sa
+from tabulate import tabulate
 
 
 def make_colorbar(composites, cmap_kind='diff'):
@@ -1023,7 +1024,7 @@ def stacked_plot(composites, boot=False, savename = None):
 		ax.plot(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2] - buff, color = color, linewidth = lw)
 		if boot:
 			plt.fill_between(comp.wavelength[comp.x1:comp.x2], comp.low_conf[comp.x1:comp.x2]- buff, comp.up_conf[comp.x1:comp.x2] - buff, alpha = 0.5)
-		plt.text(8500, comp.flux[comp.x2-1130] - i*scale + .1*scale , r'$\langle$$\mathbf{\Delta m_{15}} $(B)$\rangle$ = ' + str(round(dm15, 2)), fontsize=13)
+		plt.text(8500, comp.flux[comp.x2-1100] - i*scale + .1*scale , r'$\langle$$\mathbf{\Delta m_{15}} $(B)$\rangle$ = ' + str(round(dm15, 2)), fontsize=13)
 #         plt.title('All Phase Composite Spectra', fontdict = font1, fontsize = 40)
 		i+=1
 	# plt.xlim([5500.,6500.])
@@ -1087,28 +1088,28 @@ def main(num_queries, query_strings, boot='nb', medmean = 1, selection = 'max_co
 			comp, arr, boots = composite.main(query_strings[n],boot=boot, medmean = medmean, 
 											selection = selection, gini_balance=gini_balance, combine=combine,
 											verbose=verbose, multi_epoch=multi_epoch, low_av_test=low_av_test, og_arr=og_arr)
-		if store_boots:
+		if boot:
 			boot_sn_arrays.append(boots)
 		composites.append(comp)
 		sn_arrays.append(arr)
 
 	composite.optimize_scales(composites, composites[0], True)
 	composites = normalize_comps(composites)
-	if measure_vs:
-		for comp in composites:
-			dm15 = np.round(np.nanmean(comp.dm15_array[comp.x1:comp.x2]),2)
-			# r = sa.measure_si_ratio(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], vexp = .001, dm15=dm15)
-			v_strong, si_min_wave = sa.measure_velocity(comp.wavelength[comp.x1:comp.x2],comp.flux[comp.x1:comp.x2], 5900., 6300.)
-			print 'v = ', v_strong
+	# if measure_vs:
+	# 	for comp in composites:
+	# 		dm15 = np.round(np.nanmean(comp.dm15_array[comp.x1:comp.x2]),2)
+	# 		# r = sa.measure_si_ratio(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], vexp = .001, dm15=dm15)
+	# 		v_strong, si_min_wave = sa.measure_velocity(comp.wavelength[comp.x1:comp.x2],comp.flux[comp.x1:comp.x2], 5900., 6300.)
+	# 		print 'v = ', v_strong
 
 		
-		for boot in boot_sn_arrays:
-			vs = []
-			for b in boot:
-				v_strong, si_min_wave = sa.measure_velocity(b.wavelength[b.x1:b.x2],b.flux[b.x1:b.x2], 5900., 6300.)
-				vs.append(v_strong)
-			v_err = np.nanstd(vs)
-			print 'v_err = ', v_err
+	# 	for boot in boot_sn_arrays:
+	# 		vs = []
+	# 		for b in boot:
+	# 			v_strong, si_min_wave = sa.measure_velocity(b.wavelength[b.x1:b.x2],b.flux[b.x1:b.x2], 5900., 6300.)
+	# 			vs.append(v_strong)
+	# 		v_err = np.nanstd(vs)
+	# 		print 'v_err = ', v_err
 
 	if og_arr:
 		return composites, sn_arrays, og_sn_arrays, boot_sn_arrays
@@ -1302,19 +1303,16 @@ def plot_comp_and_all_spectra(comp, SN_Array, show_ivar = False, comp2=None, com
 		plt.show()
 
 
-def save_comps_to_files(composites):
-	for SN in composites:
-		phase = np.round(np.average(SN.phase_array[SN.x1:SN.x2]), 1)
-		vel = np.round(np.average(SN.vel[SN.x1:SN.x2]), 1)
-		dm15 = np.round(np.average(SN.dm15_array[SN.x1:SN.x2]), 1)
-		
-
+def save_comps_to_files(composites, prefix):
 	#save to file
 	for SN in composites:
-		phase = np.round(np.average(SN.phase_array[SN.x1:SN.x2]), 1)
-		vel = np.round(np.average(SN.vel[SN.x1:SN.x2]), 1)
-		dm15 = np.round(np.average(SN.dm15_array[SN.x1:SN.x2]), 1)
-		print phase, vel, dm15
+		set_min_num_spec(composites, 5)
+		phase = np.round(np.average(SN.phase_array[SN.x1:SN.x2]), 2)
+		dm15 = np.round(np.average(SN.dm15_array[SN.x1:SN.x2]), 2)
+		z = np.round(np.average(SN.red_array[SN.x1:SN.x2]), 3)
+		num = np.amax(np.array(SN.spec_bin[SN.x1:SN.x2]))
+		print phase, dm15, z
+		set_min_num_spec(composites, 1)
 
 		if phase >= 0.:
 			sign = 'p'
@@ -1322,20 +1320,28 @@ def save_comps_to_files(composites):
 			sign = 'm'
 		abs_phase = np.absolute(phase)
 		phase_str = str(abs_phase)
-
 		dm15_str = str(dm15)
+		z_str = str(z)
+		num_str = str(SN.num_sne)
+		num_spec_str = str(SN.num_spec)
 
-		file_path = '../../../Composites_m5_p5_dm15/' + sign + phase_str + '_days_' + dm15 + '_mag'+'.flm'
+		file_path = '../data/S19_Composite_Spectra/' + prefix + '_N=' + num_str + '_Nspec=' + num_spec_str + '_phase='+ sign + phase_str + '_dm15=' + dm15_str + '_z=' + z_str+'.txt'
 		print file_path
 		with open(file_path, 'w') as file:
+			file.write('# SQL Query: ' + SN.query + '\n')
 			wave = np.array(SN.wavelength[SN.x1:SN.x2])
 			flux = np.array(SN.flux[SN.x1:SN.x2])
-			data = np.array([wave,flux])
-			data = data.T
-			np.savetxt(file, data)
+			up_conf = np.array(SN.up_conf[SN.x1:SN.x2]) - flux
+			low_conf = flux - np.array(SN.low_conf[SN.x1:SN.x2])
+			phase_arr = np.array(SN.phase_array[SN.x1:SN.x2])
+			dm15_arr = np.array(SN.dm15_array[SN.x1:SN.x2])
+			red_arr = np.array(SN.red_array[SN.x1:SN.x2])
+			spec_per_sn_arr = np.array(SN.spec_bin[SN.x1:SN.x2])
+			data = np.c_[wave,flux,low_conf,up_conf,phase_arr,dm15_arr, red_arr, spec_per_sn_arr]
+			table = tabulate(data, headers=['Wavelength', 'Flux', '1-Sigma Lower', '1-Sigma Upper', 'Phase', 'Dm15', 'Redshift', 'SNe per Bin'], 
+												tablefmt = 'ascii')
+			file.write(table)
 
-		plt.plot(SN.wavelength[SN.x1:SN.x2], SN.flux[SN.x1:SN.x2])
-	plt.show()
 
 if __name__ == "__main__":
 	composites = []
@@ -1354,7 +1360,7 @@ if __name__ == "__main__":
 	num_queries = len(query_strings)
 
 	for n in range(num_queries):
-		c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = False, make_corr=False, multi_epoch=True, combine=False)
+		# c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = False, make_corr=False, multi_epoch=True, combine=False)
 		# c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = False, multi_epoch=True, combine=True) 
 		# composites.append(c)
 		# SN_Arrays.append(sn_arr)
@@ -1368,10 +1374,10 @@ if __name__ == "__main__":
 		# if store_boots:
 		# 	boot_sn_arrays.append(boots)
 			
-		# c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = True, verbose=True, multi_epoch=True, combine=True)
+		c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = True, verbose=True, multi_epoch=True, combine=True)
 		composites.append(c)
 		SN_Arrays.append(sn_arr)
-		if store_boots:
+		if boot:
 			boot_sn_arrays.append(boots)
 
 	for i, comp in enumerate(composites):
@@ -1400,20 +1406,20 @@ if __name__ == "__main__":
 	# 		print SN.name, v
 
 
-	# for i, comp in enumerate(composites):
-	# 	comp.name = "Comp" + str(i)
-	# 	dm15 = np.round(np.nanmean(comp.dm15_array[comp.x1:comp.x2]),2)
-	# 	# r = sa.measure_si_ratio(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], vexp = .001, dm15=dm15)
-	# 	v_strong, si_min_wave = sa.measure_velocity(comp.wavelength[comp.x1:comp.x2],comp.flux[comp.x1:comp.x2], 5900., 6300.)
-	# 	print 'v = ', v_strong
+	for i, comp in enumerate(composites):
+		comp.name = "Comp" + str(i)
+		dm15 = np.round(np.nanmean(comp.dm15_array[comp.x1:comp.x2]),2)
+		# r = sa.measure_si_ratio(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], vexp = .001, dm15=dm15)
+		v_strong, si_min_wave = sa.measure_velocity(comp.wavelength[comp.x1:comp.x2],comp.flux[comp.x1:comp.x2], 5900., 6300.)
+		print 'v = ', v_strong
 
 
-	# vs = []
-	# for b in boot_sn_arrays[0]:
-	# 	v_strong, si_min_wave = sa.measure_velocity(b.wavelength[b.x1:b.x2],b.flux[b.x1:b.x2], 5900., 6300.)
-	# 	vs.append(v_strong)
-	# v_err = np.nanstd(vs)
-	# print 'v_err = ', v_err
+	vs = []
+	for b in boot_sn_arrays[0]:
+		v_strong, si_min_wave = sa.measure_velocity(b.wavelength[b.x1:b.x2],b.flux[b.x1:b.x2], 5900., 6300.)
+		vs.append(v_strong)
+	v_err = np.nanstd(vs)
+	print 'v_err = ', v_err
 
 
 	# r = sa.measure_si_ratio(comp2.wavelength[comp2.x1:comp2.x2], comp2.flux[comp2.x1:comp2.x2], vexp = .001)

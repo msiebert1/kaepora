@@ -307,7 +307,7 @@ def max_wave(wavelength, flux, w1, w2, w3, vexp=.001, sys_error=False):
         max_wave_1 = max_wave_1 + random.randint(-24, 24)*2.
         max_wave_2 = max_wave_2 + random.randint(-24, 24)*2.
 
-    return max_wave_1, max_wave_2, sm_flux
+    return max_wave_1, max_wave_2, wave_domain_1, wave_domain_2, elem_flux_1, elem_flux_2, sm_flux
 
 def measure_EWs(sn_array, w1=7600., w2=8200., w3=9000., error=False):
     EWs = []
@@ -362,16 +362,20 @@ def measure_comp_diff_EW(boot_sn_arrays, w1=7600., w2=8200., w3=9000.):
 #adapted from Rodrigo 
 def measure_EW(wavelength, flux, w1, w2, w3, vexp=.001, plot=False, sys_error=False):
     
-    max_1, max_2, sm_flux = max_wave(wavelength, flux, w1, w2, w3, vexp=vexp, sys_error=sys_error)
+    max_wave_1, max_wave_2, wave_domain_1, wave_domain_2, elem_flux_1, elem_flux_2, sm_flux = max_wave(wavelength, flux, w1, w2, w3, vexp=vexp, sys_error=sys_error)
     
 
-    domain = (wavelength >= max_1) & (wavelength <= max_2)
+    domain = (wavelength >= max_wave_1) & (wavelength <= max_wave_2)
     roi = (wavelength > w1) & (wavelength < w3)
     wave_range = wavelength[domain]
     flux_range = flux[domain]
 
-    line_elem = np.polyfit([max_1, max_2], [sm_flux[np.where(wavelength == max_1)],
-                                            sm_flux[np.where(wavelength == max_2)]], 1)
+
+    # line_elem = np.polyfit([max_wave_1, max_wave_2], [sm_flux[np.where(wavelength == max_wave_1)],
+    #                                         sm_flux[np.where(wavelength == max_wave_2)]], 1)
+    line_elem = np.polyfit([max_wave_1, max_wave_2], [sm_flux[wave_domain_1][elem_flux_1],
+                                            sm_flux[wave_domain_2][elem_flux_2]], 1)
+
     line = line_elem[0] * wave_range + line_elem[1]
     norm = flux_range / line
 
@@ -387,8 +391,8 @@ def measure_EW(wavelength, flux, w1, w2, w3, vexp=.001, plot=False, sys_error=Fa
             sm_flux[np.where((wavelength>w1) & (wavelength<w3))], color='g')
 #         plt.xlim([6200.,6400.])
         # plt.ylim([0.,3.])
-        plt.axvline (x=max_1, color = 'red')
-        plt.axvline (x=max_2, color = 'red')
+        plt.axvline (x=max_wave_1, color = 'red')
+        plt.axvline (x=max_wave_2, color = 'red')
         plt.plot(wavelength[domain],line, color='orange')
         plt.xlabel('Wavelength')
         plt.ylabel('Flux')

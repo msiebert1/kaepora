@@ -444,6 +444,51 @@ def build_residual_dict():
                     residual_dict['sn'+ ents[0].lower()] = ents[2]
     return residual_dict
 
+def build_tmax_dict(cfa_dict):
+    #NOTES: 
+    #csp from spectra files convert to mjd if no mlcs
+    #cfa from cfasnIa_param.dat if no mlcs
+    #bsnip no data, phase from spec_info_table.txt if no mlcs
+    #uv and other no data
+    #prioritize mlcs from lowzrv25_all.fitres
+
+    # here compile csp, cfa, and mlcs into dict
+    with open('../data/info_files/csp_mjd_max.txt') as file:
+        lines=file.readlines()
+        result=[]
+        tmax_dict_csp = {}
+        for x in lines:
+            tmax_dict_csp[x.split()[0]] = float(x.split()[1])
+    
+    tmax_dict_cfa = {}
+    for sn in cfa_dict:
+        if cfa_dict[sn][1] != '99999.9':
+            tmax_dict_cfa[sn] = float(cfa_dict[sn][1])
+
+    with open('..\data\info_files\lowz_rv25_all.fitres') as f:
+        lines = f.readlines()
+
+        tmax_dict_mlcs25 = {}
+        for line in lines:
+            l = line.split()    
+            if len(l) == 30 and l[0] == 'SN:':
+                if 'sn' + l[1].lower() not in tmax_dict_mlcs25.keys():
+                    tmax_dict_mlcs25['sn' + l[1].lower()] = float(l[14])
+
+    tmax_dict = {}
+    for t in tmax_dict_mlcs25:
+        tmax_dict[t] = tmax_dict_mlcs25[t]
+
+    for t in tmax_dict_cfa:
+        if t not in tmax_dict.keys():
+            tmax_dict[t] = tmax_dict_cfa[t]
+
+    for t in tmax_dict_csp:
+        if t not in tmax_dict.keys():
+            tmax_dict[t] = tmax_dict_csp[t]
+    return tmax_dict
+
+
 def dm15_from_fit_params(events, fit_dict, cfa_dict, stretch='N/A'):
     dm15_arr = []
     e_dm15_arr = []
@@ -698,18 +743,22 @@ def dm15_from_fit_params(events, fit_dict, cfa_dict, stretch='N/A'):
     dm15_interp = interp1d(new_x, new_y, bounds_error=False, fill_value=None)
 
     ###
+    # s
     # RMSE:  0.0718342630003
     # Outlier Fraction:  0.0752688172043
     # [ 1.7240621  -4.66995066  3.93727553]
 
+    # x1
     # RMSE:  0.066249618878
     # Outlier Fraction:  0.0504201680672
     # [ 0.01828958 -0.13430543  1.02585001]
 
+    # delta
     # RMSE:  0.070183174903
     # Outlier Fraction:  0.0230769230769
     # [-0.16315158  0.76583297  1.12697325]
 
+    # delta rv=2.5
     # RMSE:  0.07406417245
     # Outlier Fraction:  0.139423076923
     # [-0.04957799  0.56115546  1.11213983]
@@ -853,6 +902,7 @@ def main():
     gas_dict = build_gas_dict()
     carbon_dict = build_carbon_dict()
     residual_dict = build_residual_dict()
+    tmax_dict = build_tmax_dict(cfa_dict)
 
     #new redshift function moved from newdb
     bsnip_vals = read_bsnip_data('obj_info_table.txt')
@@ -913,7 +963,7 @@ def main():
                                                           glon_host REAL, glat_host REAL, cz_host REAL, czLG_host REAL, czCMB_host REAL, mtype_host TEXT, xpos_host REAL, ypos_host REAL, t1_host REAL, filt_host TEXT, Ebv_host REAL,
                                                           zCMB_lc REAL, zhel_lc REAL, mb_lc REAL, e_mb_lc REAL, c_lc REAL, e_c_lc REAL, x1_lc REAL, e_x1_lc REAL, logMst_lc REAL, e_logMst_lc REAL, tmax_lc REAL, e_tmax_lc REAL, cov_mb_s_lc REAL, cov_mb_c_lc REAL, cov_s_c_lc REAL, bias_lc REAL,
                                                           
-                                                          Av_25 REAL, Dm15_source REAL, Dm15_from_fits REAL, e_dm15 REAL, separation REAL, NED_host REAL, V_at_max REAl, V_err REAL,
+                                                          Av_25 REAL, MJD_max REAL, Dm15_source REAL, Dm15_from_fits REAL, e_dm15 REAL, separation REAL, NED_host REAL, V_at_max REAl, V_err REAL,
                                                           Redshift REAL, M_b_cfa REAL, M_b_cfa_err REAL, B_minus_V_cfa REAL, B_minus_V_cfa_err REAL, Carbon_presence REAL, Na_presence REAL, Hubble_res REAL,
                                                           Photometry BLOB, csp_photometry BLOB)""")
 
@@ -1005,7 +1055,8 @@ def main():
             if av_mlcs31 != None:
                 av_mlcs31 = float(av_mlcs31)*3.1
 
-
+        #mjd_max prioritizing mlcs25, cfa, then csp
+        mjd_max = tmax_dict.get(event, None)
 
         #velocity at maximum light
         vel = vel_dict.get(event, vel_none)[0]
@@ -1098,17 +1149,17 @@ def main():
                                                        zCMB_mlcs17, e_zCMB_mlcs17, mu_mlcs17, e_mu_mlcs17, delta_mlcs17, e_delta_mlcs17, av_mlcs17, e_av_mlcs17,
                                                        glon_host, glat_host, cz_host, czLG_host, czCMB_host, mtype_host, xpos_host, ypos_host, t1_host, filt_host, Ebv_host,
                                                        zCMB_lc, zhel_lc, mb_lc, e_mb_lc, c_lc, e_c_lc, x1_lc, e_x1_lc, logMst_lc, e_logMst_lc, tmax_lc, e_tmax_lc, cov_mb_s_lc, cov_mb_c_lc, cov_s_c_lc, bias_lc,
-                                                       av_25, dm15_source, dm15_from_fits, e_dm15, separation, NED_host, v_at_max, v_err, 
+                                                       av_25, MJD_max, dm15_source, dm15_from_fits, e_dm15, separation, NED_host, v_at_max, v_err, 
                                                        Redshift, M_b_cfa, M_b_cfa_err, B_minus_V_cfa, B_minus_V_cfa_err, Carbon_presence, Na_presence, Hubble_res,
                                                        Photometry, csp_Photometry)
-                                VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                                VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                         (event, ra, dec, zCMB_salt, e_zCMB_salt, Bmag_salt, e_Bmag_salt, s_salt, e_s_salt, c_salt, e_c_salt, mu_salt, e_mu_salt,
                                   zCMB_salt2, e_zCMB_salt2, Bmag_salt2, e_Bmag_salt2, x1_salt2, e_x1_salt2, c_salt2, e_c_salt2, mu_salt2, e_mu_salt2,
                                   zCMB_mlcs31, e_zCMB_mlcs31, mu_mlcs31, e_mu_mlcs31, delta_mlcs31, e_delta_mlcs31, av_mlcs31, e_av_mlcs31,
                                   zCMB_mlcs17, e_zCMB_mlcs17, mu_mlcs17, e_mu_mlcs17, delta_mlcs17, e_delta_mlcs17, av_mlcs17, e_av_mlcs17,
                                   glon_host, glat_host, cz_host, czLG_host, czCMB_host, mtype_host, xpos_host, ypos_host, t1_host, filt_host, Ebv_host,
                                   zCMB_lc, zhel_lc, mb_lc, e_mb_lc, c_lc, e_c_lc, x1_lc, e_x1_lc, logMst_lc, e_logMst_lc, tmax_lc, e_tmax_lc, cov_mb_s_lc, cov_mb_c_lc, cov_s_c_lc, bias_lc,
-                                  av_25, dm15_source, dm15_from_fits, e_dm15, sep, ned_host, vel, e_vel,
+                                  av_25, mjd_max, dm15_source, dm15_from_fits, e_dm15, sep, ned_host, vel, e_vel,
                                   redshift, m_b_cfa, m_b_cfa_err, b_minus_v_cfa, b_minus_v_cfa_err, carbon, na, hubble_res,
                                   buffer(phot_blob), buffer(csp_phot_blob))
                     )

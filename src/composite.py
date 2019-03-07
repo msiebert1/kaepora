@@ -84,23 +84,24 @@ def store_phot_data(SN, row):
     SN.cov_mb_s_lc, SN.cov_mb_c_lc, SN.cov_s_c_lc, SN.bias_lc = phot_row[50:66]
 
     SN.av_25 = phot_row[66]
+    SN.mjd_max = phot_row[67]
 
-    SN.dm15_source = phot_row[67]
-    SN.dm15_from_fits = phot_row[68]
-    SN.e_dm15 = phot_row[69]
-    SN.sep = phot_row[70]
-    SN.ned_host = phot_row[71]
-    SN.v_at_max = phot_row[72]
-    SN.e_v = phot_row[73]
+    SN.dm15_source = phot_row[68]
+    SN.dm15_from_fits = phot_row[69]
+    SN.e_dm15 = phot_row[70]
+    SN.sep = phot_row[71]
+    SN.ned_host = phot_row[72]
+    SN.v_at_max = phot_row[73]
+    SN.e_v = phot_row[74]
 
-    SN.redshift = phot_row[74]
-    SN.m_b_cfa = phot_row[75]
-    SN.m_b_cfa_err = phot_row[76]
-    SN.b_minus_v_cfa = phot_row[77]
-    SN.b_minus_v_cfa_err = phot_row[78]
-    SN.carbon = phot_row[79]
-    SN.na = phot_row[80]
-    SN.hubble_res = phot_row[81]
+    SN.redshift = phot_row[75]
+    SN.m_b_cfa = phot_row[76]
+    SN.m_b_cfa_err = phot_row[77]
+    SN.b_minus_v_cfa = phot_row[78]
+    SN.b_minus_v_cfa_err = phot_row[79]
+    SN.carbon = phot_row[80]
+    SN.na = phot_row[81]
+    SN.hubble_res = phot_row[82]
 
     SN.light_curves = msg.unpackb(phot_row[-2])
     SN.csp_light_curves = msg.unpackb(phot_row[-1])
@@ -881,15 +882,15 @@ def apply_host_corrections(SN_Array, lengths, r_v = 2.5, verbose=True, low_av_te
     """
     corrected_SNs = []
     for SN in SN_Array:
-        if verbose:
-            print SN.name, SN.filename, SN.SNR, SN.dm15,\
-                    SN.phase, SN.source,\
-                    SN.ned_host, SN.av_25, SN.wavelength[SN.x1], SN.wavelength[SN.x2]
             # print SN.name, SN.filename, SN.SNR, SN.dm15,\
             #         SN.phase, SN.source,\
             #         SN.ned_host, SN.av_25, SN.minwave, SN.maxwave
 
         if SN.av_25 != None and SN.av_25 < cutoff:
+            if verbose:
+                print SN.name, SN.filename, SN.SNR, SN.dm15,\
+                        SN.phase, SN.mjd_max, SN.mjd, SN.source,\
+                        SN.ned_host, SN.av_25, SN.wavelength[SN.x1], SN.wavelength[SN.x2]
             if SN.av_25 > low_av_test or low_av_test == None:
                 # pre_scale = (1.e-15/np.average(SN.flux[SN.x1:SN.x2]))
                 pre_scale = (1./np.amax(SN.flux[SN.x1:SN.x2]))
@@ -911,6 +912,10 @@ def apply_host_corrections(SN_Array, lengths, r_v = 2.5, verbose=True, low_av_te
                 lengths.append(SN.wavelength[SN.x2] - SN.wavelength[SN.x1])
 
         elif SN.av_mlcs31 != None and SN.av_mlcs31 < cutoff:
+            if verbose:
+                print SN.name, SN.filename, SN.SNR, SN.dm15,\
+                        SN.phase, SN.mjd_max, SN.mjd, SN.source,\
+                        SN.ned_host, SN.av_25, SN.wavelength[SN.x1], SN.wavelength[SN.x2]
             if SN.av_mlcs31 > low_av_test or low_av_test == None:
                 # pre_scale = (1.e-15/np.average(SN.flux[SN.x1:SN.x2]))
                 pre_scale = (1./np.amax(SN.flux[SN.x1:SN.x2]))
@@ -932,6 +937,10 @@ def apply_host_corrections(SN_Array, lengths, r_v = 2.5, verbose=True, low_av_te
                 lengths.append(SN.wavelength[SN.x2] - SN.wavelength[SN.x1])
 
         elif SN.av_mlcs17 != None and SN.av_mlcs17 < cutoff:
+            if verbose:
+                print SN.name, SN.filename, SN.SNR, SN.dm15,\
+                        SN.phase, SN.mjd_max, SN.mjd, SN.source,\
+                        SN.ned_host, SN.av_25, SN.wavelength[SN.x1], SN.wavelength[SN.x2]
             if SN.av_mlcs17 > low_av_test or low_av_test == None:
                 # pre_scale = (1.e-15/np.average(SN.flux[SN.x1:SN.x2]))
                 pre_scale = (1./np.amax(SN.flux[SN.x1:SN.x2]))
@@ -1315,7 +1324,7 @@ def main(Full_query, boot = False, medmean = 1, make_corr=True, multi_epoch=Fals
     if combine:
         SN_Array = combine_SN_spectra(SN_Array)
 
-    av_cutoff=2
+    av_cutoff=2.
     SN_Array = apply_host_corrections(SN_Array, lengths, verbose=verbose, cutoff=av_cutoff)
     og_SN_Array = apply_host_corrections(og_SN_Array, lengths, verbose=False, cutoff=av_cutoff)
     print 'removed spectra of SNe with A_V >', av_cutoff
@@ -1347,6 +1356,9 @@ def main(Full_query, boot = False, medmean = 1, make_corr=True, multi_epoch=Fals
     template = supernova()
     template = copy.deepcopy(composite)
     template.spec_bin = spectra_per_bin(SN_Array)
+    template.num_spec = len(og_SN_Array)
+    template.num_sne =  len(event_set)
+    template.query = Full_query
 
     #creates main composite
     i = 0
@@ -1397,6 +1409,7 @@ def main(Full_query, boot = False, medmean = 1, make_corr=True, multi_epoch=Fals
         return template, SN_Array, og_SN_Array, boots
     else:
         return template, SN_Array, boots
+    print
 
 if __name__ == "__main__":
     main()
