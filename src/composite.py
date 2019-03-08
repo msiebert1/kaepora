@@ -360,7 +360,7 @@ def grab(sql_input, multi_epoch = False, make_corr = True,
 
         SN_Array = new_SN_Array
 
-    print len(SN_Array), "spectra of SNe with host reddening corrections"
+    print len(SN_Array), "spectra of SNe with that have host reddening corrections"
     
 
     for SN in SN_Array:

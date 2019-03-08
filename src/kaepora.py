@@ -46,7 +46,7 @@ def normalize_comp(comp):
 	comp.ivar /= (norm)**2
 	return comp, norm
 
-def grab(query, multi_epoch = False, make_corr = False, grab_all=True):
+def grab(query, multi_epoch = False, make_corr = False, grab_all=False):
 	spec_array = composite.grab(query, multi_epoch = multi_epoch, make_corr = make_corr, grab_all=grab_all)
 	return spec_array
 
