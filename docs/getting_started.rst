@@ -41,4 +41,4 @@ You may download the most recent version of the database from https://msiebert1.
 
     python build_kaepora.py
 
-Once you have completed one of the steps you should be ready to interact with the database.
+Once you have completed one of these steps you should be ready to interact with the database.

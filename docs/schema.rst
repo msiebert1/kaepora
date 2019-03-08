@@ -8,7 +8,7 @@ The database currently consists of two tables: *Spectra* and *Events*. These tab
 
     import sys
     import os
-    path = 'your/path/to/src'
+    path = 'your/path/to/kaepora/src'
     sys.path.insert(0, path)
     import kaepora as kpora
     import kaepora_plot as kplot
@@ -17,16 +17,19 @@ The database currently consists of two tables: *Spectra* and *Events*. These tab
 You can start by defining an array containing SQL queries. For example:
 
 .. code-block:: python
+
     example_query = ["SELECT * from Spectra inner join Events ON Spectra.SN = Events.SN where phase >= -1 and phase <= 1 and ((dm15_source < 1.8) or (dm15_from_fits < 1.8))"]
 
 You can then obtain the spectra that satisfy a query in your list:
 
 .. code-block:: python
+
     spec_array = kpora.grab(example_query[0])
 
 If you would like to remove atypical SNe Ia, SNe with flagged artifacts, and SNe with poor host reddening corrections use:
 
 .. code-block:: python
+
     spec_array = kpora.grab(example_query[0], make_corr=True)
 
 ``spec_array`` now contains an array of objects that contain our homogenized spectra and all of the spectrum- and SN-specific metadata. Currently these objects are made to represent single spectra, so spectra coming from the same SN will have some redundant SN metadata.
