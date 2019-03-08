@@ -65,6 +65,7 @@ Spectral Attributes
 SN Attributes
 =============
 These attributes contain the most metadata. We also include (but do not list) metadata from the results of several different light curve fits. If you would like to construct a query based on these metadata please contact me. 
+
 +-------------------+---------------------+--------------------------------------------------------------------------------------+--------+
 | Attribute         | SQL Format          | Description                                                                          | Type   |
 +-------------------+---------------------+--------------------------------------------------------------------------------------+--------+
