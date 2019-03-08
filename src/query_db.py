@@ -487,7 +487,7 @@ def scaled_plot(composites, min_num_show = 5, min_num_scale = 10, include_spec_b
 	else:
 		res.set_ylim([.7,1.3])
 	if savename is not None and '91bg' in savename:
-		res.set_ylim([0,5.5])
+		res.set_ylim([0,3.5])
 	if savename is not None and 'middm15' in savename:
 		rel_flux.set_ylim([-.5,12.5])
 	if zoom:
