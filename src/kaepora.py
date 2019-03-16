@@ -46,12 +46,18 @@ def normalize_comp(comp):
 	comp.ivar /= (norm)**2
 	return comp, norm
 
-def grab(query, multi_epoch = False, make_corr = False, grab_all=False):
+def grab(query, multi_epoch = True, make_corr = False, grab_all=False):
 	spec_array = composite.grab(query, multi_epoch = multi_epoch, make_corr = make_corr, grab_all=grab_all)
+	spec_array = composite.prelim_norm(spec_array)
+	return spec_array
+
+def host_dereddening(SN_Array, r_v = 2.5, verbose=False, low_av_test=None, cutoff=2.):
+	spec_array = composite.apply_host_corrections(SN_Array, r_v = r_v, verbose=verbose, low_av_test=low_av_test, cutoff=cutoff)
+	spec_array = composite.prelim_norm(spec_array)
 	return spec_array
 
 
-def make_composite(num_queries, query_strings, boot=False, medmean = 1, selection = 'max_coverage', gini_balance=False, verbose=True, 
+def make_composite(query_strings, boot=False, medmean = 1, selection = 'max_coverage', gini_balance=False, verbose=True, 
 		 multi_epoch=True, combine=True, low_av_test=None, measure_vs = False, og_arr=False):
 	# num_queries = int(sys.argv[1])
 	# query_strings = sys.argv[2:]
@@ -61,6 +67,7 @@ def make_composite(num_queries, query_strings, boot=False, medmean = 1, selectio
 	og_sn_arrays = []
 	boot_sn_arrays = []
 	store_boots = True
+	num_queries = len(query_strings)
 	for n in range(num_queries):
 		if og_arr:
 			comp, arr, og_arr, boots = composite.main(query_strings[n],boot=boot, medmean = medmean, 
@@ -99,10 +106,10 @@ def make_composite(num_queries, query_strings, boot=False, medmean = 1, selectio
 		return composites, sn_arrays, boot_sn_arrays
 
 
-def save_comps_to_files(composites, prefix):
+def save_comps_to_files(composites, prefix, num_avg = 5):
 	#save to file
 	for SN in composites:
-		set_min_num_spec(composites, 5)
+		set_min_num_spec(composites, num_avg)
 		phase = np.round(np.average(SN.phase_array[SN.x1:SN.x2]), 2)
 		dm15 = np.round(np.average(SN.dm15_array[SN.x1:SN.x2]), 2)
 		z = np.round(np.average(SN.red_array[SN.x1:SN.x2]), 3)
@@ -125,6 +132,13 @@ def save_comps_to_files(composites, prefix):
 		print file_path
 		with open(file_path, 'w') as file:
 			file.write('# SQL Query: ' + SN.query + '\n')
+			file.write('# N = ' + num_str + '\n')
+			file.write('# N_spec = ' + num_spec_str + '\n')
+			file.write('# phase = ' + str(phase) + '\n')
+			file.write('# dm15 = ' + dm15_str + '\n')
+			file.write('# z = ' + z_str + '\n')
+			file.write('\n')
+
 			wave = np.array(SN.wavelength[SN.x1:SN.x2])
 			flux = np.array(SN.flux[SN.x1:SN.x2])
 			up_conf = np.array(SN.up_conf[SN.x1:SN.x2]) - flux

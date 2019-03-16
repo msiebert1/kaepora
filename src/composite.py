@@ -38,6 +38,7 @@ class supernova(object):
         if wavelength is not None:
             self.wavelength = wavelength
             self.flux = flux
+            self.sm_flux = None
             if ivar is None:
                 self.ivar = np.zeros(len(flux))
             else:
@@ -106,7 +107,7 @@ def store_phot_data(SN, row):
     SN.light_curves = msg.unpackb(phot_row[-2])
     SN.csp_light_curves = msg.unpackb(phot_row[-1])
 
-def grab(sql_input, multi_epoch = False, make_corr = True, 
+def grab(sql_input, multi_epoch = True, make_corr = True, 
          selection = 'max_coverage', grab_all=False):
     """A primary function for interacting with the database. The user specifies 
     a desired subsample via an SQL query. Spectra are stored as supernova objects
@@ -142,10 +143,11 @@ def grab(sql_input, multi_epoch = False, make_corr = True,
         the SQL query.
 
     """
-    print "Collecting data..."
     #Connect to database
     #Make sure your database file is in this location
-    con = sq3.connect('../data/kaepora_v1.db')
+    db_file = '../data/kaepora_v1.db'
+    con = sq3.connect(db_file)
+    print "Collecting data from", db_file, "..."
     cur = con.cursor()
 
     SN_Array = []
@@ -360,7 +362,7 @@ def grab(sql_input, multi_epoch = False, make_corr = True,
 
         SN_Array = new_SN_Array
 
-    print len(SN_Array), "spectra of SNe with that have host reddening corrections"
+    print len(SN_Array), "spectra of SNe that have host reddening corrections"
     
 
     for SN in SN_Array:
@@ -864,12 +866,11 @@ def check_host_corrections(SN_Array):
     SN_Array = has_host_corr
     return SN_Array
 
-def apply_host_corrections(SN_Array, lengths, r_v = 2.5, verbose=True, low_av_test=None, cutoff=2.):
+def apply_host_corrections(SN_Array, r_v = 2.5, verbose=True, low_av_test=None, cutoff=2.):
     """Correct supernova spectra in SN_Array for host extinction.
 
         Args:
             SN_Array: An array of supernova objects.
-            lengths: An empty array to contain the length of each spectrum.
 
         Keyword Arguments:
             r_v: The value of R_V used for the light curve fit
@@ -887,10 +888,6 @@ def apply_host_corrections(SN_Array, lengths, r_v = 2.5, verbose=True, low_av_te
             #         SN.ned_host, SN.av_25, SN.minwave, SN.maxwave
 
         if SN.av_25 != None and SN.av_25 < cutoff:
-            if verbose:
-                print SN.name, SN.filename, SN.SNR, SN.dm15,\
-                        SN.phase, SN.mjd_max, SN.mjd, SN.source,\
-                        SN.ned_host, SN.av_25, SN.wavelength[SN.x1], SN.wavelength[SN.x2]
             if SN.av_25 > low_av_test or low_av_test == None:
                 # pre_scale = (1.e-15/np.average(SN.flux[SN.x1:SN.x2]))
                 pre_scale = (1./np.amax(SN.flux[SN.x1:SN.x2]))
@@ -905,17 +902,11 @@ def apply_host_corrections(SN_Array, lengths, r_v = 2.5, verbose=True, low_av_te
                 SN.flux = new_flux.value
                 SN.ivar = new_ivar.value
                 corrected_SNs.append(SN)
-                lengths.append(SN.wavelength[SN.x2] - SN.wavelength[SN.x1])
             else:
                 print SN.filename, 'has low reddening!'
                 corrected_SNs.append(SN)
-                lengths.append(SN.wavelength[SN.x2] - SN.wavelength[SN.x1])
 
         elif SN.av_mlcs31 != None and SN.av_mlcs31 < cutoff:
-            if verbose:
-                print SN.name, SN.filename, SN.SNR, SN.dm15,\
-                        SN.phase, SN.mjd_max, SN.mjd, SN.source,\
-                        SN.ned_host, SN.av_25, SN.wavelength[SN.x1], SN.wavelength[SN.x2]
             if SN.av_mlcs31 > low_av_test or low_av_test == None:
                 # pre_scale = (1.e-15/np.average(SN.flux[SN.x1:SN.x2]))
                 pre_scale = (1./np.amax(SN.flux[SN.x1:SN.x2]))
@@ -930,17 +921,11 @@ def apply_host_corrections(SN_Array, lengths, r_v = 2.5, verbose=True, low_av_te
                 SN.flux = new_flux.value
                 SN.ivar = new_ivar.value
                 corrected_SNs.append(SN)
-                lengths.append(SN.wavelength[SN.x2] - SN.wavelength[SN.x1])
             else:
                 print SN.filename, 'has low reddening!'
                 corrected_SNs.append(SN)
-                lengths.append(SN.wavelength[SN.x2] - SN.wavelength[SN.x1])
 
         elif SN.av_mlcs17 != None and SN.av_mlcs17 < cutoff:
-            if verbose:
-                print SN.name, SN.filename, SN.SNR, SN.dm15,\
-                        SN.phase, SN.mjd_max, SN.mjd, SN.source,\
-                        SN.ned_host, SN.av_25, SN.wavelength[SN.x1], SN.wavelength[SN.x2]
             if SN.av_mlcs17 > low_av_test or low_av_test == None:
                 # pre_scale = (1.e-15/np.average(SN.flux[SN.x1:SN.x2]))
                 pre_scale = (1./np.amax(SN.flux[SN.x1:SN.x2]))
@@ -955,11 +940,9 @@ def apply_host_corrections(SN_Array, lengths, r_v = 2.5, verbose=True, low_av_te
                 SN.flux = new_flux.value
                 SN.ivar = new_ivar.value
                 corrected_SNs.append(SN)
-                lengths.append(SN.wavelength[SN.x2] - SN.wavelength[SN.x1])
             else:
                 print SN.filename, 'has low reddening!'
                 corrected_SNs.append(SN)
-                lengths.append(SN.wavelength[SN.x2] - SN.wavelength[SN.x1])
 
     SN_Array = corrected_SNs
     # print len(SN_Array), 'SNe with host corrections'
@@ -1313,7 +1296,6 @@ def main(Full_query, boot = False, medmean = 1, make_corr=True, multi_epoch=Fals
     SN_Array = grab(Full_query, make_corr=make_corr, multi_epoch=multi_epoch, 
                     selection = selection)
 
-    lengths = []
     SN_Array_wo_tell = remove_tell_files(SN_Array)
     print len(SN_Array) - len(SN_Array_wo_tell), 'spectra may have telluric contamination'
 
@@ -1325,19 +1307,26 @@ def main(Full_query, boot = False, medmean = 1, make_corr=True, multi_epoch=Fals
         SN_Array = combine_SN_spectra(SN_Array)
 
     av_cutoff=2.
-    SN_Array = apply_host_corrections(SN_Array, lengths, verbose=verbose, cutoff=av_cutoff)
-    og_SN_Array = apply_host_corrections(og_SN_Array, lengths, verbose=False, cutoff=av_cutoff)
+    SN_Array = apply_host_corrections(SN_Array, verbose=verbose, cutoff=av_cutoff)
+    og_SN_Array = apply_host_corrections(og_SN_Array, verbose=False, cutoff=av_cutoff)
     print 'removed spectra of SNe with A_V >', av_cutoff
 
     events = []
+    lengths = []
+
+    if verbose:
+        print "SN", "Filename", "Source", "SNR", "Phase", "Dm15", "Minwave", "Maxwave"
     for SN in SN_Array:
+        if verbose:
+            print SN.name, SN.filename, SN.source, SN.SNR, SN.phase, SN.dm15, SN.wavelength[SN.x1], SN.wavelength[SN.x2]
+
+        lengths.append(SN.wavelength[SN.x2] - SN.wavelength[SN.x1])
         if 'combined' in SN.name:
             events.append(SN.name.split('_')[0])
         else:
             events.append(SN.name)
     event_set = set(events)
 
-    print 
     print 'Using', len(og_SN_Array), 'spectra of', len(event_set), 'SNe'
 
     SN_Array = prelim_norm(SN_Array)

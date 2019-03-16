@@ -18,6 +18,8 @@ astropy
 
 specutils
 
+tabulate
+
 Version specific dependencies:
 
 msgpack-python version 0.4.6

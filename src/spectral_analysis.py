@@ -304,8 +304,8 @@ def max_wave(wavelength, flux, w1, w2, w3, vexp=.001, sys_error=False):
 
     if sys_error:
         #change continuum locations by a random even integer (at most 100 Angstroms)
-        max_wave_1 = max_wave_1 + random.randint(-24, 24)*2.
-        max_wave_2 = max_wave_2 + random.randint(-24, 24)*2.
+        max_wave_1 = max_wave_1 + random.randint(-50, 50)*2.
+        max_wave_2 = max_wave_2 + random.randint(-50, 50)*2.
 
     return max_wave_1, max_wave_2, wave_domain_1, wave_domain_2, elem_flux_1, elem_flux_2, sm_flux
 

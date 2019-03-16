@@ -500,7 +500,7 @@ def scaled_plot(composites, min_num_show = 5, min_num_scale = 10, include_spec_b
 			rel_flux.legend(legend_labels, loc='best', bbox_to_anchor=(0.5, 0.45, 0.48, 0.5), title=text)
 	if savename is not None:
 		plt.savefig('../../../Paper_Drafts/'+savename+'.pdf', dpi = 300, bbox_inches = 'tight')
-		plt.savefig('../../../FLASH/temp_max_light_dm15.png', dpi = 300, bbox_inches = 'tight')
+		plt.savefig('../../../Paper_Drafts/plot_images/'+savename.split('/')[1]+'.png', dpi = 300, bbox_inches = 'tight')
 	plt.show()
 
 def set_min_num_spec(composites, num):
@@ -909,6 +909,7 @@ def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_sc
 		rel_flux.legend(legend_labels, bbox_to_anchor=(0.5, 0.45, 0.48, 0.5))
 	if savename is not None:
 		plt.savefig('../../../Paper_Drafts/'+savename+'.pdf', dpi = 300, bbox_inches = 'tight')
+		plt.savefig('../../../Paper_Drafts/plot_images/'+savename.split('/')[1]+'.png', dpi = 300, bbox_inches = 'tight')
 	plt.show()
 
 def si_plot(composites, boot=False, min_num_show = 1, min_num_scale = 5, scale=3., cmap_kind = 'dm15', savename = None):
@@ -976,6 +977,7 @@ def si_plot(composites, boot=False, min_num_show = 1, min_num_scale = 5, scale=3
 	# plt.savefig('../../FLASH/individual_spectra.png', dpi = 300, bbox_inches = 'tight')
 	if savename is not None:
 		plt.savefig('../../../Paper_Drafts/'+savename+'.pdf', dpi = 300, bbox_inches = 'tight')
+		plt.savefig('../../../Paper_Drafts/plot_images/'+savename.split('/')[1]+'.png', dpi = 300, bbox_inches = 'tight')
 	plt.show()
 
 def stacked_plot(composites, boot=False, savename = None):
@@ -1037,6 +1039,7 @@ def stacked_plot(composites, boot=False, savename = None):
 	# plt.savefig('../../FLASH/individual_spectra.png', dpi = 300, bbox_inches = 'tight')
 	if savename is not None:
 		plt.savefig('../../../Paper_Drafts/'+savename+'.pdf', dpi = 300, bbox_inches = 'tight')
+		plt.savefig('../../../Paper_Drafts/plot_images/'+savename.split('/')[1]+'.png', dpi = 300, bbox_inches = 'tight')
 	plt.show()
 
 def normalize_comps(composites, scale=1., w1=3500, w2=9000.):
@@ -1265,6 +1268,7 @@ def plot_comp_and_all_spectra(comp, SN_Array, show_ivar = False, comp2=None, com
 
 		if savename is not None:
 			plt.savefig('../../../Paper_Drafts/main_composites_updated/'+savename+'.pdf', dpi = 300, bbox_inches = 'tight')
+			plt.savefig('../../../Paper_Drafts/plot_images/'+savename+'.png', dpi = 300, bbox_inches = 'tight')
 		plt.show()
 	else:
 		plt.rc('font', family='serif')
@@ -1303,10 +1307,10 @@ def plot_comp_and_all_spectra(comp, SN_Array, show_ivar = False, comp2=None, com
 		plt.show()
 
 
-def save_comps_to_files(composites, prefix):
+def save_comps_to_files(composites, prefix, num_avg = 5):
 	#save to file
 	for SN in composites:
-		set_min_num_spec(composites, 5)
+		set_min_num_spec(composites, num_avg)
 		phase = np.round(np.average(SN.phase_array[SN.x1:SN.x2]), 2)
 		dm15 = np.round(np.average(SN.dm15_array[SN.x1:SN.x2]), 2)
 		z = np.round(np.average(SN.red_array[SN.x1:SN.x2]), 3)
@@ -1329,6 +1333,13 @@ def save_comps_to_files(composites, prefix):
 		print file_path
 		with open(file_path, 'w') as file:
 			file.write('# SQL Query: ' + SN.query + '\n')
+			file.write('# N = ' + num_str + '\n')
+			file.write('# N_spec = ' + num_spec_str + '\n')
+			file.write('# phase = ' + str(phase) + '\n')
+			file.write('# dm15 = ' + dm15_str + '\n')
+			file.write('# z = ' + z_str + '\n')
+			file.write('\n')
+
 			wave = np.array(SN.wavelength[SN.x1:SN.x2])
 			flux = np.array(SN.flux[SN.x1:SN.x2])
 			up_conf = np.array(SN.up_conf[SN.x1:SN.x2]) - flux
@@ -1360,7 +1371,7 @@ if __name__ == "__main__":
 	num_queries = len(query_strings)
 
 	for n in range(num_queries):
-		# c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = False, make_corr=False, multi_epoch=True, combine=False)
+		c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = False, make_corr=False, multi_epoch=True, combine=False)
 		# c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = False, multi_epoch=True, combine=True) 
 		# composites.append(c)
 		# SN_Arrays.append(sn_arr)
@@ -1374,7 +1385,7 @@ if __name__ == "__main__":
 		# if store_boots:
 		# 	boot_sn_arrays.append(boots)
 			
-		c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = True, verbose=True, multi_epoch=True, combine=True)
+		# c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = True, verbose=True, multi_epoch=True, combine=True)
 		composites.append(c)
 		SN_Arrays.append(sn_arr)
 		if boot:
@@ -1414,12 +1425,12 @@ if __name__ == "__main__":
 		print 'v = ', v_strong
 
 
-	vs = []
-	for b in boot_sn_arrays[0]:
-		v_strong, si_min_wave = sa.measure_velocity(b.wavelength[b.x1:b.x2],b.flux[b.x1:b.x2], 5900., 6300.)
-		vs.append(v_strong)
-	v_err = np.nanstd(vs)
-	print 'v_err = ', v_err
+	# vs = []
+	# for b in boot_sn_arrays[0]:
+	# 	v_strong, si_min_wave = sa.measure_velocity(b.wavelength[b.x1:b.x2],b.flux[b.x1:b.x2], 5900., 6300.)
+	# 	vs.append(v_strong)
+	# v_err = np.nanstd(vs)
+	# print 'v_err = ', v_err
 
 
 	# r = sa.measure_si_ratio(comp2.wavelength[comp2.x1:comp2.x2], comp2.flux[comp2.x1:comp2.x2], vexp = .001)

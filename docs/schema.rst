@@ -2,28 +2,17 @@
 Querying the Database
 =====================
 
-The database currently consists of two tables: *Spectra* and *Events*. These tables host the spectrum-specific and SN-specific metadata respectively. Currently the only way to interact with the database is via an SQL join on these tables. If you wish to run the code from outside of the /src directory you should modify your python path as shown below. Our documentation will focus on the routines available in the *kaepora* module. 
+The database currently consists of two tables: *Spectra* and *Events*. These tables host the spectrum-specific and SN-specific metadata respectively. Currently the only way to interact with the database is via an SQL join on these tables. Right now, you should run your code from the /src directory. Our documentation will focus on the routines available in the ``kaepora.py``. Start by importing this module:
 
 .. code-block:: python
 
-    import sys
-    import os
-    path = 'your/path/to/kaepora/src'
-    sys.path.insert(0, path)
     import kaepora as kpora
-    import kaepora_plot as kplot
-    os.chdir(path)
 
-You can start by defining an array containing SQL queries. For example:
+You can then define an array containing SQL queries and obtain spectra from the database. For example:
 
 .. code-block:: python
 
     example_query = ["SELECT * from Spectra inner join Events ON Spectra.SN = Events.SN where phase >= -1 and phase <= 1 and ((dm15_source < 1.8) or (dm15_from_fits < 1.8))"]
-
-You can then obtain the spectra that satisfy a query in your list:
-
-.. code-block:: python
-
     spec_array = kpora.grab(example_query[0])
 
 If you would like to remove atypical SNe Ia, SNe with flagged artifacts, and SNe with poor host reddening corrections use:
@@ -32,9 +21,35 @@ If you would like to remove atypical SNe Ia, SNe with flagged artifacts, and SNe
 
     spec_array = kpora.grab(example_query[0], make_corr=True)
 
-``spec_array`` now contains an array of objects that contain our homogenized spectra and all of the spectrum- and SN-specific metadata. Currently these objects are made to represent single spectra, so spectra coming from the same SN will have some redundant SN metadata.
+These spectra have been already been corrected for MW reddening. To correct these spectra for host-galaxy reddening (and exclude SNe with A\ :sub:`V` > 2) with a F99 reddening law use:
 
-Below we describe the attributes of these objects that are also queryable parameters of the database.
+.. code_block:: python
+
+    spec_array = kpora.host_dereddening(spec_array, cutoff=2.)
+
+================
+Spectrum Objects
+================
+
+``spec_array`` now contains an array of objects that contain our homogenized spectra and all of the spectrum- and SN-specific metadata. Currently these objects are made to represent single spectra, so objects generated from the same SNe will contain some redundant SN metadata. These spectra are normalized to their maximum flux. Basic information on these objects can be viewed with:
+
+.. code_block:: python
+
+    for spec in spec_array_dered:
+        print spec.name, spec.filename, spec.source, spec.phase, spec.wavelength[spec.x1], spec.wavelength[spec.x2]
+
+A spectrum and its variance can be plotted with:
+
+.. code_block:: python
+
+    import matplotlib.pyplot as plt
+    fig, ax = plt.subplots(2,1)
+    example_spec = spec_array_dered[20]
+    ax[0].plot(example_spec.wavelength, example_spec.flux)
+    ax[1].plot(example_spec.wavelength, 1/example_spec.ivar)
+    plt.show()
+
+Below we describe other attributes of these objects that are also queryable parameters of the database.
 
 ======
 Schema
@@ -52,9 +67,9 @@ Spectral Attributes
 +-----------+------------+--------------------------------------------+--------+
 | source    | "Source"   | Data source                                | String |
 +-----------+------------+--------------------------------------------+--------+
-| minwave   | "Minwave"  | Minimum wavelength of uncorrected spectrum | float  |
+| minwave   | "Minwave"  | Minimum wavelength of original spectrum    | float  |
 +-----------+------------+--------------------------------------------+--------+
-| maxwave   | "Maxwave"  | Maximum wavelength of uncorrected spectrum | float  |
+| maxwave   | "Maxwave"  | Maximum wavelength of original spectrum    | float  |
 +-----------+------------+--------------------------------------------+--------+
 | SNR       | "snr"      | Median S/N of the spectrum                 | float  |
 +-----------+------------+--------------------------------------------+--------+
@@ -84,9 +99,9 @@ These attributes contain the most metadata. We also include (but do not list) me
 +-------------------+---------------------+--------------------------------------------------------------------------------------+--------+
 | av_25             | "Av_25"             | Estimated host galaxy extinction from an MLCS fit using R_v = 2.5                    | float  |
 +-------------------+---------------------+--------------------------------------------------------------------------------------+--------+
-| SN.m_b_cfa        | "M_b_cfa"           | Absolute B-Band magnitude at maximum light from the CfA sample                       | float  |
+| m_b_cfa           | "M_b_cfa"           | Absolute B-Band magnitude at maximum light from the CfA sample                       | float  |
 +-------------------+---------------------+--------------------------------------------------------------------------------------+--------+
-| SN.m_b_cfa_err    | "M_b_cfa_err"       | Error in m_b_cfa                                                                     | float  |
+| m_b_cfa_err       | "M_b_cfa_err"       | Error in m_b_cfa                                                                     | float  |
 +-------------------+---------------------+--------------------------------------------------------------------------------------+--------+
 | b_minus_v_cfa     | "B_minus_V_cfa"     | B-V color at maximum light                                                           | float  |
 +-------------------+---------------------+--------------------------------------------------------------------------------------+--------+
