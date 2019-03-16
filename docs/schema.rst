@@ -23,7 +23,7 @@ If you would like to remove atypical SNe Ia, SNe with flagged artifacts, and SNe
 
 These spectra have been already been corrected for MW reddening. To correct these spectra for host-galaxy reddening (and exclude SNe with A\ :sub:`V` > 2) with a F99 reddening law use:
 
-.. code_block:: python
+.. code-block:: python
 
     spec_array = kpora.host_dereddening(spec_array, cutoff=2.)
 
@@ -33,14 +33,14 @@ Spectrum Objects
 
 ``spec_array`` now contains an array of objects that contain our homogenized spectra and all of the spectrum- and SN-specific metadata. Currently these objects are made to represent single spectra, so objects generated from the same SNe will contain some redundant SN metadata. These spectra are normalized to their maximum flux. Basic information on these objects can be viewed with:
 
-.. code_block:: python
+.. code-block:: python
 
     for spec in spec_array_dered:
         print spec.name, spec.filename, spec.source, spec.phase, spec.wavelength[spec.x1], spec.wavelength[spec.x2]
 
 A spectrum and its variance can be plotted with:
 
-.. code_block:: python
+.. code-block:: python
 
     import matplotlib.pyplot as plt
     fig, ax = plt.subplots(2,1)

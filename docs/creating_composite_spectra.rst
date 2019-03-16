@@ -4,7 +4,7 @@ Creating Composite Spectra
 
 Here we outline how to generate composite spectra using the methods of `Siebert et al. 2019 <https://msiebert1.github.io/publication/2019-XX-XX-Siebert_2019_MNRAS>`_. Start by defining ``query_list`` such that it describes the subset of data that for which you wish to generate a composite spectrum. Then run the ``make_composite``:
 
-.. code_block:: python
+.. code-block:: python
 
     query_list = ["SELECT * from Spectra inner join Events ON Spectra.SN = Events.SN where phase >= -1 and phase <= 1 and ((dm15_source < 1.8) or (dm15_from_fits < 1.8))"]
     composites, sn_arrays, boot_sn_arrays = kpora.make_composite(query_list, boot=False, medmean=1, verbose=False, gini_balance=True, combine=True)
@@ -25,7 +25,7 @@ Other applications of the available ``make_composite`` arguments are listed belo
 
 We also provide a useful plotting function to visualize your composite spectra. This will also output the average properties of the composite spectra within wavelength ranges defined by ``set_min_num_spec``.
 
-.. code_block:: python
+.. code-block:: python
     kpora.set_min_num_spec(composites, 5) # require at least 5 spectra for determining average properties
     kplot.comparison_plot(composites, min_num_show=5)
 
