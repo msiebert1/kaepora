@@ -17,16 +17,16 @@ Other applications of the available ``make_composite`` arguments are listed belo
 
 ``medmean = 2``: a median composite spectrum will be generated.
 
-``verbose = False``: prints basic information about each spectrum contributing to the composite spectrum.
+``verbose = True``: prints basic information about each spectrum contributing to the composite spectrum.
 
 ``gini_balance = False``: does an inverse-variance weighted average of the original data (this is more susceptible to high SNR outliers). For more information on our Gini-weighting method please read our paper.
 
-``combine = False``: does not intitally combine spectra from the same SNe. 
+``combine = False``: does not initially combine spectra from the same SNe. 
 
 We also provide a useful plotting function to visualize your composite spectra. This will also output the average properties of the composite spectra within wavelength ranges defined by ``set_min_num_spec``.
 
 .. code-block:: python
-    kpora.set_min_num_spec(composites, 5) # require at least 5 spectra for determining average properties
+    kpora.set_min_num_spec(composites, 5)
     kplot.comparison_plot(composites, min_num_show=5)
 
 .. image:: maximum_light_all_dm15.png
