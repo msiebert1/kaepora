@@ -26,6 +26,7 @@ Other applications of the available ``make_composite`` arguments are listed belo
 We also provide a useful plotting function to visualize your composite spectra. This will also output the average properties of the composite spectra within wavelength ranges defined by ``set_min_num_spec``.
 
 .. code-block:: python
+
     kpora.set_min_num_spec(composites, 5)
     kplot.comparison_plot(composites, min_num_show=5)
 
