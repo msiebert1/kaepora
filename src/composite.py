@@ -968,9 +968,9 @@ def remove_tell_files(SN_Array):
 
     if has_tell_file:
         SN_Array_wo_tell = []
-        for SN in SN_Array:
-            if SN.filename not in tell_files:
-                SN_Array_wo_tell.append(copy.deepcopy(SN))
+        # for SN in SN_Array:
+            # if SN.filename not in tell_files:
+            #     SN_Array_wo_tell.append(copy.deepcopy(SN))
         return SN_Array_wo_tell
     else:
         return SN_Array
@@ -1318,7 +1318,7 @@ def main(Full_query, boot = False, medmean = 1, make_corr=True, multi_epoch=Fals
         print "SN", "Filename", "Source", "SNR", "Phase", "Dm15", "Minwave", "Maxwave"
     for SN in SN_Array:
         if verbose:
-            print SN.name, SN.filename, SN.source, SN.SNR, SN.phase, SN.dm15, SN.wavelength[SN.x1], SN.wavelength[SN.x2]
+            print SN.name, SN.filename, SN.source, SN.SNR, SN.phase, SN.dm15, SN.ned_host, SN.wavelength[SN.x1], SN.wavelength[SN.x2]
 
         lengths.append(SN.wavelength[SN.x2] - SN.wavelength[SN.x1])
         if 'combined' in SN.name:

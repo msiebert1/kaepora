@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-.. image:: kaepora_graphic.png
+.. image:: kaepora_graphic_purple.png
    :width: 700 px
 
 kaepora

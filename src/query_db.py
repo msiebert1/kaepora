@@ -1098,21 +1098,21 @@ def main(num_queries, query_strings, boot='nb', medmean = 1, selection = 'max_co
 
 	composite.optimize_scales(composites, composites[0], True)
 	composites = normalize_comps(composites)
-	# if measure_vs:
-	# 	for comp in composites:
-	# 		dm15 = np.round(np.nanmean(comp.dm15_array[comp.x1:comp.x2]),2)
-	# 		# r = sa.measure_si_ratio(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], vexp = .001, dm15=dm15)
-	# 		v_strong, si_min_wave = sa.measure_velocity(comp.wavelength[comp.x1:comp.x2],comp.flux[comp.x1:comp.x2], 5900., 6300.)
-	# 		print 'v = ', v_strong
+	if measure_vs:
+		for comp in composites:
+			dm15 = np.round(np.nanmean(comp.dm15_array[comp.x1:comp.x2]),2)
+			# r = sa.measure_si_ratio(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], vexp = .001, dm15=dm15)
+			v_strong, si_min_wave = sa.measure_velocity(comp.wavelength[comp.x1:comp.x2],comp.flux[comp.x1:comp.x2], 5900., 6300.)
+			print 'v = ', v_strong
 
 		
-	# 	for boot in boot_sn_arrays:
-	# 		vs = []
-	# 		for b in boot:
-	# 			v_strong, si_min_wave = sa.measure_velocity(b.wavelength[b.x1:b.x2],b.flux[b.x1:b.x2], 5900., 6300.)
-	# 			vs.append(v_strong)
-	# 		v_err = np.nanstd(vs)
-	# 		print 'v_err = ', v_err
+		for boot in boot_sn_arrays:
+			vs = []
+			for b in boot:
+				v_strong, si_min_wave = sa.measure_velocity(b.wavelength[b.x1:b.x2],b.flux[b.x1:b.x2], 5900., 6300.)
+				vs.append(v_strong)
+			v_err = np.nanstd(vs)
+			print 'v_err = ', v_err
 
 	if og_arr:
 		return composites, sn_arrays, og_sn_arrays, boot_sn_arrays
