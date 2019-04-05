@@ -12,6 +12,8 @@ import pandas as pd
 
 c = 299792.458
 
+#there are a lot of redundant functions from build_spectral_table.py here
+
 def find_all_events(salt,salt2,mlcs31,mlcs17,lcparams,host_data,av_dict,swift_dict,hst_dict,cfa_dict,short_bsnip_dict):
     events = []
 
@@ -75,6 +77,58 @@ def find_all_events(salt,salt2,mlcs31,mlcs17,lcparams,host_data,av_dict,swift_di
     events = set(events)
     return events
 
+def ReadExtin(file):
+    #table containing B and V values for determining extinction -> dereddening due to milky way
+    sne = np.genfromtxt(file, dtype=None)
+    return sne
+
+def MW_extinction_dict():
+    sne_cfa = ReadExtin('extinction.dat')
+    sne_bsnip = ReadExtin('extinctionbsnip.dat')
+    sne_csp = ReadExtin('extinctioncsp.dat')
+    sne_uv = ReadExtin('extinctionuv.dat')
+    sne_other = ReadExtin('extinctionother.dat')
+    sne_swift = ReadExtin('extinctionswiftuv.dat')
+    sne_hst = ReadExtin('extinctionhst.dat')
+
+    ext_dict = {}
+    R_V = 3.1
+    for j in range(len(sne_cfa)):
+        sn = sne_cfa[j][0].lower()
+        if sn not in ext_dict.keys():
+            ext_dict[sn] = R_V*(float(sne_cfa[j][1]) - float(sne_cfa[j][2]))
+    for j in range(len(sne_bsnip)):
+        sn = sne_bsnip[j][0].lower()
+        if sn not in ext_dict.keys():
+            ext_dict[sn] = R_V*(float(sne_bsnip[j][1]) - float(sne_bsnip[j][2]))
+    for j in range(len(sne_csp)):
+        sn = sne_csp[j][0].lower()
+        if sn not in ext_dict.keys():
+            ext_dict[sn] = R_V*(float(sne_csp[j][1]) - float(sne_csp[j][2]))
+    for j in range(len(sne_uv)):
+        sn = sne_uv[j][0].lower()
+        if sn not in ext_dict.keys():
+            ext_dict[sn] = R_V*(float(sne_uv[j][1]) - float(sne_uv[j][2]))
+    for j in range(len(sne_other)):
+        sn = sne_other[j][0].lower()
+        if sn not in ext_dict.keys():
+            ext_dict[sn] = R_V*(float(sne_other[j][1]) - float(sne_other[j][2]))
+    for j in range(len(sne_swift)):
+        if sne_swift[j][0] != 'ASASSN-14lp':
+            sn = sne_swift[j][0].lower()
+        else:
+            sn = sne_swift[j][0].lower()
+        if sn not in ext_dict.keys():
+            ext_dict[sn] = float(sne_swift[j][1])
+    for j in range(len(sne_hst)):
+        if sne_hst[j][0] != 'ASASSN-14lp':
+            sn = 'sn' + sne_hst[j][0].lower()
+        else:
+            sn = sne_hst[j][0].lower()
+        if sn not in ext_dict.keys():
+            ext_dict[sn] = float(sne_hst[j][1])
+
+    return ext_dict
 
 def build_salt_dict(salt):
     salt_dict = {}
@@ -951,6 +1005,7 @@ def main():
     dm15_delta_interp, delta_fit_results = dm15_from_fit_params(events, mlcs31_dict, cfa_dict, stretch='delta')
     dm15_delta_lowrv_interp, delta_lowrv_fit_results = dm15_from_fit_params(events, delt_dict, cfa_dict, stretch='delta_lowrv')
     # plot_dm15_fits(s_results, x1_results, delta_fit_results, delta_lowrv_fit_results)
+    ext_dict = MW_extinction_dict()
     # raise TypeError
 
     con = sq3.connect('..\data\kaepora_v1.db')
@@ -963,7 +1018,7 @@ def main():
                                                           glon_host REAL, glat_host REAL, cz_host REAL, czLG_host REAL, czCMB_host REAL, mtype_host TEXT, xpos_host REAL, ypos_host REAL, t1_host REAL, filt_host TEXT, Ebv_host REAL,
                                                           zCMB_lc REAL, zhel_lc REAL, mb_lc REAL, e_mb_lc REAL, c_lc REAL, e_c_lc REAL, x1_lc REAL, e_x1_lc REAL, logMst_lc REAL, e_logMst_lc REAL, tmax_lc REAL, e_tmax_lc REAL, cov_mb_s_lc REAL, cov_mb_c_lc REAL, cov_s_c_lc REAL, bias_lc REAL,
                                                           
-                                                          Av_25 REAL, MJD_max REAL, Dm15_source REAL, Dm15_from_fits REAL, e_dm15 REAL, separation REAL, NED_host REAL, V_at_max REAl, V_err REAL,
+                                                          Av_MW REAL, Av_25 REAL, MJD_max REAL, Dm15_source REAL, Dm15_from_fits REAL, e_dm15 REAL, separation REAL, NED_host REAL, V_at_max REAl, V_err REAL,
                                                           Redshift REAL, M_b_cfa REAL, M_b_cfa_err REAL, B_minus_V_cfa REAL, B_minus_V_cfa_err REAL, Carbon_presence REAL, Na_presence REAL, Hubble_res REAL,
                                                           Photometry BLOB, csp_photometry BLOB)""")
 
@@ -1046,6 +1101,9 @@ def main():
         #hubble residual
         # hubble_res = residual_dict.get(event, None)
         hubble_res = salt2_hub_res_dict.get(event, None)
+
+        #MW reddening
+        av_mw = ext_dict.get(event, None)
 
         #MLCS reddening
         av_25 = av_dict.get(event)
@@ -1149,17 +1207,17 @@ def main():
                                                        zCMB_mlcs17, e_zCMB_mlcs17, mu_mlcs17, e_mu_mlcs17, delta_mlcs17, e_delta_mlcs17, av_mlcs17, e_av_mlcs17,
                                                        glon_host, glat_host, cz_host, czLG_host, czCMB_host, mtype_host, xpos_host, ypos_host, t1_host, filt_host, Ebv_host,
                                                        zCMB_lc, zhel_lc, mb_lc, e_mb_lc, c_lc, e_c_lc, x1_lc, e_x1_lc, logMst_lc, e_logMst_lc, tmax_lc, e_tmax_lc, cov_mb_s_lc, cov_mb_c_lc, cov_s_c_lc, bias_lc,
-                                                       av_25, MJD_max, dm15_source, dm15_from_fits, e_dm15, separation, NED_host, v_at_max, v_err, 
+                                                       av_MW, av_25, MJD_max, dm15_source, dm15_from_fits, e_dm15, separation, NED_host, v_at_max, v_err, 
                                                        Redshift, M_b_cfa, M_b_cfa_err, B_minus_V_cfa, B_minus_V_cfa_err, Carbon_presence, Na_presence, Hubble_res,
                                                        Photometry, csp_Photometry)
-                                VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                                VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                         (event, ra, dec, zCMB_salt, e_zCMB_salt, Bmag_salt, e_Bmag_salt, s_salt, e_s_salt, c_salt, e_c_salt, mu_salt, e_mu_salt,
                                   zCMB_salt2, e_zCMB_salt2, Bmag_salt2, e_Bmag_salt2, x1_salt2, e_x1_salt2, c_salt2, e_c_salt2, mu_salt2, e_mu_salt2,
                                   zCMB_mlcs31, e_zCMB_mlcs31, mu_mlcs31, e_mu_mlcs31, delta_mlcs31, e_delta_mlcs31, av_mlcs31, e_av_mlcs31,
                                   zCMB_mlcs17, e_zCMB_mlcs17, mu_mlcs17, e_mu_mlcs17, delta_mlcs17, e_delta_mlcs17, av_mlcs17, e_av_mlcs17,
                                   glon_host, glat_host, cz_host, czLG_host, czCMB_host, mtype_host, xpos_host, ypos_host, t1_host, filt_host, Ebv_host,
                                   zCMB_lc, zhel_lc, mb_lc, e_mb_lc, c_lc, e_c_lc, x1_lc, e_x1_lc, logMst_lc, e_logMst_lc, tmax_lc, e_tmax_lc, cov_mb_s_lc, cov_mb_c_lc, cov_s_c_lc, bias_lc,
-                                  av_25, mjd_max, dm15_source, dm15_from_fits, e_dm15, sep, ned_host, vel, e_vel,
+                                  av_mw, av_25, mjd_max, dm15_source, dm15_from_fits, e_dm15, sep, ned_host, vel, e_vel,
                                   redshift, m_b_cfa, m_b_cfa_err, b_minus_v_cfa, b_minus_v_cfa_err, carbon, na, hubble_res,
                                   buffer(phot_blob), buffer(csp_phot_blob))
                     )

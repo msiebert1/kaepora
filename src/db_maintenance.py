@@ -45,7 +45,7 @@ def update_bsnip_refs(db_file):
 	con.commit()
 
 def delete_swift_data(db_file):
-	con = sq3.connect('../data/kaepora_v1.db')
+	con = sq3.connect(db_file)
 	cur = con.cursor()
 	cur.execute("DELETE FROM Spectra where source = 'swift_uv'")
 	con.commit()
@@ -113,10 +113,10 @@ def update_phases_from_mlcs(db_file):
 		filename  = row[0]
 		name      = row[1]
 		source    = row[2]
-		redshift  = row[10:][75]
+		redshift  = row[10:][76]
 		phase     = row[3]
 		mjd         = row[8]
-		mjd_max   = row[10:][67]
+		mjd_max   = row[10:][68]
 
 		# if name is '2002dj':
 		# 	print 'what the fuck'
@@ -138,7 +138,7 @@ def fix_snr_measurements(db_file):
 	sql_input = "SELECT * from Spectra inner join Events ON Spectra.SN = Events.SN"
 	print 'Updating metadata step 2/7'
 	bad_ivars = []
-	SN_Array = composite.grab(sql_input, multi_epoch = True, make_corr = False, selection = 'max_coverage', grab_all=True)
+	SN_Array = composite.grab(sql_input, multi_epoch = True, make_corr = False, selection = 'max_coverage', grab_all=True, db_file = db_file)
 	for SN in SN_Array:
 		nan_bool_flux = np.isnan(SN.flux)
 		non_nan_data = np.where(nan_bool_flux == False)
@@ -250,13 +250,14 @@ def add_swift_metadata(db_file):
 	con.commit()
 
 def main():
-	update_phases_from_mlcs('../data/kaepora_v1.db')
-	fix_snr_measurements('../data/kaepora_v1.db')
-	add_more_host_data('../data/kaepora_v1.db')
-	update_references('../data/kaepora_v1.db')
-	add_swift_metadata('../data/kaepora_v1.db')
-	fix_2011fe_phases('../data/kaepora_v1.db')
-	update_bsnip_refs('../data/kaepora_v1.db')
+	database_file = '../data/kaepora_v1.db'
+	update_phases_from_mlcs(database_file)
+	fix_snr_measurements(database_file)
+	add_more_host_data(database_file)
+	update_references(database_file)
+	add_swift_metadata(database_file)
+	fix_2011fe_phases(database_file)
+	update_bsnip_refs(database_file)
 
 if __name__ == "__main__":
 	main()

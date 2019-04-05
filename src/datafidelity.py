@@ -1,34 +1,18 @@
-############################################################################
-#
-## This module contains the functions for data fidelity:
-## Smoothing functions, clip_data functions, and variance generation
-#
-## To include these functions, use
-#  from datafidelity import *
-#
-############################################################################
-
-# Import necessary python modules
 import numpy as np
 from math import *
 from scipy import interpolate
 import matplotlib.pyplot as plt
-# import pyfits
 import astropy.io.fits as pyfits
 import copy
 
 import scipy.signal as sig
 
-
-############################################################################
-#
-## Smoothing functions
-#
-## Function gsmooth() is an inverse variance weighted Gaussian smoothing of spectra
-## Optional imputs are smoothing velocity (vexp) and number of sigma (nsig)
-## Syntax: new_y_array = gsmooth(x_array, y_array, var_y, vexp = 0.01, nsig = 5.0)
-
+"""This file contains necessary functions for improving raw spectra. Notably, smoothing,
+    clipping, variance spectrum generation, and adding extra variance to due sky lines.
+"""
 def find_vexp(x_array, y_array, var_y=None):
+    """ Determines the optimal smoothing parameter (vexp) based on an estimate of SNR
+    """
     if var_y is not None:
         error = np.sqrt(var_y)
         new_y_init = gsmooth(x_array, y_array, var_y, .002)
@@ -52,22 +36,14 @@ def find_vexp(x_array, y_array, var_y=None):
         vexp_auto = .0045
     if SNR > 80:
         vexp_auto = .001
-    # if SNR < 5:
-    #     vexp_auto = .0045 
-    # elif 5 <= SNR < 20:
-    #     vexp_auto = .004
-    # elif 20 <= SNR < 40:
-    #     vexp_auto = .003
-    # elif 40 <= SNR < 60:
-    #     vexp_auto = .002
-    # elif 60 <= SNR < 100:
-    #     vexp_auto = .0015
-    # else:
-    #     vexp_auto = .001
 
     return vexp_auto, SNR
 
 def gsmooth(x_array, y_array, var_y, vexp , nsig = 5.0):
+    """Function gsmooth() is an inverse variance weighted Gaussian smoothing of spectra
+       Optional imputs are smoothing velocity (vexp) and number of sigma (nsig)
+       Syntax: new_y_array = gsmooth(x_array, y_array, var_y, vexp = 0.01, nsig = 5.0)
+    """
     
     # Check for zero variance points, and set to 1E-20
 
@@ -99,18 +75,14 @@ def gsmooth(x_array, y_array, var_y, vexp , nsig = 5.0):
     # Return smoothed y-array
     return new_y
 
-############################################################################
-#
-# Function clip() tries to identify absorption lines and cosmic rays
-# Required input is rest-frame wavelength, flux and inverse variance arrays
 
 def clip(wave, flux, var, vexp, testing=False):
-    # Create an array of all ones
-    # var = np.zeros(len(flux), float)
+    """Uses sigma clipping to find and interpolate over unwanted cosmic rays, and emission lines.
+    """
     
     # Create 2 smoothed fluxes, of varying vexp
     sflux = gsmooth(wave, flux, var, vexp)
-    # print 'sflux', sflux
+
     # Take the difference of the two fluxes and smooth
     diff = flux - sflux
     err = abs(flux - sflux)
@@ -134,23 +106,6 @@ def clip(wave, flux, var, vexp, testing=False):
     bad_wave_pos_avoid = wave[regions_avoid][bad_inds_pos_avoid]
     bad_wave_neg_avoid = wave[regions_avoid][bad_inds_neg_avoid]
 
-    # print bad_wave_normal
-    # print bad_wave_neg_avoid
-    # print bad_wave_pos_avoid
-    # plt.plot(wave, diff)
-    # for w in bad_wave_normal:
-    #     plt.axvline(x=w, color='r')
-    # plt.show()
-    # plt.plot(wave, err)
-    # plt.plot(wave, serr)
-    # for w in bad_wave_normal:
-    #     plt.axvline(x=w, color='r')
-    # plt.show()
-    # plt.plot(wave, err/serr)
-    # for w in bad_wave_normal:
-    #     plt.axvline(x=w, color='r')
-    # plt.show()
-
     # Find indices for general clipping
     bad_ranges = [] 
     buff = 8
@@ -168,9 +123,6 @@ def clip(wave, flux, var, vexp, testing=False):
     for i in range(len(bad_wave_neg_avoid)):
         bad_ranges.append((bad_wave_neg_avoid[i]-buff, bad_wave_neg_avoid[i]+buff))
 
-    # Set ivar to 0 for those points and return
-#    ivar[bad] = 0
-#    return ivar
     if testing:
         scale = 10./np.amax(flux)
         plt.rc('font', family='serif')
@@ -178,7 +130,6 @@ def clip(wave, flux, var, vexp, testing=False):
         fig.set_size_inches(10, 8, forward = True)
         plt.minorticks_on()
         plt.xticks(fontsize = 20)
-        # ax.xaxis.set_ticks(np.arange(np.round(wave[0],-3),np.round(wave[-1],-3),1000))
         plt.yticks(fontsize = 20)
         plt.tick_params(
             which='major', 
@@ -197,8 +148,8 @@ def clip(wave, flux, var, vexp, testing=False):
         plt.plot(wave, scale*flux, 'r-', linewidth = 2, label='Before Clipping')
 
     for wave_tuple in bad_ranges:
-#        print wave_tuple
         clip_points = np.where((wave > wave_tuple[0]) & (wave < wave_tuple[1]))
+
         #make sure not at edge of spectrum
         flux[clip_points] = np.interp(wave[clip_points], [wave_tuple[0], wave_tuple[1]], [flux[clip_points[0][0]-1], flux[clip_points[0][-1]+1]])
 
@@ -219,9 +170,11 @@ def clip(wave, flux, var, vexp, testing=False):
 
     return wave, flux, var # return bad_ranges instead of setting ivar[bad] = 0 (A.S.)
     
-# clip function specifically for lines that need ivar to set to nearby ones
-# Currently only for Na lines (5800-5900)
+
 def clipmore(wave, flux, ivar) :
+    """ This function is no longer used, Na and other specific regions are 
+        handled by the clip() function
+    """
 
     ind = np.where((wave > 5800.0 ) & (wave < 6000.0 )) # what region to look at 
 #    print ind[0]
@@ -254,10 +207,7 @@ def clipmore(wave, flux, ivar) :
 
         return ivar
         
-############################################################################
-#
-# Function to add sky over a wavelength range
-#
+
 def addsky(wavelength, flux, error, med_error, source = None):
 
     # Open kecksky spectrum from fits file and create arrays
@@ -285,14 +235,8 @@ def addsky(wavelength, flux, error, med_error, source = None):
     spline_rep = interpolate.splrep(skywave, skyflux)
     add_flux = interpolate.splev(wavelength[good], spline_rep) 
 
-    # Scale sky
-    # scale = 285*med_error
-    # print med_error
-    # scale = 50.*med_error #fudge factor provides reasonable scaling of sky lines
-    # add_flux = scale*add_flux
-
     scale = med_error/np.median(add_flux)
-    # print .004*scale/med_error
+
     add_flux = 0.004*scale*add_flux
 
     # Add sky flux to the error
@@ -312,9 +256,12 @@ def addsky(wavelength, flux, error, med_error, source = None):
 #
 
 def genivar(wavelength, flux, varflux, vexp = 0.002, nsig = 5.0, testing=False, source=None):
-    # Check to see if it has a variance already
+    """ The primary function for variance spectrum generation. Spectrum is smoothed, residual spectrum 
+        is generated, residual spectrum is smoothed, sky noise is added in, error spectrum is scaled
+        by a linear function of wavelength determined from the CfA data, and the ivar spectrum and SNR 
+        are returned.
+    """
 
-    #UNCOMMENT WHEN DONE TESTING
     if varflux is not None and not testing:
         error = np.sqrt(varflux)
         SNR = np.median(flux / error)
@@ -322,7 +269,6 @@ def genivar(wavelength, flux, varflux, vexp = 0.002, nsig = 5.0, testing=False, 
         return ivar, SNR
 
     # Smooth original flux
-    # new_flux = gsmooth(wavelength, flux, varflux, vexp, nsig)
 
     new_flux = gsmooth(wavelength, flux, varflux, vexp, nsig)
     
@@ -330,7 +276,6 @@ def genivar(wavelength, flux, varflux, vexp = 0.002, nsig = 5.0, testing=False, 
     error = abs(flux - new_flux)
     
     # Smooth noise to find the variance
-    # sm_error = gsmooth(wavelength, error, varflux, vexp, nsig)
     sm_error = gsmooth(wavelength, error, varflux, .015, nsig)
 
     # Test wavelength ranges for kecksky overlap
@@ -354,7 +299,6 @@ def genivar(wavelength, flux, varflux, vexp = 0.002, nsig = 5.0, testing=False, 
         sm_real_error = gsmooth(wavelength, real_error, None, .008)
         error_scales = sm_real_error/sm_error
         scale_fit = np.polyfit(wavelength, error_scales, 1)
-        # print scale_fit
         scale_func = scale_fit[0]*(wavelength) + scale_fit[1]
     
 
@@ -368,7 +312,6 @@ def genivar(wavelength, flux, varflux, vexp = 0.002, nsig = 5.0, testing=False, 
         fig.set_size_inches(10, 8, forward = True)
         plt.minorticks_on()
         plt.xticks(fontsize = 20)
-        # ax.xaxis.set_ticks(np.arange(np.round(wave[0],-3),np.round(wave[-1],-3),1000))
         plt.yticks(fontsize = 20)
         plt.tick_params(
             which='major', 
@@ -386,8 +329,6 @@ def genivar(wavelength, flux, varflux, vexp = 0.002, nsig = 5.0, testing=False, 
             length=5)
 
         plt.plot(wavelength, scale*error, linewidth = 2, color = '#000080', label='Absolute Residuals')
-        # if varflux is not None:
-        #     plt.plot(wavelength, sm_real_error, linewidth = 2, color = 'g', label='Real Error')
         plt.plot(wavelength, scale*sm_error_new, linewidth = 2, color = 'orange', label='Smoothed Absolute Residuals')
         plt.plot(wavelength, scale*scale_func*sm_error_new, linewidth = 2, color = 'magenta', label='Smoothed Absolute Residuals Corrected')
         if varflux is not None:
@@ -408,5 +349,4 @@ def genivar(wavelength, flux, varflux, vexp = 0.002, nsig = 5.0, testing=False, 
     # Inverse variance
     ivar = 1./(sm_var_new)
     SNR = np.median(new_flux / scaled_error)
-    # Return generated variance
     return ivar, SNR

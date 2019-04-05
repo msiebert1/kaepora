@@ -10,6 +10,9 @@ import argparse
 import spectral_analysis as sa
 from tabulate import tabulate
 
+"""This is a deprecated version of kaepora.py. These functions 
+have been consolidated and redefined in kaepora.py and kaepora_plot.py.
+"""
 
 def make_colorbar(composites, cmap_kind='diff'):
 	params = []

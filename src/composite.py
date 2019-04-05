@@ -31,7 +31,7 @@ import gini
 np.set_printoptions(threshold=np.nan)
 mn.patch()
 
-class supernova(object):
+class spectrum(object):
     """A generic class to represent a spectrum and its associated metadata
     """
     def __init__(self, wavelength = None, flux = None, low_conf=[], up_conf=[], ivar = None):
@@ -50,11 +50,11 @@ class supernova(object):
             self.filename=None
 
 def store_phot_data(SN, row):
-    """Assigns attributes to a supernova object from the Photometry table in the
+    """Assigns attributes to a spectrum object from the Photometry table in the
     SQL database. 
 
     Args:
-        SN: A supernova object that has been initialized by the 'grab' function.
+        SN: A spectrum object that has been initialized by the 'grab' function.
         row: The row from the Photometry table associated with this SN object.
 
     Yields:
@@ -84,33 +84,34 @@ def store_phot_data(SN, row):
     SN.e_x1_lc, SN.logMst_lc, SN.e_logMst_lc, SN.tmax_lc, SN.e_tmax_lc, \
     SN.cov_mb_s_lc, SN.cov_mb_c_lc, SN.cov_s_c_lc, SN.bias_lc = phot_row[50:66]
 
-    SN.av_25 = phot_row[66]
-    SN.mjd_max = phot_row[67]
+    SN.av_mw = phot_row[66]
+    SN.av_25 = phot_row[67]
+    SN.mjd_max = phot_row[68]
 
-    SN.dm15_source = phot_row[68]
-    SN.dm15_from_fits = phot_row[69]
-    SN.e_dm15 = phot_row[70]
-    SN.sep = phot_row[71]
-    SN.ned_host = phot_row[72]
-    SN.v_at_max = phot_row[73]
-    SN.e_v = phot_row[74]
+    SN.dm15_source = phot_row[69]
+    SN.dm15_from_fits = phot_row[70]
+    SN.e_dm15 = phot_row[71]
+    SN.sep = phot_row[72]
+    SN.ned_host = phot_row[73]
+    SN.v_at_max = phot_row[74]
+    SN.e_v = phot_row[75]
 
-    SN.redshift = phot_row[75]
-    SN.m_b_cfa = phot_row[76]
-    SN.m_b_cfa_err = phot_row[77]
-    SN.b_minus_v_cfa = phot_row[78]
-    SN.b_minus_v_cfa_err = phot_row[79]
-    SN.carbon = phot_row[80]
-    SN.na = phot_row[81]
-    SN.hubble_res = phot_row[82]
+    SN.redshift = phot_row[76]
+    SN.m_b_cfa = phot_row[77]
+    SN.m_b_cfa_err = phot_row[78]
+    SN.b_minus_v_cfa = phot_row[79]
+    SN.b_minus_v_cfa_err = phot_row[80]
+    SN.carbon = phot_row[81]
+    SN.na = phot_row[82]
+    SN.hubble_res = phot_row[83]
 
     SN.light_curves = msg.unpackb(phot_row[-2])
     SN.csp_light_curves = msg.unpackb(phot_row[-1])
 
 def grab(sql_input, multi_epoch = True, make_corr = True, 
-         selection = 'max_coverage', grab_all=False):
+         selection = 'max_coverage', grab_all=False, db_file = '../data/kaepora_v1.db'):
     """A primary function for interacting with the database. The user specifies 
-    a desired subsample via an SQL query. Spectra are stored as supernova objects
+    a desired subsample via an SQL query. Spectra are stored as spectrum objects
     with their associated metadata as attributes.
 
     Args:
@@ -136,16 +137,16 @@ def grab(sql_input, multi_epoch = True, make_corr = True,
             'max_coverage_splice': allows multiple spectra from the same SN as 
                 long as overlap is < 500 A
         grab_all: If True, ignore other arguments and return all data that 
-            satisfy the SQL query.
+            satisfy the SQL query. This also ignores metadata and sets a very basic 
+            list of spectrum attributes.
 
     Returns:
-        An array of supernova objects populated with metadata retrieved from 
+        An array of spectrum objects populated with metadata retrieved from 
         the SQL query.
 
     """
     #Connect to database
     #Make sure your database file is in this location
-    db_file = '../data/kaepora_v1.db'
     con = sq3.connect(db_file)
     print "Collecting data from", db_file, "..."
     cur = con.cursor()
@@ -171,27 +172,7 @@ def grab(sql_input, multi_epoch = True, make_corr = True,
         from the "Supernovae" table.
         """
 
-        SN           = supernova()
-        # SN.filename  = row[0]
-        # SN.name      = row[1]
-        # SN.source    = row[2]
-        # SN.redshift  = row[3]
-        # SN.phase     = row[4]
-        # SN.minwave   = row[5]
-        # SN.maxwave   = row[6]
-        # SN.dm15      = row[7]
-        # SN.m_b       = row[8]
-        # SN.B_minus_V = row[9]
-        # SN.velocity  = row[10]
-        # SN.morph     = row[11]
-        # SN.carbon    = row[12]
-        # SN.GasRich   = row[13]
-        # SN.SNR       = row[14]
-        # SN.resid     = row[15]
-        # interp       = msg.unpackb(row[16])
-        # SN.interp    = interp
-        # SN.mjd         = row[17]
-        # SN.ref       = row[18]
+        SN           = spectrum()
 
         SN.filename  = row[0]
         SN.name      = row[1]
@@ -433,7 +414,7 @@ def spectra_per_bin(SN_Array):
     """Counts the number of spectra contributing to the composite at any given wavelength.
     
         Args:
-            SN_Array: An array of supernova objects.
+            SN_Array: An array of spectrum objects.
 
         Returns:
             An array containing the the number of spectra in SN_Array that have
@@ -452,18 +433,18 @@ def spectra_per_bin(SN_Array):
             
             
 def optimize_scales(SN_Array, template, initial, scale_range=False, wave1=3000, wave2=6000):
-    """Scales each unique supernova in SN_Array by minimizing the square residuals 
-    between the supernova flux and the template flux. This also works for bootstrap 
+    """Scales each unique spectrum in SN_Array by minimizing the square residuals 
+    between the spectrum flux and the template flux. This also works for bootstrap 
     arrays (can contain repeated spectra) because the objects in SN_Array are not copies.
 
         Args:
-            SN_Array: An array of supernova objects.
+            SN_Array: An array of spectrum objects.
             template: The SN object that others will be scaled to
             initial: If True minimmize square residuals, if False minimize 
                 square residuals weighted by inverse variance
 
         Returns:
-            SN_Array: An array of supernova objects with flux, ivar, low_conf, 
+            SN_Array: An array of spectrum objects with flux, ivar, low_conf, 
                 and up_conf scaled to the template
             scales: A list of the scales used corresponding to each SN object
     """
@@ -482,12 +463,6 @@ def optimize_scales(SN_Array, template, initial, scale_range=False, wave1=3000, 
         guess = np.average(template.flux[template.x1:template.x2])/np.average(uSN.flux[uSN.x1:uSN.x2])
         u = opt.minimize(sq_residuals, guess, args = (uSN, template, initial, scale_range, wave1, wave2), 
                          method = 'Nelder-Mead').x
-        # print u
-        # if u < 1.e-5:
-        #     # u=1.
-        #     print uSN.filename
-        # if uSN.name == '1990n':
-        #     print u
         scales.append(u)
         
     for i in range(len(unique_arr)):
@@ -503,12 +478,12 @@ def optimize_scales(SN_Array, template, initial, scale_range=False, wave1=3000, 
     
 def sq_residuals(s,SN,comp, initial, scale_range, wave1, wave2):
     """Calculates the sum of the square residuals or weighted square residuals 
-    between two supernova flux arrays using a given scale s.
+    between two spectrum flux arrays using a given scale s.
 
     Args:
         s: The scaling factor
-        SN: A supernova object 
-        comp: Another supernova object (typically the composite spectrum)
+        SN: A spectrum object 
+        comp: Another spectrum object (typically the composite spectrum)
         initial: If True minimmize square residuals, if False minimize 
             square residuals weighted by inverse variance.
 
@@ -516,7 +491,7 @@ def sq_residuals(s,SN,comp, initial, scale_range, wave1, wave2):
         The sum of the square resiudal or weighted square residuals in the 
         region where the two spectra overlap.
     """
-    #This is dumb but its works
+    #This is dumb but it works
     if SN.x1 <= comp.x1 and SN.x2 >= comp.x2:
         pos1 = comp.x1
         pos2 = comp.x2
@@ -543,7 +518,6 @@ def sq_residuals(s,SN,comp, initial, scale_range, wave1, wave2):
     res = temp_flux[pos1:pos2] - comp.flux[pos1:pos2]
     sq_res = res*res
     if initial:
-        # print np.sum(sq_res)
         return np.sum(sq_res)
     else:
         temp_ivar = SN.ivar/(s*s)
@@ -556,7 +530,7 @@ def mask(SN_Array, boot):
     consistency and zero compensation. Returns the masks and data structures.
     
     Args:
-        SN_Array: An array of supernova objects
+        SN_Array: An array of spectrum objects
         boot: If True, does not create data structures for redshift, phase,
             velocity, or dm15. 
 
@@ -610,12 +584,12 @@ def mask(SN_Array, boot):
 def average(SN_Array, template, medmean, boot, fluxes, ivars, dm15_ivars, 
             red_ivars, reds, phases, ages, vels, morphs, dm15s, flux_mask, ivar_mask, 
             dm15_mask, red_mask, find_RMSE=False, name='Composite Spectrum'):
-    """Modifies the template supernova to be the inverse variance weighted 
+    """Modifies the template spectrum to be the inverse variance weighted 
     average of the scaled data.
 
         Args:
-            SN_Array: An array of supernova objects
-            template: The supernova object containing the composite spectrum
+            SN_Array: An array of spectrum objects
+            template: The spectrum object containing the composite spectrum
             medmean: If 1, do an inverse variance weighted average as a function 
                 of wavelength. If 2, do a median.
             boot: If true, only combine data from flux arrays.
@@ -626,7 +600,7 @@ def average(SN_Array, template, medmean, boot, fluxes, ivars, dm15_ivars,
                 and assign it as an attribute.
 
         Returns:
-            A supernova object that has had it wavelength dependent attributes 
+            A spectrum object that has had it wavelength dependent attributes 
             combined.
 
     """
@@ -663,15 +637,15 @@ def average(SN_Array, template, medmean, boot, fluxes, ivars, dm15_ivars,
     return template
 
 def bootstrapping (SN_Array, samples, og_template, iters, medmean):
-    """Creates a matrix of random sets of supernovae from the original sample 
+    """Creates a matrix of random sets of spectrume from the original sample 
     with the same size as the original sample. The number of samples is defined 
     by the user. Then creates the composite spectrum for each of these sets. 
     These data are used to contruct a confidence interval for the original sample. 
 
         Args:
-            SN_Array: An array of supernova objects
+            SN_Array: An array of spectrum objects
             samples: The number of desired bootstrapping samples
-            og_template: The supernova object corresponding to the original 
+            og_template: The spectrum object corresponding to the original 
                 composite spectrum.
             iters: The number of scaling iterations to make (this should be set
                 to 1 if scaling technique is minimizing square residuals).
@@ -680,7 +654,7 @@ def bootstrapping (SN_Array, samples, og_template, iters, medmean):
 
         Returns:
             An array corresponding to the lower confidence interval, upper
-            confidence interval, and an array of composite spectrum supernova 
+            confidence interval, and an array of composite spectrum spectrum 
             objects for every resampling of the data.
 
     """
@@ -702,14 +676,11 @@ def bootstrapping (SN_Array, samples, og_template, iters, medmean):
             boot_arr[i].append(copy.deepcopy(cpy_array[strap_matrix[i,j]]))
 
     for p in range(len(boot_arr)):
-        # print p
         lengths = []
         for SN in boot_arr[p]:  
             lengths.append(SN.wavelength[SN.x2] - SN.wavelength[SN.x1])
 
         boot_temp = [SN for SN in SN_Array if SN.wavelength[SN.x2] - SN.wavelength[SN.x1] == max(lengths)]
-        # boot_temp = [SN for SN in boot_arr[p] 
-        #              if len(SN.flux[np.where(SN.flux!=0)]) == max(lengths)]
         boot_temp = copy.deepcopy(boot_temp[0])
         
 
@@ -776,13 +747,6 @@ def bootstrapping (SN_Array, samples, og_template, iters, medmean):
         up_ind = np.round((len(new_resid[i])-1) * up_pc).astype(int)
         low_arr.append(og_template.flux[i] + new_resid[i][low_ind])
         up_arr.append(og_template.flux[i] + new_resid[i][up_ind])
-        
-#    for i in range(len(resid_sort)):
-#        print len(resid_sort[i])
-#        low_ind = np.round((len(resid_sort[i])-1) * low_pc).astype(int)
-#        up_ind = np.round((len(resid_sort[i])-1) * up_pc).astype(int)
-#        low_arr.append(og_template.flux[i] + resid_sort[i][low_ind])
-#        up_arr.append(og_template.flux[i] + resid_sort[i][up_ind])
     
     # plt.plot(og_template.wavelength, og_template.flux, 'k', linewidth = 4)
     # plt.fill_between(og_template.wavelength, low_arr, up_arr, color = 'green')
@@ -791,11 +755,11 @@ def bootstrapping (SN_Array, samples, og_template, iters, medmean):
     return np.asarray(low_arr), np.asarray(up_arr), boots        
     
 def is_bad_data(SN, bad_files, bad_ivars):
-    """Determines if a given supernova object has been flagged as having poor 
+    """Determines if a given spectrum object has been flagged as having poor 
     data quality.
 
     Args:
-        SN: A supernova object with an associated filename and event name
+        SN: A spectrum object with an associated filename and event name
         bad_files: The list of bad files in questionable_spectra.py found to have
             poor data.
         bad_ivars: The list of files found to have incorrectly generated ivar spectra
@@ -806,9 +770,7 @@ def is_bad_data(SN, bad_files, bad_ivars):
     TODO: Revisit the flagged data.
     """
     #2008ia is not deredshifted
-    #2006X, 2002bf have anomalous velocity
-    #1991bg variance spectrum seem wrong
-    # bad_sns = ['2002bf', '2006x', '1991bg', '2008ia']
+    #2006bt should be peculiar
     bad_sns = ['2008ia', '2006bt']
     for el in bad_files:
         if SN.filename == el:
@@ -825,11 +787,11 @@ def remove_peculiars(SN_Array, file):
     """Removes objects from SN_Array that have been flagged as peculiar.
 
         Args:
-            SN_Array: An array of supernova objects.
+            SN_Array: An array of spectrum objects.
             file: A text file with a list of peculiar events.
 
         Returns:
-            A new array of supernova objects without peculiar events
+            A new array of spectrum objects without peculiar events
     """
     SN_Array_no_pecs = []
     count = 1
@@ -839,7 +801,6 @@ def remove_peculiars(SN_Array, file):
             if SN.name not in names:
                 SN_Array_no_pecs.append(SN)
             else:
-                # print count, SN.name
                 count += 1
 
     return SN_Array_no_pecs
@@ -848,10 +809,10 @@ def check_host_corrections(SN_Array):
     """Removes objects from SN_Array that do not host extinction estimates.
 
         Args:
-            SN_Array: An array of supernova objects.
+            SN_Array: An array of spectrum objects.
 
         Returns:
-            A new array of supernova objects that have host extinction estimates.
+            A new array of spectrum objects that have host extinction estimates.
     """
     has_host_corr = []
     for SN in SN_Array:
@@ -861,35 +822,32 @@ def check_host_corrections(SN_Array):
             has_host_corr.append(SN)
         elif SN.av_mlcs17 != None:
             has_host_corr.append(SN)
-        # else:
-        #   print SN.name
     SN_Array = has_host_corr
     return SN_Array
 
 def apply_host_corrections(SN_Array, r_v = 2.5, verbose=True, low_av_test=None, cutoff=2.):
-    """Correct supernova spectra in SN_Array for host extinction.
+    """Correct spectrum spectra in SN_Array for host extinction.
 
         Args:
-            SN_Array: An array of supernova objects.
+            SN_Array: An array of spectrum objects.
 
         Keyword Arguments:
             r_v: The value of R_V used for the light curve fit
-            verbose: If True, print metadata of each supernova object as 
-                they are corrected.
+            verbose: (Deprecated)
+            low_av_test: If True, does not correct SNe with A_V < low_av_test
+            cutoff: SN_Array will only contain spectra from objects with A_V < cutoff
 
         Returns:
-            An array of supernova objects whose flus and ivar have been corrected
+            An array of spectrum objects whose flux and ivar have been corrected
             for host extinction.
     """
+
+    #TODO: write one function for these cases
     corrected_SNs = []
     for SN in SN_Array:
-            # print SN.name, SN.filename, SN.SNR, SN.dm15,\
-            #         SN.phase, SN.source,\
-            #         SN.ned_host, SN.av_25, SN.minwave, SN.maxwave
 
         if SN.av_25 != None and SN.av_25 < cutoff:
             if SN.av_25 > low_av_test or low_av_test == None:
-                # pre_scale = (1.e-15/np.average(SN.flux[SN.x1:SN.x2]))
                 pre_scale = (1./np.amax(SN.flux[SN.x1:SN.x2]))
                 SN.flux = pre_scale*SN.flux
                 SN.ivar = SN.ivar/(pre_scale*pre_scale)
@@ -908,7 +866,6 @@ def apply_host_corrections(SN_Array, r_v = 2.5, verbose=True, low_av_test=None, 
 
         elif SN.av_mlcs31 != None and SN.av_mlcs31 < cutoff:
             if SN.av_mlcs31 > low_av_test or low_av_test == None:
-                # pre_scale = (1.e-15/np.average(SN.flux[SN.x1:SN.x2]))
                 pre_scale = (1./np.amax(SN.flux[SN.x1:SN.x2]))
                 SN.flux = pre_scale*SN.flux
                 SN.ivar = SN.ivar/(pre_scale*pre_scale)
@@ -927,7 +884,6 @@ def apply_host_corrections(SN_Array, r_v = 2.5, verbose=True, low_av_test=None, 
 
         elif SN.av_mlcs17 != None and SN.av_mlcs17 < cutoff:
             if SN.av_mlcs17 > low_av_test or low_av_test == None:
-                # pre_scale = (1.e-15/np.average(SN.flux[SN.x1:SN.x2]))
                 pre_scale = (1./np.amax(SN.flux[SN.x1:SN.x2]))
                 SN.flux = pre_scale*SN.flux
                 SN.ivar = SN.ivar/(pre_scale*pre_scale)
@@ -950,14 +906,14 @@ def apply_host_corrections(SN_Array, r_v = 2.5, verbose=True, low_av_test=None, 
 
 
 def remove_tell_files(SN_Array):
-    """Removes supernova objects flagged as having telluric contamination from 
-    an array of supernova objects.
+    """Removes spectrum objects flagged as having telluric contamination from 
+    an array of spectrum objects.
 
         Args:
-            SN_Array: An array of supernova objects
+            SN_Array: An array of spectrum objects
 
         Returns:
-            An array of supernova objects that have not been flagged for telluric
+            An array of spectrum objects that have not been flagged for telluric
             contamination.
     """
     tell_files = tspec.tel_spec()
@@ -976,6 +932,9 @@ def remove_tell_files(SN_Array):
         return SN_Array
 
 def check_for_non_overlapping_spectra(SN_Array):
+    """ Returns a subset of spectra in SN_Array that do not have overlapping 
+        wavelength ranges with any other spectra in SN_Array.
+    """
     SNs_no_overlap = []
     for SN in SN_Array:
         no_overlap = 0
@@ -989,6 +948,9 @@ def check_for_non_overlapping_spectra(SN_Array):
     return SNs_no_overlap
 
 def check_for_no_olap_w_template(SN_Array, template):
+    """ Returns a subset of spectra in SN_Array that do not have overlapping 
+        wavelength ranges with template (a specific spectrum object).
+    """
     SNs_no_overlap = []
     for SN in SN_Array:
         if ((SN.wavelength[SN.x1] >= template.wavelength[template.x2]) or 
@@ -997,6 +959,7 @@ def check_for_no_olap_w_template(SN_Array, template):
     return SNs_no_overlap
 
 def prelim_norm(SN_Array):
+    """Normalizes the spectra in SN_Array to their maximum values"""
     for SN in SN_Array:
         norm = 1./np.nanmax(SN.flux)
         SN.flux = norm*SN.flux
@@ -1022,6 +985,15 @@ def fix_negative_ivars(SN_Array):
     return SN_Array
 
 def combine_SN_spectra(SN_Array):
+    """ Provides one representative spectrum per SN. Finds overlapping spectra of individual
+        SNe and combines them via an inverse-variance weighted average.
+
+        Args:
+            SN_Array: An list of spectrum objects 
+
+        Returns:
+            A new array of spectrum objects that contains one representative spectrum per SN.
+    """
     event_dict = {}
     for SN in SN_Array:
         if SN.name in event_dict:
@@ -1083,13 +1055,13 @@ def combine_SN_spectra(SN_Array):
     return new_SN_Array
 
 def create_composite(SN_Array, boot, template, medmean, gini_balance=False, aggro=.5, name='Composite Spectrum'):
-    """Given an array of supernova objects, creates a composite spectrum and 
+    """Given an array of spectrum objects, creates a composite spectrum and 
     estimate the 1-sigma bootstrap resampling error (if desired).
 
         Args:
-            SN_Array: An array of supernova objects
+            SN_Array: An array of spectrum objects
             boot: If True, estimates the error via bootstrap resampling
-            template: A supernova object to contain the composite spectrum 
+            template: A spectrum object to contain the composite spectrum 
                 usually initialized as the spectrum with the largest wavelength
                 range.
             medmean: If 1, do an inverse variance weighted average as a function 
@@ -1104,8 +1076,8 @@ def create_composite(SN_Array, boot, template, medmean, gini_balance=False, aggr
                 spectra are left as is. 
 
         Returns:
-            A supernova object with the composite spectrum, and an array of 
-            supernova objects that with composite spectra generated from the 
+            A spectrum object with the composite spectrum, and an array of 
+            spectrum objects that with composite spectra generated from the 
             bootstrap resampling step.
     """
     i = 0
@@ -1281,12 +1253,18 @@ def main(Full_query, boot = False, medmean = 1, make_corr=True, multi_epoch=Fals
                 algorithm (currently produced representative composites, but
                 deweighting straight to median might not be ideal). If False, ivar
                 spectra are left as is. 
-            verbose: If True, print metadata of each supernova object in SN_Array.
+            verbose: If True, print metadata of each spectrum object in SN_Array.
+            low_av_test: If True, does not correct SNe with A_V < low_av_test
+            combine: If True, combines spectra from the same SN with an inverse weighted
+                average prior to construction fo the composite spectrum. This should be 
+                True if doing an inverse variance weighted average.
+            og_arr: If True, this function will also return the original spectra in addition 
+                to the new combined spectra of individual SNe.
 
         Returns:
-            The supernova object containing the composite spectrum, the (potentially
+            The spectrum object containing the composite spectrum, the (potentially
             modified) SN_Array used to create the composite spectrum, and a list 
-            supernova objects containing composite spectra generated from the 
+            spectrum objects containing composite spectra generated from the 
             bootstrap resampling process.
     """
     SN_Array = []
@@ -1342,7 +1320,7 @@ def main(Full_query, boot = False, medmean = 1, make_corr=True, multi_epoch=Fals
     # spec_bin = spectra_per_bin(SN_Array)
 
     #finds range of useable data
-    template = supernova()
+    template = spectrum()
     template = copy.deepcopy(composite)
     template.spec_bin = spectra_per_bin(SN_Array)
     template.num_spec = len(og_SN_Array)

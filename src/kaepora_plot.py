@@ -61,6 +61,28 @@ def make_colorbar(composites, cmap_kind='diff'):
 
 	return s_m
 
+def basic_format():
+	plt.rc('font', family='serif')
+	fig, ax = plt.subplots(1,1)
+	fig.set_size_inches(16, 12, forward = True)
+	plt.minorticks_on()
+	plt.xticks(fontsize = 25)
+	plt.yticks(fontsize = 25)
+	plt.tick_params(
+	    which='major', 
+	    bottom='on', 
+	    top='on',
+	    left='on',
+	    right='on',
+	    length=20)
+	plt.tick_params(
+	    which='minor', 
+	    bottom='on', 
+	    top='on',
+	    left='on',
+	    right='on',
+	    length=10)
+	
 def scaled_plot(composites, min_num_show = 5, min_num_scale = 10, include_spec_bin = False, scaleto=10., zoom=True, fs=[15,12], ticks=[13,8], xlim=None, include_phase_dm15=False,
 				 legend_labels = None, rm_last_label=False, expand_ratio=False, text = '', dashes = None, savename = None):
 	color_dict = {"Comp": "#000080", "Comp0": "#000080", "Comp1": "#ff8c00", "Comp2": "limegreen", "Comp3": "orange", "Hsiao": "orange", "Foley": "crimson", "Nugent": "turquoise", "SALT2": "black"}

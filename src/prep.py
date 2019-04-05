@@ -4,9 +4,6 @@ from specutils import extinction as ex
 from specutils import Spectrum1D
 from astropy import units as u
 import test_dered
-#import astroquery
-#from astroquery.ned import Ned
-#from astroquery.irsa_dust import IrsaDust
 from astropy.table import Table
 from astropy.io import ascii
 import numpy as np
@@ -15,9 +12,12 @@ import scipy.interpolate as inter
 import math
 import scipy.optimize as opt
 import copy
-#import sqlite3 as sq3
-#import msgpack
 
+""" This file contains various functions for homogenizing our dataset. 
+    The compprep() function is called before a spectrum is added to the
+    spectral table in kaepora. This takes the raw spectra and homogenizes 
+    them via the methods outlined in Siebert et al. 2019.
+"""
 
 def ReadParam():
     #Read in : table containing sn names, redshifts, etc.
@@ -37,32 +37,10 @@ def ReadExtin(file):
     return sne
 
 
-"""
-NOTE:
-Using IRSA
-"""
-
-"""
-Note: using parameters.dat file which was created from paramaters.py
-parameters.py is designed to pull all relevant parameters for SNe spectra from online databases
-via astroquery and place it all in a table to be pulled from later;
-it would ideally do that following:
--read in all files we want to prep
--truncate file name to format "SNyear"(this is how astroquery searches for SN)
--get relevent data into table, following a format like:
-SN name		Host Galaxy		Redshift	B	V	De-redden factor	CarbonPos/Neg
-
-####
-NOTE:Currently only has SN_name, B, and V values for purposes of Dereddening due to Milky way dust
-####
-"""
-
-#deredden spectra to milky way
-#deredshift the spectra
-#deredden to host galaxy
-
-
 def dered(sne, snname, wave, flux):
+    """This function is deprecated. compprep() now uses 
+        test_dered.dered() (yes that is a dumb file name)
+    """
     for j in range(len(sne)):  # go through list of SN parameters
         sn = sne[j][0]
         if sn in snname:  # SN with parameter matches the path
@@ -83,6 +61,9 @@ def dered(sne, snname, wave, flux):
     return flux
 
 def host_correction(sne, snname, wave, flux):
+    """This function is deprecated. composite.py now uses 
+        test_dered.host_correction() (yes that is a dumb file name)
+    """
     for j in range(len(sne)):  # go through list of SN parameters
         sn = sne[j][0]
         if sn in snname:  # SN with parameter matches the path
@@ -93,19 +74,15 @@ def host_correction(sne, snname, wave, flux):
 
 # Data Interpolation
 
-"""
-NOTE:
-This function inputs three lists containing wavelength, flux and variance.
-The output will be a Table with all the fitted values.
-You can change the mininum and maximum of wavelength to output,
-as well as pixel size in the first few lines.
-For the spectra that does not cover the whole range of specified wavelength,
-we output the outside values as NAN
-"""
-
-import datafidelity as df  # Get inverse variance from the datafidelity outcome
+import datafidelity as df
 
 def Interpo_flux_conserving(wave, flux, ivar, dw=2, testing=False):
+    """This is a an interpolation algorithm that does trapezoidal integration
+        to conserve flux. The variance is then propagated correctly. Since 
+        interpolation always introduces correlation in the variance spectrum,
+        we ignore  this correlation byscale the original variance spectrum 
+        to the new variance spectrum.
+    """
     var = 1./ivar
     pixel_scale = np.median(np.diff(wave))
     # print pixel_scale
@@ -147,18 +124,13 @@ def Interpo_flux_conserving(wave, flux, ivar, dw=2, testing=False):
             variances.append(inter_var_mid_right)
             new_point = np.trapz(fluxes, x=waves)
             flux_final.append(new_point)
-    #         print waves
             diffs = np.diff(waves)
-    #         print diffs
-    #         print variances
             var_tot = 0.
             for i in range(len(variances)-1):
                 v1 = variances[i]
                 v2 = variances[i+1]
                 var_tot = var_tot + (diffs[i]**2.)*(v1+v2)
             var_tot = var_tot*.25
-    #         print var_tot
-    #         print
             var_final.append(var_tot)
         else:
             flux_final.append(0.)
@@ -200,6 +172,9 @@ def Interpo_flux_conserving(wave, flux, ivar, dw=2, testing=False):
 
 
 def Interpo (wave, flux, ivar):
+    """ This is no longer used. Does a simple interpolation of the flux and variance.
+    This does not conserve flux or propagate variance correctly.
+    """
     wave_min = 1000
     wave_max = 12000
     dw = 2
@@ -214,12 +189,6 @@ def Interpo (wave, flux, ivar):
     lower = wave[0]  # Find the area where interpolation is valid
     upper = wave[-1]
 
-    #ivar = clip(wave, flux, ivar) #clip bad points in flux (if before interpolation)
-    # ivar = clipmore(wave,flux,ivar)
-#    print 'ivar', ivar
-#    print 'bad points', bad_points
-    #ivar[ivar < 0] = 0 # make sure no negative points
-
     good_data = np.where((wave >= lower) & (wave <= upper))  #creates an array of wavelength values between minimum and maximum wavelengths from new spectrum
 
     influx = inter.splrep(wave[good_data], flux[good_data])  # creates b-spline from new spectrum
@@ -230,32 +199,30 @@ def Interpo (wave, flux, ivar):
     inter_flux = inter.splev(wavelength, influx, ext = 3)	 # fits b-spline over wavelength range
     inter_ivar = inter.splev(wavelength, inivar, ext = 3)   # doing the same with errors
 
-#    inter_ivar = clip(wavelength, inter_flux, inter_var) #clip bad points (if do after interpolation
+    inter_ivar[inter_ivar < 0] = 0  
 
-    inter_ivar[inter_ivar < 0] = 0  # make sure there are no negative points!
-    
-#    place = np.where((wavelength > 5800.0 ) & (wavelength < 6000.0 ))
-#    print inter_ivar[place]
     missing_data = np.where((wavelength < lower) | (wavelength > upper))
     inter_flux[missing_data] = float('NaN')  # set the bad values to NaN !!!
     inter_ivar[missing_data] = float('NaN')
-
-#    print inter_ivar[place]
 
     output = np.array([wavelength, inter_flux, inter_ivar])  # put the interpolated data into the new table
 
     return output  # return new table
 
 
-    # Get the Noise for each spectra ( with input of inverse variance)
 
 def getsnr(flux, ivar):
+    """Returns the approximate SNR of a spectrum given its flux and ivar data
+    """
     sqvar = map(math.sqrt, ivar)
     snr = flux/(np.divide(1.0, sqvar))
     snr_med = np.median(snr)
     return snr_med
 
 def scale_composites_in_range(data, comp):
+    """Finds the scale factor the minimizes the difference between two 
+        spectra (data and comp)
+    """
     scales = []
     guess = 1.
     s = opt.minimize(sq_residuals_in_range, guess, args = (data, comp), 
@@ -263,6 +230,8 @@ def scale_composites_in_range(data, comp):
     return s
 
 def sq_residuals_in_range(s, data, comp):
+    """Calculates the sum of the square residuals between arrays data and comp
+    """
     data = s*data
     res = data - comp
     sq_res = res*res
@@ -270,6 +239,10 @@ def sq_residuals_in_range(s, data, comp):
 
 
 def compprep(spectrum, sn_name, z, source, use_old_error=True, testing=False):
+    """ Performs clipping, deredshifting, variance spectrum generation, MW extinction correction,
+        and interpolation. If testing is True, several plots will be made to assess the quality 
+        of this processing.
+    """
     old_wave = spectrum[:, 0]	    # wavelengths
     old_flux = spectrum[:, 1] 	# fluxes
     try:
