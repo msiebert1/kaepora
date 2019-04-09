@@ -28,7 +28,7 @@ import query_db as qdb
 import spectral_analysis as sa
 import gini
 
-np.set_printoptions(threshold=np.nan)
+# np.set_printoptions(threshold=np.nan)
 mn.patch()
 
 class spectrum(object):
@@ -1172,7 +1172,7 @@ def create_composite(SN_Array, boot, template, medmean, gini_balance=False, aggr
     norm = 1./np.nanmax(template.flux[template.x1:template.x2])
     template.flux = template.flux*norm
     template.ivar = template.ivar/(norm**2.)
-    if template.RMSE != None:
+    if template.RMSE is None:
         template.RMSE = template.RMSE*(norm)
 
     for SN in SN_Array:
