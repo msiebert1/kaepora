@@ -37,7 +37,9 @@ The source code for *kaepora* can be found at https://github.com/msiebert1/kaepo
 
     git clone https://github.com/msiebert1/kaepora.git
 
-You may download the most recent version of the database from https://msiebert1.github.io/kaepora/. Unzip the folder and place the '.db' file in the /data folder of your repository. Alternatively, you can build the database from source. This process runs several scripts that homogenize the raw spectral data and takes several hours. If you wish to do this navigate to the /kaepora/src folder and execute the following command:
+We recommend that you download the most recent version of the database from https://msiebert1.github.io/kaepora/. Unzip the folder and place the '.db' file in the /data folder of your repository. 
+
+Alternatively, you can build the database from source. This process runs several scripts that homogenize the raw spectral data and takes several hours. If you wish to do this navigate to the /kaepora/src folder and execute the following command:
 
 .. code-block:: console
 

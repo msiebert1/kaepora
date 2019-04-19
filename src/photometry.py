@@ -77,14 +77,14 @@ def get_csp_photometry(sn_name):
 		return None
 
 def find_csp_phot(sn_name):
-	files = glob.glob("..\..\..\csp_photometry\CSP_Photometry_DR2\*.dat")
+	files = glob.glob("..\..\csp_photometry\CSP_Photometry_DR2\*.dat")
 	for f in files:
 		if sn_name.lower() in f.lower():
 			return f
 	return None
 
 def find_event_in_osc(sn_name):
-	files = glob.glob("..\..\..\osc_data\osc_sns_new\*.json")
+	files = glob.glob("..\..\osc_data\osc_sns_new\*.json")
 	for f in files:
 		if sn_name.lower() + '.json' in f.lower():
 			return f

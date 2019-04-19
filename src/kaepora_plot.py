@@ -54,6 +54,9 @@ def make_colorbar(composites, cmap_kind='diff'):
 	elif cmap_kind == 'diff':
 		norm = matplotlib.colors.Normalize(vmin=1.,vmax=len(composites))
 		c_m = matplotlib.cm.coolwarm
+	elif cmap_kind == 'other':
+		norm = matplotlib.colors.Normalize(vmin=1.,vmax=len(composites))
+		c_m = matplotlib.cm.viridis
 	# norm = matplotlib.colors.Normalize(vmin=1.,vmax=len(composites) + .5)
 	# norm = matplotlib.colors.Normalize(vmin=1.,vmax=len(composites) + 1.)
 	s_m = matplotlib.cm.ScalarMappable(cmap=c_m, norm=norm)
@@ -556,7 +559,7 @@ def scaled_plot(composites, min_num_show = 5, min_num_scale = 10, include_spec_b
 		plt.savefig(savename+'.pdf', dpi = 300, bbox_inches = 'tight')
 	plt.show()
 
-def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_scale = 2, template=None, scaleto=10., 
+def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_scale = 2, template=None, scaleto=10., compare_ind = 0, 
 					legend_labels = None, cmap_kind='diff', morph= False, zoom_ratio=False, savename=None):
 
 	# plt.style.use('ggplot')
@@ -614,6 +617,8 @@ def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_sc
 		if len(comp.low_conf) > 0 and len(comp.up_conf) > 0:
 			comp.up_conf *= scaleto
 			comp.low_conf *= scaleto
+
+	for comp in composites:
 		# param = np.average(comp.dm15_array[comp.x1:comp.x2])
 		param = k
 		if (comp.x2 - comp.x2) > (max_range.x2 - max_range.x1):
@@ -684,10 +689,10 @@ def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_sc
 		plt.setp(res.get_xticklabels(), visible=False)
 		plt.ylabel('Ratio')
 		# plt.plot(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2] - composites[0].flux[comp.x1:comp.x2], color = s_m.to_rgba(param))
-		plt.plot(comp.wavelength[comp.x1:comp.x2], (comp.flux[comp.x1:comp.x2]/composites[0].flux[comp.x1:comp.x2]), linewidth = lw, color = s_m.to_rgba(param))
+		plt.plot(comp.wavelength[comp.x1:comp.x2], (comp.flux[comp.x1:comp.x2]/composites[compare_ind].flux[comp.x1:comp.x2]), linewidth = lw, color = s_m.to_rgba(param))
 		if len(comp.low_conf) > 0 and len(comp.up_conf) > 0:
-			low_resid = comp.low_conf[comp.x1:comp.x2]/composites[0].flux[comp.x1:comp.x2]
-			up_resid = comp.up_conf[comp.x1:comp.x2]/composites[0].flux[comp.x1:comp.x2]
+			low_resid = comp.low_conf[comp.x1:comp.x2]/composites[compare_ind].flux[comp.x1:comp.x2]
+			up_resid = comp.up_conf[comp.x1:comp.x2]/composites[compare_ind].flux[comp.x1:comp.x2]
 			plt.fill_between(comp.wavelength[comp.x1:comp.x2], low_resid, up_resid, color = s_m.to_rgba(param), alpha = 0.5)
 			# plt.fill_between(comp.wavelength[comp.x1:comp.x2], low_resid, up_resid, color = colors[i%len(colors)], alpha = 0.5)
 		# if comp.RMSE != None:
@@ -954,6 +959,7 @@ def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_sc
 		rel_flux.legend(legend_labels, bbox_to_anchor=(0.5, 0.45, 0.48, 0.5))
 	if savename is not None:
 		plt.savefig(savename+'.pdf', dpi = 300, bbox_inches = 'tight')
+		plt.savefig(savename+'.png', dpi = 300, bbox_inches = 'tight')
 	plt.show()
 
 def si_plot(composites, boot=False, min_num_show = 1, min_num_scale = 5, scale=3., cmap_kind = 'dm15', savename = None):

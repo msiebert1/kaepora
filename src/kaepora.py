@@ -305,7 +305,7 @@ if __name__ == "__main__":
     num_queries = len(query_strings)
 
     for n in range(num_queries):
-        c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = False, make_corr=False, multi_epoch=True, combine=False)
+        # c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = False, make_corr=False, multi_epoch=True, combine=False)
         # c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = False, multi_epoch=True, combine=True) 
         # composites.append(c)
         # SN_Arrays.append(sn_arr)
@@ -319,7 +319,7 @@ if __name__ == "__main__":
         # if store_boots:
         #   boot_sn_arrays.append(boots)
             
-        # c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = True, verbose=True, multi_epoch=True, combine=True)
+        c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = True, verbose=True, multi_epoch=True, combine=True)
         composites.append(c)
         SN_Arrays.append(sn_arr)
         if store_boots:
