@@ -1,0 +1,221 @@
+# =================================================
+# Define survey name and "permanent" SNANA ID.
+# Here are some recommended ID-conventions, although 
+# they are not required:
+#
+#   ground-based z > .05:  1-49   
+#   nearby Hubble flow:   50-99
+#   space-based:         >= 100
+#
+# Don't forget to also assign a telescope id and FIELD below.
+#
+# Feb 16, 2009 RK - add WHIPPLE telescope for CFA3 SURVEY
+# Mar 06, 2009 RK - add XIAN
+# May 09, 2009 RK - add FIELD keywords for SDSS.
+# Jun 30, 2010 RK - define 4 SNLS fields D1-D4
+# Aug 16, 2010 RK - add PannStarrs1 (from Steve Rodney)
+# Aug 27, 2010 RK - add JPAS - Javalambre Physics of Acceleration Survey
+# Apr 27, 2011 RK - add WFIRST
+# May 03, 2011 RK - add HSTMCT
+# Nov 11, 2011 RK - add EUCLID
+# Mar     2012 Rodney CLASH/CANDELS
+# Nov 07, 2012 RK add CFA4
+# Aug 08, 2013 RK update 10 DES fields
+# Jan 31, 2014 RK - add GAIA
+# July 8, 2015 DS - Separated CFA components
+# Mar 20, 2017 RK - define WFIRST fields (SHALLOW,MEDIUM,DEEP)
+# Dec 17, 2017 RK - rename DES_LOWZ_COMBINED -> DES3YR_LOWZ_COMBINED
+#
+# ==========================================
+
+                 SNANA
+        name      ID
+-------------------------------
+SURVEY:  SDSS      1
+SURVEY:  ESSENCE   3
+SURVEY:  SNLS      4  # SN Legacy Survey at CFHT
+SURVEY:  CSP       5  # Carnegie SN Program with NIR
+SURVEY:  SUBARU    6  # Hyper Supreme Cam
+
+SURVEY:  DES      10  # Dark Energy Survey
+SURVEY:  VIDEO    11  # VIsta Deep Extragalactic Observations (YJHK)
+SURVEY:  LSST     12  # Large Synoptic Sky Survey
+SURVEY:  XIAN     14  # eXtreme Imaging Antarctic Network
+SURVEY:  PS1MD    15  # Pan-STARRS 1 Medium Deep Survey
+SURVEY:  JPAS     16  # Javalambre Physics of Acceleration Survey
+
+SURVEY:  LOWZ      50   # JRK 2007
+SURVEY:  JRK07     50   # idem
+SURVEY:  KAIT      51
+SURVEY:  SNF       52   # SupernovaFactory
+SURVEY:  CFA3      53   # Hicken 2009
+SURVEY:  CFA4      54   #
+SURVEY:  SNUO2     55   # for sn2011fe (Nugent's really nearby SN1a)
+SURVEY:  SWIFT     56   # Sep 28 - Scolnic
+SURVEY:  KAITM     57   # Mo's Landolt
+SURVEY:  KAITW     58   # KAIT Fixed Weikhang
+
+SURVEY:  CFA1      61   #
+SURVEY:  CFA2      62   #
+SURVEY:  CFA3S     63   #
+SURVEY:  CFA3K     64   #
+SURVEY:  CFA4p1    65   #
+SURVEY:  CFA4p2    66   #
+SURVEY:  CFA4p3    67  # Pete's new CfA4 - on Landolt
+SURVEY:  CSP3      68
+
+SURVEY:  PS1_LOWZ_COMBINED  70  # RK - Feb 21 2017
+SURVEY:  PS1_HST_COMBINED   71  # DS - April 13 2017
+SURVEY:	 DES3YR_LOWZ_COMBINED  72	# RK - Nov 2017
+
+SURVEY:  HST       100
+SURVEY:  SNAP      101
+SURVEY:  WFIRST    103
+SURVEY:  JWST      104
+SURVEY:  EUCLID    105
+SURVEY:  CANDELS   106
+SURVEY:  CLASH     107
+SURVEY:  GAIA      110  # Jan 31 2014 (for Heather)
+SURVEY:  HDF       111  # DS added for 97ff
+SURVEY:  FOUNDATION    150  # Foundation survey
+
+SURVEY:  SIMSED    180
+SURVEY:  FLASH     181  # for FLASH+RT simulations with SIMSED option
+SURVEY:  TEST      190  # test simlib, such as ideal 2 day cadence
+
+
+# -------------------------------
+# Define telescope IDs to associate with
+# telescopes specified in the TEL_NAME namelist.
+# This allows users to specify multiple telescopes
+# for a given SURVEY, such as MDM & UH88 for SDSS survey.
+# Try to match telescope ID with SURVEY, although 
+# some telescopes are used for more than one survey.
+
+          
+TELESCOPE:  SDSS      1
+TELESCOPE:  CFHT      3  # for SNLS
+TELESCOPE:  CTIO      4  # for ESSENCE & DES
+TELESCOPE:  MAGELLAN  5  # for CSP
+TELESCOPE:  SUBARU    6  # Hyper Supreme Cam
+TELESCOPE:  VISTA    11  # used for VHS
+TELESCOPE:  LSST     12
+TELESCOPE:  XIAN     14  #
+TELESCOPE:  PS1      15  # PannStarrs
+TELESCOPE:  JPAS     16
+
+TELESCOPE:  DUPONT   20  # for CSP ?
+TELESCOPE:  SWOPE    21  # for CSP ?
+
+TELESCOPE:  KECK     30  # for SALT2 training ?
+TELESCOPE:  VLT0     31  # for SALT2 training ?
+TELESCOPE:  CFA      32  # for SALT2 training ?
+TELESCOPE:  IUE      33  # for SALT2 training ?
+TELESCOPE:  GEM      34  # for SALT2 training ?
+  
+TELESCOPE:  KAIT     51  #
+TELESCOPE:  WHIPPLE  53  # for CfA sample
+TELESCOPE: SWIFT      56 # Sep 28 - Scolnic
+
+TELESCOPE:  UH88     88  # used in SDSS & SNF
+TELESCOPE:  MDM      89  # used in SDSS
+
+TELESCOPE:  HST      100
+TELESCOPE:  SNAP     101
+TELESCOPE:  WFIRST   103
+TELESCOPE:  EUCLID   105
+TELESCOPE:  UNKNOWN  199 
+
+
+# --------------------------------------------------------
+# Define fields with 3 arguments: name, index and survey
+
+FIELD:  82N  89  SDSS  # (Nine => North)
+FIELD:  82S  86  SDSS  # (Six  => South)
+
+FIELD:  ESS1  1  ESSENCE
+FIELD:  ESS2  2  ESSENCE
+
+FIELD:  D1  1  SNLS
+FIELD:  D2  2  SNLS
+FIELD:  D3  3  SNLS
+FIELD:  D4  4  SNLS
+
+FIELD: INT  0  LSST    # => parse LSST field as integer
+FIELD: INT  0  JPAS    # => parse JPAS field as integer
+
+# DES Fields (RK)
+FIELD: E1   1   DES shallow (Elias)
+FIELD: E2   2   DES shallow
+FIELD: S1   3   DES shallow (SDSS stripe 82)
+FIELD: S2   4   DES shallow
+FIELD: C1   5   DES shallow (CDF_S)
+FIELD: C2   6   DES shallow
+FIELD: C3   7   DES deep
+FIELD: X1   8   DES shallow (XMM_LSS)
+FIELD: X2   9   DES shallow
+FIELD: X3  10   DES deep
+
+# PS1MD Fields, added by Steve Rodney on 2010-08-16
+FIELD: MD00   00  PS1MD
+FIELD: MD01   01  PS1MD
+FIELD: MD02   02  PS1MD
+FIELD: MD03   03  PS1MD
+FIELD: MD04   04  PS1MD
+FIELD: MD05   05  PS1MD
+FIELD: MD06   06  PS1MD
+FIELD: MD07   07  PS1MD
+FIELD: MD08   08  PS1MD
+FIELD: MD09   09  PS1MD
+FIELD: MD10   10  PS1MD
+
+
+# WFIRST field(s)
+FIELD: W1      00 WFIRST
+FIELD: DEEP    01 WFIRST
+FIELD: MEDIUM  02 WFIRST
+FIELD: SHALLOW 03 WFIRST
+
+# HST MCT Fields, added by Steve Rodney 2011.04.07
+# CANDELS : 
+FIELD: gsw   00  CANDELS  # GOODS-S wide
+FIELD: gsd   01  CANDELS  # GOODS-S deep
+FIELD: gnw   02  CANDELS	 # GOODS-N wide
+FIELD: gnd   03  CANDELS	 # GOODS-N deep
+FIELD: uds   04  CANDELS	 # UDS 
+FIELD: ega   05  CANDELS	 # EGS-a
+FIELD: egb   06  CANDELS	 # EGS-b
+FIELD: cos   07  CANDELS	 # COSMOS
+
+# CLASH : 
+FIELD: cla   10  CLASH  # Abell 383
+FIELD: clb   11  CLASH	 # MACS 1149
+FIELD: clc   12  CLASH	 # Abell 2261
+FIELD: cld   13  CLASH	 # MACS 1206
+FIELD: cle   14  CLASH	 # RXJ 1347
+FIELD: clf   15  CLASH   # MACS 2129
+FIELD: clg   16  CLASH	 # MS 2137
+FIELD: clh   17  CLASH	 # MACS 0717
+FIELD: cli   18  CLASH	 # MACS 0744
+FIELD: clj   19  CLASH	 # MACS 0647
+FIELD: clk   20  CLASH
+FIELD: cll   21  CLASH
+FIELD: clm   22  CLASH
+FIELD: cln   23  CLASH
+FIELD: clo   24  CLASH
+FIELD: clp   25  CLASH
+FIELD: clq   26  CLASH
+FIELD: clr   27  CLASH
+FIELD: cls   28  CLASH
+FIELD: clt   29  CLASH
+FIELD: clu   30  CLASH
+FIELD: clv   31  CLASH
+FIELD: clw   32  CLASH
+FIELD: clx   33  CLASH
+FIELD: cly   34  CLASH
+FIELD: clz   35  CLASH  # ALL CLASH FIELDS
+
+
+====== END OF FILE ======
+
+

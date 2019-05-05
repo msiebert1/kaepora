@@ -5,6 +5,7 @@ import prep as prep
 import msgpack as msg
 import composite
 import matplotlib.pyplot as plt
+import add_new_columns as add_cols
 
 
 def fix_2011fe_phases(db_file):
@@ -99,7 +100,7 @@ def update_phases_from_mlcs(db_file):
 	# sql_input = "SELECT * from Spectra inner join Events ON Spectra.SN = Events.SN where Spectra.SN"
 	sql_input = "SELECT * from Spectra inner join Events ON Spectra.SN = Events.SN"
 	print 'Updating metadata step 1/7'
-	peak_mjd_dict = build_peak_dict('..\data\info_files\lowz_rv25_all.fitres')
+	peak_mjd_dict = build_peak_dict('../data/info_files/lowz_rv25_all.fitres')
 	sndict, date_dict = read_cfa_info('../data/spectra/cfa/cfasnIa_param.dat',
                                   '../data/spectra/cfa/cfasnIa_mjdspec.dat')
 	cur.execute(sql_input)
@@ -258,6 +259,7 @@ def main():
 	add_swift_metadata(database_file)
 	fix_2011fe_phases(database_file)
 	update_bsnip_refs(database_file)
+	add_cols.add_salt2_survey_ID_column(database_file)
 
 if __name__ == "__main__":
 	main()

@@ -1,0 +1,7 @@
+# SQL Query: SELECT * from Spectra inner join Events ON Spectra.SN = Events.SN and phase < -10. and ((dm15_source >= .86 and dm15_source < 1.02) or (dm15_from_fits >= .86 and dm15_from_fits < 1.02))
+# N = 13
+# N_spec = 20
+# phase = -11.34
+# dm15 = 0.94
+# z = 0.013
+

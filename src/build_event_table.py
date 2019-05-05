@@ -519,7 +519,7 @@ def build_tmax_dict(cfa_dict):
         if cfa_dict[sn][1] != '99999.9':
             tmax_dict_cfa[sn] = float(cfa_dict[sn][1])
 
-    with open('..\data\info_files\lowz_rv25_all.fitres') as f:
+    with open('../data/info_files/lowz_rv25_all.fitres') as f:
         lines = f.readlines()
 
         tmax_dict_mlcs25 = {}
@@ -843,7 +843,7 @@ def plot_dm15_fits(s_results, x1_results, delta_results, delta_lowrv_results):
         right='on',
         length=5)
     plt.plot(s_results[0], s_results[1], 'k', linewidth=4)
-    plt.ylabel('$\Delta m_{15}$ (B) (mag)', fontsize = 30)
+    plt.ylabel(r'$\Delta m_{15}$ (B) (mag)', fontsize = 30)
     plt.errorbar(s_results[2], s_results[3], xerr=s_results[4], yerr= s_results[5], fmt='o', color='#7570b3', ms=10)
     plt.errorbar(s_results[6], s_results[7], xerr=s_results[8], yerr=s_results[9], fmt='x', color='black', ms=10, mew=1)
     plt.xlim(.4, 1.25)
@@ -901,7 +901,7 @@ def plot_dm15_fits(s_results, x1_results, delta_results, delta_lowrv_results):
     plt.errorbar(delta_results[6], delta_results[7], xerr=delta_results[8], yerr= delta_results[9], fmt='x', color='black', ms=10, mew=1)
     plt.xlim(-.85, 1.95)
     plt.ylim(.6, 2.5)
-    plt.xlabel('$\Delta$', fontsize = 30)
+    plt.xlabel(r'$\Delta$', fontsize = 30)
     plt.setp(delta_plot.get_yticklabels(), visible=False)
 
     delta_lowrv_plot = plt.subplot(gs[3], sharey=s_plot)
@@ -928,7 +928,7 @@ def plot_dm15_fits(s_results, x1_results, delta_results, delta_lowrv_results):
     plt.errorbar(delta_lowrv_results[6], delta_lowrv_results[7], xerr=delta_lowrv_results[8], yerr= delta_lowrv_results[9], fmt='x', color='black', ms=10, mew=1)
     plt.xlim(-.85, 2.0)
     plt.ylim(.6, 2.5)
-    plt.xlabel('$\Delta$', fontsize = 30)
+    plt.xlabel(r'$\Delta$', fontsize = 30)
     plt.setp(delta_lowrv_plot.get_yticklabels(), visible=False)
     plt.savefig('../../../Paper_Drafts/reprocessing_updated/dm15_from_fits.pdf', dpi = 300, bbox_inches = 'tight')
     plt.show()
@@ -936,22 +936,22 @@ def plot_dm15_fits(s_results, x1_results, delta_results, delta_lowrv_results):
 def main():
     mn.patch()
 
-    salt = ascii.read("..\data\info_files\salt_params_dists.txt", delimiter = '\s', guess = False)
-    salt2 = ascii.read("..\data\info_files\salt2_params_dists.txt", delimiter = '\s', guess = False)
-    salt2_hub_res = ascii.read("..\data\info_files\SALT2mu_fpan.fitres", delimiter = '\s', guess = False)
-    mlcs31 = ascii.read("..\data\info_files\mlcs31_params.txt", delimiter = '\s', guess = False)
-    mlcs17 = ascii.read("..\data\info_files\mlcs17_params.txt", delimiter = '\s', guess = False)
-    lcparams = ascii.read("..\data\info_files\lc_params.txt", delimiter = '\s', guess = False)
-    host_data = ascii.read("..\data\info_files\other_host_data.txt", delimiter = '\s', guess = False)
+    salt = ascii.read("../data/info_files/salt_params_dists.txt", delimiter = r'\s', guess = False)
+    salt2 = ascii.read("../data/info_files/salt2_params_dists.txt", delimiter = r'\s', guess = False)
+    salt2_hub_res = ascii.read("../data/info_files/SALT2mu_fpan.fitres", delimiter = r'\s', guess = False)
+    mlcs31 = ascii.read("../data/info_files/mlcs31_params.txt", delimiter = r'\s', guess = False)
+    mlcs17 = ascii.read("../data/info_files/mlcs17_params.txt", delimiter = r'\s', guess = False)
+    lcparams = ascii.read("../data/info_files/lc_params.txt", delimiter = r'\s', guess = False)
+    host_data = ascii.read("../data/info_files/other_host_data.txt", delimiter = r'\s', guess = False)
 
-    av_dict = build_av_dict('..\data\info_files\lowz_rv25_all.fitres')
-    delt_dict = build_delt_dict('..\data\info_files\lowz_rv25_all.fitres')
+    av_dict = build_av_dict('../data/info_files/lowz_rv25_all.fitres')
+    delt_dict = build_delt_dict('../data/info_files/lowz_rv25_all.fitres')
     # cfa_dict = build_cfa_dict('..\data\spectra\cfa\cfasnIa_param.dat') #REDO cfa_dict stuff
     cfa_dict, date_dict = read_cfa_info('../data/spectra/cfa/cfasnIa_param.dat', '../data/spectra/cfa/cfasnIa_mjdspec.dat')
-    swift_dict = build_swift_dict('..\data\spectra\swift_uvspec\swift_uv_log.txt')
-    hst_dict = build_hst_dict('..\data\spectra\hst_foley\hst_metadata.txt')
+    swift_dict = build_swift_dict('../data/spectra/swift_uvspec/swift_uv_log.txt')
+    hst_dict = build_hst_dict('../data/spectra/hst_foley/hst_metadata.txt')
 
-    NED_host_dict = build_NED_host_dict('..\data\info_files\NED_host_info_simplified.txt')
+    NED_host_dict = build_NED_host_dict('../data/info_files/NED_host_info_simplified.txt')
     vel_dict = build_vel_dict()
     gas_dict = build_gas_dict()
     carbon_dict = build_carbon_dict()
@@ -1008,7 +1008,8 @@ def main():
     ext_dict = MW_extinction_dict()
     # raise TypeError
 
-    con = sq3.connect('..\data\kaepora_v1.db')
+    # con = sq3.connect('../data/kaepora_v1.db')
+    con = sq3.connect('../data/kaepora_v1.db')
     con.execute("""DROP TABLE IF EXISTS Events""")
     con.execute("""CREATE TABLE IF NOT EXISTS Events (SN TEXT, RA TEXT, DEC TEXT, 
                                                           zCMB_salt REAL, e_zCMB_salt REAL, Bmag_salt REAL, e_Bmag_salt REAL, s_salt REAL, e_s_salt REAL, c_salt REAL, e_c_salt REAL, mu_salt REAL, e_mu_salt REAL,

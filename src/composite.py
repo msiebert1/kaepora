@@ -105,8 +105,11 @@ def store_phot_data(SN, row):
     SN.na = phot_row[82]
     SN.hubble_res = phot_row[83]
 
-    SN.light_curves = msg.unpackb(phot_row[-2])
-    SN.csp_light_curves = msg.unpackb(phot_row[-1])
+    SN.light_curves = msg.unpackb(phot_row[84])
+    SN.csp_light_curves = msg.unpackb(phot_row[85])
+
+    if len(phot_row) > 86:
+        SN.other_meta_data = phot_row[86:]
 
 def grab(sql_input, multi_epoch = True, make_corr = True, 
          selection = 'max_coverage', grab_all=False, db_file = '../data/kaepora_v1.db'):
@@ -1217,7 +1220,7 @@ def create_composite(SN_Array, boot, template, medmean, gini_balance=False, aggr
     
 def main(Full_query, boot = False, medmean = 1, make_corr=True, multi_epoch=False, 
         selection = 'max_coverage', gini_balance=False, aggro=.5, verbose=True, 
-        low_av_test = None, combine=True, og_arr=False):
+        low_av_test = None, combine=True, get_og_arr=False):
     """Main function. Finds spectra that satisfy the users query and creates a 
     composite spectrum based on the given arguments.
         
@@ -1315,7 +1318,10 @@ def main(Full_query, boot = False, medmean = 1, make_corr=True, multi_epoch=Fals
         composite = temp[0]
     except IndexError:
         print "No spectra found"
-        exit()
+        if get_og_arr:
+            return None, None, None, None
+        else:
+            return None, None, None
 
     # spec_bin = spectra_per_bin(SN_Array)
 
@@ -1372,7 +1378,7 @@ def main(Full_query, boot = False, medmean = 1, make_corr=True, multi_epoch=Fals
     template, boots = create_composite(SN_Array, boot, template, 
                                         medmean, gini_balance=gini_balance, aggro=aggro)
 
-    if og_arr:
+    if get_og_arr:
         return template, SN_Array, og_SN_Array, boots
     else:
         return template, SN_Array, boots

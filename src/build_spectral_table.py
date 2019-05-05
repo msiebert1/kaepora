@@ -223,8 +223,8 @@ def main():
                 allspec.append(name)
                 if 'corrected' in name:
                     corr_list.append(name)
-    clean1 = [re.sub('\-corrected.flm', '', x) for x in corr_list]
-    clean2 = [re.sub('\.flm', '', x) for x in allspec]
+    clean1 = [re.sub('-corrected.flm', '', x) for x in corr_list]
+    clean2 = [re.sub('.flm', '', x) for x in allspec]
     #find files that have both corrected and raw
     res = set(clean1).intersection(set(clean2))
     #have_both contains files to ignore
