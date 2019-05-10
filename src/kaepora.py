@@ -314,7 +314,7 @@ if __name__ == "__main__":
 
     for n in range(num_queries):
         # c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = False, make_corr=False, multi_epoch=True, combine=False)
-        # c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = False, multi_epoch=True, combine=True) 
+        # c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = False, multi_epoch=True, combine=False) 
         # composites.append(c)
         # SN_Arrays.append(sn_arr)
         # if store_boots:
@@ -354,7 +354,7 @@ if __name__ == "__main__":
     #       var = 1./SN.ivar
     #       vexp, SNR = sa.autosmooth(SN.wavelength[SN.x1:SN.x2], SN.flux[SN.x1:SN.x2], var_y = var[SN.x1:SN.x2])
     #       v, si_min_wave = sa.measure_velocity(SN.wavelength[SN.x1:SN.x2], SN.flux[SN.x1:SN.x2], 5900., 6300., vexp=vexp, plot=True)
-    #       print SN.name, v
+    #       print SN.name, v, si_min_wave
 
 
     # for i, comp in enumerate(composites):

@@ -2,7 +2,7 @@
 Creating Composite Spectra
 ==========================
 
-Here we outline how to generate composite spectra using the methods of `Siebert et al. 2019 <https://msiebert1.github.io/publication/2019-05-02-Siebert_2019_MNRAS>`_. Start by defining ``query_list`` such that it describes the subset of data that for which you wish to generate a composite spectrum. Then run the ``make_composite``:
+Here we outline how to generate composite spectra using the methods of `Siebert et al. 2019 <https://msiebert1.github.io/publication/2019-XX-XX-Siebert_2019_MNRAS>`_. Start by defining ``query_list`` such that it describes the subset of data that for which you wish to generate a composite spectrum. Then run the ``make_composite``:
 
 .. code-block:: python
 
@@ -27,6 +27,7 @@ We also provide a useful plotting function to visualize your composite spectra. 
 
 .. code-block:: python
 
+    import kaepora_plot as kpora
     kpora.set_min_num_spec(composites, 5)
     kplot.comparison_plot(composites, min_num_show=5)
 
