@@ -27,7 +27,7 @@ We also provide a useful plotting function to visualize your composite spectra. 
 
 .. code-block:: python
 
-    import kaepora_plot as kpora
+    import kaepora_plot as kplot
     kpora.set_min_num_spec(composites, 5)
     kplot.comparison_plot(composites, min_num_show=5)
 
