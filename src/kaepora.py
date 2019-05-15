@@ -111,6 +111,7 @@ def grab(query, multi_epoch = True, make_corr = False, selection = 'max_coverage
                                 make_corr = make_corr, grab_all=grab_all, db_file = db_file)
     spec_array = composite.prelim_norm(spec_array)
     if verbose:
+        print "Name", "Filename", "Source", "SNR", "Phase", "MJD", "MJD_max", "z", "Host Morphology", "Minwave", "Maxwave"
         for spec in spec_array:
             print spec.name, spec.filename, spec.source, spec.SNR, spec.phase, spec.mjd, spec.mjd_max, spec.redshift, spec.ned_host, spec.wavelength[spec.x1], spec.wavelength[spec.x2]
 
@@ -313,7 +314,7 @@ if __name__ == "__main__":
     num_queries = len(query_strings)
 
     for n in range(num_queries):
-        # c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = False, make_corr=False, multi_epoch=True, combine=False)
+        c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = False, make_corr=False, multi_epoch=True, combine=False)
         # c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = False, multi_epoch=True, combine=False) 
         # composites.append(c)
         # SN_Arrays.append(sn_arr)
@@ -327,7 +328,7 @@ if __name__ == "__main__":
         # if store_boots:
         #   boot_sn_arrays.append(boots)
             
-        c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = True, verbose=True, multi_epoch=True, combine=True)
+        # c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = True, verbose=True, multi_epoch=True, combine=True)
         composites.append(c)
         SN_Arrays.append(sn_arr)
         if store_boots:
