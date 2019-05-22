@@ -27,7 +27,7 @@ Version specific dependencies:
 
 msgpack-python version 0.4.6
 
-msgpack-numpy version 0.3.5
+msgpack-numpy version 0.3.6
 
 Downloading/Building the Database
 =================================

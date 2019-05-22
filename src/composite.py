@@ -176,7 +176,6 @@ def grab(sql_input, multi_epoch = True, make_corr = True,
         """
 
         SN           = spectrum()
-
         SN.filename  = row[0]
         SN.name      = row[1]
         SN.source    = row[2]
@@ -193,7 +192,7 @@ def grab(sql_input, multi_epoch = True, make_corr = True,
         #retrieve event specific metadata if desired
         if get_phot:
             store_phot_data(SN, row)
-
+        SN.everything = row[0:7]+row[8:93]+row[96:]
         SN.low_conf  = []
         SN.up_conf   = []
         SN.spec_bin  = []

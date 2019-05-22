@@ -560,7 +560,7 @@ def scaled_plot(composites, min_num_show = 5, min_num_scale = 10, include_spec_b
 	plt.show()
 
 def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_scale = 2, template=None, scaleto=10., compare_ind = 0, 
-					legend_labels = None, cmap_kind='diff', morph= False, zoom_ratio=False, savename=None):
+					legend_labels = None, title=None, cmap_kind='diff', morph= False, zoom_ratio=False, savename=None):
 
 	# plt.style.use('ggplot')
 	colors = [color['color'] for color in list(plt.rcParams['axes.prop_cycle'])]
@@ -633,6 +633,7 @@ def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_sc
 			top='on',
 			left='on',
 			right='on',
+			direction="in",
 			length=10)
 		plt.tick_params(
 			which='minor', 
@@ -640,6 +641,7 @@ def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_sc
 			top='on',
 			left='on',
 			right='on',
+			direction="in",
 			length=5)
 		plt.setp(rel_flux.get_xticklabels(), visible=False)
 		plt.ylabel('Relative Flux')
@@ -678,6 +680,7 @@ def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_sc
 			top='on',
 			left='on',
 			right='on',
+			direction="in",
 			length=10)
 		plt.tick_params(
 			which='minor', 
@@ -685,6 +688,7 @@ def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_sc
 			top='on',
 			left='on',
 			right='on',
+			direction="in",
 			length=5)
 		plt.setp(res.get_xticklabels(), visible=False)
 		plt.ylabel('Ratio')
@@ -711,6 +715,7 @@ def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_sc
 			top='on',
 			left='on',
 			right='on',
+			direction="in",
 			length=10)
 		plt.tick_params(
 			which='minor', 
@@ -718,6 +723,7 @@ def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_sc
 			top='on',
 			left='on',
 			right='on',
+			direction="in",
 			length=5)
 		plt.setp(spec.get_xticklabels(), visible=False)
 		plt.ylabel('SNe/Bin')
@@ -734,6 +740,7 @@ def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_sc
 			top='on',
 			left='on',
 			right='on',
+			direction="in",
 			length=10)
 		plt.tick_params(
 			which='minor', 
@@ -741,6 +748,7 @@ def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_sc
 			top='on',
 			left='on',
 			right='on',
+			direction="in",
 			length=5)
 		# avg_phase = np.nanmean(comp.phase_array[comp.x1:comp.x2])
 		# avg_phase_rnd = np.round(avg_phase,1)
@@ -761,6 +769,7 @@ def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_sc
 			top='on',
 			left='on',
 			right='on',
+			direction="in",
 			length=10)
 		plt.tick_params(
 			which='minor', 
@@ -768,6 +777,7 @@ def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_sc
 			top='on',
 			left='on',
 			right='on',
+			direction="in",
 			length=5)
 		# avg_dm15 = np.nanmean(comp.dm15_array[comp.x1:comp.x2])
 		# avg_dm15_rnd = np.round(avg_dm15,2)
@@ -788,6 +798,7 @@ def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_sc
 			top='on',
 			left='on',
 			right='on',
+			direction="in",
 			length=10)
 		plt.tick_params(
 			which='minor', 
@@ -795,6 +806,7 @@ def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_sc
 			top='on',
 			left='on',
 			right='on',
+			direction="in",
 			length=5)
 		avg_z = np.nanmean(comp.red_array[comp.x1:comp.x2])
 		# avg_z_rnd = np.round(avg_z,3)
@@ -957,6 +969,8 @@ def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_sc
 	# plt.savefig('../../FLASH/split_host_highdm15.png', dpi = 300, bbox_inches = 'tight')
 	if legend_labels:
 		rel_flux.legend(legend_labels, bbox_to_anchor=(0.5, 0.45, 0.48, 0.5))
+	if title:
+		rel_flux.set_title(title)
 	if savename is not None:
 		plt.savefig(savename+'.pdf', dpi = 300, bbox_inches = 'tight')
 		plt.savefig(savename+'.png', dpi = 300, bbox_inches = 'tight')

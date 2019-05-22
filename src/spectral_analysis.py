@@ -288,6 +288,64 @@ def measure_velocity(wavelength, flux, wave1, wave2, vexp=.001, rest_wave=6355.,
         si_min_wave = np.nan
     return v, si_min_wave
 
+def measure_vels(comps, sn_arrs, attr_ind, boot_arrs = None, plot=False):
+    avg_vs = []
+    for comp in comps:
+        v, si_min_wave = measure_velocity(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], 5800, 6400, plot=plot)
+        avg_vs.append(v)
+        print v
+
+    if boot_arrs:
+        errors = []
+        boot_vel_arrs = []
+        
+        for boots in boot_arrs:
+            b_vs = []
+            for b in boots:
+                v, si_min_wave = measure_velocity(b.wavelength[b.x1:b.x2], b.flux[b.x1:b.x2], 5800, 6400, plot=False)
+                print v
+                if ~np.isnan(v) and v != None:
+                    b_vs.append(v)
+            boot_vel_arrs.append(b_vs)
+            # errors.append(np.std(b_vs))
+            plt.hist(b_vs)
+            plt.show()
+            
+        low_errors = []
+        up_errors = []
+        for vlist in boot_vel_arrs:
+            p = np.percentile(vlist, [18, 50, 82])
+            vlower = p[1] - p[0]
+            vupper = p[2] - p[1]
+            low_errors.append(vupper)
+            up_errors.append(vlower)
+            print 'ERR: ', (vupper+vlower)/2
+
+        errors = [low_errors, up_errors]
+        
+    avg_attrs = []
+    for arr in sn_arrs:
+        attr_list = []
+        for i, spec in enumerate(arr):
+            attr_list.append(spec.everything[attr_ind])
+        avg_attrs.append(np.average(attr_list))
+    
+    #Caveat: this includes combined spectra
+    vels = []
+    attrs = []
+    for arr in sn_arrs:
+        for i, spec in enumerate(arr):
+            v, si_min_wave = measure_velocity(spec.wavelength[spec.x1:spec.x2], spec.flux[spec.x1:spec.x2], 5800, 6300, plot=plot)
+            attrs.append(spec.everything[attr_ind])
+            vels.append(v)
+            print i,spec.name, v
+    
+    if boot_arrs:
+        plt.errorbar(avg_attrs, avg_vs, yerr=errors, fmt='o')
+    else:
+        plt.scatter(avg_attrs, avg_vs)
+    plt.scatter(attrs, vels, color='orange')
+    plt.show()
 
 #adapted from Rodrigo 
 def max_wave(wavelength, flux, w1, w2, w3, vexp=.001, sys_error=False):
