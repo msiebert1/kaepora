@@ -49,7 +49,7 @@ class spectrum(object):
             self.x2 = len(wavelength) - 1
             self.filename=None
 
-def store_phot_data(SN, row):
+def store_phot_data(SN, row, event_index):
     """Assigns attributes to a spectrum object from the Photometry table in the
     SQL database. 
 
@@ -65,7 +65,7 @@ def store_phot_data(SN, row):
         indicates that the user wants event specific metadata. 
     """
 
-    phot_row = row[10:]
+    phot_row = row[event_index:]
     # phot_row = row[19:]
 
     SN.ra = phot_row[1]
@@ -160,6 +160,13 @@ def grab(sql_input, multi_epoch = True, make_corr = True,
     if "join" in sql_input:
         get_phot = True
 
+    spec_table = cur.execute('PRAGMA TABLE_INFO({})'.format("Spectra"))
+    spec_cols = [tup[1] for tup in cur.fetchall()]
+    event_table = cur.execute('PRAGMA TABLE_INFO({})'.format("Events"))
+    event_cols = [tup[1] for tup in cur.fetchall()]
+    all_cols = spec_cols + event_cols
+    event_index = all_cols.index('RA') - 1 #THIS IS A HACK
+
     cur.execute(sql_input)
 
     #UNCOMMMENT if you want to parse query for average phase (assumes a syntax)
@@ -170,6 +177,7 @@ def grab(sql_input, multi_epoch = True, make_corr = True,
     #   p_high = float(split_query[p_index+6])
     #   p_avg = (p_low+p_high)/2.
 
+    
     for row in cur:
         """retrieve spectral metadata. TODO: Move or delete event specific metadata
         from the "Supernovae" table.
@@ -187,11 +195,12 @@ def grab(sql_input, multi_epoch = True, make_corr = True,
         SN.interp    = interp
         SN.mjd         = row[8]
         SN.ref       = row[9]
+        SN.other_spectral_data = row[10:event_index]
 
 
         #retrieve event specific metadata if desired
         if get_phot:
-            store_phot_data(SN, row)
+            store_phot_data(SN, row, event_index)
         SN.everything = row[0:7]+row[8:93]+row[96:]
         SN.low_conf  = []
         SN.up_conf   = []
@@ -350,11 +359,15 @@ def grab(sql_input, multi_epoch = True, make_corr = True,
 
     for SN in SN_Array:
         #assign more attributes
+
+        #wavelength tracked attributes
         SN.phase_array = np.array(SN.flux)
         SN.dm15_array  = np.array(SN.flux)
         SN.red_array   = np.array(SN.flux)
         SN.vel         = np.array(SN.flux)
         SN.morph_array = np.array(SN.flux)
+        SN.hr_array    = np.array(SN.flux)
+        SN.c_array    = np.array(SN.flux)
 
         nan_bool_flux = np.isnan(SN.flux)
         non_nan_data = np.where(nan_bool_flux == False)
@@ -367,6 +380,9 @@ def grab(sql_input, multi_epoch = True, make_corr = True,
         SN.red_array[nan_data]    = np.nan
         SN.vel[nan_data]          = np.nan
         SN.morph_array[nan_data]  = np.nan
+        SN.hr_array[nan_data]     = np.nan
+        SN.c_array[nan_data]      = np.nan
+
         if SN.phase != None:
             SN.phase_array[non_nan_data] = SN.phase
         else:
@@ -392,6 +408,20 @@ def grab(sql_input, multi_epoch = True, make_corr = True,
             SN.morph_array[non_nan_data] = SN.ned_host
         else:
             SN.morph_array[non_nan_data] = np.nan
+
+        if SN.other_meta_data[9] != None:
+            SN.c_array[non_nan_data] = SN.other_meta_data[9]
+        else:
+            SN.c_array[non_nan_data] = np.nan
+
+        if "MURES " in sql_input:
+            SN.hr_array[non_nan_data] = SN.other_meta_data[4]
+        elif "MURES_NO_MSTEP " in sql_input:
+            SN.hr_array[non_nan_data] = SN.other_meta_data[11]
+        elif "MURES_NO_MSTEP_C " in sql_input:
+            SN.hr_array[non_nan_data] = SN.other_meta_data[12]
+        elif "MURES_NO_MSTEP_C_x1 " in sql_input:
+            SN.hr_array[non_nan_data] = SN.other_meta_data[13]
 
         non_nan_data = np.array(non_nan_data[0])
         if len(non_nan_data) > 0:
@@ -548,6 +578,8 @@ def mask(SN_Array, boot):
     ages   = []
     vels   = []
     morphs = []
+    hrs    = []
+    cs = []
     dm15s  = []
     dm15_ivars = []
     red_ivars  = []
@@ -563,6 +595,8 @@ def mask(SN_Array, boot):
             ages.append(SN.phase_array)
             vels.append(SN.vel)
             morphs.append(SN.morph_array)
+            hrs.append(SN.hr_array)
+            cs.append(SN.c_array)
             dm15s.append(SN.dm15_array)
 
     fluxes = np.ma.masked_array(fluxes,np.isnan(fluxes))
@@ -571,6 +605,8 @@ def mask(SN_Array, boot):
     ages   = np.ma.masked_array(ages,np.isnan(ages))
     vels   = np.ma.masked_array(vels,np.isnan(vels))
     morphs  = np.ma.masked_array(morphs,np.isnan(morphs))
+    hrs  = np.ma.masked_array(hrs,np.isnan(hrs))
+    cs  = np.ma.masked_array(cs,np.isnan(cs))
     dm15s  = np.ma.masked_array(dm15s,np.isnan(dm15s))
     dm15_ivars = np.ma.masked_array(dm15_ivars,np.isnan(dm15_ivars))
     red_ivars  = np.ma.masked_array(red_ivars,np.isnan(red_ivars))
@@ -579,12 +615,12 @@ def mask(SN_Array, boot):
     flux_mask = []
     ivar_mask = []
     
-    return (fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, morphs,
+    return (fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, morphs, hrs, cs, 
             dm15s, flux_mask, ivar_mask, dm15_mask, red_mask)
                 
 
 def average(SN_Array, template, medmean, boot, fluxes, ivars, dm15_ivars, 
-            red_ivars, reds, phases, ages, vels, morphs, dm15s, flux_mask, ivar_mask, 
+            red_ivars, reds, phases, ages, vels, morphs, hrs, cs, dm15s, flux_mask, ivar_mask, 
             dm15_mask, red_mask, find_RMSE=False, name='Composite Spectrum'):
     """Modifies the template spectrum to be the inverse variance weighted 
     average of the scaled data.
@@ -615,6 +651,8 @@ def average(SN_Array, template, medmean, boot, fluxes, ivars, dm15_ivars,
             template.dm15_array  = np.ma.average(dm15s, weights=ivars, axis=0).filled(np.nan)
             template.red_array = np.ma.average(reds, weights = ivars, axis=0).filled(np.nan)
             template.morph_array = np.ma.average(morphs, weights = ivars, axis=0).filled(np.nan)
+            template.hr_array = np.ma.average(hrs, weights = ivars, axis=0).filled(np.nan)
+            template.c_array = np.ma.average(cs, weights = ivars, axis=0).filled(np.nan)
     if medmean == 2:
         template.flux = np.ma.median(fluxes, axis=0).filled(np.nan)
         if not boot:
@@ -623,6 +661,8 @@ def average(SN_Array, template, medmean, boot, fluxes, ivars, dm15_ivars,
             template.dm15_array  = np.ma.median(dm15s, axis=0).filled(np.nan)
             template.red_array = np.ma.median(reds, axis=0).filled(np.nan)
             template.morph_array = np.ma.median(morphs, axis=0).filled(np.nan)
+            template.hr_array = np.ma.median(hrs, axis=0).filled(np.nan)
+            template.c_array = np.ma.median(cs, axis=0).filled(np.nan)
     
     #finds and stores the variance data of the template
     no_data   = np.where(np.sum(ivars, axis = 0)==0)
@@ -686,15 +726,15 @@ def bootstrapping (SN_Array, samples, og_template, iters, medmean):
         boot_temp = copy.deepcopy(boot_temp[0])
         
 
-        (fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, morphs, dm15s, 
+        (fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, morphs, hrs, cs, dm15s, 
          flux_mask, ivar_mask, dm15_mask, red_mask) = mask(boot_arr[p], boot)
         for x in range(iters):
             new_SN_Array, scales = optimize_scales(boot_arr[p], boot_temp, True)
-            (fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, morphs, dm15s, 
+            (fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, morphs, hrs, cs, dm15s, 
              flux_mask, ivar_mask, dm15_mask, red_mask) = mask(boot_arr[p], boot)
             template = average(boot_arr[p], boot_temp, medmean, boot, fluxes, 
                                 ivars, dm15_ivars, red_ivars, reds, phases, ages, 
-                                vels, morphs, dm15s, flux_mask, ivar_mask, dm15_mask, red_mask)
+                                vels, morphs, hrs, cs, dm15s, flux_mask, ivar_mask, dm15_mask, red_mask)
         boots.append(copy.deepcopy(template))
 
     print "scaling boots..."
@@ -1099,7 +1139,7 @@ def create_composite(SN_Array, boot, template, medmean, gini_balance=False, aggr
     # for SN in SN_Array:
     #   SN.ivar = np.ones(len(SN_Array[0].ivar))
 
-    (fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, morphs, dm15s, 
+    (fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, morphs, hrs, cs, dm15s, 
      flux_mask, ivar_mask, dm15_mask, red_mask) = mask(SN_Array, False)
 
     #deweight high SNR spectra using gini coefficients
@@ -1159,10 +1199,10 @@ def create_composite(SN_Array, boot, template, medmean, gini_balance=False, aggr
         # for SN in SN_Array:
         #   SN.ivar = np.ones(len(SN_Array[0].ivar))
 
-        (fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, morphs, dm15s, 
+        (fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, morphs, hrs, cs, dm15s, 
          flux_mask, ivar_mask, dm15_mask, red_mask) = mask(SN_Array, False)
         template = average(SN_Array, template, medmean, False, fluxes, ivars, 
-                            dm15_ivars, red_ivars, reds, phases, ages, vels, morphs, 
+                            dm15_ivars, red_ivars, reds, phases, ages, vels, morphs, hrs, cs,
                             dm15s, flux_mask, ivar_mask, dm15_mask, red_mask, find_RMSE=True, name=name)
         # for SN in SN_Array:
         #   plt.plot(SN.wavelength, SN.flux)

@@ -6,6 +6,7 @@ import spectral_analysis as sa
 import kaepora_plot as kplot
 import warnings
 from tabulate import tabulate
+import matplotlib.pyplot as plt
 warnings.filterwarnings("ignore")
 
 """This file contains various functions to interact with kaepora and facilitate

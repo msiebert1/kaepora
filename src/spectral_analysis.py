@@ -340,12 +340,14 @@ def measure_vels(comps, sn_arrs, attr_ind, boot_arrs = None, plot=False):
             vels.append(v)
             print i,spec.name, v
     
-    if boot_arrs:
-        plt.errorbar(avg_attrs, avg_vs, yerr=errors, fmt='o')
-    else:
-        plt.scatter(avg_attrs, avg_vs)
-    plt.scatter(attrs, vels, color='orange')
-    plt.show()
+    # if boot_arrs:
+    #     plt.errorbar(avg_attrs, avg_vs, yerr=errors, fmt='o')
+    # else:
+    #     plt.scatter(avg_attrs, avg_vs)
+    # plt.scatter(attrs, vels, color='orange')
+    # plt.show()
+
+    return avg_attrs, avg_vs, errors, attrs, vels
 
 #adapted from Rodrigo 
 def max_wave(wavelength, flux, w1, w2, w3, vexp=.001, sys_error=False):
