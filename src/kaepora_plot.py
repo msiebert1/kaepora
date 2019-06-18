@@ -560,7 +560,7 @@ def scaled_plot(composites, min_num_show = 5, min_num_scale = 10, include_spec_b
 	plt.show()
 
 def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_scale = 2, template=None, scaleto=10., compare_ind = 0, 
-					legend_labels = None, title=None, cmap_kind='diff', morph= False, zoom_ratio=False, savename=None):
+					legend_labels = None, title=None, cmap_kind='diff', extra= False, zoom_ratio=False, savename=None):
 
 	# plt.style.use('ggplot')
 	colors = [color['color'] for color in list(plt.rcParams['axes.prop_cycle'])]
@@ -812,21 +812,21 @@ def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_sc
 		# avg_z_rnd = np.round(avg_z,3)
 		# z.yaxis.set_ticks(np.arange(avg_z_rnd-.006, avg_z_rnd+.0061, .005))
 		# plt.plot(comp.wavelength[comp.x1:comp.x2], comp.red_array[comp.x1:comp.x2], color = s_m.to_rgba(param))
-		if not morph:
+		if not extra:
 			plt.ylabel('Redshift')
 			plt.plot(comp.wavelength[comp.x1:comp.x2], comp.red_array[comp.x1:comp.x2], linewidth = lw, color = s_m.to_rgba(param))
 			z.axes.set_ylim([avg_z - .015, avg_z + .01])
 		else:
-			plt.ylabel('Morphology')
+			plt.ylabel('HR')
 			# ['E', 'E0', 'E1', 'E2', 'E23', 'E3', 'E6', 'S0', 'S0a', 'Sa', 'Sab', 'Sb', 'Sbc', 'Sc', 'Scd', 'Sd', 'Sdm', 'Sm', 'Sp']
-			avg_m1 = np.nanmean(composites[0].morph_array[comp.x1:comp.x2])
-			avg_m2 = np.nanmean(composites[1].morph_array[comp.x1:comp.x2])
+			avg_m1 = np.nanmean(composites[0].hr_array[comp.x1:comp.x2])
+			avg_m2 = np.nanmean(composites[1].hr_array[comp.x1:comp.x2])
 			avg_m = (avg_m1 + avg_m2)/2.
-			plt.plot(comp.wavelength[comp.x1:comp.x2], comp.morph_array[comp.x1:comp.x2], linewidth = lw, color = s_m.to_rgba(param))
-			z.axes.set_ylim([avg_m - 7, avg_m + 7])
-			y = [5,10,15]
-			labels = ['E','Sa', 'Scd']
-			plt.yticks(y, labels)
+			plt.plot(comp.wavelength[comp.x1:comp.x2], comp.hr_array[comp.x1:comp.x2], linewidth = lw, color = s_m.to_rgba(param))
+			# z.axes.set_ylim([avg_m - 7, avg_m + 7])
+			# y = [5,10,15]
+			# labels = ['E','Sa', 'Scd']
+			# plt.yticks(y, labels)
 		
 
 		z.axes.set_xlim([comp.wavelength[comp.x1]-200., comp.wavelength[comp.x2]+200.])

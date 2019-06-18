@@ -110,6 +110,8 @@ def store_phot_data(SN, row, event_index):
 
     if len(phot_row) > 86:
         SN.other_meta_data = phot_row[86:]
+    else:
+        SN.other_meta_data = None
 
 def grab(sql_input, multi_epoch = True, make_corr = True, 
          selection = 'max_coverage', grab_all=False, db_file = '../data/kaepora_v1.db'):
@@ -179,8 +181,7 @@ def grab(sql_input, multi_epoch = True, make_corr = True,
 
     
     for row in cur:
-        """retrieve spectral metadata. TODO: Move or delete event specific metadata
-        from the "Supernovae" table.
+        """retrieve spectral metadata.
         """
 
         SN           = spectrum()
@@ -409,19 +410,22 @@ def grab(sql_input, multi_epoch = True, make_corr = True,
         else:
             SN.morph_array[non_nan_data] = np.nan
 
-        if SN.other_meta_data[9] != None:
-            SN.c_array[non_nan_data] = SN.other_meta_data[9]
-        else:
-            SN.c_array[non_nan_data] = np.nan
+        if SN.other_meta_data:
+            if SN.other_meta_data[9] != None:
+                SN.c_array[non_nan_data] = SN.other_meta_data[9]
+            else:
+                SN.c_array[non_nan_data] = np.nan
 
-        if "MURES " in sql_input:
-            SN.hr_array[non_nan_data] = SN.other_meta_data[4]
-        elif "MURES_NO_MSTEP " in sql_input:
-            SN.hr_array[non_nan_data] = SN.other_meta_data[11]
-        elif "MURES_NO_MSTEP_C " in sql_input:
-            SN.hr_array[non_nan_data] = SN.other_meta_data[12]
-        elif "MURES_NO_MSTEP_C_x1 " in sql_input:
-            SN.hr_array[non_nan_data] = SN.other_meta_data[13]
+            if "MURES " in sql_input:
+                SN.hr_array[non_nan_data] = SN.other_meta_data[4]
+            elif "MURES_NO_MSTEP " in sql_input:
+                SN.hr_array[non_nan_data] = SN.other_meta_data[11]
+            elif "MURES_NO_MSTEP_C " in sql_input:
+                SN.hr_array[non_nan_data] = SN.other_meta_data[12]
+            elif "MURES_NO_MSTEP_C_X1 " in sql_input:
+                SN.hr_array[non_nan_data] = SN.other_meta_data[13]
+            else:
+                SN.hr_array[non_nan_data] = SN.other_meta_data[4]
 
         non_nan_data = np.array(non_nan_data[0])
         if len(non_nan_data) > 0:
