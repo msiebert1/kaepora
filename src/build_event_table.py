@@ -1009,7 +1009,7 @@ def main():
     # raise TypeError
 
     # con = sq3.connect('../data/kaepora_v1.db')
-    con = sq3.connect('../data/kaepora_v1.db')
+    con = sq3.connect('../data/kaepora_v1_hub_center.db')
     con.execute("""DROP TABLE IF EXISTS Events""")
     con.execute("""CREATE TABLE IF NOT EXISTS Events (SN TEXT, RA TEXT, DEC TEXT, 
                                                           zCMB_salt REAL, e_zCMB_salt REAL, Bmag_salt REAL, e_Bmag_salt REAL, s_salt REAL, e_s_salt REAL, c_salt REAL, e_c_salt REAL, mu_salt REAL, e_mu_salt REAL,
@@ -1102,6 +1102,9 @@ def main():
         #hubble residual
         # hubble_res = residual_dict.get(event, None)
         hubble_res = salt2_hub_res_dict.get(event, None)
+        # if hubble_res != None:
+        #     median = -0.0305
+        #     hubble_res = hubble_res - median
 
         #MW reddening
         av_mw = ext_dict.get(event, None)

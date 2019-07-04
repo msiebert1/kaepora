@@ -88,7 +88,7 @@ def basic_format():
 	
 def scaled_plot(composites, min_num_show = 5, min_num_scale = 10, include_spec_bin = False, scaleto=10., zoom=True, fs=[15,12], ticks=[13,8], xlim=None, include_phase_dm15=False,
 				 legend_labels = None, rm_last_label=False, expand_ratio=False, text = '', dashes = None, savename = None):
-	color_dict = {"Comp": "#000080", "Comp0": "#000080", "Comp1": "#ff8c00", "Comp2": "limegreen", "Comp3": "orange", "Hsiao": "orange", "Foley": "crimson", "Nugent": "turquoise", "SALT2": "black"}
+	color_dict = {"Comp": (0.2298057, 0.298717966, 0.753683153, 1.0), "Comp0": "#000080", "Comp1": (0.705673158, 0.01555616, 0.150232812, 1.0), "Comp2": "limegreen", "Comp3": "orange", "Hsiao": "orange", "Foley": "crimson", "Nugent": "turquoise", "SALT2": "black"}
 	# order_dict = {"Comp": 2, "Comp0": 2, "Comp1": 2, "Comp2": 2,"Hsiao": 3, "Foley08": 1, "Nugent": 4, "SALT2": 5}
 	order_dict = {"Comp": 2, "Comp0": 2, "Comp1": 2, "Comp2": 2, "Comp3": 2, "Hsiao": 2.1, "Foley": 1.9, "Nugent": 2.2, "SALT2": 2.3}
 	# if not include_spec_bin:
@@ -159,17 +159,22 @@ def scaled_plot(composites, min_num_show = 5, min_num_scale = 10, include_spec_b
 	composites, scales = composite.optimize_scales(composites, composites[0], True)
 	set_min_num_spec([composites[0]], min_num_show)
 
-	for comp in composites:
+	for i, comp in enumerate(composites):
 		comp.flux *= scaleto
 		if len(comp.low_conf) > 0 and len(comp.up_conf) > 0:
 			comp.up_conf *= scaleto
 			comp.low_conf *= scaleto
 
+		if i == 0:
+			comp.name = "Comp"
+		if i == 1:
+			comp.name = "Comp1"
 		c = color_dict[comp.name]
+
 		if comp.name != "Comp":
-			lw = 1.5
+			lw = 2
 		else:
-			lw = 1
+			lw = 2
 		# phase = np.average(comp.phase_array[comp.x1:comp.x2])
 		# plt.plot(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], color = s_m.to_rgba(phase))
 		# if len(comp.low_conf) > 0 and len(comp.up_conf) > 0:
@@ -187,6 +192,7 @@ def scaled_plot(composites, min_num_show = 5, min_num_scale = 10, include_spec_b
 			left='on',
 			right='on',
 			length=ticks[0],
+			direction='in',
 			zorder=20)
 		plt.tick_params(
 			which='minor', 
@@ -195,6 +201,7 @@ def scaled_plot(composites, min_num_show = 5, min_num_scale = 10, include_spec_b
 			left='on',
 			right='on',
 			length=ticks[1],
+			direction='in',
 			zorder=20)
 		plt.ylabel('Relative Flux', fontsize=fs[0])
 		plt.ylim([-.05*scaleto, scaleto + .15*scaleto])
@@ -222,6 +229,7 @@ def scaled_plot(composites, min_num_show = 5, min_num_scale = 10, include_spec_b
 			left='on',
 			right='on',
 			length=ticks[0],
+			direction='in',
 			zorder=20)
 		plt.tick_params(
 			which='minor', 
@@ -230,6 +238,7 @@ def scaled_plot(composites, min_num_show = 5, min_num_scale = 10, include_spec_b
 			left='on',
 			right='on',
 			length=ticks[1],
+			direction='in',
 			zorder=20)
 
 		plt.ylabel('Ratio', fontsize=fs[0])
@@ -287,6 +296,7 @@ def scaled_plot(composites, min_num_show = 5, min_num_scale = 10, include_spec_b
 			left='on',
 			right='on',
 			length=ticks[0],
+			direction='in',
 			zorder=20)
 		plt.tick_params(
 			which='minor', 
@@ -295,6 +305,7 @@ def scaled_plot(composites, min_num_show = 5, min_num_scale = 10, include_spec_b
 			left='on',
 			right='on',
 			length=ticks[1],
+			direction='in',
 			zorder=20)
 
 		majorLocator = MultipleLocator(.2)
@@ -317,6 +328,7 @@ def scaled_plot(composites, min_num_show = 5, min_num_scale = 10, include_spec_b
 			left='on',
 			right='on',
 			length=ticks[0],
+			direction='in',
 			zorder=20)
 		plt.tick_params(
 			which='minor', 
@@ -325,6 +337,7 @@ def scaled_plot(composites, min_num_show = 5, min_num_scale = 10, include_spec_b
 			left='on',
 			right='on',
 			length=ticks[1],
+			direction='in',
 			zorder=20)
 
 		majorLocator = MultipleLocator(.2)
@@ -373,6 +386,7 @@ def scaled_plot(composites, min_num_show = 5, min_num_scale = 10, include_spec_b
 			left='on',
 			right='on',
 			length=ticks[0],
+			direction='in',
 			zorder=20)
 		plt.tick_params(
 			which='minor', 
@@ -381,6 +395,7 @@ def scaled_plot(composites, min_num_show = 5, min_num_scale = 10, include_spec_b
 			left='on',
 			right='on',
 			length=ticks[1],
+			direction='in',
 			zorder=20)
 
 		if max(composites[0].spec_bin[composites[0].x1:composites[0].x2]) > 90: 
@@ -450,6 +465,7 @@ def scaled_plot(composites, min_num_show = 5, min_num_scale = 10, include_spec_b
 			left='on',
 			right='on',
 			length=ticks[0],
+			direction='in',
 			zorder=20)
 		plt.tick_params(
 			which='minor', 
@@ -458,6 +474,7 @@ def scaled_plot(composites, min_num_show = 5, min_num_scale = 10, include_spec_b
 			left='on',
 			right='on',
 			length=ticks[1],
+			direction='in',
 			zorder=20)
 
 		plt.setp(phase.get_xticklabels(), visible=False)
@@ -491,6 +508,7 @@ def scaled_plot(composites, min_num_show = 5, min_num_scale = 10, include_spec_b
 			left='on',
 			right='on',
 			length=ticks[0],
+			direction='in',
 			zorder=20)
 		plt.tick_params(
 			which='minor', 
@@ -499,6 +517,7 @@ def scaled_plot(composites, min_num_show = 5, min_num_scale = 10, include_spec_b
 			left='on',
 			right='on',
 			length=ticks[1],
+			direction='in',
 			zorder=20)
 
 		plt.setp(delt.get_xticklabels(), visible=True)

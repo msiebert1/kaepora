@@ -49,7 +49,7 @@ class spectrum(object):
             self.x2 = len(wavelength) - 1
             self.filename=None
 
-def store_phot_data(SN, row, event_index):
+def store_phot_data(SN, row, event_index, phot_cols):
     """Assigns attributes to a spectrum object from the Photometry table in the
     SQL database. 
 
@@ -108,8 +108,10 @@ def store_phot_data(SN, row, event_index):
     SN.light_curves = msg.unpackb(phot_row[84])
     SN.csp_light_curves = msg.unpackb(phot_row[85])
 
-    if len(phot_row) > 86:
-        SN.other_meta_data = phot_row[86:]
+    if len(phot_row) >= 86:
+        SN.other_meta_data = {}
+        for i, pr in enumerate(phot_row[86:]):
+            SN.other_meta_data[phot_cols[i]] = pr
     else:
         SN.other_meta_data = None
 
@@ -167,8 +169,7 @@ def grab(sql_input, multi_epoch = True, make_corr = True,
     event_table = cur.execute('PRAGMA TABLE_INFO({})'.format("Events"))
     event_cols = [tup[1] for tup in cur.fetchall()]
     all_cols = spec_cols + event_cols
-    event_index = all_cols.index('RA') - 1 #THIS IS A HACK
-
+    event_index = all_cols.index('RA') - 1  #THIS IS A HACK
     cur.execute(sql_input)
 
     #UNCOMMMENT if you want to parse query for average phase (assumes a syntax)
@@ -196,12 +197,15 @@ def grab(sql_input, multi_epoch = True, make_corr = True,
         SN.interp    = interp
         SN.mjd         = row[8]
         SN.ref       = row[9]
-        SN.other_spectral_data = row[10:event_index]
+        SN.other_spectral_data = {}
+        for i, r in enumerate(row[10:event_index]):
+            SN.other_spectral_data[all_cols[i]] = r
 
 
         #retrieve event specific metadata if desired
         if get_phot:
-            store_phot_data(SN, row, event_index)
+            phot_cols = all_cols[event_index:]
+            store_phot_data(SN, row, event_index, phot_cols)
         SN.everything = row[0:7]+row[8:93]+row[96:]
         SN.low_conf  = []
         SN.up_conf   = []
@@ -360,6 +364,8 @@ def grab(sql_input, multi_epoch = True, make_corr = True,
 
     for SN in SN_Array:
         #assign more attributes
+        SN.flux = SN.flux.copy()
+        SN.ivar = SN.ivar.copy()
 
         #wavelength tracked attributes
         SN.phase_array = np.array(SN.flux)
@@ -411,21 +417,21 @@ def grab(sql_input, multi_epoch = True, make_corr = True,
             SN.morph_array[non_nan_data] = np.nan
 
         if SN.other_meta_data:
-            if SN.other_meta_data[9] != None:
+            if SN.other_meta_data.get('c',None) != None:
                 SN.c_array[non_nan_data] = SN.other_meta_data[9]
             else:
                 SN.c_array[non_nan_data] = np.nan
 
             if "MURES " in sql_input:
-                SN.hr_array[non_nan_data] = SN.other_meta_data[4]
+                SN.hr_array[non_nan_data] = SN.other_meta_data.get("MURES", None)
             elif "MURES_NO_MSTEP " in sql_input:
-                SN.hr_array[non_nan_data] = SN.other_meta_data[11]
+                SN.hr_array[non_nan_data] = SN.other_meta_data.get("MURES_NO_MSTEP", None)
             elif "MURES_NO_MSTEP_C " in sql_input:
-                SN.hr_array[non_nan_data] = SN.other_meta_data[12]
+                SN.hr_array[non_nan_data] = SN.other_meta_data.get("MURES_NO_MSTEP_C", None)
             elif "MURES_NO_MSTEP_C_X1 " in sql_input:
-                SN.hr_array[non_nan_data] = SN.other_meta_data[13]
+                SN.hr_array[non_nan_data] = SN.other_meta_data.get("MURES_NO_MSTEP_C_X1", None)
             else:
-                SN.hr_array[non_nan_data] = SN.other_meta_data[4]
+                SN.hr_array[non_nan_data] = SN.other_meta_data.get("MURES", None)
 
         non_nan_data = np.array(non_nan_data[0])
         if len(non_nan_data) > 0:

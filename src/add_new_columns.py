@@ -49,6 +49,7 @@ def add_all_SALT2_metadata(db_file):
     alpha = 0.14107
     beta = 3.14889
     gamma = 0.04572
+    median = -0.0305
     for line in salt2_data:
         SN                      = line['CID'].lower()
         mu[SN]                  = float(line['MU'])
@@ -63,7 +64,7 @@ def add_all_SALT2_metadata(db_file):
         c_err[SN]               = float(line['cERR'])
 
         if hostmass[SN] >= 10:
-            mures_no_mstep[SN] = mures[SN] - gamma
+            mures_no_mstep[SN] = mures[SN] - gamma 
         else:
             mures_no_mstep[SN] = mures[SN] + gamma
         
@@ -123,8 +124,8 @@ def add_salt2_survey_ID_column(db_file):
     con.commit()
 
 if __name__ == "__main__":
-    # add_salt2_survey_ID_column('../data/kaepora_v1.db')
-    add_all_SALT2_metadata('../data/kaepora_v1.db')
+    add_salt2_survey_ID_column('../data/kaepora_v1_hub_center.db')
+    add_all_SALT2_metadata('../data/kaepora_v1_hub_center.db')
 
     
 

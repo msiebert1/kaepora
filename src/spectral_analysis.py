@@ -4,6 +4,8 @@ import numpy as np
 import copy
 from scipy.integrate import simps
 import random 
+import pyphot
+import kaepora as kpora
 
 def autosmooth(x_array, y_array, var_y=None):
     if var_y is not None:
@@ -286,7 +288,7 @@ def measure_velocity(wavelength, flux, wave1, wave2, vexp=.001, rest_wave=6355.,
     else:
         v = np.nan
         si_min_wave = np.nan
-    return v, si_min_wave
+    return (-1.*v)/1000., si_min_wave
 
 def measure_vels(comps, sn_arrs, attr_ind, boot_arrs = None, plot=False):
     avg_vs = []
@@ -569,4 +571,55 @@ def resample_spectrum(SN):
     flux = SN.flux[SN.x1:SN.x2]
     varflux = 1./SN.ivar[SN.x1:SN.x2]
 
+
+def measure_mags(wave, flux, filts = ['GROUND_JOHNSON_B','GROUND_JOHNSON_V']):
+    lib = pyphot.get_library()
+    mags = []
+    for f in filts:
+        func = lib[f]
+        fflux = func.get_flux(wave, flux, axis = -1)
+        mag = -2.5 * np.log10(fflux) - func.Vega_zero_mag
+        mags.append(mag)
+    return mags
+
+def measure_comp_1m2(comps, filts = ['GROUND_JOHNSON_B','GROUND_JOHNSON_V'], boot_arrs = None, error=False):
+    lib = pyphot.get_library()
+    func1 = lib[filts[0]]
+    func2 = lib[filts[1]]
+    
+    comp_1 = []
+    comp_2 = []
+    phases = []
+    errors = []
+    kpora.set_min_num_spec(comps, 5)
+    for comp in comps:
+        mag1, mag2 = measure_mags(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], filts = filts)
+        comp_1.append(mag1)
+        comp_2.append(mag2)
+        phases.append(np.average(comp.phase_array[comp.x1:comp.x2]))
+        
+    if error:
+        boot_1m2s = []
+        errors = []
+        for boots in boot_arrs:
+            boot_1 = []
+            boot_2 = []
+            for b in boots:
+                mag1, mag2 = measure_mags(b.wavelength[b.x1:b.x2], b.flux[b.x1:b.x2], filts=filts)
+                if ~np.isnan(mag1) and ~np.isnan(mag2):
+                    boot_1.append(mag1)
+                    boot_2.append(mag2)
+            diff = np.asarray(boot_1) - np.asarray(boot_2)
+            boot_1m2s.append(diff)
+        low_errors = []
+        up_errors = []
+        for clist in boot_1m2s:
+            p = np.percentile(clist, [18, 50, 82])
+            clower = p[1] - p[0]
+            cupper = p[2] - p[1]
+            low_errors.append(cupper)
+            up_errors.append(clower)
+        errors = [low_errors, up_errors]
+        
+    return phases, comp_1, comp_2, errors
 
