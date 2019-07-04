@@ -28,6 +28,22 @@ def add_arbitrary_event_column(col_name, data, dtype, db_file):
             cur.execute("UPDATE Events SET " + col_name + " = ? where SN = ?", (data[SN], SN))
     con.commit()
 
+def add_arbitrary_spectra_column(col_name, data, dtype, db_file):
+    con = sq3.connect(db_file)
+    cur = con.cursor()
+    cur.execute('PRAGMA TABLE_INFO({})'.format("Spectra"))
+
+    names = [tup[1] for tup in cur.fetchall()]
+    if col_name not in names:
+        cur.execute("""ALTER TABLE Spectra ADD COLUMN """+ col_name + """ """ + dtype)
+        for filename in data.keys():
+            cur.execute("UPDATE Spectra SET " + col_name + " = ? where filename = ?", (data[filename], filename))
+    else:
+        for SN in data.keys():
+            cur.execute("UPDATE Spectra SET " + col_name + " = ? where filename = ?", (data[filename], filename))
+    con.commit()
+
+
 def add_all_SALT2_metadata(db_file):
     salt2_data = ascii.read("../data/info_files/SALT2mu_fpan.fitres", delimiter = r'\s', guess = False)
 
@@ -49,7 +65,6 @@ def add_all_SALT2_metadata(db_file):
     alpha = 0.14107
     beta = 3.14889
     gamma = 0.04572
-    median = -0.0305
     for line in salt2_data:
         SN                      = line['CID'].lower()
         mu[SN]                  = float(line['MU'])
@@ -64,7 +79,7 @@ def add_all_SALT2_metadata(db_file):
         c_err[SN]               = float(line['cERR'])
 
         if hostmass[SN] >= 10:
-            mures_no_mstep[SN] = mures[SN] - gamma 
+            mures_no_mstep[SN] = mures[SN] - gamma
         else:
             mures_no_mstep[SN] = mures[SN] + gamma
         
@@ -124,8 +139,8 @@ def add_salt2_survey_ID_column(db_file):
     con.commit()
 
 if __name__ == "__main__":
-    add_salt2_survey_ID_column('../data/kaepora_v1_hub_center.db')
-    add_all_SALT2_metadata('../data/kaepora_v1_hub_center.db')
+    # add_salt2_survey_ID_column('../data/kaepora_v1.db')
+    add_all_SALT2_metadata('../data/kaepora_v1.db')
 
     
 
