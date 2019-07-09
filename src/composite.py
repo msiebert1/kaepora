@@ -19,6 +19,7 @@ import scipy.optimize as opt
 import copy
 from astropy import units as u
 from specutils import Spectrum1D
+import glob
 
 #routines in repository:
 import test_dered
@@ -122,7 +123,7 @@ def store_phot_data(SN, row, event_index, phot_cols):
         SN.homog_light_curves = None
 
 def grab(sql_input, multi_epoch = True, make_corr = True, 
-         selection = 'max_coverage', grab_all=False, db_file = '../data/kaepora_v1.db'):
+         selection = 'max_coverage', grab_all=False, db_file = None):
     """A primary function for interacting with the database. The user specifies 
     a desired subsample via an SQL query. Spectra are stored as spectrum objects
     with their associated metadata as attributes.
@@ -160,6 +161,9 @@ def grab(sql_input, multi_epoch = True, make_corr = True,
     """
     #Connect to database
     #Make sure your database file is in this location
+    if db_file is None:
+        db_file = glob.glob('../data/*.db')[0]
+
     con = sq3.connect(db_file)
     print "Collecting data from", db_file, "..."
     cur = con.cursor()

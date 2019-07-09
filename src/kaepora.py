@@ -7,6 +7,7 @@ import kaepora_plot as kplot
 import warnings
 from tabulate import tabulate
 import matplotlib.pyplot as plt
+import glob
 warnings.filterwarnings("ignore")
 
 """This file contains various functions to interact with kaepora and facilitate
@@ -74,7 +75,7 @@ def normalize_comp(comp):
     comp.ivar /= (norm)**2
     return comp, norm
 
-def grab(query, multi_epoch = True, make_corr = False, selection = 'max_coverage', grab_all=False, verbose=False, db_file = '../data/kaepora_v1.db'):
+def grab(query, multi_epoch = True, make_corr = False, selection = 'max_coverage', grab_all=False, verbose=False, db_file = None):
     """This function takes a SQL query and provides a list spectrum objects 
         (defined in composite.py) satisfy this query. 
 
@@ -108,6 +109,11 @@ def grab(query, multi_epoch = True, make_corr = False, selection = 'max_coverage
             An array of spectrum objects populated with metadata retrieved from 
             the SQL query.
     """
+
+    if db_file is None:
+        db_file = glob.glob('../data/*.db')[0]
+        print 'Using: ' + db_file
+
     spec_array = composite.grab(query, multi_epoch = multi_epoch, 
                                 make_corr = make_corr, grab_all=grab_all, db_file = db_file)
     spec_array = composite.prelim_norm(spec_array)
