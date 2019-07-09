@@ -7,40 +7,81 @@ import pyphot
 import numpy as np
 from scipy.interpolate import splrep, splev
 import scipy.optimize as opt
-
+from specutils import extinction as ex
+from specutils import Spectrum1D
+from astropy import units as u
 import sys,os
+import copy
+
+# color_dict = {'U': 'magenta',
+#               'B': 'blue',
+#               'V': 'green',
+#               'R': 'red',
+#               'I': 'brown',
+
+#               'u': 'purple',
+#               'g': 'seagreen',
+#               'r': 'crimson',
+#               'i': 'orangered',
+#               'z': 'darkred',
+
+#               "u'": 'purple',
+#               "g'": 'seagreen',
+#               "r'": 'crimson',
+#               "i'": 'orangered',
+#               "z'": 'darkred',
+
+#               'H': 'yellow',
+#               'K': 'teal',
+#               'J': 'crimson',
+#               'V': 'orange',
+#               'Y': 'pink',
+
+#               'W1': 'gray',
+#               'W2': 'black',
+#               'M2': 'darkgray',
+
+#               'C': 'limegreen',
+#               'Js': 'gold',
+#               'Ks': 'lightgray'}
 
 color_dict = {'U': 'magenta',
-              'B': 'blue',
-              'V': 'green',
-              'R': 'red',
-              'I': 'brown',
+          'B': 'blue',
+          'V': 'green',
+          'R': 'red',
+          'I': 'brown',
 
-              'u': 'purple',
-              'g': 'seagreen',
-              'r': 'crimson',
-              'i': 'orangered',
-              'z': 'darkred',
+          'u': 'purple',
+          'g': 'seagreen',
+          'r': 'crimson',
+          'i': 'orangered',
+          'z': 'darkred',
 
-              "u'": 'purple',
-              "g'": 'seagreen',
-              "r'": 'crimson',
-              "i'": 'orangered',
-              "z'": 'darkred',
+          "u'": 'purple',
+          "g'": 'seagreen',
+          "r'": 'crimson',
+          "i'": 'orangered',
+          "z'": 'darkred',
 
-              'H': 'yellow',
-              'K': 'teal',
-              'J': 'crimson',
-              'V': 'orange',
-              'Y': 'pink',
+          'H': 'yellow',
+          'K': 'teal',
+          'J': 'crimson',
+          'V': 'orange',
+          'V0': 'orange',
+          'Y': 'pink',
 
-              'W1': 'gray',
-              'W2': 'black',
-              'M2': 'darkgray',
+          'W1': 'gray',
+          'W2': 'black',
+          'M2': 'darkgray',
 
-              'C': 'limegreen',
-              'Js': 'gold',
-              'Ks': 'lightgray'}
+          'C': 'limegreen',
+          'Js': 'gold',
+          'Ks': 'lightgray',
+          'Jrc2': 'lavender',
+          'Hdw': 'darkblue',
+          'Ydw': 'darkgreen',
+          'Jdw': 'darkgray',
+             }
 
 def get_band_data(phot, band):
     mjds = []
@@ -144,7 +185,7 @@ def interp_LC(mjds, mags, errs, s = 100):
         return None
 
 
-def generate_photometry_for_epoch(spec, valid_bands):
+def generate_photometry_for_epoch_OSC(spec, valid_bands):
     phot = spec.light_curves
     phot_dict = {}
     for band in valid_bands:
@@ -156,6 +197,25 @@ def generate_photometry_for_epoch(spec, valid_bands):
             #TODO: error estimation
         else:
             phot_dict[band] = np.nan
+    return phot_dict
+
+def generate_photometry_for_epoch(spec, valid_bands):
+    phot = spec.homog_light_curves
+    phot_dict = {}
+    for band in valid_bands:
+        if band in phot.keys():
+            if band == 'V':
+                band = 'V0'
+            mjds, mags, errs = np.asarray(phot[band][0]), np.asarray(phot[band][1]), np.asarray(phot[band][2])
+            if band == 'V0':
+                band = 'V'
+            m_spline = interp_LC(mjds, mags, errs)
+            if mjds[0] < spec.mjd  and mjds[-1] > spec.mjd:
+                m_smooth = splev(spec.mjd, m_spline)
+                phot_dict[band] = float(m_smooth)
+                #TODO: error estimation
+            else:
+                phot_dict[band] = np.nan
     return phot_dict
 
 
@@ -187,6 +247,7 @@ def valid_bands(spec):
     band_waves = {"U": [3000.,4200.], 
                   "B": [3600.,5600.], 
                   "V": [4700.,7000.], 
+                  "V0": [4700.,7000.],
                   "R": [5500.,9000.], 
                   "I": [7000.,9200.],
                   "u": [3000.,4000.], 
@@ -243,20 +304,40 @@ def scale_flux_to_photometry(spec, valid_bands):
 
     return scale, mags_from_phot
 
+def undo_MW_correction(spec):
+    #TODO:finish, apply before scaling
+
+    wave = spec.wavelength[spec.x1:spec.x2]
+    flux = spec.flux[spec.x1:spec.x2]
+    ivar = spec.ivar[spec.x1:spec.x2]
+    av_mw = spec.av_mw
+
+    wave_u = wave*u.Angstrom
+    flux_u = flux*u.Unit('W m-2 angstrom-1 sr-1')
+    spec1d = Spectrum1D.from_array(wave_u, flux_u)
+    spec1d_ivar = Spectrum1D.from_array(wave_u, ivar)
+    red = ex.reddening(spec1d.wavelength, a_v=av_mw, r_v=3.1, model='f99')
+    flux_new = spec1d.flux/red
+    ivar_new = spec1d_ivar.flux/(1./(red**2.))
+
+    spec.flux[spec.x1:spec.x2] = flux_new
+    spec.ivar[spec.x1:spec.x2] = ivar_new
+
+    return spec
 
 def make_colorbar(spec_array):
     params = []
     for spec in spec_array:
-        if ~np.isnan(spec.scale_to_phot):
-            params.append(spec.phase)
-    print np.min(params), np.max(params)
+        # if spec.scale_to_phot != None:
+        params.append(spec.phase)
+    # print np.min(params), np.max(params)
     norm = matplotlib.colors.Normalize(vmin=np.min(params),vmax=np.max(params))
-    c_m = matplotlib.cm.plasma
+    c_m = matplotlib.cm.gist_rainbow
     s_m = matplotlib.cm.ScalarMappable(cmap=c_m, norm=norm)
     s_m.set_array([])
     return s_m
 
-def plot_light_curves(phot, fit = False, filt_list = None):
+def plot_light_curves_OSC(phot, fit = False, filt_list = None):
 
     kplot.basic_format()
 
@@ -278,20 +359,64 @@ def plot_light_curves(phot, fit = False, filt_list = None):
     # plt.legend()
     plt.show()
 
+def plot_light_curves(phot, name, spec_dates = None, fit = False, filt_list = None):
+    
+    kplot.basic_format()
+
+    if filt_list is None:
+        filt_list = phot.keys()
+
+    for band in filt_list:
+        mjds, mags, errs = np.asarray(phot[band][0]), np.asarray(phot[band][1]), np.asarray(phot[band][2])
+        if fit and len(mjds) > 1:
+            tnew = np.linspace(mjds[0], mjds[-1], 2000)
+            m_spline = fc.interp_LC(mjds, mags, errs)
+            if m_spline is not None:
+                m_smooth = splev(tnew, m_spline)
+                plt.plot(tnew, m_smooth, color = color_dict[band])
+        plt.errorbar(mjds, mags, yerr = errs, label = band, fmt='o', markersize=10, color = color_dict[band])
+    if spec_dates:
+        for i, d in enumerate(spec_dates):
+            if i == 0:
+                plt.axvline(x=d, color = 'k', alpha = .7, label='Spectrum Epoch')
+            else:
+                plt.axvline(x=d, color = 'k', alpha = .7)
+    plt.gca().invert_yaxis()
+    plt.xlabel('MJD (days)', fontsize = 35)
+    plt.ylabel('Magnitude', fontsize = 35)
+    plt.legend(fontsize=20)
+    plt.title(name, fontsize=20)
+    plt.show()
+
 def plot_calibrated_spectra(spec_array):
 
     kplot.basic_format()
 
     s_m = make_colorbar(spec_array)
     for i, spec in enumerate(spec_array):
-        plt.plot(spec.wavelength[spec.x1:spec.x2], 
-                 spec.scale_to_phot*spec.flux[spec.x1:spec.x2], 
-                 color = s_m.to_rgba(spec.phase))
+        if spec.scale_to_phot:
+            plt.plot(spec.wavelength[spec.x1:spec.x2], 
+                     spec.scale_to_phot*spec.flux[spec.x1:spec.x2], 
+                     color = s_m.to_rgba(spec.phase))
         # plt.plot(spec.wavelength[spec.x1:spec.x2], 
         #          spec.scale_to_phot*spec.flux[spec.x1:spec.x2])
     plt.xlabel('Rest Wavelength ($\mathrm{\AA}$)', fontsize = 35)
     plt.ylabel('Flux', fontsize = 35)
     plt.show()
+
+def plot_spectra(spec_array):
+
+    kplot.basic_format()
+
+    s_m = make_colorbar(spec_array)
+    for i, spec in enumerate(spec_array):
+        plt.plot(spec.wavelength[spec.x1:spec.x2], spec.flux[spec.x1:spec.x2], 
+                 color = s_m.to_rgba(spec.phase))
+    plt.xlabel('Rest Wavelength ($\mathrm{\AA}$)', fontsize = 35)
+    plt.ylabel('Flux', fontsize = 35)
+    plt.colorbar(s_m, label='Phase')
+    plt.show()
+
 
 if __name__ == "__main__":
 

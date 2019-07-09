@@ -111,9 +111,15 @@ def store_phot_data(SN, row, event_index, phot_cols):
     if len(phot_row) >= 86:
         SN.other_meta_data = {}
         for i, pr in enumerate(phot_row[86:]):
-            SN.other_meta_data[phot_cols[i]] = pr
+            SN.other_meta_data[phot_cols[i+86]] = pr
+            if phot_cols[i+86] == 'Homogenized_Photometry':
+                if pr:
+                    SN.homog_light_curves = msg.unpackb(pr)
+                else:
+                    SN.homog_light_curves = None
     else:
         SN.other_meta_data = None
+        SN.homog_light_curves = None
 
 def grab(sql_input, multi_epoch = True, make_corr = True, 
          selection = 'max_coverage', grab_all=False, db_file = '../data/kaepora_v1.db'):
@@ -199,7 +205,7 @@ def grab(sql_input, multi_epoch = True, make_corr = True,
         SN.ref       = row[9]
         SN.other_spectral_data = {}
         for i, r in enumerate(row[10:event_index]):
-            SN.other_spectral_data[all_cols[i]] = r
+            SN.other_spectral_data[all_cols[i+10]] = r
 
 
         #retrieve event specific metadata if desired
@@ -418,7 +424,7 @@ def grab(sql_input, multi_epoch = True, make_corr = True,
 
         if SN.other_meta_data:
             if SN.other_meta_data.get('c',None) != None:
-                SN.c_array[non_nan_data] = SN.other_meta_data[9]
+                SN.c_array[non_nan_data] = SN.other_meta_data.get("c", None)
             else:
                 SN.c_array[non_nan_data] = np.nan
 

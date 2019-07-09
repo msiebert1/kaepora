@@ -43,6 +43,76 @@ def add_arbitrary_spectra_column(col_name, data, dtype, db_file):
             cur.execute("UPDATE Spectra SET " + col_name + " = ? where filename = ?", (data[filename], filename))
     con.commit()
 
+def add_homogenized_photometry(db_file):
+    csp_phot = '../data/info_files/CSP_phot.txt'
+    phot_dict = {}
+    with open(csp_phot) as csp:
+        lines = csp.readlines()
+        for line in lines[1:]:
+            name = line.split()[0].lower()[2:]
+            date = float(line.split()[1])
+            band = line.split()[2]
+            mag = float(line.split()[3])
+            mag_err = float(line.split()[4])
+            if name not in phot_dict.keys():
+                phot_dict[name] = {}
+                phot_dict[name][band] = [[],[],[],'CSP']
+                phot_dict[name][band][0].append(date)
+                phot_dict[name][band][1].append(mag)
+                phot_dict[name][band][2].append(mag_err)
+            else:
+                if band in phot_dict[name].keys():
+                    phot_dict[name][band][0].append(date)
+                    phot_dict[name][band][1].append(mag)
+                    phot_dict[name][band][2].append(mag_err)
+                else:
+                    phot_dict[name][band] = [[],[],[],'CSP']
+                    phot_dict[name][band][0].append(date)
+                    phot_dict[name][band][1].append(mag)
+                    phot_dict[name][band][2].append(mag_err)
+        for name in phot_dict.keys():
+            for band in phot_dict[name].keys():
+                mjd_order = np.argsort(np.asarray(phot_dict[name][band][0]))
+                phot_dict[name][band][0] = [phot_dict[name][band][0][i] for i in mjd_order]
+                phot_dict[name][band][1] = [phot_dict[name][band][1][i] for i in mjd_order]
+                phot_dict[name][band][2] = [phot_dict[name][band][2][i] for i in mjd_order]
+
+    con = sq3.connect(db_file)
+    cur = con.cursor()
+    cur.execute('PRAGMA TABLE_INFO({})'.format("Events"))
+
+    names = [tup[1] for tup in cur.fetchall()]
+    # print names
+    if 'Homogenized_Photometry' not in names:
+        cur.execute("""ALTER TABLE Events ADD COLUMN Homogenized_Photometry TEXT""")
+
+        sql_input = "SELECT * from Spectra inner join Events ON Spectra.SN = Events.SN"
+        # print 'querying'
+        SN_Array = composite.grab(sql_input, multi_epoch = False, make_corr = False, selection = 'max_coverage', grab_all=True)
+        for SN in SN_Array:
+            if SN.name in phot_dict.keys():
+                phot_blob = msg.packb(phot_dict[SN.name])
+                cur.execute("UPDATE Events SET Homogenized_Photometry = ? where SN = ?", (buffer(phot_blob), SN.name))
+            else:
+                cur.execute("UPDATE Events SET Homogenized_Photometry = ? where SN = ?", (None, SN.name))
+    else:
+        sql_input = "SELECT * from Spectra inner join Events ON Spectra.SN = Events.SN"
+        # print 'querying'
+        SN_Array = composite.grab(sql_input, multi_epoch = False, make_corr = False, selection = 'max_coverage', grab_all=True)
+        for SN in SN_Array:
+            if SN.name in phot_dict.keys():
+                phot_blob = msg.packb(phot_dict[SN.name])
+                cur.execute("UPDATE Events SET Homogenized_Photometry = ? where SN = ?", (buffer(phot_blob), SN.name))
+            else:
+                cur.execute("UPDATE Events SET Homogenized_Photometry = ? where SN = ?", (None, SN.name))
+    con.commit()
+
+def add_flux_cal_scaling(db_file):
+    filenames, scales = np.genfromtxt('../data/info_files/flux_cal_data.txt', unpack=True, dtype='string')
+    scale_dict = {}
+    for i, file in enumerate(filenames):
+        scale_dict[file] = float(scales[i])
+    add_arbitrary_spectra_column('Flux_Cal_Scale', scale_dict, """REAL""", db_file)
 
 def add_all_SALT2_metadata(db_file):
     salt2_data = ascii.read("../data/info_files/SALT2mu_fpan.fitres", delimiter = r'\s', guess = False)
@@ -140,7 +210,9 @@ def add_salt2_survey_ID_column(db_file):
 
 if __name__ == "__main__":
     # add_salt2_survey_ID_column('../data/kaepora_v1.db')
-    add_all_SALT2_metadata('../data/kaepora_v1.db')
+    # add_all_SALT2_metadata('../data/kaepora_v1.db')
+    # add_homogenized_photometry('../data/kaepora_v1.db')
+    add_flux_cal_scaling('../data/kaepora_v1.db')
 
     
 

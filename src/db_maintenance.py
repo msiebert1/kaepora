@@ -261,6 +261,7 @@ def main():
 	update_bsnip_refs(database_file)
 	add_cols.add_salt2_survey_ID_column(database_file)
 	add_cols.add_all_SALT2_metadata(database_file)
+	add_cols.add_homogenized_photometry('../data/kaepora_v1.db')
 
 if __name__ == "__main__":
 	main()

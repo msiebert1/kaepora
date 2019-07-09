@@ -77,6 +77,7 @@ def basic_format():
 	    top='on',
 	    left='on',
 	    right='on',
+	    direction='in',
 	    length=20)
 	plt.tick_params(
 	    which='minor', 
@@ -84,6 +85,7 @@ def basic_format():
 	    top='on',
 	    left='on',
 	    right='on',
+	    direction='in',
 	    length=10)
 	
 def scaled_plot(composites, min_num_show = 5, min_num_scale = 10, include_spec_bin = False, scaleto=10., zoom=True, fs=[15,12], ticks=[13,8], xlim=None, include_phase_dm15=False,
