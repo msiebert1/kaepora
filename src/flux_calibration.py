@@ -366,7 +366,6 @@ def host_correction(spec, undo=False):
     return spec
 
 
-
 def make_colorbar(spec_array):
     params = []
     for spec in spec_array:
@@ -444,6 +443,7 @@ def plot_calibrated_spectra(spec_array):
         #          spec.scale_to_phot*spec.flux[spec.x1:spec.x2])
     plt.xlabel('Rest Wavelength ($\mathrm{\AA}$)', fontsize = 35)
     plt.ylabel('Flux', fontsize = 35)
+    plt.colorbar(s_m, label='Phase')
     plt.show()
 
 def plot_spectra(spec_array):

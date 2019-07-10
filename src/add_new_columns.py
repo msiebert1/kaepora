@@ -39,7 +39,7 @@ def add_arbitrary_spectra_column(col_name, data, dtype, db_file):
         for filename in data.keys():
             cur.execute("UPDATE Spectra SET " + col_name + " = ? where filename = ?", (data[filename], filename))
     else:
-        for SN in data.keys():
+        for filename in data.keys():
             cur.execute("UPDATE Spectra SET " + col_name + " = ? where filename = ?", (data[filename], filename))
     con.commit()
 

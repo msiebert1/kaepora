@@ -251,7 +251,7 @@ def add_swift_metadata(db_file):
 	con.commit()
 
 def main():
-	database_file = '../data/kaepora_v1_hub_center.db'
+	database_file = '../data/kaepora_v1.db'
 	update_phases_from_mlcs(database_file)
 	fix_snr_measurements(database_file)
 	add_more_host_data(database_file)
@@ -261,7 +261,8 @@ def main():
 	update_bsnip_refs(database_file)
 	add_cols.add_salt2_survey_ID_column(database_file)
 	add_cols.add_all_SALT2_metadata(database_file)
-	add_cols.add_homogenized_photometry('../data/kaepora_v1.db')
+	add_cols.add_homogenized_photometry(database_file)
+	add_cols.add_flux_cal_scaling(database_file)
 
 if __name__ == "__main__":
 	main()

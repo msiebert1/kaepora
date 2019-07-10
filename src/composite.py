@@ -112,10 +112,12 @@ def store_phot_data(SN, row, event_index, phot_cols):
     if len(phot_row) >= 86:
         SN.other_meta_data = {}
         for i, pr in enumerate(phot_row[86:]):
-            SN.other_meta_data[phot_cols[i+86]] = pr
-            if phot_cols[i+86] == 'Homogenized_Photometry':
+            if phot_cols[i+86] != 'Homogenized_Photometry':
+                SN.other_meta_data[phot_cols[i+86]] = pr
+            else:
                 if pr:
                     SN.homog_light_curves = msg.unpackb(pr)
+                    a = copy.deepcopy(SN)
                 else:
                     SN.homog_light_curves = None
     else:
@@ -196,6 +198,7 @@ def grab(sql_input, multi_epoch = True, make_corr = True,
         """
 
         SN           = spectrum()
+
         SN.filename  = row[0]
         SN.name      = row[1]
         SN.source    = row[2]
@@ -216,11 +219,11 @@ def grab(sql_input, multi_epoch = True, make_corr = True,
         if get_phot:
             phot_cols = all_cols[event_index:]
             store_phot_data(SN, row, event_index, phot_cols)
-        SN.everything = row[0:7]+row[8:93]+row[96:]
+
+        # SN.everything = row[0:7]+row[8:93]+row[96:]
         SN.low_conf  = []
         SN.up_conf   = []
         SN.spec_bin  = []
-
         try:
             SN.wavelength = SN.interp[0,:]
             SN.flux       = SN.interp[1,:]
@@ -228,12 +231,14 @@ def grab(sql_input, multi_epoch = True, make_corr = True,
         except TypeError:
             # print "ERROR: ", SN.filename, SN.interp
             continue
+        a = copy.deepcopy(SN)
         SN_Array.append(SN)
 
     print len(SN_Array), 'Total Spectra found'
     # for SN in SN_Array:
     #     print SN.name, SN.filename, SN.phase
     # raise TypeError
+    a = copy.deepcopy(SN_Array)
     if grab_all:
         return SN_Array
 
@@ -370,12 +375,11 @@ def grab(sql_input, multi_epoch = True, make_corr = True,
         SN_Array = new_SN_Array
 
     print len(SN_Array), "spectra of SNe that have host reddening corrections"
-    
 
     for SN in SN_Array:
         #assign more attributes
-        SN.flux = SN.flux.copy()
-        SN.ivar = SN.ivar.copy()
+        # SN.flux = SN.flux.copy()
+        # SN.ivar = SN.ivar.copy()
 
         #wavelength tracked attributes
         SN.phase_array = np.array(SN.flux)
