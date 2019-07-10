@@ -124,7 +124,7 @@ def grab(query, multi_epoch = True, make_corr = False, selection = 'max_coverage
 
     return spec_array
 
-def host_dereddening(SN_Array, r_v = 2.5, verbose=False, low_av_test=None, cutoff=2.):
+def host_dereddening(SN_Array, r_v = 2.5, verbose=False, low_av_test=None, cutoff=2., norm=True):
     """Correct a list of spectrum objects for host galaxy extinction. This function assumes
     that the av_25, av_mlcs31, or av_mlcs17 spectrum attributes have values.
 
@@ -142,7 +142,8 @@ def host_dereddening(SN_Array, r_v = 2.5, verbose=False, low_av_test=None, cutof
             for host extinction.
     """
     spec_array = composite.apply_host_corrections(SN_Array, r_v = r_v, verbose=verbose, low_av_test=low_av_test, cutoff=cutoff)
-    spec_array = composite.prelim_norm(spec_array)
+    if norm:
+        spec_array = composite.prelim_norm(spec_array)
     return spec_array
 
 

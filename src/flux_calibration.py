@@ -304,7 +304,7 @@ def scale_flux_to_photometry(spec, valid_bands):
 
     return scale, mags_from_phot
 
-def undo_MW_correction(spec):
+def MW_correction(spec, undo=False):
     #TODO:finish, apply before scaling
 
     wave = spec.wavelength[spec.x1:spec.x2]
@@ -317,13 +317,55 @@ def undo_MW_correction(spec):
     spec1d = Spectrum1D.from_array(wave_u, flux_u)
     spec1d_ivar = Spectrum1D.from_array(wave_u, ivar)
     red = ex.reddening(spec1d.wavelength, a_v=av_mw, r_v=3.1, model='f99')
-    flux_new = spec1d.flux/red
-    ivar_new = spec1d_ivar.flux/(1./(red**2.))
+    if not undo:
+        flux_new = spec1d.flux*red
+        ivar_new = spec1d_ivar.flux*(1./(red**2.))
+    else:
+        flux_new = spec1d.flux/red
+        ivar_new = spec1d_ivar.flux/(1./(red**2.))
 
     spec.flux[spec.x1:spec.x2] = flux_new
     spec.ivar[spec.x1:spec.x2] = ivar_new
 
     return spec
+
+def host_correction(spec, undo=False):
+    #TODO:finish, apply before scaling
+
+    wave = spec.wavelength[spec.x1:spec.x2]
+    flux = spec.flux[spec.x1:spec.x2]
+    ivar = spec.ivar[spec.x1:spec.x2]
+    if spec.av_25 != None:
+        Av_host = spec.av_25
+        rv = 2.5
+    elif spec.av_mlcs31 != None:
+        Av_host = spec.av_mlcs31
+        rv = 3.1
+    elif spec.av_mlcs17 != None:
+        Av_host = spec.av_mlcs17
+        rv = 1.7
+    else:
+        print 'No Host Correction'
+        return spec
+
+    wave_u = wave*u.Angstrom
+    flux_u = flux*u.Unit('W m-2 angstrom-1 sr-1')
+    spec1d = Spectrum1D.from_array(wave_u, flux_u)
+    spec1d_ivar = Spectrum1D.from_array(wave_u, ivar)
+    red = ex.reddening(spec1d.wavelength, a_v=Av_host, r_v=rv, model='f99')
+    if not undo:
+        flux_new = spec1d.flux*red
+        ivar_new = spec1d_ivar.flux*(1./(red**2.))
+    else:
+        flux_new = spec1d.flux/red
+        ivar_new = spec1d_ivar.flux/(1./(red**2.))
+
+    spec.flux[spec.x1:spec.x2] = flux_new
+    spec.ivar[spec.x1:spec.x2] = ivar_new
+
+    return spec
+
+
 
 def make_colorbar(spec_array):
     params = []
