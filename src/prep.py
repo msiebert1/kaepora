@@ -148,7 +148,8 @@ def Interpo_flux_conserving(wave, flux, ivar, dw=2, testing=False):
     if testing:
         var_final = np.asarray(var_final)
 
-    missing_data = np.where((wave_final < lower+2) | (wave_final > upper-2))# padding to avoid interpolation errors near edges
+    # missing_data = np.where((wave_final < lower+2) | (wave_final > upper-2))# padding to avoid interpolation errors near edges
+    missing_data = np.where((wave_final < lower+dw) | (wave_final > upper-dw))
     flux_final[missing_data] = float('NaN')
     ivar_final[missing_data] = float('NaN')
     if testing:

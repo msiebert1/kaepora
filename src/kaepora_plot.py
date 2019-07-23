@@ -997,48 +997,45 @@ def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_sc
 		plt.savefig(savename+'.png', dpi = 300, bbox_inches = 'tight')
 	plt.show()
 
-def si_plot(composites, boot=False, min_num_show = 1, min_num_scale = 5, scale=3., cmap_kind = 'dm15', savename = None):
-	wave1=5600.
-	wave2=6500.
+def feature_plot(composites, wave_range = [5600, 6500], boot=False, min_num_show = 1, min_num_scale = 5, 
+				 scale=10., cmap_kind = 'dm15', labels = None, savename = None):
+	wave1=wave_range[0]
+	wave2=wave_range[1]
 	set_min_num_spec([composites[0]], min_num_scale)
 	normalize_comps(composites)
 	composites, scales = composite.optimize_scales(composites, composites[0], True, scale_range=True, wave1=wave1, wave2=wave2)
 	set_min_num_spec([composites[0]], min_num_show)
 
 	s_m = make_colorbar(composites, cmap_kind=cmap_kind)
-
-	plt.rc('font', family='serif')
-	fig, ax = plt.subplots(1,1)
-#     ax.get_yaxis().set_ticks([])
-#     plt.ylim([-311,12])
-	plt.ylabel('Scaled Flux', fontsize = 20)
-	plt.xlabel('Rest Wavelength ' + "($\mathrm{\AA}$)", fontsize = 20)
-	plt.minorticks_on()
-	plt.xticks(fontsize = 10)
-	plt.yticks(fontsize = 10)
-	plt.tick_params(
-		which='major', 
-		bottom='on', 
-		top='on',
-		left='on',
-		right='on',
-		length=10)
-	plt.tick_params(
-		which='minor', 
-		bottom='on', 
-		top='on',
-		left='on',
-		right='on',
-		length=5)
-	fig.set_size_inches(6, 6, forward = True)
+	basic_format()
+# 	plt.rc('font', family='serif')
+# 	fig, ax = plt.subplots(1,1)
+# #     ax.get_yaxis().set_ticks([])
+# #     plt.ylim([-311,12])
+# 	plt.ylabel('Scaled Flux', fontsize = 20)
+# 	plt.xlabel('Rest Wavelength ' + "($\mathrm{\AA}$)", fontsize = 20)
+# 	plt.minorticks_on()
+# 	plt.xticks(fontsize = 10)
+# 	plt.yticks(fontsize = 10)
+# 	plt.tick_params(
+# 		which='major', 
+# 		bottom='on', 
+# 		top='on',
+# 		left='on',
+# 		right='on',
+# 		length=10)
+# 	plt.tick_params(
+# 		which='minor', 
+# 		bottom='on', 
+# 		top='on',
+# 		left='on',
+# 		right='on',
+# 		length=5)
+# 	fig.set_size_inches(6, 6, forward = True)
 	i = 0
-	scale = 0.5
 	color = '#3F5D7D'
-	if boot:
-		lw=2
-	else:
-		lw=2
-	for comp in composites:
+	lw=4
+	for i, comp in enumerate(composites):
 		roi = np.where((comp.wavelength >= wave1) & (comp.wavelength < wave2))[0]
 		r1 = roi[0]
 		r2 = roi[-1]
@@ -1046,20 +1043,26 @@ def si_plot(composites, boot=False, min_num_show = 1, min_num_scale = 5, scale=3
 		# 	color = 'darkred'
 		dm15 = np.average(comp.dm15_array[r1:r2])
 #         buff = 200*np.log10(phase+20)
-		ax.plot(comp.wavelength[r1:r2], 10*comp.flux[r1:r2], color = s_m.to_rgba(dm15), linewidth = lw)
+		plt.plot(comp.wavelength[r1:r2], scale*comp.flux[r1:r2], color = s_m.to_rgba(i+1), linewidth = lw, label = labels[i])
+		if boot:
+			low_conf = comp.low_conf[r1:r2]
+			up_conf = comp.up_conf[r1:r2]
+			plt.fill_between(comp.wavelength[r1:r2], scale*low_conf, scale*up_conf, color = s_m.to_rgba(i+1), alpha = 0.3)
 #         plt.title('All Phase Composite Spectra', fontdict = font1, fontsize = 40)
 		i+=1
 	# plt.xlim([5500.,6500.])
-	cb = plt.colorbar(s_m, ax = fig.axes)
-	cb.set_label('$\Delta m_{15}$ (B) (mag)', fontsize=15)
+	# cb = plt.colorbar(s_m, ax = fig.axes)
+	# cb.set_label('$\Delta m_{15}$ (B) (mag)', fontsize=15)
 	plt.xlim([wave1+20, wave2-20])
-
+	plt.xlabel('Rest Wavelength ' + "($\mathrm{\AA}$)", fontsize = 20)
+	plt.ylabel('Relative Flux', fontsize = 20)
 	# plt.ylim([0, .6])
 	# plt.ylim([-1*len(composites)+3.5,.6])
 	# plt.savefig('../../Paper_Drafts/dm15_split_max.pdf', dpi = 300, bbox_inches = 'tight')
 	# plt.savefig('../../FLASH/host_stack.png', dpi = 300, bbox_inches = 'tight')
 	# plt.savefig('../../FLASH/host_stack_zoom.png', dpi = 300, bbox_inches = 'tight')
 	# plt.savefig('../../FLASH/individual_spectra.png', dpi = 300, bbox_inches = 'tight')
+	plt.legend(fontsize = 20)
 	if savename is not None:
 		plt.savefig(savename+'.pdf', dpi = 300, bbox_inches = 'tight')
 	plt.show()
