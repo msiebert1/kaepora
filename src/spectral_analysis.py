@@ -274,7 +274,7 @@ def measure_velocity(wavelength, flux, wave1, wave2, vexp=.001, rest_wave=6355.,
     if len(si_min_index[0]) > 0.:
         si_min_wave = si_wave[si_min_index][0]
 
-        c = 299792. # km/s
+        c = 299792.458 # km/s
         # rest_wave = 6355. #Angstroms
 
         v = c*((rest_wave/si_min_wave)**2. - 1)/(1+((rest_wave/si_min_wave)**2.))

@@ -114,6 +114,75 @@ def add_flux_cal_scaling(db_file):
         scale_dict[file] = float(scales[i])
     add_arbitrary_spectra_column('Flux_Cal_Scale', scale_dict, """REAL""", db_file)
 
+def add_galaxy_metadata(db_file):
+    galaxy_data = ascii.read("../data/info_files/localsn_public_cuts.txt", delimiter = r'\s', guess = False)
+
+    local_umg = {}
+    global_umg = {}
+    local_mass = {}
+    global_mass = {}
+    localssfr = {}
+    globalssfr = {}
+
+    for line in galaxy_data[1:]:
+        SN                      = line['ID'].lower()
+        if line['local_u-g'] != '-99.0':
+            local_umg[SN]           = float(line['local_u-g'])
+        if line['global_u-g'] != '-99.0':
+            global_umg[SN]          = float(line['global_u-g'])
+        if line['localmass'] != '-99.0':
+            local_mass[SN]          = float(line['localmass'])
+        if line['globalmass'] != '-99.0':
+            global_mass[SN]         = float(line['globalmass'])
+        if line['localssfr'] != '-99.0':
+            localssfr[SN]           = float(line['localssfr'])
+        if line['globalssfr'] != '-99.0':
+            globalssfr[SN]          = float(line['globalssfr'])
+
+    col_names = ['local_umg', 'global_umg', 'localmass', 'globalmass', 'localssfr', 'globalssfr']
+    all_dicts = [local_umg, global_umg, local_mass, global_mass, localssfr, globalssfr]
+
+    for i, sdict in enumerate(all_dicts):
+        add_arbitrary_event_column(col_names[i], sdict, """REAL""", db_file)
+
+def add_more_galaxy_metadata(db_file):
+    names, masses, sfrs, ssfrs, umgs = np.genfromtxt('../data/info_files/hubblephot_sedfits_global_brief.txt', unpack=True, dtype='string')
+    cepheid_data = np.genfromtxt('../data/info_files/cepheidphot_lephare_sedfits.txt', unpack=True, dtype='string')
+    ceph_names = cepheid_data[0]
+    ceph_ssfrs = cepheid_data[8]
+
+    global_mass = {}
+    global_ssfr = {}
+
+    con = sq3.connect(db_file)
+    cur = con.cursor()
+    spec_table = cur.execute("SELECT SN, globalssfr from EVENTS")
+    data = [tup for tup in cur.fetchall()]
+    ignore_names = []
+    for d in data:
+        if d[1] != None:
+            ignore_names.append(str(d[0]))
+
+    for i in range(len(names)):
+        if ssfrs[i] != '-99.000' and sfrs[i] != '-99.000':
+            if names[i][0:2] == 'SN':
+                if names[i].lower()[2:] not in ignore_names:
+                    global_ssfr[names[i].lower()[2:]] = float(ssfrs[i])
+            else:
+                if names[i].lower() not in ignore_names:
+                    global_ssfr[names[i].lower()] = float(ssfrs[i])
+
+    for i in range(len(ceph_names)):
+        if ssfrs[i] != '-99.99':
+            if names[i][0:2] == 'SN':
+                if ceph_names[i].lower()[2:] not in ignore_names:
+                    global_ssfr[ceph_names[i].lower()[2:]] = float(ceph_ssfrs[i])
+            else:
+                if ceph_names[i].lower() not in ignore_names:
+                    global_ssfr[ceph_names[i].lower()] = float(ceph_ssfrs[i])
+
+    add_arbitrary_event_column('globalssfr', global_ssfr, """REAL""", db_file)
+
 def add_all_SALT2_metadata(db_file):
     salt2_data = ascii.read("../data/info_files/SALT2mu_fpan.fitres", delimiter = r'\s', guess = False)
 
@@ -212,7 +281,8 @@ if __name__ == "__main__":
     # add_salt2_survey_ID_column('../data/kaepora_v1.db')
     # add_all_SALT2_metadata('../data/kaepora_v1.db')
     # add_homogenized_photometry('../data/kaepora_v1.db')
-    add_flux_cal_scaling('../data/kaepora_v1.db')
+    # add_galaxy_metadata('../data/kaepora_v1_DEV.db')
+    add_more_galaxy_metadata('../data/kaepora_v1_DEV.db')
 
     
 

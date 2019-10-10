@@ -255,7 +255,7 @@ def addsky(wavelength, flux, error, med_error, source = None):
 ## genivar(wavelength, flux, float vexp = 0.005, float nsig = 5.0)
 #
 
-def genivar(wavelength, flux, varflux, vexp = 0.002, nsig = 5.0, testing=False, source=None):
+def genivar(wavelength, flux, varflux, vexp = 0.002, nsig = 5.0, testing=False, sky=True, source=None):
     """ The primary function for variance spectrum generation. Spectrum is smoothed, residual spectrum 
         is generated, residual spectrum is smoothed, sky noise is added in, error spectrum is scaled
         by a linear function of wavelength determined from the CfA data, and the ivar spectrum and SNR 
@@ -282,15 +282,19 @@ def genivar(wavelength, flux, varflux, vexp = 0.002, nsig = 5.0, testing=False, 
     test1 = np.where((wavelength >= 5000) & (wavelength <= 6000))
     test2 = np.where((wavelength >= 6000) & (wavelength <= 7000))
     test3 = np.where((wavelength >= 7000) & (wavelength <= 8000))
-    if len(test1[0]) > 40:
-        med_err = np.median(sm_error[test1])
-        sm_error_new = addsky(wavelength, flux, sm_error, med_err, source=source)
-    elif len(test2[0]) > 40:
-        med_err = np.median(sm_error[test2])
-        sm_error_new = addsky(wavelength, flux, sm_error, med_err, source=source)
-    elif len(test3[0]) > 40:
-        med_err = np.median(sm_error[test3])
-        sm_error_new = addsky(wavelength, flux, sm_error, med_err, source=source)
+
+    if sky:
+        if len(test1[0]) > 40:
+            med_err = np.median(sm_error[test1])
+            sm_error_new = addsky(wavelength, flux, sm_error, med_err, source=source)
+        elif len(test2[0]) > 40:
+            med_err = np.median(sm_error[test2])
+            sm_error_new = addsky(wavelength, flux, sm_error, med_err, source=source)
+        elif len(test3[0]) > 40:
+            med_err = np.median(sm_error[test3])
+            sm_error_new = addsky(wavelength, flux, sm_error, med_err, source=source)
+        else:
+            sm_error_new = sm_error
     else:
         sm_error_new = sm_error
 
@@ -337,7 +341,7 @@ def genivar(wavelength, flux, varflux, vexp = 0.002, nsig = 5.0, testing=False, 
         plt.xlabel('Rest Wavelength ' + "($\mathrm{\AA}$)", fontsize = 30)
         plt.xlim([wavelength[0]-200,wavelength[-1]+200])
         plt.legend(loc=1, fontsize=20)
-        plt.savefig('../../../Paper_Drafts/reprocessing_updated/genvar.pdf', dpi = 300, bbox_inches = 'tight')
+        # plt.savefig('../../../Paper_Drafts/reprocessing_updated/genvar.pdf', dpi = 300, bbox_inches = 'tight')
         plt.show()
         if varflux is not None:
             plt.plot(wavelength, error_scales)

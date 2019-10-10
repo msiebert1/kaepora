@@ -117,7 +117,6 @@ def store_phot_data(SN, row, event_index, phot_cols):
             else:
                 if pr:
                     SN.homog_light_curves = msg.unpackb(pr)
-                    a = copy.deepcopy(SN)
                 else:
                     SN.homog_light_curves = None
     else:
@@ -613,15 +612,23 @@ def mask(SN_Array, boot):
     for SN in SN_Array:
         fluxes.append(SN.flux)
         ivars.append(SN.ivar)
-        if not boot:
-            reds.append(SN.red_array)
-            phases.append(SN.phase)
-            ages.append(SN.phase_array)
-            vels.append(SN.vel)
-            morphs.append(SN.morph_array)
-            hrs.append(SN.hr_array)
-            cs.append(SN.c_array)
-            dm15s.append(SN.dm15_array)
+        # if not boot:
+        #     reds.append(SN.red_array)
+        #     phases.append(SN.phase)
+        #     ages.append(SN.phase_array)
+        #     vels.append(SN.vel)
+        #     morphs.append(SN.morph_array)
+        #     hrs.append(SN.hr_array)
+        #     cs.append(SN.c_array)
+        #     dm15s.append(SN.dm15_array)
+        reds.append(SN.red_array)
+        phases.append(SN.phase)
+        ages.append(SN.phase_array)
+        vels.append(SN.vel)
+        morphs.append(SN.morph_array)
+        hrs.append(SN.hr_array)
+        cs.append(SN.c_array)
+        dm15s.append(SN.dm15_array)
 
     fluxes = np.ma.masked_array(fluxes,np.isnan(fluxes))
     reds   = np.ma.masked_array(reds,np.isnan(reds))
@@ -669,24 +676,24 @@ def average(SN_Array, template, medmean, boot, fluxes, ivars, dm15_ivars,
     temp_fluxes = []
     if medmean == 1: 
         template.flux  = np.ma.average(fluxes, weights=ivars, axis=0).filled(np.nan)
-        if not boot:
-            template.phase_array   = np.ma.average(ages, weights=ivars, axis=0).filled(np.nan)
-            template.vel   = np.ma.average(vels, weights=ivars, axis=0).filled(np.nan)
-            template.dm15_array  = np.ma.average(dm15s, weights=ivars, axis=0).filled(np.nan)
-            template.red_array = np.ma.average(reds, weights = ivars, axis=0).filled(np.nan)
-            template.morph_array = np.ma.average(morphs, weights = ivars, axis=0).filled(np.nan)
-            template.hr_array = np.ma.average(hrs, weights = ivars, axis=0).filled(np.nan)
-            template.c_array = np.ma.average(cs, weights = ivars, axis=0).filled(np.nan)
+        # if not boot:
+        template.phase_array   = np.ma.average(ages, weights=ivars, axis=0).filled(np.nan)
+        template.vel   = np.ma.average(vels, weights=ivars, axis=0).filled(np.nan)
+        template.dm15_array  = np.ma.average(dm15s, weights=ivars, axis=0).filled(np.nan)
+        template.red_array = np.ma.average(reds, weights = ivars, axis=0).filled(np.nan)
+        template.morph_array = np.ma.average(morphs, weights = ivars, axis=0).filled(np.nan)
+        template.hr_array = np.ma.average(hrs, weights = ivars, axis=0).filled(np.nan)
+        template.c_array = np.ma.average(cs, weights = ivars, axis=0).filled(np.nan)
     if medmean == 2:
         template.flux = np.ma.median(fluxes, axis=0).filled(np.nan)
-        if not boot:
-            template.phase_array   = np.ma.median(ages, axis=0).filled(np.nan)
-            template.vel   = np.ma.median(vels, axis=0).filled(np.nan)
-            template.dm15_array  = np.ma.median(dm15s, axis=0).filled(np.nan)
-            template.red_array = np.ma.median(reds, axis=0).filled(np.nan)
-            template.morph_array = np.ma.median(morphs, axis=0).filled(np.nan)
-            template.hr_array = np.ma.median(hrs, axis=0).filled(np.nan)
-            template.c_array = np.ma.median(cs, axis=0).filled(np.nan)
+        # if not boot:
+        template.phase_array   = np.ma.median(ages, axis=0).filled(np.nan)
+        template.vel   = np.ma.median(vels, axis=0).filled(np.nan)
+        template.dm15_array  = np.ma.median(dm15s, axis=0).filled(np.nan)
+        template.red_array = np.ma.median(reds, axis=0).filled(np.nan)
+        template.morph_array = np.ma.median(morphs, axis=0).filled(np.nan)
+        template.hr_array = np.ma.median(hrs, axis=0).filled(np.nan)
+        template.c_array = np.ma.median(cs, axis=0).filled(np.nan)
     
     #finds and stores the variance data of the template
     no_data   = np.where(np.sum(ivars, axis = 0)==0)
@@ -1120,7 +1127,7 @@ def combine_SN_spectra(SN_Array):
     print len(new_SN_Array), 'total SNe'
     return new_SN_Array
 
-def create_composite(SN_Array, boot, template, medmean, gini_balance=False, aggro=.5, name='Composite Spectrum'):
+def create_composite(SN_Array, boot, template, medmean, nboots = 100, gini_balance=False, aggro=.5, name='Composite Spectrum'):
     """Given an array of spectrum objects, creates a composite spectrum and 
     estimate the 1-sigma bootstrap resampling error (if desired).
 
@@ -1252,7 +1259,7 @@ def create_composite(SN_Array, boot, template, medmean, gini_balance=False, aggr
     if bootstrap is 'y':
         scales  = []
         print "Bootstrapping"
-        samples = 100
+        samples = nboots
         template.low_conf, template.up_conf, boots = \
             bootstrapping(SN_Array, samples, template, iters, medmean)
         up_diff = template.up_conf - template.flux
@@ -1281,7 +1288,7 @@ def create_composite(SN_Array, boot, template, medmean, gini_balance=False, aggr
 
     return template, boots
     
-def main(Full_query, boot = False, medmean = 1, make_corr=True, multi_epoch=False, 
+def main(Full_query, boot = False, nboots=100, medmean = 1, make_corr=True, multi_epoch=False, 
         selection = 'max_coverage', gini_balance=False, aggro=.5, verbose=True, 
         low_av_test = None, combine=True, get_og_arr=False):
     """Main function. Finds spectra that satisfy the users query and creates a 
@@ -1439,7 +1446,7 @@ def main(Full_query, boot = False, medmean = 1, make_corr=True, multi_epoch=Fals
     #     plt.show()
 
     template, boots = create_composite(SN_Array, boot, template, 
-                                        medmean, gini_balance=gini_balance, aggro=aggro)
+                                        medmean, nboots = nboots, gini_balance=gini_balance, aggro=aggro)
 
     if get_og_arr:
         return template, SN_Array, og_SN_Array, boots

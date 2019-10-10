@@ -27,9 +27,10 @@ def set_min_num_spec(composites, num):
                 range.
     """
     for comp in composites:
-        comp.spec_bin = np.array(comp.spec_bin)
-        valid_range = np.where(comp.spec_bin >= num)[0]
+        # comp.spec_bin = np.array(comp.spec_bin)
+        valid_range = np.where(np.asarray(comp.spec_bin) >= num)[0]
         comp.x1, comp.x2 = valid_range[0], valid_range[-1]
+        # print comp.wavelength[valid_range]
 
 
 def normalize_comps(composites, scale=1., w1=3500, w2=9000.):
@@ -147,7 +148,7 @@ def host_dereddening(SN_Array, r_v = 2.5, verbose=False, low_av_test=None, cutof
     return spec_array
 
 
-def make_composite(query_strings, boot=False, medmean = 1, selection = 'max_coverage', gini_balance=False, verbose=True, 
+def make_composite(query_strings, boot=False, nboots=100, medmean = 1, selection = 'max_coverage', gini_balance=False, verbose=True, 
          multi_epoch=True, combine=True, low_av_test=None, measure_vs = False, get_og_arr=False):
     """ This is the main fuunction for constructing composite spectra from spectra stored in kaepora.
         Args:
@@ -206,12 +207,12 @@ def make_composite(query_strings, boot=False, medmean = 1, selection = 'max_cove
     num_queries = len(query_strings)
     for n in range(num_queries):
         if get_og_arr:
-            comp, arr, og_arr, boots = composite.main(query_strings[n],boot=boot, medmean = medmean, 
+            comp, arr, og_arr, boots = composite.main(query_strings[n],boot=boot, nboots=nboots, medmean = medmean, 
                                             selection = selection, gini_balance=gini_balance, combine=combine,
                                             verbose=verbose, multi_epoch=multi_epoch, low_av_test=low_av_test, get_og_arr=get_og_arr)
             og_sn_arrays.append(og_arr)
         else:
-            comp, arr, boots = composite.main(query_strings[n],boot=boot, medmean = medmean, 
+            comp, arr, boots = composite.main(query_strings[n],boot=boot, nboots=nboots, medmean = medmean, 
                                             selection = selection, gini_balance=gini_balance, combine=combine,
                                             verbose=verbose, multi_epoch=multi_epoch, low_av_test=low_av_test, get_og_arr=get_og_arr)
         if store_boots:
@@ -322,7 +323,7 @@ if __name__ == "__main__":
     num_queries = len(query_strings)
 
     for n in range(num_queries):
-        c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = True, make_corr=False, multi_epoch=True, combine=True)
+        c, sn_arr, boots = composite.main(query_strings[n], boot, nboots=100, medmean=1, gini_balance = True, make_corr=False, multi_epoch=True, combine=True)
         # c, sn_arr, boots = composite.main(query_strings[n], boot, medmean=1, gini_balance = False, multi_epoch=True, combine=False) 
         # composites.append(c)
         # SN_Arrays.append(sn_arr)
