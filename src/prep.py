@@ -239,7 +239,7 @@ def sq_residuals_in_range(s, data, comp):
     return np.sum(sq_res)
 
 
-def compprep(spectrum, sn_name, z, source, use_old_error=True, testing=False):
+def compprep(spectrum, sn_name, z, source, use_old_error=True, testing=False, filename=None):
     """ Performs clipping, deredshifting, variance spectrum generation, MW extinction correction,
         and interpolation. If testing is True, several plots will be made to assess the quality 
         of this processing.
@@ -288,7 +288,7 @@ def compprep(spectrum, sn_name, z, source, use_old_error=True, testing=False):
     if source != 'csp': #already deredshifted
         old_wave = old_wave/(1.+z) #deredshift for clipping 
         
-    old_wave, old_flux, old_var = df.clip(old_wave, old_flux, old_var, vexp, testing=testing) #clip emission/absorption lines
+    old_wave, old_flux, old_var = df.clip(old_wave, old_flux, old_var, vexp, testing=testing, filename=filename) #clip emission/absorption lines
     old_wave = old_wave*(1.+z) #reredshift for MW extinction correction 
     temp_ivar, SNR = df.genivar(old_wave, old_flux, old_var, vexp=vexp, testing=testing, source=source)  # generate inverse variance
 
@@ -316,6 +316,8 @@ def compprep(spectrum, sn_name, z, source, use_old_error=True, testing=False):
         sne = ReadExtin('extinctionswiftuv.dat')
     if source == 'foley_hst':
         sne = ReadExtin('extinctionhst.dat')
+    if source == 'foundation':
+        sne = ReadExtin('extinctionfoundation.dat')
 
 #     host_reddened = ReadExtin('../data/info_files/ryan_av.txt')
     newdata = []
@@ -323,7 +325,7 @@ def compprep(spectrum, sn_name, z, source, use_old_error=True, testing=False):
     old_flux = old_flux*u.Unit('W m-2 angstrom-1 sr-1')
     spec1d = Spectrum1D.from_array(old_wave, old_flux)
     spec1d_ivar = Spectrum1D.from_array(old_wave, old_ivar)
-    dered_flux, dered_ivar = test_dered.dered(sne, sn_name, spec1d.wavelength, spec1d.flux, spec1d_ivar.flux)  # Dereddening (see if sne in extinction files match the SN name)
+    dered_flux, dered_ivar = test_dered.dered(sne, sn_name, spec1d.wavelength, spec1d.flux, spec1d_ivar.flux, source=source)  # Dereddening (see if sne in extinction files match the SN name)
 #     new_flux = host_correction(sne, sn_name, old_wave, new_flux)
 
     # new_flux = old_flux
@@ -379,7 +381,7 @@ def compprep(spectrum, sn_name, z, source, use_old_error=True, testing=False):
             length=5)
         plt.plot(old_wave, old_flux_norm, linewidth = 2, color = '#000080', label='Before Dereddening')
         plt.plot(old_wave, new_flux_norm, linewidth = 2, color = 'gold', label='Milky Way Corrected')
-        plt.plot(old_wave, new_flux_host_norm, linewidth = 2, color = '#d95f02', label='Host Corrected')
+        # plt.plot(old_wave, new_flux_host_norm, linewidth = 2, color = '#d95f02', label='Host Corrected')
         plt.ylabel('Relative Flux', fontsize = 30)
         plt.xlabel('Rest Wavelength ' + "($\mathrm{\AA}$)", fontsize = 30)
         plt.xlim([old_wave[0]-200,old_wave[-1]+200])

@@ -16,16 +16,25 @@ def build_salt2_ID_dict(salt2):
 def add_arbitrary_event_column(col_name, data, dtype, db_file):
     con = sq3.connect(db_file)
     cur = con.cursor()
-    cur.execute('PRAGMA TABLE_INFO({})'.format("Events"))
-
+    cur.execute("PRAGMA TABLE_INFO({})".format("Events"))
     names = [tup[1] for tup in cur.fetchall()]
+
+    cur.execute("SELECT SN from Events")
+    sn_names = [tup[0] for tup in cur.fetchall()]
+
     if col_name not in names:
         cur.execute("""ALTER TABLE Events ADD COLUMN """+ col_name + """ """ + dtype)
         for SN in data.keys():
-            cur.execute("UPDATE Events SET " + col_name + " = ? where SN = ?", (data[SN], SN))
+            if SN not in sn_names:
+                cur.execute("INSERT INTO Events (SN, "+ col_name + ") VALUES (?,?)", (SN, data[SN]))
+            else:
+                cur.execute("UPDATE Events SET " + col_name + " = ? where SN = ?", (data[SN], SN))
     else:
         for SN in data.keys():
-            cur.execute("UPDATE Events SET " + col_name + " = ? where SN = ?", (data[SN], SN))
+            if SN not in sn_names:
+                cur.execute("INSERT INTO Events (SN, "+ col_name + ") VALUES (?,?)", (SN, data[SN]))
+            else:
+                cur.execute("UPDATE Events SET " + col_name + " = ? where SN = ?", (data[SN], SN))
     con.commit()
 
 def add_arbitrary_spectra_column(col_name, data, dtype, db_file):
@@ -206,6 +215,11 @@ def add_all_SALT2_metadata(db_file):
     gamma = 0.04572
     for line in salt2_data:
         SN                      = line['CID'].lower()
+        if SN.startswith('at') and not SN.startswith('atlas'):
+            SN = SN[2:]
+        if '-' in SN:
+            SN = SN.replace('-', '')
+            # print SN
         mu[SN]                  = float(line['MU'])
         mu_err[SN]              = float(line['MUERR'])
         mumodel[SN]             = float(line['MUMODEL'])
@@ -279,10 +293,10 @@ def add_salt2_survey_ID_column(db_file):
 
 if __name__ == "__main__":
     # add_salt2_survey_ID_column('../data/kaepora_v1.db')
-    # add_all_SALT2_metadata('../data/kaepora_v1.db')
+    add_all_SALT2_metadata('../data/kaepora_v1_DEV.db')
     # add_homogenized_photometry('../data/kaepora_v1.db')
     # add_galaxy_metadata('../data/kaepora_v1_DEV.db')
-    add_more_galaxy_metadata('../data/kaepora_v1_DEV.db')
+    # add_more_galaxy_metadata('../data/kaepora_v1_DEV.db')
 
     
 

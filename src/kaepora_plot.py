@@ -1074,7 +1074,7 @@ def feature_plot(composites, wave_range = [5600, 6500], boot=False, min_num_show
 	plt.show()
 
 def feature_panel(composites, wave_range = [5600, 6500], boot=False, min_num_show = 1, min_num_scale = 5, buff = None, pre_buff=False, text=False,
-				 scale=10., cmap_kind = 'dm15', labels = None, axarr = None, kj = None, savename = None):
+				 scale=10., cmap_kind = 'dm15', labels = None, axarr = None, kj = None, velocity = False, rest_wave = None, savename = None):
 	wave1=wave_range[0]
 	wave2=wave_range[1]
 	set_min_num_spec([composites[0]], min_num_scale)
@@ -1095,6 +1095,7 @@ def feature_panel(composites, wave_range = [5600, 6500], boot=False, min_num_sho
 	r1 = roi[0]
 	r2 = roi[-1]
 	scale = 10*(1./np.amax(composites[0].flux[r1:r2]))
+	c = 299792.458
 	for i, comp in enumerate(composites):
 		roi = np.where((comp.wavelength >= wave1) & (comp.wavelength < wave2))[0]
 		r1 = roi[0]
@@ -1105,22 +1106,42 @@ def feature_panel(composites, wave_range = [5600, 6500], boot=False, min_num_sho
 		dm15 = np.average(comp.dm15_array[r1:r2])
 #         buff = 200*np.log10(phase+20)
 		if buff != None:
-			axarr[j].plot(comp.wavelength[r1:r2], scale*comp.flux[r1:r2] - buff, color = s_m.to_rgba(i+1), linewidth = lw, label = labels[i])
+			if velocity:
+				wave_arr = np.asarray(comp.wavelength[r1:r2])
+				vel_arr = -1.*c*((rest_wave/wave_arr)**2. - 1)/(1+((rest_wave/wave_arr)**2.))/10.**3
+				axarr[j].plot(vel_arr, scale*comp.flux[r1:r2] - buff, color = s_m.to_rgba(i+1), linewidth = lw, label = labels[i])
+			else:
+				axarr[j].plot(comp.wavelength[r1:r2], scale*comp.flux[r1:r2] - buff, color = s_m.to_rgba(i+1), linewidth = lw, label = labels[i])
 		else:
-			axarr[k,j].plot(comp.wavelength[r1:r2], scale*comp.flux[r1:r2], color = s_m.to_rgba(i+1), linewidth = lw, label = labels[i])
+			if velocity:
+				wave_arr = np.asarray(comp.wavelength[r1:r2])
+				vel_arr = -1.*c*((rest_wave/wave_arr)**2. - 1)/(1+((rest_wave/wave_arr)**2.))/10.**3
+				axarr[k,j].plot(vel_arr, scale*comp.flux[r1:r2], color = s_m.to_rgba(i+1), linewidth = lw, label = labels[i])
+			else:
+				axarr[k,j].plot(comp.wavelength[r1:r2], scale*comp.flux[r1:r2], color = s_m.to_rgba(i+1), linewidth = lw, label = labels[i])
 		if boot:
 			low_conf = comp.low_conf[r1:r2]
 			up_conf = comp.up_conf[r1:r2]
 			if buff != None:
-				axarr[j].fill_between(comp.wavelength[r1:r2], scale*low_conf - buff, scale*up_conf - buff, color = s_m.to_rgba(i+1), alpha = 0.3)
+				if velocity:
+					wave_arr = np.asarray(comp.wavelength[r1:r2])
+					vel_arr = -1.*c*((rest_wave/wave_arr)**2. - 1)/(1+((rest_wave/wave_arr)**2.))/10.**3
+					axarr[j].fill_between(vel_arr, scale*low_conf - buff, scale*up_conf - buff, color = s_m.to_rgba(i+1), alpha = 0.3)
+				else:
+					axarr[j].fill_between(comp.wavelength[r1:r2], scale*low_conf - buff, scale*up_conf - buff, color = s_m.to_rgba(i+1), alpha = 0.3)
 			else:
-				axarr[k,j].fill_between(comp.wavelength[r1:r2], scale*low_conf, scale*up_conf, color = s_m.to_rgba(i+1), alpha = 0.3)
+				if velocity:
+					wave_arr = np.asarray(comp.wavelength[r1:r2])
+					vel_arr = -1.*c*((rest_wave/wave_arr)**2. - 1)/(1+((rest_wave/wave_arr)**2.))/10.**3
+					axarr[k,j].fill_between(vel_arr, scale*low_conf, scale*up_conf, color = s_m.to_rgba(i+1), alpha = 0.3)
+				else:
+					axarr[k,j].fill_between(comp.wavelength[r1:r2], scale*low_conf, scale*up_conf, color = s_m.to_rgba(i+1), alpha = 0.3)
 #         plt.title('All Phase Composite Spectra', fontdict = font1, fontsize = 40)
 	if text:
 		# plt.text(4080, np.mean(composites[0].flux[r1:r2])-1.3*buff+9, text, fontsize=15, horizontalalignment='right')
 		# plt.text(8680, np.mean(composites[0].flux[r1:r2])-1.3*buff+9, text, fontsize=15, horizontalalignment='left')
 		# plt.text(5800, np.mean(composites[0].flux[r1:r2])-1.3*buff+9, text, fontsize=15, horizontalalignment='right')
-		plt.text(6430, np.mean(composites[0].flux[r1:r2])-1.3*buff+9, text, fontsize=15, horizontalalignment='left')
+		plt.text(3.5, np.mean(composites[0].flux[r1:r2])-1.3*buff+9, text, fontsize=15, horizontalalignment='left')
 		i+=1
 	if pre_buff:
 		plt.ylim([-12.5,12])

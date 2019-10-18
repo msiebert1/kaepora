@@ -261,7 +261,17 @@ def measure_ca_ratio(wavelength,flux, varflux = None, wave1 = 3550., wave2=3680.
 
     return ca_max_2/ca_max_1
 
-def measure_velocity(wavelength, flux, wave1, wave2, vexp=.001, rest_wave=6355., varflux=None, plot=False):
+def measure_verror(wavelength, flux, var_flux, n=100):
+    vdist = []
+    for i in range(n):
+        sample_vexp = np.random.uniform(.001, .0045)
+        sample_v, sample_si_min_wave = measure_velocity(wavelength, flux, 5800, 6300, vexp=sample_vexp, plot=False, error=False)
+        vdist.append(sample_v)
+
+    sigma = np.std(vdist)
+    return sigma
+
+def measure_velocity(wavelength, flux, wave1, wave2, vexp=.001, rest_wave=6355., varflux=None, plot=False, error=False):
 
     sm_flux = df.gsmooth(wavelength, flux, varflux, vexp)
     si_range = np.where((wavelength > wave1) & (wavelength < wave2))
@@ -271,13 +281,17 @@ def measure_velocity(wavelength, flux, wave1, wave2, vexp=.001, rest_wave=6355.,
     si_flux = sm_flux[si_range]
     si_min = np.amin(si_flux)
     si_min_index = np.where(si_flux == si_min)
-    if len(si_min_index[0]) > 0.:
+
+    if len(si_min_index[0]) > 0. and (wavelength[-1] > wave2):
         si_min_wave = si_wave[si_min_index][0]
 
         c = 299792.458 # km/s
         # rest_wave = 6355. #Angstroms
 
         v = c*((rest_wave/si_min_wave)**2. - 1)/(1+((rest_wave/si_min_wave)**2.))
+        if error:
+            sigma = measure_verror(wavelength, flux, varflux)
+
         if plot:
             plt.plot(wavelength, flux)
             plt.plot(wavelength, sm_flux)
@@ -288,9 +302,13 @@ def measure_velocity(wavelength, flux, wave1, wave2, vexp=.001, rest_wave=6355.,
     else:
         v = np.nan
         si_min_wave = np.nan
-    return (-1.*v)/1000., si_min_wave
 
-def measure_vels(comps, sn_arrs, attr_ind, boot_arrs = None, plot=False):
+    if error:
+        return (-1.*v)/1000., si_min_wave, sigma
+    else:
+        return (-1.*v)/1000., si_min_wave
+
+def measure_vels(comps, sn_arrs, attr_name, boot_arrs = None, plot=False):
     avg_vs = []
     for comp in comps:
         v, si_min_wave = measure_velocity(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], 5800, 6400, plot=plot)
@@ -305,7 +323,7 @@ def measure_vels(comps, sn_arrs, attr_ind, boot_arrs = None, plot=False):
             b_vs = []
             for b in boots:
                 v, si_min_wave = measure_velocity(b.wavelength[b.x1:b.x2], b.flux[b.x1:b.x2], 5800, 6400, plot=False)
-                print v
+                # print v
                 if ~np.isnan(v) and v != None:
                     b_vs.append(v)
             boot_vel_arrs.append(b_vs)
@@ -329,16 +347,18 @@ def measure_vels(comps, sn_arrs, attr_ind, boot_arrs = None, plot=False):
     for arr in sn_arrs:
         attr_list = []
         for i, spec in enumerate(arr):
-            attr_list.append(spec.everything[attr_ind])
+            attr_list.append(spec.other_meta_data[attr_name])
         avg_attrs.append(np.average(attr_list))
     
     #Caveat: this includes combined spectra
     vels = []
     attrs = []
+    attr_errs = []
     for arr in sn_arrs:
         for i, spec in enumerate(arr):
             v, si_min_wave = measure_velocity(spec.wavelength[spec.x1:spec.x2], spec.flux[spec.x1:spec.x2], 5800, 6300, plot=plot)
-            attrs.append(spec.everything[attr_ind])
+            attrs.append(spec.other_meta_data[attr_name])
+            attr_errs.append(0)
             vels.append(v)
             print i,spec.name, v
     
@@ -349,8 +369,63 @@ def measure_vels(comps, sn_arrs, attr_ind, boot_arrs = None, plot=False):
     # plt.scatter(attrs, vels, color='orange')
     # plt.show()
 
-    return avg_attrs, avg_vs, errors, attrs, vels
+    return boot_vel_arrs, avg_vs, avg_attrs, attrs, attr_errs, vels, errors
 
+def plot_vels(vel_data, vwidth = .1, savename=None):
+    boot_vel_arrs, avg_vs, avg_attrs, attrs, attr_errs, vels, errors = vel_data[0], vel_data[1], vel_data[2], vel_data[3], vel_data[4], vel_data[5], vel_data[6]
+    plt.rc('font', family='serif')
+    plt.figure(num = 1, dpi = 100, figsize = [7,7])
+    plt.minorticks_on()
+    plt.xticks(fontsize = 20)
+    plt.yticks(fontsize = 20)
+    #     ax.get_yaxis().set_ticks([])
+    #     plt.ylim([-311,12])
+    plt.ylabel('Velocity ($10^3$ km s$^{-1}$)', fontsize = 20)
+    # plt.xlabel('Hubble Residual (mag)', fontsize = 20)
+    plt.tick_params(
+        which='major', 
+        bottom='on', 
+        top='on',
+        left='on',
+        right='on',
+        direction='in',
+        length=20)
+    plt.tick_params(
+        which='minor', 
+        bottom='on', 
+        top='on',
+        left='on',
+        right='on',
+        direction='in',
+        length=10)
+
+    plt.errorbar(attrs, vels, fmt='o', markersize=5, color = 'black', capsize=5, zorder=-10, label='Individual SNe')
+    violin_parts = plt.violinplot(boot_vel_arrs, avg_attrs, points=40, widths=vwidth,
+                      showmeans=False, showextrema=False, showmedians=False,
+                      bw_method='silverman')
+    
+    print avg_vs
+    diff = avg_vs[1] - avg_vs[0]
+    # err = np.sqrt(errors[0][0]**2. + errors[1][1]**2.)
+    # print 'Vdiff: ', diff, 'Err:', err, 'Sig: ', diff/err
+    plt.errorbar(avg_attrs, avg_vs, fmt='*', markersize=20, color = 'orange', alpha=1., zorder=1, label= 'Composite \n Spectra')
+#         vp = violin_parts['cmeans']
+#         vp.set_edgecolor('darkblue')
+#         vp.set_linewidth(4)
+#         vp.set_alpha(1.)
+    for pc in violin_parts['bodies']:
+        pc.set_facecolor('deepskyblue')
+        pc.set_edgecolor('steelblue')
+#             pc.set_color('red')
+        pc.set_alpha(.5)
+    # plt.xlim(-20,-7)
+    # plt.axvline(x=0., linestyle = '--', color = 'deepskyblue', linewidth=3, alpha=.6)
+    # plt.text(-.45, -14.5, '+4 Days', fontsize=20)
+    # plt.legend(bbox_to_anchor=(0.48, 0.45, 0.48, 0.5), fontsize=15)
+    plt.gca().invert_yaxis()
+    if savename is not None:
+        plt.savefig(savename+'.pdf', dpi = 300, bbox_inches = 'tight')
+    plt.show()
 #adapted from Rodrigo 
 def max_wave(wavelength, flux, w1, w2, w3, vexp=.001, sys_error=False):
     
@@ -532,7 +607,7 @@ def measure_si_velocity_from_raw(wavelength,flux,z, varflux=None):
     si_min_index = np.where(si_flux == si_min)
     si_min_wave = si_wave[si_min_index][0]
 
-    c = 299792. # km/s
+    c = 299792.458 # km/s
     si_rest_wave = 6355. #Angstroms
     v = c*((si_rest_wave/si_min_wave)**2. - 1)/(1+((si_rest_wave/si_min_wave)**2.))
     # v = c*(si_min_wave - si_rest_wave)/si_rest_wave

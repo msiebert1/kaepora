@@ -39,10 +39,10 @@ def dered(sne, snname, wave, flux, ivar, source='not_swift_uv', ):
     corrected = False
     for j in range(len(sne)):  # go through list of SN parameters
         sn = sne[j][0]
-        if snname.lower() == sn.lower()[2:]:  # SN with parameter matches the path
+        if (snname.lower() == sn.lower()[2:]) or (snname.lower() == sn.lower()) or (snname.lower()[2:] == sn.lower()):  # SN with parameter matches the path
             if not corrected:
                 # print 'Milky Way correction...'
-                if source != 'swift_uv' and source != 'foley_hst':
+                if source != 'swift_uv' and source != 'foley_hst' and source != 'foundation':
                     b = sne[j][1].astype(float)
                     v = sne[j][2].astype(float)
                     bv = b-v

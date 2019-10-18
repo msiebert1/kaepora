@@ -76,7 +76,7 @@ def gsmooth(x_array, y_array, var_y, vexp , nsig = 5.0):
     return new_y
 
 
-def clip(wave, flux, var, vexp, testing=False):
+def clip(wave, flux, var, vexp, testing=False, filename=None):
     """Uses sigma clipping to find and interpolate over unwanted cosmic rays, and emission lines.
     """
     
@@ -112,10 +112,10 @@ def clip(wave, flux, var, vexp, testing=False):
     for i in range(len(bad_wave_normal)):
         if bad_wave_normal[i] + buff < wave[-1] and bad_wave_normal[i] - buff >= wave[0]:
             bad_ranges.append((bad_wave_normal[i]-buff, bad_wave_normal[i]+buff))
-        elif bad_wave_normal[i] + buff >= wave[-1]:
-            bad_ranges.append((bad_wave_normal[i]-buff, wave[-2]))
-        elif bad_wave_normal[i] - buff < wave[0]:
-            bad_ranges.append((wave[0], bad_wave_normal[i]+buff))
+        # elif bad_wave_normal[i] + buff >= wave[-1]:
+        #     bad_ranges.append((bad_wave_normal[i]-buff, wave[-2]))
+        # elif bad_wave_normal[i] - buff < wave[0]:
+        #     bad_ranges.append((wave[0], bad_wave_normal[i]+buff))
 
 
     for i in range(len(bad_wave_pos_avoid)):
@@ -123,6 +123,7 @@ def clip(wave, flux, var, vexp, testing=False):
     for i in range(len(bad_wave_neg_avoid)):
         bad_ranges.append((bad_wave_neg_avoid[i]-buff, bad_wave_neg_avoid[i]+buff))
 
+    # print bad_ranges
     if testing:
         scale = 10./np.amax(flux)
         plt.rc('font', family='serif')
@@ -147,7 +148,7 @@ def clip(wave, flux, var, vexp, testing=False):
             length=5)
         plt.plot(wave, scale*flux, 'r-', linewidth = 2, label='Before Clipping')
 
-    for wave_tuple in bad_ranges:
+    for i, wave_tuple in enumerate(bad_ranges):
         clip_points = np.where((wave > wave_tuple[0]) & (wave < wave_tuple[1]))
 
         #make sure not at edge of spectrum
@@ -165,7 +166,7 @@ def clip(wave, flux, var, vexp, testing=False):
         plt.xlim([wave[0]-200,wave[-1]+200])
         plt.ylim([0,1.05*10])
         plt.legend(loc=1, fontsize=20)
-        plt.savefig('../../../Paper_Drafts/reprocessing_updated/clipping.pdf', dpi = 300, bbox_inches = 'tight')
+        # plt.savefig('../../Foundation/Spectra/Clipping_Plots/'+filename+'_clipping.pdf', dpi = 300, bbox_inches = 'tight')
         plt.show()
 
     return wave, flux, var # return bad_ranges instead of setting ivar[bad] = 0 (A.S.)

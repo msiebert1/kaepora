@@ -106,8 +106,10 @@ def store_phot_data(SN, row, event_index, phot_cols):
     SN.na = phot_row[82]
     SN.hubble_res = phot_row[83]
 
-    SN.light_curves = msg.unpackb(phot_row[84])
-    SN.csp_light_curves = msg.unpackb(phot_row[85])
+    if phot_row[84] != None:
+        SN.light_curves = msg.unpackb(phot_row[84])
+    if phot_row[85] != None:
+        SN.csp_light_curves = msg.unpackb(phot_row[85])
 
     if len(phot_row) >= 86:
         SN.other_meta_data = {}
