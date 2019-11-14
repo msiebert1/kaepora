@@ -810,7 +810,11 @@ def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_sc
 		# avg_dm15_rnd = np.round(avg_dm15,2)
 		# delt.yaxis.set_ticks(np.arange(avg_dm15_rnd-.1, avg_dm15_rnd+.11, .05))
 		plt.setp(delt.get_xticklabels(), visible=False)
-		plt.ylabel('$\Delta$m$_{15}$ (mag)', fontsize=15)
+
+		if 'shape_param' in dir(comp):
+			plt.ylabel(comp.shape_param, fontsize=15)
+		else:
+			plt.ylabel('$\Delta$m$_{15}$ (mag)', fontsize=15)
 		# plt.plot(comp.wavelength[comp.x1:comp.x2], comp.dm15[comp.x1:comp.x2], color = s_m.to_rgba(param))
 		plt.plot(comp.wavelength[comp.x1:comp.x2], comp.dm15_array[comp.x1:comp.x2], linewidth = lw, color = s_m.to_rgba(param))
 		# delt.axes.set_ylim([avg_dm15 - .2, avg_dm15 + .2])

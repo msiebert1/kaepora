@@ -12,6 +12,7 @@ import scipy.interpolate as inter
 import math
 import scipy.optimize as opt
 import copy
+from tabulate import tabulate
 
 """ This file contains various functions for homogenizing our dataset. 
     The compprep() function is called before a spectrum is added to the
@@ -239,7 +240,7 @@ def sq_residuals_in_range(s, data, comp):
     return np.sum(sq_res)
 
 
-def compprep(spectrum, sn_name, z, source, use_old_error=True, testing=False, filename=None):
+def compprep(spectrum, sn_name, z, source, use_old_error=True, testing=False, filename=None, mjd=None, mjd_max=None):
     """ Performs clipping, deredshifting, variance spectrum generation, MW extinction correction,
         and interpolation. If testing is True, several plots will be made to assess the quality 
         of this processing.
@@ -291,6 +292,26 @@ def compprep(spectrum, sn_name, z, source, use_old_error=True, testing=False, fi
     old_wave, old_flux, old_var = df.clip(old_wave, old_flux, old_var, vexp, testing=testing, filename=filename) #clip emission/absorption lines
     old_wave = old_wave*(1.+z) #reredshift for MW extinction correction 
     temp_ivar, SNR = df.genivar(old_wave, old_flux, old_var, vexp=vexp, testing=testing, source=source)  # generate inverse variance
+
+    #code to save foundation spec for david
+    # print filename
+    # plt.plot(old_wave, old_flux)
+    # plt.show()
+    # plt.plot(old_wave, temp_ivar)
+    # plt.show()
+    # file_path = '../../Foundation/mod_spec/' + filename.split('.')[0] + '_modified.flm'
+    # print file_path
+    # with open(file_path, 'w') as file:
+    #     file.write('# Orginal file name = ' + filename + '\n')
+    #     file.write('# z = ' + str(z) + '\n')
+    #     file.write('# MJD = ' + str(mjd) + '\n')
+    #     file.write('# MJD_max = ' + str(mjd_max) + '\n')
+    #     file.write('\n')
+    #     err = np.sqrt(1./np.asarray(temp_ivar))
+    #     data = np.c_[old_wave,old_flux,err]
+    #     table = tabulate(data, headers=['Wavelength', 'Flux', 'Error'], 
+    #                                         tablefmt = 'ascii')
+    #     file.write(table)
 
     if testing:
         print SNR
