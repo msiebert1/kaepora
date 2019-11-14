@@ -125,6 +125,233 @@ def store_phot_data(SN, row, event_index, phot_cols):
         SN.other_meta_data = None
         SN.homog_light_curves = None
 
+
+def new_grab(sql_input, shape_param, make_corr = True, db_file = None):
+
+    if db_file is None:
+        db_file = glob.glob('../data/*.db')[0]
+
+    con = sq3.connect(db_file)
+    print "Collecting data from", db_file, "..."
+    cur = con.cursor()
+
+    SN_Array = []
+
+    get_phot = False
+    if "join" in sql_input:
+        get_phot = True
+
+    spec_table = cur.execute('PRAGMA TABLE_INFO({})'.format("Spectra"))
+    spec_cols = [tup[1] for tup in cur.fetchall()]
+    event_table = cur.execute('PRAGMA TABLE_INFO({})'.format("Events"))
+    event_cols = [tup[1] for tup in cur.fetchall()]
+    all_cols = spec_cols + event_cols
+    event_index = all_cols.index('Ref') + 1  #THIS IS A HACK
+    cur.execute(sql_input)
+
+    #UNCOMMMENT if you want to parse query for average phase (assumes a syntax)
+    # if 'phase' in sql_input:
+    #   split_query = sql_input.split()
+    #   p_index = split_query.index('phase')
+    #   p_low = float(split_query[p_index+2])
+    #   p_high = float(split_query[p_index+6])
+    #   p_avg = (p_low+p_high)/2.
+
+    
+    for row in cur:
+        """retrieve spectral metadata.
+        """
+
+        SN           = spectrum()
+
+        SN.filename  = row[0]
+        SN.name      = row[1]
+        SN.source    = row[2]
+        SN.phase     = row[3]
+        SN.minwave   = row[4]
+        SN.maxwave   = row[5]        
+        SN.SNR       = row[6]
+        interp       = msg.unpackb(row[7])
+        SN.interp    = interp
+        SN.mjd       = row[8]
+        SN.ref       = row[9]
+        SN.event_data = {}
+        for i, r in enumerate(row[10:event_index]):
+            SN.other_spectral_data[all_cols[i+10]] = r
+        for i, r in enumerate(row[event_index:]):
+            SN.event_data[all_cols[i+10]] = r
+
+        SN.av_25 = SN.event_data['av_25']
+        SN.av_mlcs31 = None
+        SN.av_mlcs17 = None
+
+        #retrieve event specific metadata if desired
+        # if get_phot:
+        #     phot_cols = all_cols[event_index:]
+        #     store_phot_data(SN, row, event_index, phot_cols)
+
+        # SN.everything = row[0:7]+row[8:93]+row[96:]
+        SN.low_conf  = []
+        SN.up_conf   = []
+        SN.spec_bin  = []
+        try:
+            SN.wavelength = SN.interp[0,:]
+            SN.flux       = SN.interp[1,:]
+            SN.ivar       = SN.interp[2,:]
+        except TypeError:
+            # print "ERROR: ", SN.filename, SN.interp
+            continue
+        a = copy.deepcopy(SN)
+        SN_Array.append(SN)
+
+    print len(SN_Array), 'Total Spectra found'
+    # for SN in SN_Array:
+    #     print SN.name, SN.filename, SN.phase
+    # raise TypeError
+    a = copy.deepcopy(SN_Array)
+    # if grab_all:
+    #     return SN_Array
+
+
+    if make_corr:
+        """remove flagged files from questionable_spectra.py, remove spectra
+        with bad ivar data, remove spectra without host extinction esimates, and
+        remove spectra marked as 'peculiar' (currently only Iax)
+        """
+        bad_files = qspec.bad_files()
+        bad_ivars = []
+        for SN in SN_Array:
+            # print SN.filename 
+            if len(np.where(np.isnan(SN.ivar))[0] == True) == 5500:
+                bad_ivars.append(SN.filename)
+                # plt.plot(SN.wavelength,SN.flux)
+                # plt.show()
+                # plt.plot(SN.wavelength,SN.ivar)
+                # plt.show()
+        if len(bad_ivars) > 0:
+            print "Generate variance failed for: ", bad_ivars
+
+        len_before = len(SN_Array)
+        good_SN_Array = [SN for SN in SN_Array 
+                            if not is_bad_data(SN, bad_files, bad_ivars)]
+        SN_Array = good_SN_Array
+        print len_before - len(SN_Array), 'flagged spectra removed', len(SN_Array), 'spectra left'
+
+        # remove peculiar Ias
+        len_before = len(SN_Array)
+        SN_Array = remove_peculiars(SN_Array,'../data/info_files/pec_Ias.txt')
+        print len_before - len(SN_Array), 'spectra of peculiar Ias removed', len(SN_Array), 'spectra left'
+        SN_Array = check_host_corrections(SN_Array)
+
+    print len(SN_Array), "spectra of SNe that have host reddening corrections"
+
+    for SN in SN_Array:
+        SN.shape_param = shape_param
+        #assign more attributes
+        # SN.flux = SN.flux.copy()
+        # SN.ivar = SN.ivar.copy()
+
+        #wavelength tracked attributes
+        SN.phase_array = np.array(SN.flux)
+        SN.dm15_array  = np.array(SN.flux)
+        SN.red_array   = np.array(SN.flux)
+        SN.vel         = np.array(SN.flux)
+        SN.morph_array = np.array(SN.flux)
+        SN.hr_array    = np.array(SN.flux)
+        SN.c_array    = np.array(SN.flux)
+
+        nan_bool_flux = np.isnan(SN.flux)
+        non_nan_data = np.where(nan_bool_flux == False)
+        nan_data = np.where(nan_bool_flux == True)
+        nan_data = nan_data
+        SN.flux[nan_data]         = np.nan
+        SN.ivar[nan_data]         = 0.
+        SN.phase_array[nan_data]  = np.nan
+        SN.dm15_array[nan_data]   = np.nan
+        SN.red_array[nan_data]    = np.nan
+        SN.vel[nan_data]          = np.nan
+        SN.morph_array[nan_data]  = np.nan
+        SN.hr_array[nan_data]     = np.nan
+        SN.c_array[nan_data]      = np.nan
+
+        if SN.phase != None:
+            SN.phase_array[non_nan_data] = SN.phase
+        else:
+            SN.phase_array[non_nan_data] = np.nan
+
+        # if get_phot:
+        #     if SN.dm15_source != None:
+        #         SN.dm15_array[non_nan_data] = SN.dm15_source
+        #         SN.dm15 = SN.dm15_source
+        #     elif SN.dm15_from_fits != None:
+        #         SN.dm15_array[non_nan_data] = SN.dm15_from_fits
+        #         SN.dm15 = SN.dm15_from_fits
+        #     else:
+        #         SN.dm15_array[non_nan_data] = np.nan
+        # if SN.redshift != None:
+        #     SN.red_array[non_nan_data] = SN.redshift
+        # else:
+        #     SN.red_array[non_nan_data] = np.nan
+        # if SN.v_at_max != None:
+        #     SN.vel[non_nan_data] = SN.v_at_max
+        # else:
+        #     SN.vel[non_nan_data] = np.nan
+        # if SN.ned_host != None:
+        #     SN.morph_array[non_nan_data] = SN.ned_host
+        # else:
+        #     SN.morph_array[non_nan_data] = np.nan
+
+        if SN.event_data:
+            if SN.event_data.get(shape_param,None) != None:
+                SN.dm15_array[non_nan_data] = SN.event_data.get(shape_param, None)
+                SN.dm15 = SN.event_data.get(shape_param, None)
+            else:
+                SN.dm15_array[non_nan_data] = np.nan
+
+            if SN.event_data.get('c',None) != None:
+                SN.c_array[non_nan_data] = SN.event_data.get('c', None)
+            else:
+                SN.c_array[non_nan_data] = np.nan
+
+            if SN.event_data.get('z',None) != None:
+                SN.red_array[non_nan_data] = SN.event_data.get('z', None)
+            else:
+                SN.red_array[non_nan_data] = np.nan
+
+            if SN.event_data.get('vel',None) != None:
+                SN.vel[non_nan_data] = SN.event_data.get('vel', None)
+            else:
+                SN.vel[non_nan_data] = np.nan
+
+            # if "MURES " in sql_input:
+            #     SN.hr_array[non_nan_data] = SN.other_meta_data.get("MURES", None)
+            # elif "MURES_NO_MSTEP " in sql_input:
+            #     SN.hr_array[non_nan_data] = SN.other_meta_data.get("MURES_NO_MSTEP", None)
+            # elif "MURES_NO_MSTEP_C " in sql_input:
+            #     SN.hr_array[non_nan_data] = SN.other_meta_data.get("MURES_NO_MSTEP_C", None)
+            # elif "MURES_NO_MSTEP_C_X1 " in sql_input:
+            #     SN.hr_array[non_nan_data] = SN.other_meta_data.get("MURES_NO_MSTEP_C_X1", None)
+            # else:
+            #     SN.hr_array[non_nan_data] = SN.other_meta_data.get("MURES", None)
+
+        non_nan_data = np.array(non_nan_data[0])
+        if len(non_nan_data) > 0:
+            SN.x1 = non_nan_data[0]
+            SN.x2 = non_nan_data[-1]
+            SN.x2 += 1
+        else:
+            SN.x1 = 0
+            SN.x2 = 0
+
+        # SN.ivar[SN.x1:SN.x1 + 25] = 0.
+        # SN.ivar[SN.x2 - 25:SN.x2 + 1] = 0.
+        SN.x1 = SN.x1 + 25
+        SN.x2 = SN.x2 - 25
+
+                    
+    print "Arrays cleaned"
+    return SN_Array
+
 def grab(sql_input, multi_epoch = True, make_corr = True, 
          selection = 'max_coverage', grab_all=False, db_file = None):
     """A primary function for interacting with the database. The user specifies 
@@ -1291,7 +1518,7 @@ def create_composite(SN_Array, boot, template, medmean, nboots = 100, gini_balan
     return template, boots
     
 def main(Full_query, boot = False, nboots=100, medmean = 1, make_corr=True, multi_epoch=False, 
-        selection = 'max_coverage', gini_balance=False, aggro=.5, verbose=True, 
+        selection = 'max_coverage', gini_balance=False, aggro=.5, verbose=True, shape_param = None,
         low_av_test = None, combine=True, get_og_arr=False):
     """Main function. Finds spectra that satisfy the users query and creates a 
     composite spectrum based on the given arguments.
@@ -1346,8 +1573,12 @@ def main(Full_query, boot = False, nboots=100, medmean = 1, make_corr=True, mult
 
     #Accept SQL query as input and then grab from the database
     print "SQL Query:", Full_query
-    SN_Array = grab(Full_query, make_corr=make_corr, multi_epoch=multi_epoch, 
-                    selection = selection)
+
+    if shape_param:
+        SN_Array = new_grab(Full_query, shape_param, make_corr=make_corr)
+    else:
+        SN_Array = grab(Full_query, make_corr=make_corr, multi_epoch=multi_epoch, 
+                        selection = selection)
 
     SN_Array_wo_tell = remove_tell_files(SN_Array)
     print len(SN_Array) - len(SN_Array_wo_tell), 'spectra may have telluric contamination'
@@ -1371,7 +1602,7 @@ def main(Full_query, boot = False, nboots=100, medmean = 1, make_corr=True, mult
         print "SN", "Filename", "Source", "SNR", "Phase", "Dm15", "Minwave", "Maxwave"
     for SN in SN_Array:
         if verbose:
-            print SN.name, SN.filename, SN.source, SN.SNR, SN.phase, SN.dm15, SN.ned_host, SN.wavelength[SN.x1], SN.wavelength[SN.x2]
+            print SN.name, SN.filename, SN.source, SN.SNR, SN.phase, SN.dm15, SN.wavelength[SN.x1], SN.wavelength[SN.x2]
 
         lengths.append(SN.wavelength[SN.x2] - SN.wavelength[SN.x1])
         if 'combined' in SN.name:
