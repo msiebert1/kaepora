@@ -293,9 +293,10 @@ def measure_velocity(wavelength, flux, wave1, wave2, vexp=.001, rest_wave=6355.,
             sigma = measure_verror(wavelength, flux, varflux)
 
         if plot:
-            plt.plot(wavelength, flux)
-            plt.plot(wavelength, sm_flux)
-            plt.plot(si_min_wave, si_min, 'o', color='orange')
+            norm = 1./np.amax(flux)
+            plt.plot(wavelength, norm*flux)
+            plt.plot(wavelength, norm*sm_flux)
+            plt.plot(si_min_wave, norm*si_min, 'o', color='orange')
             plt.xlim([5000.,7000.])
             plt.ylim([0.,.6])
             plt.show()
