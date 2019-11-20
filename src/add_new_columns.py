@@ -209,6 +209,7 @@ def add_all_SALT2_metadata(db_file):
     mures_no_mstep = {}
     mures_no_mstep_c = {}
     mures_no_mstep_c_x1 = {}
+    mures_no_mstep_x1 = {}
 
     alpha = 0.14107
     beta = 3.14889
@@ -238,11 +239,12 @@ def add_all_SALT2_metadata(db_file):
         
         mures_no_mstep_c[SN] = mures_no_mstep[SN] + beta*c[SN]
         mures_no_mstep_c_x1[SN] = mures_no_mstep_c[SN] - alpha*x1[SN]
+        mures_no_mstep_x1[SN] = mures_no_mstep[SN] - alpha*x1[SN]
 
     col_names = ['MU', 'MUERR', 'MUMODEL', 'MURES', 'HOST_LOGMASS', 'HOST_LOGMASS_ERR', 'x1', 'x1ERR', 
-                 'c', 'cERR', 'MURES_NO_MSTEP', 'MURES_NO_MSTEP_C', 'MURES_NO_MSTEP_C_X1']
+                 'c', 'cERR', 'MURES_NO_MSTEP', 'MURES_NO_MSTEP_C', 'MURES_NO_MSTEP_C_X1', 'MURES_NO_MSTEP_X1']
     all_dicts = [mu, mu_err, mumodel, mures, hostmass, hostmass_err, x1, x1_err, c, 
-                 c_err, mures_no_mstep, mures_no_mstep_c, mures_no_mstep_c_x1]
+                 c_err, mures_no_mstep, mures_no_mstep_c, mures_no_mstep_c_x1, mures_no_mstep_x1]
     for i, sdict in enumerate(all_dicts):
         add_arbitrary_event_column(col_names[i], sdict, """REAL""", db_file)
 
