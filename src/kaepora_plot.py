@@ -587,7 +587,7 @@ def scaled_plot(composites, min_num_show = 5, min_num_scale = 10, include_spec_b
 	plt.show()
 
 def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_scale = 2, template=None, scaleto=10., compare_ind = 0, 
-					legend_labels = None, title=None, cmap_kind='diff', extra= False, zoom_ratio=False, savename=None):
+					legend_labels = None, title=None, cmap_kind='diff', extra= False, zoom_ratio=False, label_features=False, savename=None):
 
 	# plt.style.use('ggplot')
 	colors = [color['color'] for color in list(plt.rcParams['axes.prop_cycle'])]
@@ -1002,9 +1002,23 @@ def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_sc
 		rel_flux.legend(legend_labels, bbox_to_anchor=(0.48, 0.45, 0.48, 0.5), fontsize=15)
 	if title:
 		rel_flux.set_title(title)
+	if label_features:
+		rel_flux.annotate('Si II', xy=(6150, 3.5), xytext=(6550, 4.5),
+            arrowprops=dict(facecolor='black'), fontsize=15)
+		rel_flux.annotate('S II', xy=(5400, 5), xytext=(5550, 6.5),
+            arrowprops=dict(facecolor='black'), fontsize=15)
+		rel_flux.annotate('Ca II', xy=(8300, 1), xytext=(8500, 2),
+            arrowprops=dict(facecolor='black'), fontsize=15)
+		rel_flux.annotate('Ca II', xy=(3800, 3.5), xytext=(3900, 1.5),
+            arrowprops=dict(facecolor='black'), fontsize=15)
+		rel_flux.annotate('O I', xy=(7450, 1), xytext=(7550, 2),
+            arrowprops=dict(facecolor='black'), fontsize=15)
+		rel_flux.annotate('Mg II', xy=(4350, 8.5), xytext=(4550, 9.2),
+            arrowprops=dict(facecolor='black'), fontsize=15)
 	if savename is not None:
 		plt.savefig(savename+'.pdf', dpi = 300, bbox_inches = 'tight')
 		plt.savefig(savename+'.png', dpi = 300, bbox_inches = 'tight')
+
 	plt.show()
 
 def feature_plot(composites, wave_range = [5600, 6500], boot=False, min_num_show = 1, min_num_scale = 5, 

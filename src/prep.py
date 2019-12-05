@@ -299,19 +299,19 @@ def compprep(spectrum, sn_name, z, source, use_old_error=True, testing=False, fi
     # plt.show()
     # plt.plot(old_wave, temp_ivar)
     # plt.show()
-    # file_path = '../../Foundation/mod_spec/' + filename.split('.')[0] + '_modified.flm'
-    # print file_path
-    # with open(file_path, 'w') as file:
-    #     file.write('# Orginal file name = ' + filename + '\n')
-    #     file.write('# z = ' + str(z) + '\n')
-    #     file.write('# MJD = ' + str(mjd) + '\n')
-    #     file.write('# MJD_max = ' + str(mjd_max) + '\n')
-    #     file.write('\n')
-    #     err = np.sqrt(1./np.asarray(temp_ivar))
-    #     data = np.c_[old_wave,old_flux,err]
-    #     table = tabulate(data, headers=['Wavelength', 'Flux', 'Error'], 
-    #                                         tablefmt = 'ascii')
-    #     file.write(table)
+    file_path = '../../Foundation/mod_TNS_spec/' + filename.split('.')[0] + '_modified.flm'
+    print file_path
+    with open(file_path, 'w') as file:
+        file.write('# Orginal file name = ' + filename + '\n')
+        file.write('# z = ' + str(z) + '\n')
+        # file.write('# MJD = ' + str(mjd) + '\n')
+        # file.write('# MJD_max = ' + str(mjd_max) + '\n')
+        file.write('\n')
+        err = np.sqrt(1./np.asarray(temp_ivar))
+        data = np.c_[old_wave,old_flux,err]
+        table = tabulate(data, headers=['Wavelength', 'Flux', 'Error'], 
+                                            tablefmt = 'ascii')
+        file.write(table)
 
     if testing:
         print SNR
