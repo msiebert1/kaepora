@@ -586,7 +586,7 @@ def scaled_plot(composites, min_num_show = 5, min_num_scale = 10, include_spec_b
 		plt.savefig(savename+'.png', dpi = 300, bbox_inches = 'tight')
 	plt.show()
 
-def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_scale = 2, template=None, scaleto=10., compare_ind = 0, 
+def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_scale = 2, template=None, scaleto=10., compare_ind = 0, rm_last_label = False,
 					legend_labels = None, title=None, cmap_kind='diff', extra= False, zoom_ratio=False, label_features=False, savename=None):
 
 	# plt.style.use('ggplot')
@@ -881,9 +881,9 @@ def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_sc
 		# labels[-1]=''
 		# res.set_yticklabels(labels)
 		if not zoom_ratio:
-			majorLocator = MultipleLocator(1.0)
-			majorFormatter = FormatStrFormatter('%d')
-			minorLocator = MultipleLocator(.5)
+			majorLocator = MultipleLocator(.5)
+			majorFormatter = FormatStrFormatter('%.1f')
+			minorLocator = MultipleLocator(.25)
 			res.axes.yaxis.set_major_locator(majorLocator)
 			res.axes.yaxis.set_major_formatter(majorFormatter)
 			res.axes.yaxis.set_minor_locator(minorLocator)
@@ -917,6 +917,13 @@ def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_sc
 		spec.axes.yaxis.set_minor_locator(minorLocator)
 		spec.axes.spines['top'].set_visible(False)
 		spec.axes.set_ylim([0, spec_bounds[1]*1.23])
+		if rm_last_label:
+			labels=spec.axes.get_yticks().tolist()
+			labels[-2]=''
+			for i, l in enumerate(labels):
+				if l != '':
+					labels[i] = str(int(float(labels[i])))
+			spec.set_yticklabels(labels)
 
 		p = np.average(comp.phase_array[comp.x1:comp.x2])
 		# labels=phase.axes.get_yticks().tolist()
@@ -1015,6 +1022,8 @@ def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_sc
             arrowprops=dict(facecolor='black'), fontsize=15)
 		rel_flux.annotate('Mg II', xy=(4350, 8.5), xytext=(4550, 9.2),
             arrowprops=dict(facecolor='black'), fontsize=15)
+		rel_flux.annotate('Si II', xy=(4000, 9.6), xytext=(4250, 10.),
+            arrowprops=dict(facecolor='black'), fontsize=15)
 	if savename is not None:
 		plt.savefig(savename+'.pdf', dpi = 300, bbox_inches = 'tight')
 		plt.savefig(savename+'.png', dpi = 300, bbox_inches = 'tight')
@@ -1068,6 +1077,7 @@ def feature_plot(composites, wave_range = [5600, 6500], boot=False, min_num_show
 		dm15 = np.average(comp.dm15_array[r1:r2])
 #         buff = 200*np.log10(phase+20)
 		plt.plot(comp.wavelength[r1:r2], scale*comp.flux[r1:r2], color = s_m.to_rgba(i+1), linewidth = lw, label = labels[i])
+
 		if boot:
 			low_conf = comp.low_conf[r1:r2]
 			up_conf = comp.up_conf[r1:r2]
@@ -1080,6 +1090,8 @@ def feature_plot(composites, wave_range = [5600, 6500], boot=False, min_num_show
 	plt.xlim([wave1+20, wave2-20])
 	plt.xlabel('Rest Wavelength ' + "($\mathrm{\AA}$)", fontsize = 30)
 	plt.ylabel('Relative Flux', fontsize = 30)
+	plt.gca().axvline(x=5690., linestyle = '--', color = 'deepskyblue', linewidth=3, alpha=.6)
+	plt.gca().axvline(x=5360., linestyle = '--', color = 'deepskyblue', linewidth=3, alpha=.6)
 	# plt.ylim([0, .6])
 	# plt.ylim([-1*len(composites)+3.5,.6])
 	# plt.savefig('../../Paper_Drafts/dm15_split_max.pdf', dpi = 300, bbox_inches = 'tight')
@@ -1156,13 +1168,17 @@ def feature_panel(composites, wave_range = [5600, 6500], boot=False, min_num_sho
 					axarr[k,j].fill_between(comp.wavelength[r1:r2], scale*low_conf, scale*up_conf, color = s_m.to_rgba(i+1), alpha = 0.3)
 #         plt.title('All Phase Composite Spectra', fontdict = font1, fontsize = 40)
 	if text:
-		# plt.text(4080, np.mean(composites[0].flux[r1:r2])-1.3*buff+9, text, fontsize=15, horizontalalignment='right')
-		# plt.text(8680, np.mean(composites[0].flux[r1:r2])-1.3*buff+9, text, fontsize=15, horizontalalignment='left')
+		plt.text(4080, np.mean(composites[0].flux[r1:r2])-1.3*buff+9, text, fontsize=15, horizontalalignment='right')
+		plt.text(8680, np.mean(composites[0].flux[r1:r2])-1.3*buff+9, text, fontsize=15, horizontalalignment='left')
 		# plt.text(5800, np.mean(composites[0].flux[r1:r2])-1.3*buff+9, text, fontsize=15, horizontalalignment='right')
-		plt.text(3.5, np.mean(composites[0].flux[r1:r2])-1.3*buff+9, text, fontsize=15, horizontalalignment='left')
+		# plt.text(3.5, np.mean(composites[0].flux[r1:r2])-1.3*buff+9, text, fontsize=15, horizontalalignment='left')
 		i+=1
+	else:
+		plt.gca().axvline(x=4610., linestyle = '--', color = 'deepskyblue', linewidth=3, alpha=.6)
+		plt.gca().axvline(x=4260., linestyle = '--', color = 'deepskyblue', linewidth=3, alpha=.6)
+
 	if pre_buff:
-		plt.ylim([-12.5,12])
+		plt.ylim([-16,12])
 	# plt.xlim([5500.,6500.])
 	# cb = plt.colorbar(s_m, ax = fig.axes)
 	# cb.set_label('$\Delta m_{15}$ (B) (mag)', fontsize=15)
