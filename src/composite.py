@@ -1073,7 +1073,8 @@ def is_bad_data(SN, bad_files, bad_ivars):
     """
     #2008ia is not deredshifted
     #2006bt should be peculiar
-    bad_sns = ['2008ia', '2006bt']
+    #2005m not deredshifted?
+    bad_sns = ['2008ia', '2006bt', '2005m']
     for el in bad_files:
         if SN.filename == el:
             return True
