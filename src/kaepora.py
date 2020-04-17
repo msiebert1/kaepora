@@ -148,8 +148,9 @@ def host_dereddening(SN_Array, r_v = 2.5, verbose=False, low_av_test=None, cutof
     return spec_array
 
 
-def make_composite(query_strings, boot=False, nboots=100, medmean = 1, selection = 'max_coverage', gini_balance=False, verbose=True, 
-         multi_epoch=True, combine=True, low_av_test=None, measure_vs = False, get_og_arr=False, shape_param=None):
+def make_composite(query_strings, boot=False, nboots=100, medmean = 1, selection = 'max_coverage', gini_balance=False, verbose=True,
+         make_corr=True, av_corr=True, 
+         multi_epoch=True, combine=True, low_av_test=None, measure_vs = False, get_og_arr=False, shape_param=None, db_file=None):
     """ This is the main fuunction for constructing composite spectra from spectra stored in kaepora.
         Args:
             query_strings: A list of SQL query strings
@@ -208,12 +209,14 @@ def make_composite(query_strings, boot=False, nboots=100, medmean = 1, selection
     for n in range(num_queries):
         if get_og_arr:
             comp, arr, og_arr, boots = composite.main(query_strings[n],boot=boot, nboots=nboots, medmean = medmean, shape_param=shape_param,
-                                            selection = selection, gini_balance=gini_balance, combine=combine,
+                                            selection = selection, gini_balance=gini_balance, combine=combine, db_file=db_file,
+                                            make_corr=make_corr, av_corr=av_corr,
                                             verbose=verbose, multi_epoch=multi_epoch, low_av_test=low_av_test, get_og_arr=get_og_arr)
             og_sn_arrays.append(og_arr)
         else:
             comp, arr, boots = composite.main(query_strings[n],boot=boot, nboots=nboots, medmean = medmean, shape_param=shape_param,
-                                            selection = selection, gini_balance=gini_balance, combine=combine,
+                                            selection = selection, gini_balance=gini_balance, combine=combine, db_file=db_file,
+                                            make_corr=make_corr, av_corr=av_corr,
                                             verbose=verbose, multi_epoch=multi_epoch, low_av_test=low_av_test, get_og_arr=get_og_arr)
         if store_boots:
             boot_sn_arrays.append(boots)

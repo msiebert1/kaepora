@@ -6,6 +6,7 @@ from scipy.integrate import simps
 import random 
 import pyphot
 import kaepora as kpora
+import copy
 
 def autosmooth(x_array, y_array, var_y=None):
     if var_y is not None:
@@ -62,6 +63,23 @@ def find_vexp(x_array, y_array, var_y=None):
 
     return vexp_auto, SNR
 
+def find_vexp_ryan(x_array, y_array, var_y=None):
+    if var_y is not None:
+        error = np.sqrt(var_y)
+        new_y_init = df.gsmooth(x_array, y_array, var_y, .002)
+        SNR = np.median(new_y_init / error)
+    else:
+        new_y_init = df.gsmooth(x_array, y_array, var_y, .002) #this smoothing should get in right ballpark
+        error = np.absolute(y_array - new_y_init)
+        sm_error = df.gsmooth(x_array, error, var_y, .008)
+        SNR = np.median(new_y_init / sm_error)
+
+    vexp = 0.000205115 + 0.00699404*(SNR + 0.642253)**(-0.446162)
+
+    if SNR > 150:
+        vexp = .001
+
+    return vexp, SNR
 
 def find_extrema(wavelength,sm_flux):
     #input a smoothed spectrum
@@ -261,19 +279,29 @@ def measure_ca_ratio(wavelength,flux, varflux = None, wave1 = 3550., wave2=3680.
 
     return ca_max_2/ca_max_1
 
-def measure_verror(wavelength, flux, var_flux, n=100):
+def measure_verror(wavelength, flux, var_flux, wave1, wave2, n=100):
     vdist = []
     for i in range(n):
         sample_vexp = np.random.uniform(.001, .0045)
-        sample_v, sample_si_min_wave = measure_velocity(wavelength, flux, 5800, 6300, vexp=sample_vexp, plot=False, error=False)
+        sample_v, sample_si_min_wave, err = measure_velocity(wavelength, flux, wave1, wave2, clip=False, vexp=sample_vexp, plot=False, error=False)
         vdist.append(sample_v)
 
     sigma = np.std(vdist)
     return sigma
 
-def measure_velocity(wavelength, flux, wave1, wave2, vexp=.001, rest_wave=6355., varflux=None, plot=False, error=False):
+def measure_velocity(wavelength, flux, wave1, wave2, vexp=.001, clip=True, rest_wave=6355., varflux=None, plot=False, error=False):
 
     sm_flux = df.gsmooth(wavelength, flux, varflux, vexp)
+
+    # sigclip_region = np.where((np.absolute(flux-sm_flux)> 3.*np.sqrt(varflux)))[0]
+    old_wave = copy.deepcopy(wavelength)
+    old_flux = copy.deepcopy(flux)
+    # if clip:
+    #     wavelength = np.delete(wavelength, sigclip_region)
+    #     flux = np.delete(flux, sigclip_region)
+    #     varflux = np.delete(varflux, sigclip_region)
+    #     sm_flux = np.delete(sm_flux, sigclip_region)
+
     si_range = np.where((wavelength > wave1) & (wavelength < wave2))
     si_wave = wavelength[si_range]
     if len(si_wave) == 0:
@@ -281,6 +309,7 @@ def measure_velocity(wavelength, flux, wave1, wave2, vexp=.001, rest_wave=6355.,
     si_flux = sm_flux[si_range]
     si_min = np.amin(si_flux)
     si_min_index = np.where(si_flux == si_min)
+
 
     if len(si_min_index[0]) > 0. and (wavelength[-1] > wave2):
         si_min_wave = si_wave[si_min_index][0]
@@ -290,24 +319,30 @@ def measure_velocity(wavelength, flux, wave1, wave2, vexp=.001, rest_wave=6355.,
 
         v = c*((rest_wave/si_min_wave)**2. - 1)/(1+((rest_wave/si_min_wave)**2.))
         if error:
-            sigma = measure_verror(wavelength, flux, varflux)
+            sigma = measure_verror(wavelength, flux, varflux, wave1, wave2)
 
         if plot:
+            f, ax1 = plt.subplots(1, 1, figsize=[7,7])
+            zoom = (wavelength>5500) & (wavelength < 6500)
+            # zoom_old_sig = (old_wave[sigclip_region]>5500) & (old_wave[sigclip_region] < 6500)
+            zoom_old = (old_wave>5500) & (old_wave < 6500)
             norm = 1./np.amax(flux)
-            plt.plot(wavelength, norm*flux)
-            plt.plot(wavelength, norm*sm_flux)
+            plt.plot(old_wave[zoom_old], norm*old_flux[zoom_old], color='red')
+            plt.plot(wavelength[zoom], norm*flux[zoom])
+            plt.plot(wavelength[zoom], norm*sm_flux[zoom])
             plt.plot(si_min_wave, norm*si_min, 'o', color='orange')
-            plt.xlim([5000.,7000.])
-            plt.ylim([0.,.6])
+            # plt.xlim([5500.,6500.])
+            # plt.ylim([np.median(flux[zoom])-.2,np.median(flux[zoom])+.2])
             plt.show()
     else:
         v = np.nan
         si_min_wave = np.nan
+        sigma = np.nan
 
     if error:
         return (-1.*v)/1000., si_min_wave, sigma
     else:
-        return (-1.*v)/1000., si_min_wave
+        return (-1.*v)/1000., si_min_wave, np.nan
 
 def measure_vels(comps, sn_arrs, attr_name, boot_arrs = None, plot=False):
     avg_vs = []
@@ -461,10 +496,11 @@ def measure_EWs(sn_array, w1=7600., w2=8200., w3=9000., error=False):
                 stat_err = ew_stat_error(SN.wavelength[SN.x1:SN.x2], SN.flux[SN.x1:SN.x2], SN.ivar[SN.x1:SN.x2], w1, w2, w3, domain, vexp=vexp_auto, num=50)
                 sys_err = ew_sys_error(SN.wavelength[SN.x1:SN.x2], SN.flux[SN.x1:SN.x2], SN.ivar[SN.x1:SN.x2], w1, w2, w3, domain, vexp=vexp_auto, num=50)
             else:
-                stat_err = None
-                sys_err = None
+                stat_err = np.nan
+                sys_err = np.nan
             print i, ew, sys_err, stat_err, SN.phase
-            err_tot = np.sqrt(sys_err**2. + stat_err**2.)
+            # err_tot = np.sqrt(sys_err**2. + stat_err**2.)
+            err_tot = np.nan # FIX THIS
             if not np.isnan(ew) and ew < 500. and stat_err < 100.:
                 EWs.append(ew)
                 phases.append(SN.phase)

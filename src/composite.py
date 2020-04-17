@@ -146,7 +146,8 @@ def new_grab(sql_input, shape_param, make_corr = True, db_file = None):
     event_table = cur.execute('PRAGMA TABLE_INFO({})'.format("Events"))
     event_cols = [tup[1] for tup in cur.fetchall()]
     all_cols = spec_cols + event_cols
-    event_index = all_cols.index('Ref') + 1  #THIS IS A HACK
+    print all_cols
+    event_index = all_cols.index(spec_cols[-1]) + 1 
     cur.execute(sql_input)
 
     #UNCOMMMENT if you want to parse query for average phase (assumes a syntax)
@@ -300,13 +301,13 @@ def new_grab(sql_input, shape_param, make_corr = True, db_file = None):
         #     SN.morph_array[non_nan_data] = SN.ned_host
         # else:
         #     SN.morph_array[non_nan_data] = np.nan
-
         if SN.event_data:
             if SN.event_data.get(shape_param,None) != None:
                 SN.dm15_array[non_nan_data] = SN.event_data.get(shape_param, None)
                 SN.dm15 = SN.event_data.get(shape_param, None)
             else:
                 SN.dm15_array[non_nan_data] = np.nan
+                SN.dm15 = np.nan
 
             if SN.event_data.get('c',None) != None:
                 SN.c_array[non_nan_data] = SN.event_data.get('c', None)
@@ -1518,9 +1519,9 @@ def create_composite(SN_Array, boot, template, medmean, nboots = 100, gini_balan
 
     return template, boots
     
-def main(Full_query, boot = False, nboots=100, medmean = 1, make_corr=True, multi_epoch=False, 
+def main(Full_query, boot = False, nboots=100, medmean = 1, make_corr=True, av_corr=True, multi_epoch=False, 
         selection = 'max_coverage', gini_balance=False, aggro=.5, verbose=True, shape_param = None,
-        low_av_test = None, combine=True, get_og_arr=False):
+        low_av_test = None, combine=True, get_og_arr=False, db_file=None):
     """Main function. Finds spectra that satisfy the users query and creates a 
     composite spectrum based on the given arguments.
         
@@ -1576,10 +1577,10 @@ def main(Full_query, boot = False, nboots=100, medmean = 1, make_corr=True, mult
     print "SQL Query:", Full_query
 
     if shape_param:
-        SN_Array = new_grab(Full_query, shape_param, make_corr=make_corr)
+        SN_Array = new_grab(Full_query, shape_param, make_corr=make_corr, db_file=db_file)
     else:
         SN_Array = grab(Full_query, make_corr=make_corr, multi_epoch=multi_epoch, 
-                        selection = selection)
+                        selection = selection, db_file=db_file)
 
     SN_Array_wo_tell = remove_tell_files(SN_Array)
     print len(SN_Array) - len(SN_Array_wo_tell), 'spectra may have telluric contamination'
@@ -1592,8 +1593,9 @@ def main(Full_query, boot = False, nboots=100, medmean = 1, make_corr=True, mult
         SN_Array = combine_SN_spectra(SN_Array)
 
     av_cutoff=2.
-    SN_Array = apply_host_corrections(SN_Array, verbose=verbose, cutoff=av_cutoff)
-    og_SN_Array = apply_host_corrections(og_SN_Array, verbose=False, cutoff=av_cutoff)
+    if av_corr:
+        SN_Array = apply_host_corrections(SN_Array, verbose=verbose, cutoff=av_cutoff)
+        og_SN_Array = apply_host_corrections(og_SN_Array, verbose=False, cutoff=av_cutoff)
     print 'removed spectra of SNe with A_V >', av_cutoff
 
     events = []

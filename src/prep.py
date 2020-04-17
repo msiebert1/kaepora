@@ -339,6 +339,8 @@ def compprep(spectrum, sn_name, z, source, use_old_error=True, testing=False, fi
         sne = ReadExtin('extinctionhst.dat')
     if source == 'foundation':
         sne = ReadExtin('extinctionfoundation.dat')
+    if source == 'bsnip2':
+        sne = ReadExtin('extinctionbsnip2.dat')
 
 #     host_reddened = ReadExtin('../data/info_files/ryan_av.txt')
     newdata = []
