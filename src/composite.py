@@ -146,6 +146,7 @@ def new_grab(sql_input, shape_param, make_corr = True, db_file = None):
     event_table = cur.execute('PRAGMA TABLE_INFO({})'.format("Events"))
     event_cols = [tup[1] for tup in cur.fetchall()]
     all_cols = spec_cols + event_cols
+
     event_index = all_cols.index(spec_cols[-1]) + 1 
     cur.execute(sql_input)
 
@@ -174,7 +175,6 @@ def new_grab(sql_input, shape_param, make_corr = True, db_file = None):
         SN.interp    = interp
         SN.mjd       = row[8]
         SN.ref       = row[9]
-
         SN.event_data = {}
         SN.other_spectral_data = {}
 
@@ -344,7 +344,6 @@ def new_grab(sql_input, shape_param, make_corr = True, db_file = None):
                 SN.red_array[non_nan_data] = SN.event_data.get('z', None)
             else:
                 SN.red_array[non_nan_data] = np.nan
-
 
             if 'kyle' not in sql_input and 'si_v0' in sql_input:
                 SN.vel[non_nan_data] = SN.event_data.get('si_v0', None)/1000.
@@ -1568,7 +1567,7 @@ def create_composite(SN_Array, boot, template, medmean, nboots = 100, gini_balan
 
     return template, boots
     
-def main(Full_query, boot = False, nboots=100, medmean = 1, make_corr=True, av_corr=True, multi_epoch=False, 
+def main(Full_query, boot = False, nboots=100, medmean = 1, make_corr=True, av_corr=True, multi_epoch=False,
         selection = 'max_coverage', gini_balance=False, aggro=.5, verbose=True, shape_param = None, scale_region=None,
         low_av_test = None, combine=True, get_og_arr=False, db_file=None):
     """Main function. Finds spectra that satisfy the users query and creates a 

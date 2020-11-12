@@ -7,9 +7,12 @@ import random
 import pyphot
 import kaepora as kpora
 import copy
+<<<<<<< HEAD
 from specutils import extinction as ex
 from specutils import Spectrum1D
 from astropy import units as u
+=======
+>>>>>>> 388dd506106105576f3caddeaf12a4300d9675c4
 
 def autosmooth(x_array, y_array, var_y=None):
     if var_y is not None:
@@ -66,11 +69,14 @@ def find_vexp(x_array, y_array, var_y=None):
 
     return vexp_auto, SNR
 
+<<<<<<< HEAD
 def gsmooth(x_array, y_array, var_y=None, vexp=.002):
     sm_flux = df.gsmooth(x_array, y_array, var_y, vexp)
     return sm_flux
 
 
+=======
+>>>>>>> 388dd506106105576f3caddeaf12a4300d9675c4
 def find_vexp_ryan(x_array, y_array, var_y=None):
     if var_y is not None:
         error = np.sqrt(var_y)
@@ -88,6 +94,7 @@ def find_vexp_ryan(x_array, y_array, var_y=None):
         vexp = .001
 
     return vexp, SNR
+<<<<<<< HEAD
 
 def deredden(a_v, r_v, wave, flux, var, model = 'f99'):
     wave = wave*u.Angstrom        # wavelengths
@@ -101,6 +108,8 @@ def deredden(a_v, r_v, wave, flux, var, model = 'f99'):
 
     return spec1d.flux.value, spec1d_var.flux.value
 
+=======
+>>>>>>> 388dd506106105576f3caddeaf12a4300d9675c4
 
 def find_extrema(wavelength,sm_flux):
     #input a smoothed spectrum
@@ -308,7 +317,6 @@ def measure_verror(wavelength, flux, var_flux, wave1, wave2, n=100):
         vdist.append(sample_v)
 
     sigma = np.std(vdist)
-    return sigma
 
 def calculate_velocity(wave, rest_wave):
     c = 299792.458
