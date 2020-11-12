@@ -76,7 +76,7 @@ def normalize_comp(comp):
     comp.ivar /= (norm)**2
     return comp, norm
 
-def grab(query, multi_epoch = True, make_corr = False, selection = 'max_coverage', grab_all=False, verbose=False, db_file = None):
+def grab(query, multi_epoch = True, make_corr = False, selection = 'max_coverage', grab_all=False, shape_param = None, verbose=False, db_file = None):
     """This function takes a SQL query and provides a list spectrum objects 
         (defined in composite.py) satisfy this query. 
 
@@ -115,13 +115,15 @@ def grab(query, multi_epoch = True, make_corr = False, selection = 'max_coverage
         db_file = glob.glob('../data/*.db')[0]
         print 'Using: ' + db_file
 
-    spec_array = composite.grab(query, multi_epoch = multi_epoch, 
-                                make_corr = make_corr, grab_all=grab_all, db_file = db_file)
+    # spec_array = composite.grab(query, multi_epoch = multi_epoch, 
+    #                             make_corr = make_corr, grab_all=grab_all, db_file = db_file)
+    spec_array = composite.new_grab(query, shape_param, make_corr = make_corr, db_file = db_file)
     spec_array = composite.prelim_norm(spec_array)
     if verbose:
         print "Name", "Filename", "Source", "SNR", "Phase", "MJD", "MJD_max", "z", "Host Morphology", "Minwave", "Maxwave"
         for spec in spec_array:
-            print spec.name, spec.filename, spec.source, spec.SNR, spec.phase, spec.mjd, spec.mjd_max, spec.redshift, spec.ned_host, spec.wavelength[spec.x1], spec.wavelength[spec.x2]
+            print spec.name, spec.filename, spec.source, spec.SNR, spec.phase, spec.mjd, spec.event_data['Redshift'], spec.event_data['NED_host'], spec.wavelength[spec.x1], spec.wavelength[spec.x2]
+            # print spec.name, spec.filename, spec.source, spec.SNR, spec.phase, spec.mjd, spec.redshift, spec.ned_host, spec.wavelength[spec.x1], spec.wavelength[spec.x2]
 
     return spec_array
 
@@ -149,7 +151,7 @@ def host_dereddening(SN_Array, r_v = 2.5, verbose=False, low_av_test=None, cutof
 
 
 def make_composite(query_strings, boot=False, nboots=100, medmean = 1, selection = 'max_coverage', gini_balance=False, verbose=True,
-         make_corr=True, av_corr=True, 
+         make_corr=True, av_corr=True, scale_region=None,
          multi_epoch=True, combine=True, low_av_test=None, measure_vs = False, get_og_arr=False, shape_param=None, db_file=None):
     """ This is the main fuunction for constructing composite spectra from spectra stored in kaepora.
         Args:
@@ -210,13 +212,13 @@ def make_composite(query_strings, boot=False, nboots=100, medmean = 1, selection
         if get_og_arr:
             comp, arr, og_arr, boots = composite.main(query_strings[n],boot=boot, nboots=nboots, medmean = medmean, shape_param=shape_param,
                                             selection = selection, gini_balance=gini_balance, combine=combine, db_file=db_file,
-                                            make_corr=make_corr, av_corr=av_corr,
+                                            make_corr=make_corr, av_corr=av_corr, scale_region=scale_region,
                                             verbose=verbose, multi_epoch=multi_epoch, low_av_test=low_av_test, get_og_arr=get_og_arr)
             og_sn_arrays.append(og_arr)
         else:
             comp, arr, boots = composite.main(query_strings[n],boot=boot, nboots=nboots, medmean = medmean, shape_param=shape_param,
                                             selection = selection, gini_balance=gini_balance, combine=combine, db_file=db_file,
-                                            make_corr=make_corr, av_corr=av_corr,
+                                            make_corr=make_corr, av_corr=av_corr, scale_region=scale_region,
                                             verbose=verbose, multi_epoch=multi_epoch, low_av_test=low_av_test, get_og_arr=get_og_arr)
         if store_boots:
             boot_sn_arrays.append(boots)
@@ -247,7 +249,7 @@ def make_composite(query_strings, boot=False, nboots=100, medmean = 1, selection
         return composites, sn_arrays, boot_sn_arrays
 
 
-def save_comps_to_files(composites, prefix, num_avg = 5, boot=True):
+def save_comps_to_files(composites, prefix, num_avg = 5, boot=True, scale_region=None, folder = '../../'):
     """Saves the data contained in a composite spectrum object to a text file.
         Args:
             composites: A list of composite spectrum objects
@@ -258,12 +260,16 @@ def save_comps_to_files(composites, prefix, num_avg = 5, boot=True):
                 average properties that are included in the filename
 
     """
+    if scale_region:
+        normalize_comps(composites, scale=1., w1=scale_region[0], w2=scale_region[1])
+
     for SN in composites:
         set_min_num_spec(composites, num_avg)
         phase = np.round(np.average(SN.phase_array[SN.x1:SN.x2]), 2)
         dm15 = np.round(np.average(SN.dm15_array[SN.x1:SN.x2]), 2)
         z = np.round(np.average(SN.red_array[SN.x1:SN.x2]), 3)
         num = np.amax(np.array(SN.spec_bin[SN.x1:SN.x2]))
+        vel = np.round(np.average(SN.vel[SN.x1:SN.x2]), 2)
         print phase, dm15, z
         set_min_num_spec(composites, 1)
 
@@ -275,17 +281,20 @@ def save_comps_to_files(composites, prefix, num_avg = 5, boot=True):
         phase_str = str(abs_phase)
         dm15_str = str(dm15)
         z_str = str(z)
+        vel_str = str(vel)
         num_str = str(SN.num_sne)
         num_spec_str = str(SN.num_spec)
 
-        file_path = '../../David_Comps/ssfr_composites/' + prefix + '_N=' + num_str + '_Nspec=' + num_spec_str + '_phase='+ sign + phase_str + '_dm15=' + dm15_str + '_z=' + z_str+'.txt'
+        file_path = folder + prefix + '_N=' + num_str + '_Nspec=' + num_spec_str + '_phase='+ sign + phase_str + '_x1=' + dm15_str + '.txt'
         print file_path
         with open(file_path, 'w') as file:
             file.write('# SQL Query: ' + SN.query + '\n')
             file.write('# N = ' + num_str + '\n')
             file.write('# N_spec = ' + num_spec_str + '\n')
             file.write('# phase = ' + str(phase) + '\n')
-            file.write('# dm15 = ' + dm15_str + '\n')
+            file.write('# x1 = ' + dm15_str + '\n')
+            # file.write('# dm15 = ' + dm15_str + '\n')
+            file.write('# vel = ' + vel_str + '\n')
             file.write('# z = ' + z_str + '\n')
             file.write('\n')
 
@@ -298,14 +307,19 @@ def save_comps_to_files(composites, prefix, num_avg = 5, boot=True):
             phase_arr = np.array(SN.phase_array[SN.x1:SN.x2])
             dm15_arr = np.array(SN.dm15_array[SN.x1:SN.x2])
             red_arr = np.array(SN.red_array[SN.x1:SN.x2])
+            vel_arr = np.array(SN.vel[SN.x1:SN.x2])
             spec_per_sn_arr = np.array(SN.spec_bin[SN.x1:SN.x2])
             if boot:
-                data = np.c_[wave,flux,low_conf,up_conf,phase_arr,dm15_arr, red_arr, spec_per_sn_arr]
-                table = tabulate(data, headers=['Wavelength', 'Flux', '1-Sigma Lower', '1-Sigma Upper', 'Phase', 'Dm15', 'Redshift', 'SNe per Bin'], 
+                data = np.c_[wave,flux,low_conf,up_conf,phase_arr,dm15_arr, red_arr, vel_arr, spec_per_sn_arr]
+                # table = tabulate(data, headers=['Wavelength', 'Flux', '1-Sigma Lower', '1-Sigma Upper', 'Phase', 'Dm15', 'Redshift', 'SNe per Bin'], 
+                #                                     tablefmt = 'ascii')
+                table = tabulate(data, headers=['Wavelength', 'Flux', '1-Sigma Lower', '1-Sigma Upper', 'Phase', 'x1', 'Redshift', 'Velocity', 'SNe per Bin'], 
                                                     tablefmt = 'ascii')
             else:
-                data = np.c_[wave,flux,phase_arr,dm15_arr, red_arr, spec_per_sn_arr]
-                table = tabulate(data, headers=['Wavelength', 'Flux', 'Phase', 'Dm15', 'Redshift', 'SNe per Bin'], 
+                data = np.c_[wave,flux,phase_arr,dm15_arr, red_arr, vel_arr, spec_per_sn_arr]
+                # table = tabulate(data, headers=['Wavelength', 'Flux', 'Phase', 'Dm15', 'Redshift', 'SNe per Bin'], 
+                #                                     tablefmt = 'ascii')
+                table = tabulate(data, headers=['Wavelength', 'Flux', 'Phase', 'x1', 'Redshift', 'Velocity','SNe per Bin'], 
                                                     tablefmt = 'ascii')
             file.write(table)
 

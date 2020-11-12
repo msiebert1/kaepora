@@ -42,7 +42,7 @@ def dered(sne, snname, wave, flux, ivar, source='not_swift_uv', ):
         if (snname.lower() == sn.lower()[2:]) or (snname.lower() == sn.lower()) or (snname.lower()[2:] == sn.lower()):  # SN with parameter matches the path
             if not corrected:
                 # print 'Milky Way correction...'
-                if source != 'swift_uv' and source != 'foley_hst' and source != 'foundation' and source != 'bsnip2':
+                if source != 'swift_uv' and source != 'foley_hst' and source != 'foundation' and source != 'bsnip2'  and source != 'kyleplot' and source != 'marion09':
                     b = sne[j][1].astype(float)
                     v = sne[j][2].astype(float)
                     bv = b-v
@@ -56,6 +56,10 @@ def dered(sne, snname, wave, flux, ivar, source='not_swift_uv', ):
                     flux *= red
                     ivar *= 1./(red**2.)
                     corrected = True
+
+    if not corrected:
+        print 'No MW extinction info for', snname
+        raise TypeError   
     return flux, ivar
 
 def host_correction(a_v, r_v, snname, wave, flux, ivar, model = 'f99'):

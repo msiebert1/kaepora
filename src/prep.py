@@ -77,6 +77,152 @@ def host_correction(sne, snname, wave, flux):
 
 import datafidelity as df
 
+
+def spectres(new_wavs, spec_wavs, spec_fluxes, spec_errs=None, fill=None,
+             verbose=True):
+
+    """
+    Function for resampling spectra (and optionally associated
+    uncertainties) onto a new wavelength basis.
+    Parameters
+    ----------
+    new_wavs : numpy.ndarray
+        Array containing the new wavelength sampling desired for the
+        spectrum or spectra.
+    spec_wavs : numpy.ndarray
+        1D array containing the current wavelength sampling of the
+        spectrum or spectra.
+    spec_fluxes : numpy.ndarray
+        Array containing spectral fluxes at the wavelengths specified in
+        spec_wavs, last dimension must correspond to the shape of
+        spec_wavs. Extra dimensions before this may be used to include
+        multiple spectra.
+    spec_errs : numpy.ndarray (optional)
+        Array of the same shape as spec_fluxes containing uncertainties
+        associated with each spectral flux value.
+    fill : float (optional)
+        Where new_wavs extends outside the wavelength range in spec_wavs
+        this value will be used as a filler in new_fluxes and new_errs.
+    verbose : bool (optional)
+        Setting verbose to False will suppress the default warning about
+        new_wavs extending outside spec_wavs and "fill" being used.
+    Returns
+    -------
+    new_fluxes : numpy.ndarray
+        Array of resampled flux values, first dimension is the same
+        length as new_wavs, other dimensions are the same as
+        spec_fluxes.
+    new_errs : numpy.ndarray
+        Array of uncertainties associated with fluxes in new_fluxes.
+        Only returned if spec_errs was specified.
+    """
+
+    # Rename the input variables for clarity within the function.
+    old_wavs = spec_wavs
+    old_fluxes = spec_fluxes
+    old_errs = spec_errs
+
+    # Arrays of left hand sides and widths for the old and new bins
+    old_lhs = np.zeros(old_wavs.shape[0])
+    old_widths = np.zeros(old_wavs.shape[0])
+    old_lhs = np.zeros(old_wavs.shape[0])
+    old_lhs[0] = old_wavs[0]
+    old_lhs[0] -= (old_wavs[1] - old_wavs[0])/2
+    old_widths[-1] = (old_wavs[-1] - old_wavs[-2])
+    old_lhs[1:] = (old_wavs[1:] + old_wavs[:-1])/2
+    old_widths[:-1] = old_lhs[1:] - old_lhs[:-1]
+    old_max_wav = old_lhs[-1] + old_widths[-1]
+
+    new_lhs = np.zeros(new_wavs.shape[0]+1)
+    new_widths = np.zeros(new_wavs.shape[0])
+    new_lhs[0] = new_wavs[0]
+    new_lhs[0] -= (new_wavs[1] - new_wavs[0])/2
+    new_widths[-1] = (new_wavs[-1] - new_wavs[-2])
+    new_lhs[-1] = new_wavs[-1]
+    new_lhs[-1] += (new_wavs[-1] - new_wavs[-2])/2
+    new_lhs[1:-1] = (new_wavs[1:] + new_wavs[:-1])/2
+    new_widths[:-1] = new_lhs[1:-1] - new_lhs[:-2]
+
+    # Generate output arrays to be populated
+    new_fluxes = np.zeros(old_fluxes[..., 0].shape + new_wavs.shape)
+
+    if old_errs is not None:
+        if old_errs.shape != old_fluxes.shape:
+            raise ValueError("If specified, spec_errs must be the same shape "
+                             "as spec_fluxes.")
+        else:
+            new_errs = np.copy(new_fluxes)
+
+    start = 0
+    stop = 0
+
+    # Calculate new flux and uncertainty values, looping over new bins
+    for j in range(new_wavs.shape[0]):
+
+        # Add filler values if new_wavs extends outside of spec_wavs
+        if (new_lhs[j] < old_lhs[0]) or (new_lhs[j+1] > old_max_wav):
+            new_fluxes[..., j] = fill
+
+            if spec_errs is not None:
+                new_errs[..., j] = fill
+
+            if (j == 0) and verbose:
+                print("\nSpectres: new_wavs contains values outside the range "
+                      "in spec_wavs. New_fluxes and new_errs will be filled "
+                      "with the value set in the 'fill' keyword argument (nan "
+                      "by default).\n")
+            continue
+
+        # Find first old bin which is partially covered by the new bin
+        while start+1 < len(old_lhs) - 1 and old_lhs[start+1] <= new_lhs[j]:
+            start += 1
+        
+        # Find last old bin which is partially covered by the new bin
+        while stop+1 < len(old_lhs) - 1 and old_lhs[stop+1] < new_lhs[j+1]:
+            stop += 1
+
+        # If new bin is fully inside an old bin start and stop are equal
+        if stop == start:
+            new_fluxes[..., j] = old_fluxes[..., start]
+            if old_errs is not None:
+                new_errs[..., j] = old_errs[..., start]
+
+        # Otherwise multiply the first and last old bin widths by P_ij
+        else:
+            start_factor = ((old_lhs[start+1] - new_lhs[j])
+                            / (old_lhs[start+1] - old_lhs[start]))
+
+            end_factor = ((new_lhs[j+1] - old_lhs[stop])
+                          / (old_lhs[stop+1] - old_lhs[stop]))
+
+            old_widths[start] *= start_factor
+            old_widths[stop] *= end_factor
+
+            # Populate new_fluxes spectrum and uncertainty arrays
+            f_widths = old_widths[start:stop+1]*old_fluxes[..., start:stop+1]
+            new_fluxes[..., j] = np.sum(f_widths, axis=-1)
+            new_fluxes[..., j] /= np.sum(old_widths[start:stop+1])
+
+            if old_errs is not None:
+                e_wid = old_widths[start:stop+1]*old_errs[..., start:stop+1]
+
+                new_errs[..., j] = np.sqrt(np.sum(e_wid**2, axis=-1))
+                new_errs[..., j] /= np.sum(old_widths[start:stop+1])
+
+            # Put back the old bin widths to their initial values
+            old_widths[start] /= start_factor
+            old_widths[stop] /= end_factor
+
+    # If errors were supplied return both new_fluxes and new_errs.
+    if old_errs is not None:
+        return np.array([new_wavs, new_fluxes, new_errs])
+        # return new_fluxes, new_errs
+
+    # Otherwise just return the new_fluxes spectrum array
+    else:
+        # return new_fluxes
+        return np.array([new_wavs, new_fluxes])
+
 def Interpo_flux_conserving(wave, flux, ivar, dw=2, testing=False):
     """This is a an interpolation algorithm that does trapezoidal integration
         to conserve flux. The variance is then propagated correctly. Since 
@@ -286,10 +432,12 @@ def compprep(spectrum, sn_name, z, source, use_old_error=True, testing=False, fi
     if testing:
         print vexp, SNR
 
-    if source != 'csp': #already deredshifted
+    if source != 'csp' and source != 'marion09': #already deredshifted
         old_wave = old_wave/(1.+z) #deredshift for clipping 
         
-    old_wave, old_flux, old_var = df.clip(old_wave, old_flux, old_var, vexp, testing=testing, filename=filename) #clip emission/absorption lines
+
+    if source != 'marion09':
+        old_wave, old_flux, old_var = df.clip(old_wave, old_flux, old_var, vexp, testing=testing, filename=filename) #clip emission/absorption lines
     old_wave = old_wave*(1.+z) #reredshift for MW extinction correction 
     temp_ivar, SNR = df.genivar(old_wave, old_flux, old_var, vexp=vexp, testing=testing, source=source)  # generate inverse variance
 
@@ -341,6 +489,10 @@ def compprep(spectrum, sn_name, z, source, use_old_error=True, testing=False, fi
         sne = ReadExtin('extinctionfoundation.dat')
     if source == 'bsnip2':
         sne = ReadExtin('extinctionbsnip2.dat')
+    if source == 'kyleplot':
+        sne = ReadExtin('extinctionkyleplot.dat')
+    if source == 'marion09':
+        sne = ReadExtin('extinctionNIR.dat')
 
 #     host_reddened = ReadExtin('../data/info_files/ryan_av.txt')
     newdata = []
@@ -423,13 +575,19 @@ def compprep(spectrum, sn_name, z, source, use_old_error=True, testing=False, fi
         new_var = old_var  # Placeholder if it needs to be changed
     #var = new_flux*0+1
     # newdata = Interpo(new_wave, new_flux, new_ivar)  # Do the interpolation
-    newdata, scale, var_final = Interpo_flux_conserving(new_wave, new_flux, new_ivar, testing=testing)
+    if source != 'marion09':
+        # newdata, scale, var_final = Interpo_flux_conserving(new_wave, new_flux, new_ivar, testing=testing)
+        # TODO: NOT TESTED ON ALL DATA
+        interp_wave = np.arange(1000., 12000., dtype=float, step=2.)
+        newdata = spectres(interp_wave, new_wave, new_flux, spec_errs=old_error, fill=np.nan)
+    else:
+        interp_wave = np.arange(6000., 27000., dtype=float, step=2.)
+        newdata = spectres(interp_wave, new_wave, new_flux, spec_errs=old_error, fill=np.nan)
+
 
     if testing:
         # newdata_test = Interpo(new_wave, new_flux_host_norm, new_ivar)
-        newdata_test, scale, var_final = Interpo_flux_conserving(new_wave, new_flux_host_norm, new_ivar)
-        interp_wave = newdata_test[0,:]
-        interp_flux = newdata_test[1,:]
+        # newdata_test, scale, var_final = Interpo_flux_conserving(new_wave, new_flux_host_norm, new_ivar)
         plt.rc('font', family='serif')
         fig, ax = plt.subplots(1,1)
         fig.set_size_inches(10, 8, forward = True)
@@ -451,8 +609,8 @@ def compprep(spectrum, sn_name, z, source, use_old_error=True, testing=False, fi
             left='on',
             right='on',
             length=5)
-        plt.plot(new_wave, 2.*new_flux_host_norm, linewidth = 2, color = '#d95f02', label='Before Interpolation')
-        plt.plot(interp_wave, interp_flux, linewidth = 2, color = 'darkgreen', label='After Interpolation')
+        plt.plot(new_wave, new_flux, linewidth = 2, color = '#d95f02', label='Before Interpolation')
+        plt.plot(newdata[0], newdata[1], linewidth = 2, color = 'darkgreen', label='After Interpolation')
         plt.ylabel('Relative Flux', fontsize = 30)
         plt.xlabel('Rest Wavelength ' + "($\mathrm{\AA}$)", fontsize = 30)
         plt.xlim([new_wave[0]-200,new_wave[-1]+200])
