@@ -597,7 +597,7 @@ def scaled_plot(composites, min_num_show = 5, min_num_scale = 5, include_spec_bi
 	plt.show()
 
 def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_scale = 2, template=None, scaleto=10., scale_region = None, compare_ind = 0, rm_last_label = False,
-					legend_labels = None, title=None, cmap_kind='diff', extra= False, zoom_ratio=False, label_features=False, savename=None):
+					legend_labels = None, title=None, cmap_kind='diff', extra= False, zoom_ratio=False, label_features=False, savename=None, verbose=True):
 
 	# plt.style.use('ggplot')
 	colors = [color['color'] for color in list(plt.rcParams['axes.prop_cycle'])]
@@ -857,7 +857,7 @@ def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_sc
 			direction="in",
 			length=5)
 		avg_z = np.nanmean(comp.red_array[comp.x1:comp.x2])
-		print avg_z
+		# print avg_z
 		# avg_z_rnd = np.round(avg_z,3)
 		# z.yaxis.set_ticks(np.arange(avg_z_rnd-.006, avg_z_rnd+.0061, .005))
 		# plt.plot(comp.wavelength[comp.x1:comp.x2], comp.red_array[comp.x1:comp.x2], color = s_m.to_rgba(param))
@@ -1012,10 +1012,11 @@ def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_sc
 
 		i+=1
 		k+=1
-		print 'Phase: ', np.average(comp.phase_array[comp.x1:comp.x2])
-		print 'dm15: ', np.average(comp.dm15_array[comp.x1:comp.x2])
-		print 'Redshift: ', np.nanmean(comp.red_array[comp.x1:comp.x2])
-		print 'HR: ', np.average(comp.hr_array[comp.x1:comp.x2])
+		if verbose:
+			print 'Phase: ', np.average(comp.phase_array[comp.x1:comp.x2])
+			print 'dm15: ', np.average(comp.dm15_array[comp.x1:comp.x2])
+			print 'Redshift: ', np.nanmean(comp.red_array[comp.x1:comp.x2])
+			print 'HR: ', np.average(comp.hr_array[comp.x1:comp.x2])
 
 	z.axes.set_xlim([min_range.wavelength[min_range.x1]-200., min_range.wavelength[min_range.x2]+200.])
 

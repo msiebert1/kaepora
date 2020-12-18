@@ -248,6 +248,53 @@ def make_composite(query_strings, boot=False, nboots=100, medmean = 1, selection
     else:
         return composites, sn_arrays, boot_sn_arrays
 
+def save_comp_and_boots(SN, boots, prefix, num_avg = 2, scale_region=None, folder = '../../'):
+    if scale_region:
+        normalize_comps([SN], scale=1., w1=scale_region[0], w2=scale_region[1])
+
+    set_min_num_spec([SN], num_avg)
+    phase = np.round(np.average(SN.phase_array[SN.x1:SN.x2]), 2)
+    dm15 = np.round(np.average(SN.dm15_array[SN.x1:SN.x2]), 2)
+    z = np.round(np.average(SN.red_array[SN.x1:SN.x2]), 3)
+    num = np.amax(np.array(SN.spec_bin[SN.x1:SN.x2]))
+    vel = np.round(np.average(SN.vel[SN.x1:SN.x2]), 2)
+    print phase, dm15, z
+    set_min_num_spec([SN], 1)
+
+    if phase >= 0.:
+        sign = 'p'
+    else:
+        sign = 'm'
+    abs_phase = np.absolute(phase)
+    phase_str = str(abs_phase)
+    dm15_str = str(dm15)
+    z_str = str(z)
+    vel_str = str(vel)
+    num_str = str(SN.num_sne)
+    num_spec_str = str(SN.num_spec)
+
+    file_path = folder + prefix + '_N=' + num_str + '_Nspec=' + num_spec_str + '_phase='+ sign + phase_str + '.txt'
+    print file_path
+
+    data = []
+
+    compwave = np.array(SN.wavelength[SN.x1:SN.x2])
+    compflux = np.array(SN.flux[SN.x1:SN.x2])
+    
+    data.append(compwave)
+    data.append(compflux)
+
+    plt.figure(figsize=[15,8])
+    for boot in boots:
+        wave = np.array(boot.wavelength[SN.x1:SN.x2])
+        flux = np.array(boot.flux[SN.x1:SN.x2])
+        plt.plot(wave,flux, 'g')
+        data.append(boot.flux[SN.x1:SN.x2])
+    plt.plot(compwave, compflux, 'k')
+    plt.show()
+
+    np.savetxt(file_path, np.transpose(np.asarray(data)))
+
 
 def save_comps_to_files(composites, prefix, num_avg = 5, boot=True, scale_region=None, folder = '../../'):
     """Saves the data contained in a composite spectrum object to a text file.

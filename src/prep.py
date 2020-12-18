@@ -215,7 +215,7 @@ def spectres(new_wavs, spec_wavs, spec_fluxes, spec_errs=None, fill=None,
 
     # If errors were supplied return both new_fluxes and new_errs.
     if old_errs is not None:
-        return np.array([new_wavs, new_fluxes, new_errs])
+        return np.array([new_wavs, new_fluxes, (1./new_errs)**2.])
         # return new_fluxes, new_errs
 
     # Otherwise just return the new_fluxes spectrum array
@@ -489,8 +489,8 @@ def compprep(spectrum, sn_name, z, source, use_old_error=True, testing=False, fi
         sne = ReadExtin('extinctionfoundation.dat')
     if source == 'bsnip2':
         sne = ReadExtin('extinctionbsnip2.dat')
-    if source == 'kyleplot':
-        sne = ReadExtin('extinctionkyleplot.dat')
+    # if source == 'kyleplot':
+    #     sne = ReadExtin('extinctionkyleplot.dat')
     if source == 'marion09':
         sne = ReadExtin('extinctionNIR.dat')
 
@@ -569,20 +569,23 @@ def compprep(spectrum, sn_name, z, source, use_old_error=True, testing=False, fi
 
     new_wave = old_wave/(1.+z)  # Deredshifting
 
+    # use original variance spectrum if exists, if use_old_error = False --> always use generated variance
+    if old_var != None:
+        new_var = old_var
+    else: 
+        new_var = 1./new_ivar
     if not use_old_error:
-        new_var = None
-    else:
-        new_var = old_var  # Placeholder if it needs to be changed
+        new_var = 1./new_ivar
     #var = new_flux*0+1
     # newdata = Interpo(new_wave, new_flux, new_ivar)  # Do the interpolation
     if source != 'marion09':
-        # newdata, scale, var_final = Interpo_flux_conserving(new_wave, new_flux, new_ivar, testing=testing)
-        # TODO: NOT TESTED ON ALL DATA
-        interp_wave = np.arange(1000., 12000., dtype=float, step=2.)
-        newdata = spectres(interp_wave, new_wave, new_flux, spec_errs=old_error, fill=np.nan)
+        newdata, scale, var_final = Interpo_flux_conserving(new_wave, new_flux, new_ivar, testing=testing)
+        # TODO: NOT TESTED ON ALL DATA, investigate correlated variance
+        # interp_wave = np.arange(1000., 12000., dtype=float, step=2.)
+        # newdata = spectres(interp_wave, new_wave, new_flux, spec_errs=np.sqrt(new_var), fill=np.nan)
     else:
         interp_wave = np.arange(6000., 27000., dtype=float, step=2.)
-        newdata = spectres(interp_wave, new_wave, new_flux, spec_errs=old_error, fill=np.nan)
+        newdata = spectres(interp_wave, new_wave, new_flux, spec_errs=np.sqrt(new_var), fill=np.nan)
 
 
     if testing:
@@ -612,6 +615,36 @@ def compprep(spectrum, sn_name, z, source, use_old_error=True, testing=False, fi
         plt.plot(new_wave, new_flux, linewidth = 2, color = '#d95f02', label='Before Interpolation')
         plt.plot(newdata[0], newdata[1], linewidth = 2, color = 'darkgreen', label='After Interpolation')
         plt.ylabel('Relative Flux', fontsize = 30)
+        plt.xlabel('Rest Wavelength ' + "($\mathrm{\AA}$)", fontsize = 30)
+        plt.xlim([new_wave[0]-200,new_wave[-1]+200])
+        plt.legend(loc=1, fontsize=20)
+        # plt.savefig('../../../Paper_Drafts/reprocessing_updated/interp_deredshift.pdf', dpi = 300, bbox_inches = 'tight')
+        plt.show()
+
+        plt.rc('font', family='serif')
+        fig, ax = plt.subplots(1,1)
+        fig.set_size_inches(10, 8, forward = True)
+        plt.minorticks_on()
+        plt.xticks(fontsize = 20)
+        # ax.xaxis.set_ticks(np.arange(np.round(wave[0],-3),np.round(wave[-1],-3),1000))
+        plt.yticks(fontsize = 20)
+        plt.tick_params(
+            which='major', 
+            bottom='on', 
+            top='on',
+            left='on',
+            right='on',
+            length=10)
+        plt.tick_params(
+            which='minor', 
+            bottom='on', 
+            top='on',
+            left='on',
+            right='on',
+            length=5)
+        plt.plot(new_wave, 1./new_var, linewidth = 2, color = '#d95f02', label='Before Interpolation')
+        plt.plot(newdata[0], newdata[2], linewidth = 2, color = 'darkgreen', label='After Interpolation')
+        plt.ylabel('Flux Uncertainty', fontsize = 30)
         plt.xlabel('Rest Wavelength ' + "($\mathrm{\AA}$)", fontsize = 30)
         plt.xlim([new_wave[0]-200,new_wave[-1]+200])
         plt.legend(loc=1, fontsize=20)

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import datafidelity as df
 import matplotlib.pyplot as plt
 import numpy as np 
@@ -308,6 +309,8 @@ def measure_verror(wavelength, flux, var_flux, wave1, wave2, n=100):
 
     sigma = np.std(vdist)
 
+    return sigma
+
 def calculate_velocity(wave, rest_wave):
     c = 299792.458
     v = -1.*c*((rest_wave/wave)**2. - 1)/(1+((rest_wave/wave)**2.))
@@ -330,7 +333,6 @@ def measure_velocity(wavelength, flux, wave1, wave2, vexp=.001, clip=True, rest_
     #     flux = np.delete(flux, sigclip_region)
     #     varflux = np.delete(varflux, sigclip_region)
     #     sm_flux = np.delete(sm_flux, sigclip_region)
-
     si_range = np.where((wavelength > wave1) & (wavelength < wave2))
     si_wave = wavelength[si_range]
     if len(si_wave) == 0:
@@ -338,7 +340,6 @@ def measure_velocity(wavelength, flux, wave1, wave2, vexp=.001, clip=True, rest_
     si_flux = sm_flux[si_range]
     si_min = np.amin(si_flux)
     si_min_index = np.where(si_flux == si_min)
-
 
     if len(si_min_index[0]) > 0. and (wavelength[-1] > wave2):
         si_min_wave = si_wave[si_min_index][0]
@@ -352,9 +353,9 @@ def measure_velocity(wavelength, flux, wave1, wave2, vexp=.001, clip=True, rest_
 
         if plot:
             f, ax1 = plt.subplots(1, 1, figsize=[7,7])
-            zoom = (wavelength>5500) & (wavelength < 6500)
+            zoom = (wavelength>wave1) & (wavelength < wave2)
             # zoom_old_sig = (old_wave[sigclip_region]>5500) & (old_wave[sigclip_region] < 6500)
-            zoom_old = (old_wave>5500) & (old_wave < 6500)
+            zoom_old = (old_wave>wave1) & (old_wave < wave2)
             norm = 1./np.amax(flux)
             plt.plot(old_wave[zoom_old], norm*old_flux[zoom_old], color='red')
             plt.plot(wavelength[zoom], norm*flux[zoom])
@@ -763,4 +764,42 @@ def measure_comp_1m2(comps, filts = ['GROUND_JOHNSON_B','GROUND_JOHNSON_V'], boo
         errors = [low_errors, up_errors]
         
     return phases, comp_1, comp_2, errors
+
+
+if __name__ == "__main__":
+
+    # c = 299792.458
+    # v = c*((6355./6178.)**2. - 1)/(1+((6355./6178.)**2.))
+    # print v
+    spec_file = raw_input("Choose an ascii spectrum file: ")
+    data = np.genfromtxt(spec_file, unpack=True)
+    redshift = raw_input("Redshift: ") or 0.
+    redshift=float(redshift)
+    wavelength = data[0]
+    flux = data[1]
+    wavelength = wavelength/(1.+redshift)
+
+    # data_12dn = np.genfromtxt('2012dn_m14.flm', delimiter=',', unpack=True)
+    # # print data_12dn
+    # redshift_12dn = 0.010187
+    # wavelength_12dn = data_12dn[0]
+    # flux_12dn = data_12dn[1]
+    # wavelength_12dn = wavelength_12dn/(1.+redshift_12dn)
+
+    # plt.plot(wavelength_12dn,flux_12dn*(10**15))
+    plt.plot(wavelength,flux)
+    plt.show()
+
+    r_wave = raw_input("Rest Wavelength [6355]: ") or 6355.
+    r_wave = float(r_wave)
+    wave_range = raw_input("Wavelength Range [5800 6400]: ") or '5800 6400'
+    wave1 = float(wave_range.split()[0])
+    wave2 = float(wave_range.split()[1])
+    vexp, SNR = find_vexp(wavelength, flux)
+    vel_data = measure_velocity(wavelength, flux, wave1, wave2, vexp=vexp, clip=True, rest_wave=r_wave, varflux=None, plot=True, error=False)
+    print vel_data
+
+
+
+
 

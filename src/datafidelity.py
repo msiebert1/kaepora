@@ -311,7 +311,7 @@ def genivar(wavelength, flux, varflux, vexp = 0.002, nsig = 5.0, testing=False, 
     scaled_error = scale_func*sm_error_new
 
     if testing:
-        scale = 10./np.amax(flux)
+        scale = 1.
         plt.rc('font', family='serif')
         fig, ax = plt.subplots(1,1)
         fig.set_size_inches(10, 8, forward = True)

@@ -209,13 +209,14 @@ def new_grab(sql_input, shape_param, make_corr = True, db_file = None):
         SN.low_conf  = []
         SN.up_conf   = []
         SN.spec_bin  = []
-        try:
-            SN.wavelength = SN.interp[0,:]
-            SN.flux       = SN.interp[1,:]
-            SN.ivar       = SN.interp[2,:]
-        except TypeError:
-            # print "ERROR: ", SN.filename, SN.interp
-            continue
+        
+
+        SN.wavelength = SN.interp[0,:]
+        SN.flux       = SN.interp[1,:]
+        SN.ivar       = SN.interp[2,:]
+        # except IndexError:
+        #     print "ERROR: ", SN.filename, SN.interp
+        #     continue
         # a = copy.deepcopy(SN)
         SN_Array.append(SN)
 
@@ -345,10 +346,10 @@ def new_grab(sql_input, shape_param, make_corr = True, db_file = None):
             else:
                 SN.red_array[non_nan_data] = np.nan
 
-            if 'kyle' not in sql_input and 'si_v0' in sql_input:
+            if "source = 'foundation'" not in sql_input and 'si_v0' in sql_input:
                 SN.vel[non_nan_data] = SN.event_data.get('si_v0', None)/1000.
-            elif 'kyle' in sql_input:
-                SN.vel[non_nan_data] = SN.event_data.get('kyle_vel', None)
+            elif 'foundation' in sql_input:
+                SN.vel[non_nan_data] = SN.event_data.get('Foundation_vel', None)
             else:
                 SN.vel[non_nan_data] = np.nan
 
@@ -829,11 +830,16 @@ def sq_residuals(s,SN,comp, initial, scale_region):
     if scale_region:
         wave1 = scale_region[0]
         wave2 = scale_region[1]
-        wrange = np.where((SN.wavelength >= wave1) & (SN.wavelength < wave2))[0]
-        # print wrange
+        wrange = np.where((SN.wavelength[SN.x1:SN.x2] >= wave1) & (SN.wavelength[SN.x1:SN.x2] < wave2))[0]
+        # print SN.wavelength[SN.x1:SN.x2][wrange[0]]
+        # if SN.filename == '02fk_020919_2.flm':
+        #     print SN.wavelength[wrange[0]], SN.wavelength[wrange[-1]]
         if len(wrange) > 0:
-            pos1 = wrange[0]
-            pos2 = wrange[-1]
+            pos1 = np.where(SN.wavelength == SN.wavelength[SN.x1:SN.x2][wrange[0]])[0][0]
+            pos2 = np.where(SN.wavelength == SN.wavelength[SN.x1:SN.x2][wrange[-1]])[0][0]
+            # pos1 = wrange[0]
+            # pos2 = wrange[-1]
+            
 
     res = temp_flux[pos1:pos2] - comp.flux[pos1:pos2]
     sq_res = res*res
@@ -1051,11 +1057,11 @@ def bootstrapping (SN_Array, samples, og_template, iters, medmean, scale_region=
     #examine bootstrap samples
     print "plotting..."
     # print scales
-    plt.figure(figsize=[15,8])
-    for SN in boots:
-        plt.plot(SN.wavelength, SN.flux, 'g')
-    plt.plot(og_template.wavelength,og_template.flux, 'k', linewidth = 4)
-    plt.show()
+    # plt.figure(figsize=[15,8])
+    # for SN in boots:
+    #     plt.plot(SN.wavelength, SN.flux, 'g')
+    # plt.plot(og_template.wavelength,og_template.flux, 'k', linewidth = 4)
+    # plt.show()
     
     print "computing confidence intervals..."
     resid = []
@@ -1435,7 +1441,7 @@ def create_composite(SN_Array, boot, template, medmean, nboots = 100, gini_balan
     i = 0
     scales  = []
     iters = 1
-    iters_comp = 1
+    iters_comp = 3
     # boot = False
 
     if boot is True:
@@ -1501,10 +1507,11 @@ def create_composite(SN_Array, boot, template, medmean, nboots = 100, gini_balan
     for i in range(iters_comp):
         # SN_Array, scales = optimize_scales(SN_Array, template, False)
         SN_Array, scales = optimize_scales(SN_Array, template, True, scale_region=scale_region)
-        # print scales
+        # plt.figure(figsize=[15,8])
         # for SN in SN_Array:
         #   plt.plot(SN.wavelength[SN.x1:SN.x2], SN.flux[SN.x1:SN.x2])
-        # plt.plot(template.wavelength, template.flux, 'k-', linewidth=4)
+        # plt.plot(template.wavelength, template.flux, 'k-', linewidth=2)
+        # plt.ylim([0,1.])
         # plt.show()
         # for SN in SN_Array:
         #   SN.ivar = np.ones(len(SN_Array[0].ivar))
