@@ -28,6 +28,7 @@ import telluric_spectra as tspec
 import query_db as qdb
 import spectral_analysis as sa
 import gini
+import kaepora as kpora
 
 # np.set_printoptions(threshold=np.nan)
 mn.patch()
@@ -210,13 +211,13 @@ def new_grab(sql_input, shape_param, make_corr = True, db_file = None):
         SN.up_conf   = []
         SN.spec_bin  = []
         
-
-        SN.wavelength = SN.interp[0,:]
-        SN.flux       = SN.interp[1,:]
-        SN.ivar       = SN.interp[2,:]
-        # except IndexError:
-        #     print "ERROR: ", SN.filename, SN.interp
-        #     continue
+        try:
+            SN.wavelength = SN.interp[0,:]
+            SN.flux       = SN.interp[1,:]
+            SN.ivar       = SN.interp[2,:]
+        except:
+            print "ERROR: ", SN.filename, SN.interp
+            continue
         # a = copy.deepcopy(SN)
         SN_Array.append(SN)
 
@@ -780,7 +781,6 @@ def optimize_scales(SN_Array, template, initial, scale_region=None, correct = Tr
         u = opt.minimize(sq_residuals, guess, args = (uSN, template, initial, scale_region), 
                          method = 'Nelder-Mead').x
         scales.append(u)
-       
     if correct: 
         for i in range(len(unique_arr)):
             unique_arr[i].flux = scales[i]*unique_arr[i].flux
@@ -980,7 +980,7 @@ def average(SN_Array, template, medmean, boot, fluxes, ivars, dm15_ivars,
 
     return template
 
-def bootstrapping (SN_Array, samples, og_template, iters, medmean, scale_region=None):
+def bootstrapping (SN_Array, samples, og_template, iters, medmean, scale_region=None, min_spec = 5):
     """Creates a matrix of random sets of spectrume from the original sample 
     with the same size as the original sample. The number of samples is defined 
     by the user. Then creates the composite spectrum for each of these sets. 
@@ -1029,14 +1029,22 @@ def bootstrapping (SN_Array, samples, og_template, iters, medmean, scale_region=
 
         (fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, morphs, hrs, cs, dm15s, 
          flux_mask, ivar_mask, dm15_mask, red_mask) = mask(boot_arr[p], boot)
+
+        template = boot_temp
         for x in range(iters):
-            new_SN_Array, scales = optimize_scales(boot_arr[p], boot_temp, True, scale_region=scale_region)
+            # kpora.set_min_num_spec([boot_temp], min_spec)
+            # new_SN_Array, scales = optimize_scales(boot_arr[p], boot_temp, True, scale_region=scale_region)
+            
+            for b_SN in boot_arr[p]:
+                wrange = np.where((b_SN.wavelength[b_SN.x1:b_SN.x2] >= template.wavelength[template.x1]) & (b_SN.wavelength[b_SN.x1:b_SN.x2] < template.wavelength[template.x2]))[0]
+                if len(wrange) < 10:
+                    boot_arr[p].remove(b_SN)
+            new_SN_Array, scales = optimize_scales(boot_arr[p], template, True, scale_region=None)
             (fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, morphs, hrs, cs, dm15s, 
              flux_mask, ivar_mask, dm15_mask, red_mask) = mask(boot_arr[p], boot)
-            template = average(boot_arr[p], boot_temp, medmean, boot, fluxes, 
+            template = average(boot_arr[p], template, medmean, boot, fluxes, 
                                 ivars, dm15_ivars, red_ivars, reds, phases, ages, 
                                 vels, morphs, hrs, cs, dm15s, flux_mask, ivar_mask, dm15_mask, red_mask)
-
         nan_bool_flux = np.isnan(template.flux)
         non_nan_data = np.where(nan_bool_flux == False)
         non_nan_data = np.array(non_nan_data[0])
@@ -1053,9 +1061,10 @@ def bootstrapping (SN_Array, samples, og_template, iters, medmean, scale_region=
             boots.append(copy.deepcopy(template))
 
     print "scaling boots..."
+    kpora.set_min_num_spec([og_template], min_spec) # functions to set a default scaling region, edges of spectrum can cause scaling to be wrong
     boots, scales = optimize_scales(boots, og_template, True, scale_region=scale_region)
     #examine bootstrap samples
-    print "plotting..."
+    # print "plotting..."
     # print scales
     # plt.figure(figsize=[15,8])
     # for SN in boots:
@@ -1634,8 +1643,10 @@ def main(Full_query, boot = False, nboots=100, medmean = 1, make_corr=True, av_c
     if shape_param:
         SN_Array = new_grab(Full_query, shape_param, make_corr=make_corr, db_file=db_file)
     else:
-        SN_Array = grab(Full_query, make_corr=make_corr, multi_epoch=multi_epoch, 
-                        selection = selection, db_file=db_file)
+        print 'OLD GRAB FUNCTION NO LONGER WORKS'
+        raise TypeError
+        # SN_Array = grab(Full_query, make_corr=make_corr, multi_epoch=multi_epoch, 
+        #                 selection = selection, db_file=db_file)
 
     SN_Array_wo_tell = remove_tell_files(SN_Array)
     print len(SN_Array) - len(SN_Array_wo_tell), 'spectra may have telluric contamination'

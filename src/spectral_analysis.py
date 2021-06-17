@@ -5,12 +5,19 @@ import numpy as np
 import copy
 from scipy.integrate import simps
 import random 
-import pyphot
+# import pyphot
 import kaepora as kpora
 import copy
 from specutils import extinction as ex
 from specutils import Spectrum1D
 from astropy import units as u
+from optparse import OptionParser
+from astropy.io import fits
+from astropy.coordinates import SkyCoord
+from astropy.time import Time
+import json
+import math
+import matplotlib
 
 def autosmooth(x_array, y_array, var_y=None):
     if var_y is not None:
@@ -50,6 +57,7 @@ def find_vexp(x_array, y_array, var_y=None):
         error = np.absolute(y_array - new_y_init)
         sm_error = df.gsmooth(x_array, error, var_y, .008)
         SNR = np.median(new_y_init / sm_error)
+
 
     #TODO: interpolate a function of SNR
     # vexp_line = np.polyfit([2.5, 80], [.0045, .001], 1)
@@ -321,7 +329,7 @@ def calculate_wave_from_velocity(velocity, rest_wave):
     wave = rest_wave*np.sqrt((c+velocity)/(c-velocity))
     return wave
 
-def measure_velocity(wavelength, flux, wave1, wave2, vexp=.001, clip=True, rest_wave=6355., varflux=None, plot=False, error=False):
+def measure_velocity(wavelength, flux, wave1, wave2, vexp=.001, clip=True, rest_wave=6355., varflux=None, plot=False, error=False, sn_name = None):
 
     sm_flux = df.gsmooth(wavelength, flux, varflux, vexp)
 
@@ -341,7 +349,8 @@ def measure_velocity(wavelength, flux, wave1, wave2, vexp=.001, clip=True, rest_
     si_min = np.amin(si_flux)
     si_min_index = np.where(si_flux == si_min)
 
-    if len(si_min_index[0]) > 0. and (wavelength[-1] > wave2):
+    # if len(si_min_index[0]) > 0. and (wavelength[-1] > wave2):
+    if len(si_min_index[0]) > 0.:
         si_min_wave = si_wave[si_min_index][0]
 
         c = 299792.458 # km/s
@@ -360,11 +369,19 @@ def measure_velocity(wavelength, flux, wave1, wave2, vexp=.001, clip=True, rest_
             plt.plot(old_wave[zoom_old], norm*old_flux[zoom_old], color='red')
             plt.plot(wavelength[zoom], norm*flux[zoom])
             plt.plot(wavelength[zoom], norm*sm_flux[zoom])
-            plt.plot(si_min_wave, norm*si_min, 'o', color='orange')
+            if error:
+                plt.plot(si_min_wave, norm*si_min, 'o', color='red', label = 'v = '+ str(np.round((-1.*v)/1000.,2)) + '+/- ' + str(np.round(sigma,2))+ ' 10^3 km/s')
+            else:
+                plt.plot(si_min_wave, norm*si_min, 'o', color='red', label = 'v = '+ str(np.round((-1.*v)/1000.,2)) + ' 10^3 km/s')
+            plt.title(sn_name)
+            plt.legend()
             # plt.xlim([5500.,6500.])
             # plt.ylim([np.median(flux[zoom])-.2,np.median(flux[zoom])+.2])
+            # plt.savefig('../../Foundation/Spectra/new_new_new_spec/'+sn_name + '_' + str(np.round((-1.*v)/1000.,2))+'.png')
             plt.show()
     else:
+        plt.plot(wavelength, flux, 'r')
+        plt.show()
         v = np.nan
         si_min_wave = np.nan
         sigma = np.nan
@@ -623,7 +640,7 @@ def ew_stat_error(wavelength, flux, ivar, w1, w2, w3, roi, vexp=.001, num=100):
 def ew_sys_error(wavelength, flux, ivar, w1, w2, w3, roi, vexp=.001, num=100):
     ews = []
     for i in range(0, num):
-        # vexp = random.uniform(0.001, 0.0045)
+        vexp = random.uniform(0.001, 0.0045)
         ew, roi_ignore = measure_EW(wavelength[roi], flux[roi], w1, w2, w3, vexp=vexp, plot=False, sys_error=True)
         ews.append(ew)
     sys_err = np.std(ews)
@@ -765,40 +782,687 @@ def measure_comp_1m2(comps, filts = ['GROUND_JOHNSON_B','GROUND_JOHNSON_V'], boo
         
     return phases, comp_1, comp_2, errors
 
+def spectres(new_wavs, spec_wavs, spec_fluxes, spec_errs=None, fill=None,
+             verbose=True):
+
+    """
+    Function for resampling spectra (and optionally associated
+    uncertainties) onto a new wavelength basis.
+    Parameters
+    ----------
+    new_wavs : numpy.ndarray
+        Array containing the new wavelength sampling desired for the
+        spectrum or spectra.
+    spec_wavs : numpy.ndarray
+        1D array containing the current wavelength sampling of the
+        spectrum or spectra.
+    spec_fluxes : numpy.ndarray
+        Array containing spectral fluxes at the wavelengths specified in
+        spec_wavs, last dimension must correspond to the shape of
+        spec_wavs. Extra dimensions before this may be used to include
+        multiple spectra.
+    spec_errs : numpy.ndarray (optional)
+        Array of the same shape as spec_fluxes containing uncertainties
+        associated with each spectral flux value.
+    fill : float (optional)
+        Where new_wavs extends outside the wavelength range in spec_wavs
+        this value will be used as a filler in new_fluxes and new_errs.
+    verbose : bool (optional)
+        Setting verbose to False will suppress the default warning about
+        new_wavs extending outside spec_wavs and "fill" being used.
+    Returns
+    -------
+    new_fluxes : numpy.ndarray
+        Array of resampled flux values, first dimension is the same
+        length as new_wavs, other dimensions are the same as
+        spec_fluxes.
+    new_errs : numpy.ndarray
+        Array of uncertainties associated with fluxes in new_fluxes.
+        Only returned if spec_errs was specified.
+    """
+
+    # Rename the input variables for clarity within the function.
+    old_wavs = spec_wavs
+    old_fluxes = spec_fluxes
+    old_errs = spec_errs
+
+    # Arrays of left hand sides and widths for the old and new bins
+    old_lhs = np.zeros(old_wavs.shape[0])
+    old_widths = np.zeros(old_wavs.shape[0])
+    old_lhs = np.zeros(old_wavs.shape[0])
+    old_lhs[0] = old_wavs[0]
+    old_lhs[0] -= (old_wavs[1] - old_wavs[0])/2
+    old_widths[-1] = (old_wavs[-1] - old_wavs[-2])
+    old_lhs[1:] = (old_wavs[1:] + old_wavs[:-1])/2
+    old_widths[:-1] = old_lhs[1:] - old_lhs[:-1]
+    old_max_wav = old_lhs[-1] + old_widths[-1]
+
+    new_lhs = np.zeros(new_wavs.shape[0]+1)
+    new_widths = np.zeros(new_wavs.shape[0])
+    new_lhs[0] = new_wavs[0]
+    new_lhs[0] -= (new_wavs[1] - new_wavs[0])/2
+    new_widths[-1] = (new_wavs[-1] - new_wavs[-2])
+    new_lhs[-1] = new_wavs[-1]
+    new_lhs[-1] += (new_wavs[-1] - new_wavs[-2])/2
+    new_lhs[1:-1] = (new_wavs[1:] + new_wavs[:-1])/2
+    new_widths[:-1] = new_lhs[1:-1] - new_lhs[:-2]
+
+    # Generate output arrays to be populated
+    new_fluxes = np.zeros(old_fluxes[..., 0].shape + new_wavs.shape)
+
+    if old_errs is not None:
+        if old_errs.shape != old_fluxes.shape:
+            raise ValueError("If specified, spec_errs must be the same shape "
+                             "as spec_fluxes.")
+        else:
+            new_errs = np.copy(new_fluxes)
+
+    start = 0
+    stop = 0
+
+    # Calculate new flux and uncertainty values, looping over new bins
+    for j in range(new_wavs.shape[0]):
+
+        # Add filler values if new_wavs extends outside of spec_wavs
+        if (new_lhs[j] < old_lhs[0]) or (new_lhs[j+1] > old_max_wav):
+            new_fluxes[..., j] = fill
+
+            if spec_errs is not None:
+                new_errs[..., j] = fill
+
+            if (j == 0) and verbose:
+                print("\nSpectres: new_wavs contains values outside the range "
+                      "in spec_wavs. New_fluxes and new_errs will be filled "
+                      "with the value set in the 'fill' keyword argument (nan "
+                      "by default).\n")
+            continue
+
+        # Find first old bin which is partially covered by the new bin
+        while old_lhs[start+1] <= new_lhs[j]:
+            start += 1
+
+        # Find last old bin which is partially covered by the new bin
+        while old_lhs[stop+1] < new_lhs[j+1]:
+            stop += 1
+
+        # If new bin is fully inside an old bin start and stop are equal
+        if stop == start:
+            new_fluxes[..., j] = old_fluxes[..., start]
+            if old_errs is not None:
+                new_errs[..., j] = old_errs[..., start]
+
+        # Otherwise multiply the first and last old bin widths by P_ij
+        else:
+            start_factor = ((old_lhs[start+1] - new_lhs[j])
+                            / (old_lhs[start+1] - old_lhs[start]))
+
+            end_factor = ((new_lhs[j+1] - old_lhs[stop])
+                          / (old_lhs[stop+1] - old_lhs[stop]))
+
+            old_widths[start] *= start_factor
+            old_widths[stop] *= end_factor
+
+            # Populate new_fluxes spectrum and uncertainty arrays
+            f_widths = old_widths[start:stop+1]*old_fluxes[..., start:stop+1]
+            new_fluxes[..., j] = np.sum(f_widths, axis=-1)
+            new_fluxes[..., j] /= np.sum(old_widths[start:stop+1])
+
+            if old_errs is not None:
+                e_wid = old_widths[start:stop+1]*old_errs[..., start:stop+1]
+
+                new_errs[..., j] = np.sqrt(np.sum(e_wid**2, axis=-1))
+                new_errs[..., j] /= np.sum(old_widths[start:stop+1])
+
+            # Put back the old bin widths to their initial values
+            old_widths[start] /= start_factor
+            old_widths[stop] /= end_factor
+
+    # If errors were supplied return both new_fluxes and new_errs.
+    if old_errs is not None:
+        return np.array([new_wavs, new_fluxes, new_errs])
+        # return new_fluxes, new_errs
+
+    # Otherwise just return the new_fluxes spectrum array
+    else:
+        # return new_fluxes
+        return np.array([new_wavs, new_fluxes])
+
+def process_keck_file(spec):
+    meta_dict = {}
+    spec_fits=fits.open(spec)
+    
+    filename = spec.split('/')[-1]
+    head=spec_fits[0].header
+    meta_dict['FILENAME']  = filename
+    meta_dict['OBJECT']  = head['OBJECT']
+    
+    flux, err = np.transpose(spec_fits[0].data)
+
+    snr = np.round(np.median(flux/err),3)
+    meta_dict['SNR'] = snr
+    
+    wavezero=float(head['CRVAL1'])
+    wavedelt=float(head['CDELT1'])
+    wave=np.arange(len(flux))*wavedelt+wavezero
+    airmass=float(head['AIRMASS'])
+    
+    meta_dict['EXPTIME']  = float(head['EXPTIME'])
+    meta_dict['AIRMASS'] = np.round(float(head['AIRMASS']),3)
+    meta_dict['MINWAVE'] = np.round(float(head['W_RANGE'].split()[0]),4)
+    meta_dict['MAXWAVE'] = np.round(float(head['W_RANGE'].split()[1]),4)
+    meta_dict['WAVEDELT'] = np.round(wavedelt,4)
+    meta_dict['CRVAL'] = np.round(wavezero,4)
+    meta_dict['MJD'] = float(head['MJD-OBS'])
+    meta_dict['UTC']  = head['UTC']
+    meta_dict['POS_ANG'] = np.round(float(head['ROTPOSN'])+90, 2)
+    meta_dict['FLUX_OBJ'] = head['FLUX_OBJ']
+    
+    radec = SkyCoord(head['RA'], head['DEC'], frame='icrs', unit=(u.hourangle, u.deg))
+    meta_dict['RA_OBS'] = np.round(radec.ra.deg, 4)
+    meta_dict['DEC_OBS'] = np.round(radec.dec.deg, 4)
+#     apo = Observer.at_site("Keck")
+#     date = head['DATE_BEG']
+#     par_ang = apo.parallactic_angle(date.split('T')[0] + ' ' + date.split('T')[1], radec)
+#     print (par_ang)
+    
+    meta_dict['OBSERVER'] = head['OBSERVER'].strip()
+    meta_dict['REDUCER'] = head['REDUCER']
+    
+    meta_dict['INSTRUMENT'] = head['INSTRUME'].strip()
+    meta_dict['GRATING'] = head['GRANAME'].strip()
+    meta_dict['GRISM'] = head['GRISNAME'].strip()
+    meta_dict['DICHROIC'] = head['DICHNAME'].strip()
+    meta_dict['SLIT'] = head['SLITNAME'].strip()
+    meta_dict['TELESCOPE'] = head['TELESCOP'].strip()
+    
+    if 'combined' in filename:
+        meta_dict['COMBINED'] = 1
+    else:
+        meta_dict['COMBINED'] = 0
+        
+    if 'BAD' in filename:
+        meta_dict['AP_GREATER_SEEING'] = 0
+    else:
+        meta_dict['AP_GREATER_SEEING'] = 1
+        
+    if 'arcsec' in filename:
+        meta_dict['AP_SIZE'] = float(filename.split('arcsec')[0].split('_')[-2])
+        meta_dict['AP_UNIT'] = 'arcsec'
+        if 'SN' in filename.split('arcsec')[1]:
+            meta_dict['AP_LOC'] = 'SN'
+        else:
+            meta_dict['AP_LOC'] = 'NUC'
+        meta_dict['IS_KRON_RAD'] = 0
+    elif 'kpc' in filename:
+        meta_dict['AP_SIZE'] = float(filename.split('kpc')[0].split('_')[-2])
+        meta_dict['AP_UNIT'] = 'kpc'
+        if 'SN' in filename.split('kpc')[1]:
+            meta_dict['AP_LOC'] = 'SN'
+        else:
+            meta_dict['AP_LOC'] = 'NUC'
+        meta_dict['IS_KRON_RAD'] = 0
+    elif 'rkron' in filename:
+        meta_dict['AP_SIZE'] = float(filename.split('rkron')[0].split('_')[-2])
+        meta_dict['AP_UNIT'] = 'arcsec'
+        meta_dict['AP_LOC'] = 'NUC'
+        meta_dict['IS_KRON_RAD'] = 1
+    else:
+        meta_dict['AP_SIZE'] = None
+        meta_dict['AP_UNIT'] = None
+        meta_dict['AP_LOC'] = None
+        meta_dict['IS_KRON_RAD'] = 0
+        
+    return wave, flux, err, meta_dict
+    
+def process_lick_file(spec):
+    meta_dict = {}
+    spec_fits=fits.open(spec)
+    
+    filename = spec.split('/')[-1]
+    head=spec_fits[0].header
+    meta_dict['FILENAME']  = filename
+    meta_dict['OBJECT']  = head['OBJECT']
+    
+    wavezero=float(head['CRVAL1'])
+    wavedelt=float(head['CD1_1'])
+    wave=np.arange(len(spec_fits[0].data[0][0]))*wavedelt+wavezero
+
+    norm = matplotlib.colors.Normalize(vmin=0,vmax=len(spec_fits[0].data[0]))
+    c_m = matplotlib.cm.plasma
+    s_m = matplotlib.cm.ScalarMappable(cmap=c_m, norm=norm)
+    s_m.set_array([])
+
+    labels = ['AP: -5.5:5.5',
+              'AP: -8:-6',
+              'AP: -6:-4',
+              'AP: -4:-2',
+              'AP: -2:0',
+              'AP: 0:2',
+              'AP: 2:4',
+              'AP: 4:6',
+              'AP: 6:8',
+              ]
+    labels = ['none',
+              'none',
+              '-6:-4/-8:-6',
+              '-4:-2/-6:-4',
+              '-2:0/-4:-2',
+              '0:2/-2:0',
+              '2:4/0:2',
+              '4:6/2:4',
+              '6:8/4:6'
+              ]
+    # for i, flux in enumerate(spec_fits[0].data[0]):
+    #     roi = (wave > 6000) & (wave < 7000)
+    #     sca = np.median(spec_fits[0].data[0][0][roi])/np.median(flux[roi])
+    #     plt.plot(wave,sca*flux, color=s_m.to_rgba(i), label = labels[i])
+    # plt.legend()
+    # plt.show()
+
+    # for i, flux in enumerate(spec_fits[0].data[0]):
+    #     roi = (wave > 6000) & (wave < 7000)
+    #     sca = np.median(spec_fits[0].data[0][0][roi])/np.median(flux[roi])
+    #     plt.plot(wave,sca*flux/spec_fits[0].data[0][0], color=s_m.to_rgba(i), label = labels[i])
+    # plt.legend()
+    # plt.show()
+
+    for i, flux in enumerate(spec_fits[0].data[0]):
+        if i > 1:
+            roi = (wave > 5800) & (wave < 6000)
+            sca = np.median(spec_fits[0].data[0][i-1][roi])/np.median(flux[roi])
+            plt.plot(wave,sca*flux/spec_fits[0].data[0][i-1], color=s_m.to_rgba(i), label = labels[i])
+    plt.legend()
+    plt.show()
+    raise TypeError
+
+    flux, err = np.transpose(spec_fits[0].data)
+    snr = np.round(np.median(flux/err),3)
+    meta_dict['SNR'] = snr
+    
+    wavezero=float(head['CRVAL1'])
+    wavedelt=float(head['CDELT1'])
+    wave=np.arange(len(flux))*wavedelt+wavezero
+    airmass=float(head['AIRMASS'])
+    
+    meta_dict['EXPTIME']  = float(head['EXPTIME'])
+    meta_dict['AIRMASS'] = np.round(float(head['AIRMASS']),3)
+    meta_dict['MINWAVE'] = np.round(float(head['W_RANGE'].split()[0]),4)
+    meta_dict['MAXWAVE'] = np.round(float(head['W_RANGE'].split()[1]),4)
+    meta_dict['WAVEDELT'] = np.round(wavedelt,4)
+    meta_dict['CRVAL'] = np.round(wavezero,4)
+    ut_date = head['DATE-OBS'].strip()
+    t = Time(ut_date, format='isot')
+    meta_dict['MJD'] = float(t.mjd)
+    meta_dict['UTC']  = ut_date.split('T')[1]
+    meta_dict['POS_ANG'] = np.round(float(head['TUB']), 2) #TODO:check that tub is correct
+    meta_dict['FLUX_OBJ'] = head['FLUX_OBJ']
+    
+    radec = SkyCoord(head['RA'], head['DEC'], frame='icrs', unit=(u.hourangle, u.deg))
+    meta_dict['RA'] = np.round(radec.ra.deg, 4)
+    meta_dict['DEC'] = np.round(radec.dec.deg, 4)
+#     apo = Observer.at_site("Keck")
+#     date = head['DATE_BEG']
+#     par_ang = apo.parallactic_angle(date.split('T')[0] + ' ' + date.split('T')[1], radec)
+#     print (par_ang)
+    
+    meta_dict['OBSERVER'] = head['OBSERVER'].strip()
+    meta_dict['REDUCER'] = head['REDUCER']
+    
+    meta_dict['INSTRUMENT'] = head['VERSION'].strip()
+    meta_dict['GRATING'] = head['GRATNG_N'].strip()
+    meta_dict['GRISM'] = head['GRISM_N'].strip()
+    meta_dict['DICHROIC'] = head['BSPLIT_N'].strip()
+    meta_dict['SLIT'] = head['SLIT_N'].strip()
+    meta_dict['TELESCOPE'] = head['OBSERVAT'].strip()
+    
+    if 'combined' in filename:
+        meta_dict['COMBINED'] = 1
+    else:
+        meta_dict['COMBINED'] = 0
+        
+    if 'BAD' in filename:
+        meta_dict['AP_GREATER_SEEING'] = 0
+    else:
+        meta_dict['AP_GREATER_SEEING'] = 1
+        
+    if 'arcsec' in filename:
+        meta_dict['AP_SIZE'] = float(filename.split('arcsec')[0].split('_')[-2])
+        meta_dict['AP_UNIT'] = 'arcsec'
+        if 'SN' in filename.split('arcsec')[1]:
+            meta_dict['AP_LOC'] = 'SN'
+        else:
+            meta_dict['AP_LOC'] = 'NUC'
+        meta_dict['IS_KRON_RAD'] = 0
+    elif 'kpc' in filename:
+        meta_dict['AP_SIZE'] = float(filename.split('kpc')[0].split('_')[-2])
+        meta_dict['AP_UNIT'] = 'kpc'
+        if 'SN' in filename.split('kpc')[1]:
+            meta_dict['AP_LOC'] = 'SN'
+        else:
+            meta_dict['AP_LOC'] = 'NUC'
+        meta_dict['IS_KRON_RAD'] = 0
+    elif 'rkron' in filename:
+        meta_dict['AP_SIZE'] = float(filename.split('rkron')[0].split('_')[-2])
+        meta_dict['AP_UNIT'] = 'arcsec'
+        meta_dict['AP_LOC'] = 'NUC'
+        meta_dict['IS_KRON_RAD'] = 1
+    else:
+        meta_dict['AP_SIZE'] = np.nan
+        meta_dict['AP_UNIT'] = 'None'
+        meta_dict['AP_LOC'] = 'None'
+        meta_dict['IS_KRON_RAD'] = 0
+        
+    return wave, flux, err, meta_dict
+
+def process_soar_file(head):
+    return
+
+line_dict = {'H':       ([6562.79, 4861.35, 4340.472, 4101.734], 'mediumblue'),
+             'He':      ([5876.], 'black'),
+             '[O III]': ([4958.911, 5006.843, 4363.210], 'magenta'),
+             '[O II]':  ([3726.032, 3728.815], 'magenta'),
+             '[N II]':  ([6548.050, 6583.460], 'darkorange'),
+             '[S II]':  ([6716.440, 6730.810], 'darkgreen'),
+             'Ca H':    ([3968.5], 'red'),
+             'Ca K':    ([3933.7], 'red'),
+             'G-band':  ([4304.4], 'gold'),
+             'Mg':      ([5175.3], 'purple'),
+             'Na ID':   ([5894.0], 'lime'),
+             '[Fe II]': ([7155.1742], 'slategray'),
+             '[Ca II]': ([7291.47, 7323.89], 'indigo'),
+             '[Ni II]': ([7377.83], 'coral')
+             }
 
 if __name__ == "__main__":
 
-    # c = 299792.458
-    # v = c*((6355./6178.)**2. - 1)/(1+((6355./6178.)**2.))
+    description = "For investigation of individual spectra"
+    usage = "%prog    \t [option] \n Recommended syntax: %prog"
+    parser = OptionParser(usage=usage, description=description, version="0.1" )
+    parser.add_option("-v", "--velocity", dest="vel", action="store_true",
+                      help='Measure a line velocity from an absorption minimum')
+    parser.add_option("-n", "--plot-neb-lines", dest="neblines", action="store_true",
+                      help='Plot nebular emission lines')
+    parser.add_option("-l", "--plot-all-lines", dest="alllines", action="store_true",
+                      help='Plot all emission lines')
+    parser.add_option("-c", "--csv", dest="csv", action="store_true",
+                      help='Spectrum is a csv file')
+    parser.add_option("-s", "--scale", dest="scale", action="store_true",
+                      help='Scale to peak in spectrum')
+    parser.add_option("-i", "--interp", dest="interp", action="store_true",
+                      help='Interpolate the spectrum')
+
+    option, args = parser.parse_args()
+    _vel= option.vel
+    _neblines= option.neblines
+    _lines= option.alllines
+    _csv= option.csv
+    _sca= option.scale
+    _interp= option.interp
+
+    c = 299792.458
+    # v = c*((6355./6012.)**2. - 1)/(1+((6355./6012.)**2.))
+    # v = c*((6562.79/6453.6)**2. - 1)/(1+((6562.79/6453.6)**2.))
+    # v = c*((5876/5857.85)**2. - 1)/(1+((5876/5857.85)**2.))
     # print v
-    spec_file = raw_input("Choose an ascii spectrum file: ")
-    data = np.genfromtxt(spec_file, unpack=True)
-    redshift = raw_input("Redshift: ") or 0.
-    redshift=float(redshift)
-    wavelength = data[0]
-    flux = data[1]
-    wavelength = wavelength/(1.+redshift)
 
-    # data_12dn = np.genfromtxt('2012dn_m14.flm', delimiter=',', unpack=True)
-    # # print data_12dn
-    # redshift_12dn = 0.010187
-    # wavelength_12dn = data_12dn[0]
-    # flux_12dn = data_12dn[1]
-    # wavelength_12dn = wavelength_12dn/(1.+redshift_12dn)
+    spec_file_names = raw_input("Choose an fits/ascii/csv spectrum file: ")
+    spec_files = []
+    for spec_file in spec_file_names.split(' '):
+        spec_files.append(spec_file)
 
-    # plt.plot(wavelength_12dn,flux_12dn*(10**15))
-    plt.plot(wavelength,flux)
+    # spec_files = ['sn2021fxy-20210405_UCB.flm',
+    #               '2021fxy-red-20210406_ap1_center.flm',
+    #               '2021fxy-red-20210406_ap1_right.flm',
+    #               '2021fxy-red-20210406_ap1_left.flm'
+    #               ]
+
+    # spec_files = ['d2021fxy_kast_red_1_ex.fits']
+    # spec_files = ['dBD262606_kast_red_1_ex.fits']
+
+    # binning comparison
+    # spec_files = ['sn2006jc-20061123.649-br.flm',
+    #               'sn2006jc-blue-20061123_ap1_newarc_spectres.flm',
+
+    #             'sn2006jc-combined-20061123_ap1_newarc_spectres.flm'
+    #             ]
+
+
+    # spec_files = ['sn2006lv-20061123.657-br.flm',
+    #               'sn2006lv-combined-20061123_ap1.flm']
+    # spec_files = ['sn2006my-20061123.644-br.flm',
+    #               'sn2006my-combined-20061123_ap1.flm',
+    #               'sn2006my-combined-20061123_ap1_noflat.flm']
+
+    # spec_files = ['sn2006my-20061123.644-br.flm',
+    #               'sn2006my-blue-20061123_ap1.flm',
+    #               'sn2006my-blue-20061123_ap1_diff_std.flm'
+    #               # 'sn2006my-blue-20061123_ap1_newshift.flm'
+    #               ]
+
+    # best arc solution
+    # spec_files = ['sn2006my-20061123.644-br.flm',
+    #               'sn2006my-combined-20061123_ap1_spectres.flm',
+    #               'sn2006my-combined-20061123_ap1_newarc.flm',
+    #               'sn2006my-combined-20061123_ap1_new2.flm'
+    #               ]
+
+    # full wave range
+    # spec_files = ['sn2006my-20061123.644-br.flm',
+    #           'sn2006my-combined-20061123_ap1_ashrebin.flm',
+    #           'sn2006my-combined-20061123_ap1_new_arc.flm'
+    #           # 'sn2006my-blue-20061123_ap1_newshift.flm'
+    #           ]
+    # spec_files = ['sn2005hk-20061123.234-br.flm',
+    #               'sn2005hk-combined-20061123_ap1.flm']
+    # spec_files = ['sn2006or-20061123.654-br.flm',
+    #               'sn2006or-combined-20061123_ap1.flm']
+    # spec_files = ['sn2006x-20061123.638-br.flm',
+    #               'sn2006XoldSNIa-combined-20061123_ap1.flm']
+
+
+    # spec_files = ['r185-20061123.291-br.flm',
+    #               'r185-combined-20061123_ap1.flm']
+
+
+    # spec_files = ['r206-20061123.260-br.flm',
+    #               'r206-combined-20061123_ap1.flm']
+    # spec_files = ['r193-20061123.422-br.flm',
+    #               'r193-combined-20061123_ap1_newarc.flm']
+    # # spec_files = ['sn2006ce-20061123.357-br.flm',
+    # #               'sn2006ce-combined-20061123_ap1.flm',
+    # #               'sn2006ce-combined-20061123_ap1_w_hz44.flm']
+    # spec_files = ['sn2006ce-20061123.357-br.flm',
+    #               'sn2006ce-combined-20061123_ap1.flm'
+    #               # 'sn2006ce-combined-20061123_ap1_noflat.flm'
+    #               ]
+
+    # spec_files = [
+    #               'sn2006ce-20061123.357-br.flm',
+    #               'sn2006ce-blue-20061123_ap1.flm',
+    #               'sn2006ce-blue-20061123_ap1_noflat.flm']
+
+    # spec_files = ['2017hmf-combined-20180611_ap6_3.0_kpc.fits',
+    #               '2017hmf-combined-20180711_ap1.fits']
+    # spec_files = ['SN2018bdm-combined-20180611_ap1_georgios.fits',
+    #               '2018bdm-combined-20180711_ap1.fits']
+    # msfiles = ['dBD262606_1_lris_red_1_ex0610.fits', 'dBD262606_lris_red_1_ex.fits']
+    # msfiles = ['dMIRAPMFM-350_lris_red_1_ex.fits', 'dBD262606_07_lris_red_1_ex.fits']
+    
+    # waves = []
+    # fluxes = []
+    # for i, msfile in enumerate(msfiles):
+    #     multifits=fits.open(msfile)
+    #     multispec=multifits[0].data
+    #     mshead=multifits[0].header
+
+    #     crval=float(mshead['CRVAL1'])
+    #     cdelt=float(mshead['CD1_1'])
+    #     npix=float(mshead['NAXIS1'])
+    #     wave=np.arange(npix)*cdelt + crval
+    #     flux = multispec[1,0,:]
+    #     sca = 1.
+    #     if _sca:
+    #         roi = (wave > 5800) & (wave < 6200)
+    #         sca = 1./np.median(flux[roi])
+    #     plt.plot(wave, sca*flux)
+    #     waves.append(wave)
+    #     fluxes.append(sca*flux)
+    # plt.show()
+
+
+    # msfiles = ['dBD174708_lris_red_1_ex.fits', 'dBD274708_1_lris_red_1_ex0610.fits']
+    # waves_17 = []
+    # fluxes_17 = []
+    # for i, msfile in enumerate(msfiles):
+    #     multifits=fits.open(msfile)
+    #     multispec=multifits[0].data
+    #     mshead=multifits[0].header
+
+    #     crval=float(mshead['CRVAL1'])
+    #     cdelt=float(mshead['CD1_1'])
+    #     npix=float(mshead['NAXIS1'])
+    #     wave=np.arange(npix)*cdelt + crval
+    #     flux = multispec[1,0,:]
+    #     sca = 1.
+    #     if _sca:
+    #         roi = (wave > 5800) & (wave < 6200)
+    #         sca = 1./np.median(flux[roi])
+    #     plt.plot(wave, sca*flux)
+    #     waves_17.append(wave)
+    #     fluxes_17.append(sca*flux)
+    # plt.show()
+
+
+
+    # flux1 = np.interp(waves[0], waves[1], fluxes[1])
+    # plt.plot(waves[0], np.asarray(fluxes[0])/flux1, label='BD284211')
+
+    # # flux1_17 = np.interp(waves_17[0], waves_17[1], fluxes_17[1])
+    # # plt.plot(waves_17[0], np.asarray(fluxes_17[0])/flux1_17,label='BD174708')
+
+    # plt.legend(loc=2)
+    # plt.show()
+    # raise TypeError
+
+    # spec_files = ['2021bls-combined-20210211_ap1.flm',
+    #               'SN2016hnk_osc.json']
+    # spec_files = ['2021bls-combined-20210211_ap1.flm',
+    #               '2020wnt-combined-20210211_ap1.flm',]
+    # spec_labels = ['2021bls', '2016hnk +4 days']
+    # spec_labels = ['2021bls', '2020wnt']
+    waves = []
+    fluxes = []
+    for j, spec_file in enumerate(spec_files):
+        if spec_file.endswith('.flm'):
+            data = np.genfromtxt(spec_file, unpack=True)
+        elif _csv or spec_file.endswith('.csv'):
+            data = np.genfromtxt(spec_file, unpack=True, delimiter=',')
+        # elif spec_file.endswith('.json'):
+        #     with open(spec_file) as f:
+        #         data_json = json.load(f)
+        #         wave = np.transpose(data_json['SN2016hnk']['spectra'][0]['data'])[0].astype(np.float)
+        #         flux = np.transpose(data_json['SN2016hnk']['spectra'][0]['data'])[1].astype(np.float)
+        #         err = None
+        #         data = [wave, flux]
+        else:
+            tscope = raw_input("Which telescope? [keck]: ") or 'keck'
+            if tscope == 'keck':
+                wave, flux, err, meta_dict = process_keck_file(spec_file)
+            elif tscope == 'lick':
+                wave, flux, err, meta_dict = process_lick_file(spec_file)
+            data = [wave,flux]
+
+        redshift = raw_input("Redshift [0]: ") or 0.
+        redshift=float(redshift)
+        wavelength = data[0]
+        flux = data[1]
+
+        if _interp:
+            dw = raw_input("New A/pix? [2]: ") or 2.
+            dw = float(dw)
+            # interp_wave = np.arange(math.ceil(wavelength[0])+1.*dw, math.floor(wavelength[-1])-1.*dw, dtype=float, step=dw)
+            interp_wave = np.arange(3200, 9100, dtype=float, step=dw)
+            # interp_wave = np.arange(3200, 5600, dtype=float, step=dw)
+            binned_data = spectres(interp_wave, wavelength, flux, spec_errs=None, fill=None, verbose=True)
+            wavelength = binned_data[0]
+            flux = binned_data[1]
+            # np.savetxt('20esm_full_first_pass_binned.flm', np.transpose([wavelength,flux]))
+
+        wavelength = wavelength/(1.+redshift)
+
+        # data_12dn = np.genfromtxt('2012dn_m14.flm', delimiter=',', unpack=True)
+        # # print data_12dn
+        # redshift_12dn = 0.010187
+        # wavelength_12dn = data_12dn[0]
+        # flux_12dn = data_12dn[1]
+        # wavelength_12dn = wavelength_12dn/(1.+redshift_12dn)
+
+        # plt.plot(wavelength_12dn,flux_12dn*(10**15))
+        sca = 1.
+        if _sca:
+            roi = (wavelength > 4000) & (wavelength < 5300)
+
+            # roi = (wavelength > 6000) & (wavelength < 7000)
+            if len(flux[roi]) == 0:
+                roi = (wavelength > 6000) & (wavelength < 7000)
+                roi_0 = (waves[0] > 6000) & (waves[0] < 7000)
+                # print fluxes[0]
+                sca = np.median(fluxes[0][roi_0])/np.median(flux[roi])
+            else:   
+                sca = 1./np.median(flux[roi])
+            
+            # sca = 1./np.median(flux[0:10])
+        # plt.plot(wavelength,sca*flux, linewidth=1, drawstyle='steps-mid', label=spec_labels[j])
+        plt.plot(wavelength,sca*flux, linewidth=1, drawstyle='steps-mid', label=spec_file)
+        waves.append(wavelength)
+        fluxes.append(sca*flux)
+
+
+        if _vel:
+            r_wave = raw_input("Rest Wavelength [6355]: ") or 6355.
+            r_wave = float(r_wave)
+            wave_range = raw_input("Wavelength Range [5800 6400]: ") or '5800 6400'
+            wave1 = float(wave_range.split()[0])
+            wave2 = float(wave_range.split()[1])
+            vexp, SNR = find_vexp(wavelength, flux)
+            vel_data = measure_velocity(wavelength, flux, wave1, wave2, vexp=vexp, clip=True, rest_wave=r_wave, varflux=None, plot=True, error=False)
+            print vel_data
+
+    # if _neblines:
+    #     color = ['mediumblue', 'magenta', 'magenta', 'darkorange']
+    #     labels = ['Fe II', 'Ca II', '', 'Ni II']
+    #     line_waves = [7155.1742, 7291.47, 7323.89, 7377.83]
+
+    #     for i, line in enumerate(line_waves):
+    #         if i != 2:
+    #             plt.axvline(line, color=color[i], linestyle = ':', linewidth=3, label=labels[i])
+    #         else:
+    #             plt.axvline(line, color=color[i], linestyle = ':', linewidth=3)
+    # plt.legend()
+    # plt.show()
+
+    if _lines:
+
+        for i, line_name in enumerate(line_dict):
+            for line in line_dict[line_name][0]:
+                plt.axvline(line, color=line_dict[line_name][1], linestyle = ':', linewidth=3)
+                plt.text(line+5, np.amax(sca*fluxes[0]) - .05*np.amax(sca*fluxes[0]), line_name, fontsize = 15, horizontalalignment='center', rotation=90)
+    plt.legend()
     plt.show()
 
-    r_wave = raw_input("Rest Wavelength [6355]: ") or 6355.
-    r_wave = float(r_wave)
-    wave_range = raw_input("Wavelength Range [5800 6400]: ") or '5800 6400'
-    wave1 = float(wave_range.split()[0])
-    wave2 = float(wave_range.split()[1])
-    vexp, SNR = find_vexp(wavelength, flux)
-    vel_data = measure_velocity(wavelength, flux, wave1, wave2, vexp=vexp, clip=True, rest_wave=r_wave, varflux=None, plot=True, error=False)
-    print vel_data
-
+    #for comparing spectra
+    # for i,flux in enumerate(fluxes):
+    #     plt.plot(wavelength,fluxes[i]/fluxes[0], linewidth=1, drawstyle='steps-mid')
+    #     plt.axhline(1, color='k', linewidth=2)
+    #     plt.axhline(1.05, color='r', linewidth=2)
+    #     plt.axhline(.95, color='r', linewidth=2)
+    #     plt.axhline(1.01, color='g', linewidth=2)
+    #     plt.axhline(.99, color='g', linewidth=2)
+    # plt.show()
+    # for i,flux in enumerate(fluxes):
+    #     plt.plot(wavelength,fluxes[i]-fluxes[0], linewidth=1, drawstyle='steps-mid')
+    #     plt.axhline(0, color='k', linewidth=3)
+    # plt.show()
 
 
 

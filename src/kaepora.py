@@ -76,7 +76,7 @@ def normalize_comp(comp):
     comp.ivar /= (norm)**2
     return comp, norm
 
-def grab(query, multi_epoch = True, make_corr = False, selection = 'max_coverage', grab_all=False, shape_param = None, verbose=False, db_file = None):
+def grab(query, multi_epoch = True, make_corr = False, selection = 'max_coverage', grab_all=False, shape_param = 'dm15', verbose=False, db_file = None):
     """This function takes a SQL query and provides a list spectrum objects 
         (defined in composite.py) satisfy this query. 
 
@@ -247,6 +247,26 @@ def make_composite(query_strings, boot=False, nboots=100, medmean = 1, selection
         return composites, sn_arrays, og_sn_arrays, boot_sn_arrays
     else:
         return composites, sn_arrays, boot_sn_arrays
+
+def save_spectra_as_flm(spectra, path = '', undo_z=False):
+
+    for i, spec in enumerate(spectra):
+        if undo_z and spec.event_data['Redshift'] != None:
+            wave = spec.wavelength[spec.x1:spec.x2]*(1.+spec.event_data['Redshift'])
+        else:
+            wave = spec.wavelength[spec.x1:spec.x2]
+        flux = spec.flux[spec.x1:spec.x2]
+        err  = np.sqrt(1./spec.ivar[spec.x1:spec.x2])
+
+        txt_header = 'wavelength flux fluxerr\n'
+        txt_header = txt_header + 'Phase: {}\n'.format(spec.phase)
+        txt_header = txt_header + 'MJD: {}\n'.format(spec.mjd)
+        txt_header = txt_header + 'Redshift: {}\n'.format(spec.event_data['Redshift'])
+        txt_header = txt_header + 'Velocity: {}\n'.format(spec.velocity)
+        txt_header = txt_header + 'Velocity Error: {}\n'.format(spec.velocity_err)
+        # txt_header = txt_header + 'AV_MW: {}\n'.format(spec.event_data['Av_MW'])
+        print i, path+spec.filename[:-4] + '-kaepora.flm'
+        np.savetxt(path+spec.filename[:-4] + '-kaepora.flm',np.transpose([wave,flux,err]), header=txt_header)
 
 def save_comp_and_boots(SN, boots, prefix, num_avg = 2, scale_region=None, folder = '../../'):
     if scale_region:
