@@ -1032,7 +1032,7 @@ def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_sc
 	# plt.savefig('../../FLASH/split_host_lowdm15.png', dpi = 300, bbox_inches = 'tight')
 	# plt.savefig('../../Paper_Drafts/split_host_highdm15.pdf', dpi = 300, bbox_inches = 'tight')
 	# plt.savefig('../../FLASH/split_host_highdm15.png', dpi = 300, bbox_inches = 'tight')
-	rel_flux.set_ylim([0., 1.25*max(composites[0].flux[composites[0].x1:composites[0].x2])])
+	rel_flux.set_ylim([0., 1.25*np.nanmax(composites[0].flux[composites[0].x1:composites[0].x2])])
 	if legend_labels:
 		rel_flux.legend(legend_labels, bbox_to_anchor=(0.48, 0.45, 0.48, 0.5), fontsize=15)
 	if title:

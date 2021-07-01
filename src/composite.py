@@ -222,8 +222,6 @@ def new_grab(sql_input, shape_param, make_corr = True, db_file = None):
         SN_Array.append(SN)
 
     print len(SN_Array), 'Total Spectra found'
-    # for SN in SN_Array:
-    #     print SN.name, SN.filename, SN.phase
     # raise TypeError
     # a = copy.deepcopy(SN_Array)
     # if grab_all:
@@ -239,7 +237,7 @@ def new_grab(sql_input, shape_param, make_corr = True, db_file = None):
         bad_ivars = []
         for SN in SN_Array:
             # print SN.filename 
-            if len(np.where(np.isnan(SN.ivar))[0] == True) == 5500:
+            if len(np.where(np.isnan(SN.ivar))[0] == True) >= 5500:
                 bad_ivars.append(SN.filename)
                 # plt.plot(SN.wavelength,SN.flux)
                 # plt.show()
@@ -342,8 +340,8 @@ def new_grab(sql_input, shape_param, make_corr = True, db_file = None):
             else:
                 SN.c_array[non_nan_data] = np.nan
 
-            if SN.event_data.get('z',None) != None:
-                SN.red_array[non_nan_data] = SN.event_data.get('z', None)
+            if SN.event_data.get('Redshift',None) != None:
+                SN.red_array[non_nan_data] = SN.event_data.get('Redshift', None)
             else:
                 SN.red_array[non_nan_data] = np.nan
 
@@ -378,7 +376,6 @@ def new_grab(sql_input, shape_param, make_corr = True, db_file = None):
         # SN.ivar[SN.x2 - 25:SN.x2 + 1] = 0.
         SN.x1 = SN.x1 + 25
         SN.x2 = SN.x2 - 25
-
                     
     print "Arrays cleaned"
     return SN_Array
@@ -780,6 +777,10 @@ def optimize_scales(SN_Array, template, initial, scale_region=None, correct = Tr
         # print guess
         u = opt.minimize(sq_residuals, guess, args = (uSN, template, initial, scale_region), 
                          method = 'Nelder-Mead').x
+
+        if np.isnan(u):#MATT: weird bug for a few spectra where minimize returns nan
+            u = 1.
+
         scales.append(u)
     if correct: 
         for i in range(len(unique_arr)):
@@ -1369,6 +1370,7 @@ def combine_SN_spectra(SN_Array):
             event_dict[SN.name] = [copy.deepcopy(SN)]
     combined_SNs = []
     spectra_to_add = []
+
     for e in event_dict:
         if len(event_dict[e]) > 1:
             preliminary_spectra = event_dict[e]
@@ -1447,6 +1449,7 @@ def create_composite(SN_Array, boot, template, medmean, nboots = 100, gini_balan
             spectrum objects that with composite spectra generated from the 
             bootstrap resampling step.
     """
+
     i = 0
     scales  = []
     iters = 1
@@ -1460,9 +1463,9 @@ def create_composite(SN_Array, boot, template, medmean, nboots = 100, gini_balan
     # print "Creating composite..."
     # no_olap_files = check_for_no_olap_w_template(SN_Array, template)
     SN_Array, scales = optimize_scales(SN_Array, template, True, scale_region=scale_region)
-
     # for SN in SN_Array:
     #   SN.ivar = np.ones(len(SN_Array[0].ivar))
+
 
     (fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, morphs, hrs, cs, dm15s, 
      flux_mask, ivar_mask, dm15_mask, red_mask) = mask(SN_Array, False)
@@ -1515,25 +1518,25 @@ def create_composite(SN_Array, boot, template, medmean, nboots = 100, gini_balan
     # qdb.plot_comp_and_all_spectra(template, SN_Array, show_ivar=True)
     for i in range(iters_comp):
         # SN_Array, scales = optimize_scales(SN_Array, template, False)
+
         SN_Array, scales = optimize_scales(SN_Array, template, True, scale_region=scale_region)
-        # plt.figure(figsize=[15,8])
-        # for SN in SN_Array:
-        #   plt.plot(SN.wavelength[SN.x1:SN.x2], SN.flux[SN.x1:SN.x2])
-        # plt.plot(template.wavelength, template.flux, 'k-', linewidth=2)
-        # plt.ylim([0,1.])
-        # plt.show()
-        # for SN in SN_Array:
-        #   SN.ivar = np.ones(len(SN_Array[0].ivar))
 
         (fluxes, ivars, dm15_ivars, red_ivars, reds, phases, ages, vels, morphs, hrs, cs, dm15s, 
          flux_mask, ivar_mask, dm15_mask, red_mask) = mask(SN_Array, False)
+
         template = average(SN_Array, template, medmean, False, fluxes, ivars, 
                             dm15_ivars, red_ivars, reds, phases, ages, vels, morphs, hrs, cs,
                             dm15s, flux_mask, ivar_mask, dm15_mask, red_mask, find_RMSE=True, name=name)
+
+        # print scales
+        # plt.figure(figsize=[15,8])
         # for SN in SN_Array:
-        #   plt.plot(SN.wavelength, SN.flux)
-        # plt.plot(template.wavelength, template.flux, 'k-', linewidth=4)
+        #     print SN.filename
+        #     plt.plot(SN.wavelength[SN.x1:SN.x2], SN.flux[SN.x1:SN.x2])
+        # plt.plot(template.wavelength, template.flux, 'k-', linewidth=2)
+        # # plt.ylim([0,1.])
         # plt.show()
+
     # print "Done."
 
     boots = None
@@ -1661,6 +1664,7 @@ def main(Full_query, boot = False, nboots=100, medmean = 1, make_corr=True, av_c
         # for sn in SN_Array:
         #     plt.plot(sn.wavelength, sn.flux)
         #     plt.show()
+
     av_cutoff=2.
     if av_corr:
         SN_Array = apply_host_corrections(SN_Array, verbose=verbose, cutoff=av_cutoff)
@@ -1749,6 +1753,7 @@ def main(Full_query, boot = False, nboots=100, medmean = 1, make_corr=True, av_c
     #     # r = sa.measure_si_ratio(template.wavelength[template.x1:template.x2], template.flux[template.x1:template.x2], vexp = .001)
     #     # print 'Comp Si Ratio: ', r
     #     plt.show()
+
 
     template, boots = create_composite(SN_Array, boot, template,
                                         medmean, nboots = nboots, gini_balance=gini_balance, scale_region=scale_region, aggro=aggro)
