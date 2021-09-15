@@ -1,4 +1,4 @@
-name: kpora_SIP
+name: kaepora
 channels:
   - http://ssb.stsci.edu/astroconda
   - defaults

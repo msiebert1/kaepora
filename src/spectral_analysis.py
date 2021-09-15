@@ -5,7 +5,7 @@ import numpy as np
 import copy
 from scipy.integrate import simps
 import random 
-# import pyphot
+import pyphot
 import kaepora as kpora
 import copy
 from specutils import extinction as ex
@@ -1157,6 +1157,10 @@ def process_lick_file(spec):
 def process_soar_file(head):
     return
 
+# He II λ4686 
+# He I λ5876 
+# He I λ6678 
+# He I λ7065
 line_dict = {'H':       ([6562.79, 4861.35, 4340.472, 4101.734], 'mediumblue'),
              'He':      ([5876.], 'black'),
              '[O III]': ([4958.911, 5006.843, 4363.210], 'magenta'),
@@ -1200,10 +1204,11 @@ if __name__ == "__main__":
     _interp= option.interp
 
     c = 299792.458
-    # v = c*((6355./6012.)**2. - 1)/(1+((6355./6012.)**2.))
-    # v = c*((6562.79/6453.6)**2. - 1)/(1+((6562.79/6453.6)**2.))
+    # v = c*((4101.734/4089.)**2. - 1)/(1+((4101.734/4089.)**2.))
+    # v = c*((6562.79/6313.8)**2. - 1)/(1+((6562.79/6313.8)**2.))
+    v = c*((6355./6156.)**2. - 1)/(1+((6355./6156.)**2.))
     # v = c*((5876/5857.85)**2. - 1)/(1+((5876/5857.85)**2.))
-    # print v
+    print v
 
     spec_file_names = raw_input("Choose an fits/ascii/csv spectrum file: ")
     spec_files = []
@@ -1381,7 +1386,7 @@ if __name__ == "__main__":
             dw = raw_input("New A/pix? [2]: ") or 2.
             dw = float(dw)
             # interp_wave = np.arange(math.ceil(wavelength[0])+1.*dw, math.floor(wavelength[-1])-1.*dw, dtype=float, step=dw)
-            interp_wave = np.arange(3200, 9100, dtype=float, step=dw)
+            interp_wave = np.arange(3200, 10100, dtype=float, step=dw)
             # interp_wave = np.arange(3200, 5600, dtype=float, step=dw)
             binned_data = spectres(interp_wave, wavelength, flux, spec_errs=None, fill=None, verbose=True)
             wavelength = binned_data[0]
@@ -1451,14 +1456,14 @@ if __name__ == "__main__":
     plt.show()
 
     #for comparing spectra
-    # for i,flux in enumerate(fluxes):
-    #     plt.plot(wavelength,fluxes[i]/fluxes[0], linewidth=1, drawstyle='steps-mid')
-    #     plt.axhline(1, color='k', linewidth=2)
-    #     plt.axhline(1.05, color='r', linewidth=2)
-    #     plt.axhline(.95, color='r', linewidth=2)
-    #     plt.axhline(1.01, color='g', linewidth=2)
-    #     plt.axhline(.99, color='g', linewidth=2)
-    # plt.show()
+    for i,flux in enumerate(fluxes):
+        plt.plot(wavelength,fluxes[i]/fluxes[0], linewidth=1, drawstyle='steps-mid')
+        plt.axhline(1, color='k', linewidth=2)
+        plt.axhline(1.05, color='r', linewidth=2)
+        plt.axhline(.95, color='r', linewidth=2)
+        plt.axhline(1.01, color='g', linewidth=2)
+        plt.axhline(.99, color='g', linewidth=2)
+    plt.show()
     # for i,flux in enumerate(fluxes):
     #     plt.plot(wavelength,fluxes[i]-fluxes[0], linewidth=1, drawstyle='steps-mid')
     #     plt.axhline(0, color='k', linewidth=3)

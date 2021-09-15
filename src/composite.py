@@ -1667,9 +1667,9 @@ def main(Full_query, boot = False, nboots=100, medmean = 1, make_corr=True, av_c
 
     av_cutoff=2.
     if av_corr:
-        SN_Array = apply_host_corrections(SN_Array, verbose=verbose, cutoff=av_cutoff)
-        og_SN_Array = apply_host_corrections(og_SN_Array, verbose=False, cutoff=av_cutoff)
-    print 'removed spectra of SNe with A_V >', av_cutoff
+        SN_Array = apply_host_corrections(SN_Array, verbose=verbose, cutoff=av_cutoff, low_av_test=low_av_test)
+        og_SN_Array = apply_host_corrections(og_SN_Array, verbose=False, cutoff=av_cutoff, low_av_test=low_av_test)
+        print 'removed spectra of SNe with A_V >', av_cutoff
 
     events = []
     lengths = []
