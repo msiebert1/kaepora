@@ -282,4 +282,3 @@ dependencies:
   - pip:
     - msgpack-numpy==0.3.6
     - msgpack-python==0.5.6
-prefix: /Users/msiebert/anaconda3/envs/kpora_SIP
