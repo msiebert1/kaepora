@@ -88,6 +88,7 @@ def basic_format(size=[16,12]):
 	    right='on',
 	    direction='in',
 	    length=10)
+	return fig, ax
 	
 def scaled_plot(composites, min_num_show = 5, min_num_scale = 5, include_spec_bin = False, scaleto=10., scale_region=None, zoom=True, fs=[15,12], ticks=[13,8], xlim=None, include_phase_dm15=False,
 				 legend_labels = None, rm_last_label=False, expand_ratio=False, text = '', dashes = None, savename = None):
@@ -267,9 +268,9 @@ def scaled_plot(composites, min_num_show = 5, min_num_scale = 5, include_spec_bi
 			plt.fill_between(comp.wavelength[comp.x1:comp.x2], np.clip(low_resid, -1, 10), np.clip(up_resid, -1, 10), color=c, alpha = 0.5, zorder=order_dict[comp.name])
 
 		if 'comp' in comp.name.lower():
-			print 'Phase: ', np.average(comp.phase_array[comp.x1:comp.x2])
-			print 'dm15: ', np.average(comp.dm15_array[comp.x1:comp.x2])
-			print 'Redshift: ', np.nanmean(comp.red_array[comp.x1:comp.x2])
+			print ('Phase: ', np.average(comp.phase_array[comp.x1:comp.x2]))
+			print ('dm15: ', np.average(comp.dm15_array[comp.x1:comp.x2]))
+			print ('Redshift: ', np.nanmean(comp.red_array[comp.x1:comp.x2]))
 
 		if zoom:
 			res2 = plt.subplot(gs[2], sharex = rel_flux)
@@ -1013,10 +1014,10 @@ def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_sc
 		i+=1
 		k+=1
 		if verbose:
-			print 'Phase: ', np.average(comp.phase_array[comp.x1:comp.x2])
-			print 'dm15: ', np.average(comp.dm15_array[comp.x1:comp.x2])
-			print 'Redshift: ', np.nanmean(comp.red_array[comp.x1:comp.x2])
-			print 'HR: ', np.average(comp.hr_array[comp.x1:comp.x2])
+			print ('Phase: ', np.average(comp.phase_array[comp.x1:comp.x2]))
+			print ('dm15: ', np.average(comp.dm15_array[comp.x1:comp.x2]))
+			print ('Redshift: ', np.nanmean(comp.red_array[comp.x1:comp.x2]))
+			print ('HR: ', np.average(comp.hr_array[comp.x1:comp.x2]))
 
 	z.axes.set_xlim([min_range.wavelength[min_range.x1]-200., min_range.wavelength[min_range.x2]+200.])
 
@@ -1103,7 +1104,7 @@ def feature_plot(composites, scale_region = [5600, 6500], boot=False, min_num_sh
 		# if i==1:
 		# 	color = 'darkred'
 		dm15 = np.average(comp.dm15_array[r1:r2])
-		print dm15
+		print (dm15)
 #         buff = 200*np.log10(phase+20)
 		plt.plot(comp.wavelength[r1:r2], scale*comp.flux[r1:r2], color = s_m.to_rgba(i+1), linewidth = lw, label = labels[i])
 
@@ -1358,7 +1359,7 @@ def plot_comp_and_all_spectra(comp, SN_Array, show_ivar = False, comp2=None, com
 			if weight > max_snr_num:
 				max_snr = SN_Array[i]
 				max_snr_num = weight
-		print max_snr.name
+		print (max_snr.name)
 		for i in range(len(SN_Array)):
 			# plt.plot(SN_Array[i].wavelength[SN_Array[i].x1:SN_Array[i].x2], SN_Array[i].flux[SN_Array[i].x1:SN_Array[i].x2], color = '#7570b3', alpha = .5)
 			# plt.plot(SN_Array[i].wavelength[SN_Array[i].x1:SN_Array[i].x2], SN_Array[i].flux[SN_Array[i].x1:SN_Array[i].x2])

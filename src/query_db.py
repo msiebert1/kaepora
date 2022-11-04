@@ -192,9 +192,9 @@ def scaled_plot(composites, min_num_show = 5, min_num_scale = 10, include_spec_b
 			plt.fill_between(comp.wavelength[comp.x1:comp.x2], np.clip(low_resid, -1, 10), np.clip(up_resid, -1, 10), color=c, alpha = 0.5, zorder=order_dict[comp.name])
 
 		if 'comp' in comp.name.lower():
-			print 'Phase: ', np.average(comp.phase_array[comp.x1:comp.x2])
-			print 'dm15: ', np.average(comp.dm15_array[comp.x1:comp.x2])
-			print 'Redshift: ', np.nanmean(comp.red_array[comp.x1:comp.x2])
+			print ('Phase: ', np.average(comp.phase_array[comp.x1:comp.x2]))
+			print ('dm15: ', np.average(comp.dm15_array[comp.x1:comp.x2]))
+			print ('Redshift: ', np.nanmean(comp.red_array[comp.x1:comp.x2]))
 
 		if zoom:
 			res2 = plt.subplot(gs[2], sharex = rel_flux)
@@ -889,10 +889,10 @@ def comparison_plot(composites, scale_type = False, min_num_show = 1, min_num_sc
 
 		i+=1
 		k+=1
-		print 'Phase: ', np.average(comp.phase_array[comp.x1:comp.x2])
-		print 'dm15: ', np.average(comp.dm15_array[comp.x1:comp.x2])
-		print 'Redshift: ', np.nanmean(comp.red_array[comp.x1:comp.x2])
-		print 'Morphology: ', np.average(comp.morph_array[comp.x1:comp.x2])
+		print ('Phase: ', np.average(comp.phase_array[comp.x1:comp.x2]))
+		print ('dm15: ', np.average(comp.dm15_array[comp.x1:comp.x2]))
+		print ('Redshift: ', np.nanmean(comp.red_array[comp.x1:comp.x2]))
+		print ('Morphology: ', np.average(comp.morph_array[comp.x1:comp.x2]))
 
 	z.axes.set_xlim([min_range.wavelength[min_range.x1]-200., min_range.wavelength[min_range.x2]+200.])
 
@@ -1106,7 +1106,7 @@ def main(num_queries, query_strings, boot='nb', medmean = 1, selection = 'max_co
 			dm15 = np.round(np.nanmean(comp.dm15_array[comp.x1:comp.x2]),2)
 			# r = sa.measure_si_ratio(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], vexp = .001, dm15=dm15)
 			v_strong, si_min_wave = sa.measure_velocity(comp.wavelength[comp.x1:comp.x2],comp.flux[comp.x1:comp.x2], 5900., 6300.)
-			print 'v = ', v_strong
+			print ('v = ', v_strong)
 
 		
 		for boot in boot_sn_arrays:
@@ -1115,7 +1115,7 @@ def main(num_queries, query_strings, boot='nb', medmean = 1, selection = 'max_co
 				v_strong, si_min_wave = sa.measure_velocity(b.wavelength[b.x1:b.x2],b.flux[b.x1:b.x2], 5900., 6300.)
 				vs.append(v_strong)
 			v_err = np.nanstd(vs)
-			print 'v_err = ', v_err
+			print ('v_err = ', v_err)
 
 	if og_arr:
 		return composites, sn_arrays, og_sn_arrays, boot_sn_arrays
@@ -1191,7 +1191,7 @@ def plot_comp_and_all_spectra(comp, SN_Array, show_ivar = False, comp2=None, com
 			if weight > max_snr_num:
 				max_snr = SN_Array[i]
 				max_snr_num = weight
-		print max_snr.name
+		print (max_snr.name)
 		for i in range(len(SN_Array)):
 			# plt.plot(SN_Array[i].wavelength[SN_Array[i].x1:SN_Array[i].x2], SN_Array[i].flux[SN_Array[i].x1:SN_Array[i].x2], color = '#7570b3', alpha = .5)
 			# plt.plot(SN_Array[i].wavelength[SN_Array[i].x1:SN_Array[i].x2], SN_Array[i].flux[SN_Array[i].x1:SN_Array[i].x2])
@@ -1318,7 +1318,7 @@ def save_comps_to_files(composites, prefix, num_avg = 5):
 		dm15 = np.round(np.average(SN.dm15_array[SN.x1:SN.x2]), 2)
 		z = np.round(np.average(SN.red_array[SN.x1:SN.x2]), 3)
 		num = np.amax(np.array(SN.spec_bin[SN.x1:SN.x2]))
-		print phase, dm15, z
+		print (phase, dm15, z)
 		set_min_num_spec(composites, 1)
 
 		if phase >= 0.:
@@ -1333,7 +1333,7 @@ def save_comps_to_files(composites, prefix, num_avg = 5):
 		num_spec_str = str(SN.num_spec)
 
 		file_path = '../data/S19_Composite_Spectra/' + prefix + '_N=' + num_str + '_Nspec=' + num_spec_str + '_phase='+ sign + phase_str + '_dm15=' + dm15_str + '_z=' + z_str+'.txt'
-		print file_path
+		print (file_path)
 		with open(file_path, 'w') as file:
 			file.write('# SQL Query: ' + SN.query + '\n')
 			file.write('# N = ' + num_str + '\n')
@@ -1425,7 +1425,7 @@ if __name__ == "__main__":
 		dm15 = np.round(np.nanmean(comp.dm15_array[comp.x1:comp.x2]),2)
 		# r = sa.measure_si_ratio(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], vexp = .001, dm15=dm15)
 		v_strong, si_min_wave = sa.measure_velocity(comp.wavelength[comp.x1:comp.x2],comp.flux[comp.x1:comp.x2], 5900., 6300.)
-		print 'v = ', v_strong
+		print ('v = ', v_strong)
 
 
 	# vs = []

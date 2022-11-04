@@ -133,7 +133,7 @@ def new_grab(sql_input, shape_param, make_corr = True, db_file = None):
         db_file = glob.glob('../data/*.db')[0]
 
     con = sq3.connect(db_file)
-    print "Collecting data from", db_file, "..."
+    print ("Collecting data from", db_file, "...")
     cur = con.cursor()
 
     SN_Array = []
@@ -212,16 +212,16 @@ def new_grab(sql_input, shape_param, make_corr = True, db_file = None):
         SN.spec_bin  = []
         
         try:
-            SN.wavelength = SN.interp[0,:]
-            SN.flux       = SN.interp[1,:]
-            SN.ivar       = SN.interp[2,:]
+            SN.wavelength = copy.deepcopy(SN.interp[0,:])
+            SN.flux       = copy.deepcopy(SN.interp[1,:])
+            SN.ivar       = copy.deepcopy(SN.interp[2,:])
         except:
-            print "ERROR: ", SN.filename, SN.interp
+            print ("ERROR: ", SN.filename, SN.interp)
             continue
         # a = copy.deepcopy(SN)
         SN_Array.append(SN)
 
-    print len(SN_Array), 'Total Spectra found'
+    print (len(SN_Array), 'Total Spectra found')
     # raise TypeError
     # a = copy.deepcopy(SN_Array)
     # if grab_all:
@@ -244,21 +244,21 @@ def new_grab(sql_input, shape_param, make_corr = True, db_file = None):
                 # plt.plot(SN.wavelength,SN.ivar)
                 # plt.show()
         if len(bad_ivars) > 0:
-            print "Generate variance failed for: ", bad_ivars
+            print ("Generate variance failed for: ", bad_ivars)
 
         len_before = len(SN_Array)
         good_SN_Array = [SN for SN in SN_Array 
                             if not is_bad_data(SN, bad_files, bad_ivars)]
         SN_Array = good_SN_Array
-        print len_before - len(SN_Array), 'flagged spectra removed', len(SN_Array), 'spectra left'
+        print (len_before - len(SN_Array), 'flagged spectra removed', len(SN_Array), 'spectra left')
 
         # remove peculiar Ias
         len_before = len(SN_Array)
         SN_Array = remove_peculiars(SN_Array,'../data/info_files/pec_Ias.txt')
-        print len_before - len(SN_Array), 'spectra of peculiar Ias removed', len(SN_Array), 'spectra left'
+        print (len_before - len(SN_Array), 'spectra of peculiar Ias removed', len(SN_Array), 'spectra left')
         SN_Array = check_host_corrections(SN_Array)
 
-    print len(SN_Array), "spectra of SNe that have host reddening corrections"
+    print (len(SN_Array), "spectra of SNe that have host reddening corrections")
 
     for SN in SN_Array:
         SN.shape_param = shape_param
@@ -377,7 +377,7 @@ def new_grab(sql_input, shape_param, make_corr = True, db_file = None):
         SN.x1 = SN.x1 + 25
         SN.x2 = SN.x2 - 25
                     
-    print "Arrays cleaned"
+    print ("Arrays cleaned")
     return SN_Array
 
 def grab(sql_input, multi_epoch = True, make_corr = True, 
@@ -423,7 +423,7 @@ def grab(sql_input, multi_epoch = True, make_corr = True,
         db_file = glob.glob('../data/*.db')[0]
 
     con = sq3.connect(db_file)
-    print "Collecting data from", db_file, "..."
+    print ("Collecting data from", db_file, "...")
     cur = con.cursor()
 
     SN_Array = []
@@ -490,7 +490,7 @@ def grab(sql_input, multi_epoch = True, make_corr = True,
         a = copy.deepcopy(SN)
         SN_Array.append(SN)
 
-    print len(SN_Array), 'Total Spectra found'
+    print (len(SN_Array), 'Total Spectra found')
     # for SN in SN_Array:
     #     print SN.name, SN.filename, SN.phase
     # raise TypeError
@@ -515,18 +515,18 @@ def grab(sql_input, multi_epoch = True, make_corr = True,
                 # plt.plot(SN.wavelength,SN.ivar)
                 # plt.show()
         if len(bad_ivars) > 0:
-            print "Generate variance failed for: ", bad_ivars
+            print ("Generate variance failed for: ", bad_ivars)
 
         len_before = len(SN_Array)
         good_SN_Array = [SN for SN in SN_Array 
                             if not is_bad_data(SN, bad_files, bad_ivars)]
         SN_Array = good_SN_Array
-        print len_before - len(SN_Array), 'flagged spectra removed', len(SN_Array), 'spectra left'
+        print (len_before - len(SN_Array), 'flagged spectra removed', len(SN_Array), 'spectra left')
 
         # remove peculiar Ias
         len_before = len(SN_Array)
         SN_Array = remove_peculiars(SN_Array,'../data/info_files/pec_Ias.txt')
-        print len_before - len(SN_Array), 'spectra of peculiar Ias removed', len(SN_Array), 'spectra left'
+        print (len_before - len(SN_Array), 'spectra of peculiar Ias removed', len(SN_Array), 'spectra left')
         SN_Array = check_host_corrections(SN_Array)
 
     if not multi_epoch:
@@ -585,7 +585,7 @@ def grab(sql_input, multi_epoch = True, make_corr = True,
                 splice_specs = []
                 cur_min = max_range.minwave
                 cur_max = max_range.maxwave
-                print max_range.filename, max_range.minwave, max_range.maxwave
+                print (max_range.filename, max_range.minwave, max_range.maxwave)
                 max_spec_range = (max_range.wavelength[np.where((max_range.wavelength > max_range.minwave) 
                                                               & (max_range.wavelength < max_range.maxwave))])
                 cur_minwave = max_range.minwave
@@ -630,7 +630,7 @@ def grab(sql_input, multi_epoch = True, make_corr = True,
 
         SN_Array = new_SN_Array
 
-    print len(SN_Array), "spectra of SNe that have host reddening corrections"
+    print (len(SN_Array), "spectra of SNe that have host reddening corrections")
 
     for SN in SN_Array:
         #assign more attributes
@@ -719,7 +719,7 @@ def grab(sql_input, multi_epoch = True, make_corr = True,
         SN.x2 = SN.x2 - 25
 
                     
-    print "Arrays cleaned"
+    print ("Arrays cleaned")
     return SN_Array
 
     
@@ -1061,7 +1061,7 @@ def bootstrapping (SN_Array, samples, og_template, iters, medmean, scale_region=
         if len(nan_waves) == 0: #not ideal but solves lack of overlap error
             boots.append(copy.deepcopy(template))
 
-    print "scaling boots..."
+    print ("scaling boots...")
     kpora.set_min_num_spec([og_template], min_spec) # functions to set a default scaling region, edges of spectrum can cause scaling to be wrong
     boots, scales = optimize_scales(boots, og_template, True, scale_region=scale_region)
     #examine bootstrap samples
@@ -1073,7 +1073,7 @@ def bootstrapping (SN_Array, samples, og_template, iters, medmean, scale_region=
     # plt.plot(og_template.wavelength,og_template.flux, 'k', linewidth = 4)
     # plt.show()
     
-    print "computing confidence intervals..."
+    print ("computing confidence intervals...")
     resid = []
     percentile = erf(1/np.sqrt(2.))
     low_pc = 0.5 - percentile*0.5
@@ -1213,23 +1213,30 @@ def apply_host_corrections(SN_Array, r_v = 2.5, verbose=True, low_av_test=None, 
     #TODO: write one function for these cases
     corrected_SNs = []
     for SN in SN_Array:
-        # print SN.name, SN.av_25
+        SN.av_25 = SN.event_data['Av_25']
+        SN.av_mlcs31 = SN.event_data['av_mlcs31']
+        SN.av_mlcs17 = SN.event_data['av_mlcs17']
         if SN.av_25 != None and SN.av_25 < cutoff:
-            if SN.av_25 > low_av_test or low_av_test == None:
+            if low_av_test == None or SN.av_25 > low_av_test:
                 pre_scale = (1./np.amax(SN.flux[SN.x1:SN.x2]))
                 SN.flux = pre_scale*SN.flux
                 SN.ivar = SN.ivar/(pre_scale*pre_scale)
-                old_wave = SN.wavelength*u.Angstrom
-                old_flux = SN.flux*u.Unit('W m-2 angstrom-1 sr-1')
-                spec1d = Spectrum1D.from_array(old_wave, old_flux)
-                old_ivar = SN.ivar*u.Unit('W m-2 angstrom-1 sr-1')
+                # old_wave = SN.wavelength*u.Angstrom
+                # old_flux = SN.flux*u.Unit('W m-2 angstrom-1 sr-1')
+                # spec1d = Spectrum1D.from_array(old_wave, old_flux)
+                # old_ivar = SN.ivar*u.Unit('W m-2 angstrom-1 sr-1')
+                old_flux = SN.flux
+                old_wave = SN.wavelength
+                old_ivar = SN.ivar
                 new_flux, new_ivar = test_dered.host_correction(SN.av_25, r_v, SN.name, 
                                                                 old_wave, old_flux, old_ivar)
-                SN.flux = new_flux.value
-                SN.ivar = new_ivar.value
+                # SN.flux = new_flux.value
+                # SN.ivar = new_ivar.value
+                SN.flux = new_flux
+                SN.ivar = new_ivar
                 corrected_SNs.append(SN)
             else:
-                print SN.filename, 'has low reddening!'
+                print (SN.filename, 'has low reddening!')
                 corrected_SNs.append(SN)
 
         elif SN.av_mlcs31 != None and SN.av_mlcs31 < cutoff:
@@ -1237,17 +1244,22 @@ def apply_host_corrections(SN_Array, r_v = 2.5, verbose=True, low_av_test=None, 
                 pre_scale = (1./np.amax(SN.flux[SN.x1:SN.x2]))
                 SN.flux = pre_scale*SN.flux
                 SN.ivar = SN.ivar/(pre_scale*pre_scale)
-                old_wave = SN.wavelength*u.Angstrom
-                old_flux = SN.flux*u.Unit('W m-2 angstrom-1 sr-1')
-                spec1d = Spectrum1D.from_array(old_wave, old_flux)
-                old_ivar = SN.ivar*u.Unit('W m-2 angstrom-1 sr-1')
+                # old_wave = SN.wavelength*u.Angstrom
+                # old_flux = SN.flux*u.Unit('W m-2 angstrom-1 sr-1')
+                # spec1d = Spectrum1D.from_array(old_wave, old_flux)
+                # old_ivar = SN.ivar*u.Unit('W m-2 angstrom-1 sr-1')
+                old_flux = SN.flux
+                old_wave = SN.wavelength
+                old_ivar = SN.ivar
                 new_flux, new_ivar = test_dered.host_correction(SN.av_mlcs31, 3.1, SN.name, 
                                                                 old_wave, old_flux, old_ivar)
-                SN.flux = new_flux.value
-                SN.ivar = new_ivar.value
+                # SN.flux = new_flux.value
+                # SN.ivar = new_ivar.value
+                SN.flux = new_flux
+                SN.ivar = new_ivar
                 corrected_SNs.append(SN)
             else:
-                print SN.filename, 'has low reddening!'
+                print (SN.filename, 'has low reddening!')
                 corrected_SNs.append(SN)
 
         elif SN.av_mlcs17 != None and SN.av_mlcs17 < cutoff:
@@ -1255,17 +1267,20 @@ def apply_host_corrections(SN_Array, r_v = 2.5, verbose=True, low_av_test=None, 
                 pre_scale = (1./np.amax(SN.flux[SN.x1:SN.x2]))
                 SN.flux = pre_scale*SN.flux
                 SN.ivar = SN.ivar/(pre_scale*pre_scale)
-                old_wave = SN.wavelength*u.Angstrom
-                old_flux = SN.flux*u.Unit('W m-2 angstrom-1 sr-1')
-                spec1d = Spectrum1D.from_array(old_wave, old_flux)
-                old_ivar = SN.ivar*u.Unit('W m-2 angstrom-1 sr-1')
+                # old_wave = SN.wavelength*u.Angstrom
+                # old_flux = SN.flux*u.Unit('W m-2 angstrom-1 sr-1')
+                # spec1d = Spectrum1D.from_array(old_wave, old_flux)
+                # old_ivar = SN.ivar*u.Unit('W m-2 angstrom-1 sr-1')
+                old_flux = SN.flux
+                old_wave = SN.wavelength
+                old_ivar = SN.ivar
                 new_flux, new_ivar = test_dered.host_correction(SN.av_mlcs17, 1.7, SN.name, 
                                                                 old_wave, old_flux, old_ivar)
                 SN.flux = new_flux.value
                 SN.ivar = new_ivar.value
                 corrected_SNs.append(SN)
             else:
-                print SN.filename, 'has low reddening!'
+                print (SN.filename, 'has low reddening!')
                 corrected_SNs.append(SN)
 
     SN_Array = corrected_SNs
@@ -1420,7 +1435,7 @@ def combine_SN_spectra(SN_Array):
         if SN.filename in spectra_to_add and SN.filename not in added:
             added.append(SN.filename)
             new_SN_Array.append(SN)
-    print len(new_SN_Array), 'total SNe'
+    print (len(new_SN_Array), 'total SNe')
     return new_SN_Array
 
 def create_composite(SN_Array, boot, template, medmean, nboots = 100, gini_balance=False, aggro=.5, scale_region=None, name='Composite Spectrum'):
@@ -1475,7 +1490,7 @@ def create_composite(SN_Array, boot, template, medmean, nboots = 100, gini_balan
         imbalanced = True
         gini_coeffs, num_specs, gini_ranges = gini.gini_coeffs(SN_Array)
         gini_range_meds = []
-        print 'Gini balancing...'
+        print ('Gini balancing...')
         i=0
         first_iter = True
         prev_swaps = []
@@ -1513,7 +1528,7 @@ def create_composite(SN_Array, boot, template, medmean, nboots = 100, gini_balan
             #   imbalanced = False
             first_iter = False
         # print gini_coeffs
-        print 'Balanced after', i, 'iterations'
+        print ('Balanced after', i, 'iterations')
 
     # qdb.plot_comp_and_all_spectra(template, SN_Array, show_ivar=True)
     for i in range(iters_comp):
@@ -1556,7 +1571,7 @@ def create_composite(SN_Array, boot, template, medmean, nboots = 100, gini_balan
 
     if bootstrap is 'y':
         scales  = []
-        print "Bootstrapping"
+        print ("Bootstrapping")
         samples = nboots
         template.low_conf, template.up_conf, boots = \
             bootstrapping(SN_Array, samples, template, iters, medmean, scale_region=scale_region)
@@ -1587,7 +1602,7 @@ def create_composite(SN_Array, boot, template, medmean, nboots = 100, gini_balan
     return template, boots
     
 def main(Full_query, boot = False, nboots=100, medmean = 1, make_corr=True, av_corr=True, multi_epoch=False,
-        selection = 'max_coverage', gini_balance=False, aggro=.5, verbose=True, shape_param = None, scale_region=None,
+        selection = 'max_coverage', gini_balance=False, aggro=.5, verbose=True, shape_param = 'dm15', scale_region=None,
         low_av_test = None, combine=True, get_og_arr=False, db_file=None):
     """Main function. Finds spectra that satisfy the users query and creates a 
     composite spectrum based on the given arguments.
@@ -1641,18 +1656,18 @@ def main(Full_query, boot = False, nboots=100, medmean = 1, make_corr=True, av_c
     SN_Array = []
 
     #Accept SQL query as input and then grab from the database
-    print "SQL Query:", Full_query
+    print ("SQL Query:", Full_query)
 
     if shape_param:
         SN_Array = new_grab(Full_query, shape_param, make_corr=make_corr, db_file=db_file)
     else:
-        print 'OLD GRAB FUNCTION NO LONGER WORKS'
+        print ('OLD GRAB FUNCTION NO LONGER WORKS')
         raise TypeError
         # SN_Array = grab(Full_query, make_corr=make_corr, multi_epoch=multi_epoch, 
         #                 selection = selection, db_file=db_file)
 
     SN_Array_wo_tell = remove_tell_files(SN_Array)
-    print len(SN_Array) - len(SN_Array_wo_tell), 'spectra may have telluric contamination'
+    print (len(SN_Array) - len(SN_Array_wo_tell), 'spectra may have telluric contamination')
 
     SN_Array = prelim_norm(SN_Array)
     SN_Array = fix_negative_ivars(SN_Array)
@@ -1669,16 +1684,16 @@ def main(Full_query, boot = False, nboots=100, medmean = 1, make_corr=True, av_c
     if av_corr:
         SN_Array = apply_host_corrections(SN_Array, verbose=verbose, cutoff=av_cutoff, low_av_test=low_av_test)
         og_SN_Array = apply_host_corrections(og_SN_Array, verbose=False, cutoff=av_cutoff, low_av_test=low_av_test)
-        print 'removed spectra of SNe with A_V >', av_cutoff
+        print ('removed spectra of SNe with A_V >', av_cutoff)
 
     events = []
     lengths = []
 
     if verbose:
-        print "SN", "Filename", "Source", "SNR", "Phase", "Dm15", "Minwave", "Maxwave"
+        print ("SN", "Filename", "Source", "SNR", "Phase", "Dm15", "Minwave", "Maxwave")
     for SN in SN_Array:
         if verbose:
-            print SN.name, SN.filename, SN.source, SN.SNR, SN.phase, SN.dm15, SN.wavelength[SN.x1], SN.wavelength[SN.x2]
+            print (SN.name, SN.filename, SN.source, SN.SNR, SN.phase, SN.dm15, SN.wavelength[SN.x1], SN.wavelength[SN.x2])
 
         lengths.append(SN.wavelength[SN.x2] - SN.wavelength[SN.x1])
         if 'combined' in SN.name:
@@ -1687,7 +1702,7 @@ def main(Full_query, boot = False, nboots=100, medmean = 1, make_corr=True, av_c
             events.append(SN.name)
     event_set = set(events)
 
-    print 'Using', len(og_SN_Array), 'spectra of', len(event_set), 'SNe'
+    print ('Using', len(og_SN_Array), 'spectra of', len(event_set), 'SNe')
 
     SN_Array = prelim_norm(SN_Array)
 
@@ -1696,7 +1711,7 @@ def main(Full_query, boot = False, nboots=100, medmean = 1, make_corr=True, av_c
     try:
         composite = temp[0]
     except IndexError:
-        print "No spectra found"
+        print ("No spectra found")
         if get_og_arr:
             return None, None, None, None
         else:

@@ -652,6 +652,7 @@ def dm15_from_fit_params(events, fit_dict, cfa_dict, stretch='N/A'):
     # print 'RMSE: ', rmse
     # print 'Outlier Fraction: ', float(len(clip_dm15_arr))/float(len(dm15_arr))
     
+    #s
     # RMSE:  0.0718342630003
     # Outlier Fraction:  0.0752688172043
     # [ 1.7240621  -4.66995066  3.93727553]
@@ -663,6 +664,7 @@ def dm15_from_fit_params(events, fit_dict, cfa_dict, stretch='N/A'):
     # sn2005ls
     # sn1999aa
 
+    #x1
     # RMSE:  0.066249618878
     # Outlier Fraction:  0.0504201680672
     # [ 0.01828958 -0.13430543  1.02585001]
@@ -673,6 +675,7 @@ def dm15_from_fit_params(events, fit_dict, cfa_dict, stretch='N/A'):
     # sn2007bz
     # sn1999aa
 
+    #delta
     # RMSE:  0.070183174903
     # Outlier Fraction:  0.0230769230769
     # [-0.16315158  0.76583297  1.12697325]
@@ -680,6 +683,7 @@ def dm15_from_fit_params(events, fit_dict, cfa_dict, stretch='N/A'):
     # sn1995ac
     # sn1999aa
 
+    #delta
     # RMSE:  0.07406417245
     # Outlier Fraction:  0.139423076923
     # [-0.04957799  0.56115546  1.11213983]

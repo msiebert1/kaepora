@@ -5,11 +5,12 @@ import numpy as np
 import copy
 from scipy.integrate import simps
 import random 
-import pyphot
+# import pyphot
 import kaepora as kpora
 import copy
-from specutils import extinction as ex
+# from specutils import extinction as ex
 from specutils import Spectrum1D
+from dust_extinction.parameter_averages import F99
 from astropy import units as u
 from optparse import OptionParser
 from astropy.io import fits
@@ -101,13 +102,17 @@ def deredden(a_v, r_v, wave, flux, var, model = 'f99'):
     wave = wave*u.Angstrom        # wavelengths
     flux = flux*u.Unit('W m-2 angstrom-1 sr-1')
     var = var*u.Unit('W^2 m-4 angstrom-2 sr-2')
-    spec1d = Spectrum1D.from_array(wave, flux)
-    spec1d_var = Spectrum1D.from_array(wave, var)
-    red = ex.reddening(spec1d.wavelength, a_v = a_v, r_v = r_v, model=model)
-    spec1d.flux *= red
-    spec1d_var.flux *= (red**2.) #correct var too
+    # spec1d = Spectrum1D.from_array(wave, flux)
+    # spec1d_var = Spectrum1D.from_array(wave, var)
+    # red = ex.reddening(spec1d.wavelength, a_v = a_v, r_v = r_v, model=model)
 
-    return spec1d.flux.value, spec1d_var.flux.value
+    ext = F99(Rv=3.1)
+    red = ext.extinguish(wave*u.AA, Av = av_mw)
+
+    flux *= red
+    var  *= (red**2.) #correct var too
+
+    return flux.value, var.value
 
 
 def find_extrema(wavelength,sm_flux):
@@ -187,7 +192,7 @@ def measure_si_ratio(wavelength,flux, varflux = None, vexp=.002, smooth=True, dm
             if m in si_range_3[0]:
                 m3s.append(m)
     if len(m1s) == 0 or len(m2s) == 0 or len(m3s) == 0:
-        print "Could not find maximum in a specified range!"
+        print ("Could not find maximum in a specified range!")
         return np.nan
 
     f1s = sm_flux[m1s]
@@ -298,7 +303,7 @@ def measure_ca_ratio(wavelength,flux, varflux = None, wave1 = 3550., wave2=3680.
     ca_max_wave_1 = wavelength[ca_max_index_1][0]
     ca_max_wave_2 = wavelength[ca_max_index_2][0]
 
-    print ca_max_2/ca_max_1
+    print (ca_max_2/ca_max_1)
 
     plt.plot(wavelength,flux)
     plt.plot(wavelength,sm_flux)
@@ -396,7 +401,7 @@ def measure_vels(comps, sn_arrs, attr_name, boot_arrs = None, plot=False):
     for comp in comps:
         v, si_min_wave = measure_velocity(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], 5800, 6400, plot=plot)
         avg_vs.append(v)
-        print v
+        print (v)
 
     if boot_arrs:
         errors = []
@@ -422,7 +427,7 @@ def measure_vels(comps, sn_arrs, attr_name, boot_arrs = None, plot=False):
             vupper = p[2] - p[1]
             low_errors.append(vupper)
             up_errors.append(vlower)
-            print 'ERR: ', (vupper+vlower)/2
+            print ('ERR: ', (vupper+vlower)/2)
 
         errors = [low_errors, up_errors]
         
@@ -443,7 +448,7 @@ def measure_vels(comps, sn_arrs, attr_name, boot_arrs = None, plot=False):
             attrs.append(spec.other_meta_data[attr_name])
             attr_errs.append(0)
             vels.append(v)
-            print i,spec.name, v
+            print (i,spec.name, v)
     
     # if boot_arrs:
     #     plt.errorbar(avg_attrs, avg_vs, yerr=errors, fmt='o')
@@ -487,7 +492,7 @@ def plot_vels(vel_data, vwidth = .1, savename=None):
                       showmeans=False, showextrema=False, showmedians=False,
                       bw_method='silverman')
     
-    print avg_vs
+    print (avg_vs)
     diff = avg_vs[1] - avg_vs[0]
     # err = np.sqrt(errors[0][0]**2. + errors[1][1]**2.)
     # print 'Vdiff: ', diff, 'Err:', err, 'Sig: ', diff/err
@@ -545,7 +550,7 @@ def measure_EWs(sn_array, w1=7600., w2=8200., w3=9000., error=False):
             else:
                 stat_err = np.nan
                 sys_err = np.nan
-            print i, ew, sys_err, stat_err, SN.phase
+            print (i, ew, sys_err, stat_err, SN.phase)
             # err_tot = np.sqrt(sys_err**2. + stat_err**2.)
             err_tot = np.nan # FIX THIS
             if not np.isnan(ew) and ew < 500. and stat_err < 100.:
@@ -573,7 +578,7 @@ def measure_comp_diff_EW(boot_sn_arrays, w1=7600., w2=8200., w3=9000.):
 
     diff = (means[0] - means[1])
     err = np.sqrt(varis[0]+varis[1])
-    print 'Diff = ', diff, '+/-', err
+    print ('Diff = ', diff, '+/-', err)
     plt.hist(EW_arrs[0], color = 'blue')
     plt.hist(EW_arrs[1], color = 'red', alpha=.5)
     plt.show()
@@ -1157,10 +1162,10 @@ def process_lick_file(spec):
 def process_soar_file(head):
     return
 
-# He II λ4686 
-# He I λ5876 
-# He I λ6678 
-# He I λ7065
+# He II 4686 
+# He I 5876 
+# He I 6678 
+# He I 7065
 line_dict = {'H':       ([6562.79, 4861.35, 4340.472, 4101.734], 'mediumblue'),
              'He':      ([5876.], 'black'),
              '[O III]': ([4958.911, 5006.843, 4363.210], 'magenta'),
@@ -1208,7 +1213,7 @@ if __name__ == "__main__":
     # v = c*((6562.79/6313.8)**2. - 1)/(1+((6562.79/6313.8)**2.))
     v = c*((6355./6156.)**2. - 1)/(1+((6355./6156.)**2.))
     # v = c*((5876/5857.85)**2. - 1)/(1+((5876/5857.85)**2.))
-    print v
+    print (v)
 
     spec_file_names = raw_input("Choose an fits/ascii/csv spectrum file: ")
     spec_files = []
@@ -1431,7 +1436,7 @@ if __name__ == "__main__":
             wave2 = float(wave_range.split()[1])
             vexp, SNR = find_vexp(wavelength, flux)
             vel_data = measure_velocity(wavelength, flux, wave1, wave2, vexp=vexp, clip=True, rest_wave=r_wave, varflux=None, plot=True, error=False)
-            print vel_data
+            print (vel_data)
 
     # if _neblines:
     #     color = ['mediumblue', 'magenta', 'magenta', 'darkorange']

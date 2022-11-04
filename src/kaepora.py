@@ -113,16 +113,16 @@ def grab(query, multi_epoch = True, make_corr = False, selection = 'max_coverage
 
     if db_file is None:
         db_file = glob.glob('../data/*.db')[0]
-        print 'Using: ' + db_file
+        print ('Using: ' + db_file)
 
     # spec_array = composite.grab(query, multi_epoch = multi_epoch, 
     #                             make_corr = make_corr, grab_all=grab_all, db_file = db_file)
     spec_array = composite.new_grab(query, shape_param, make_corr = make_corr, db_file = db_file)
     spec_array = composite.prelim_norm(spec_array)
     if verbose:
-        print "Name", "Filename", "Source", "SNR", "Phase", "MJD", "MJD_max", "z", "Host Morphology", "Minwave", "Maxwave"
+        print ("Name", "Filename", "Source", "SNR", "Phase", "MJD", "MJD_max", "z", "Host Morphology", "Minwave", "Maxwave")
         for spec in spec_array:
-            print spec.name, spec.filename, spec.source, spec.SNR, spec.phase, spec.mjd, spec.event_data['Redshift'], spec.event_data['NED_host'], spec.wavelength[spec.x1], spec.wavelength[spec.x2]
+            print (spec.name, spec.filename, spec.source, spec.SNR, spec.phase, spec.mjd, spec.event_data['Redshift'], spec.event_data['NED_host'], spec.wavelength[spec.x1], spec.wavelength[spec.x2])
             # print spec.name, spec.filename, spec.source, spec.SNR, spec.phase, spec.mjd, spec.redshift, spec.ned_host, spec.wavelength[spec.x1], spec.wavelength[spec.x2]
 
     return spec_array
@@ -152,7 +152,7 @@ def host_dereddening(SN_Array, r_v = 2.5, verbose=False, low_av_test=None, cutof
 
 def make_composite(query_strings, boot=False, nboots=100, medmean = 1, selection = 'max_coverage', gini_balance=False, verbose=True,
          make_corr=True, av_corr=True, scale_region=None,
-         multi_epoch=True, combine=True, low_av_test=None, measure_vs = False, get_og_arr=False, shape_param=None, db_file=None):
+         multi_epoch=True, combine=True, low_av_test=None, measure_vs = False, get_og_arr=False, shape_param='dm15', db_file=None):
     """ This is the main fuunction for constructing composite spectra from spectra stored in kaepora.
         Args:
             query_strings: A list of SQL query strings
@@ -233,7 +233,7 @@ def make_composite(query_strings, boot=False, nboots=100, medmean = 1, selection
             dm15 = np.round(np.nanmean(comp.dm15_array[comp.x1:comp.x2]),2)
             # r = sa.measure_si_ratio(comp.wavelength[comp.x1:comp.x2], comp.flux[comp.x1:comp.x2], vexp = .001, dm15=dm15)
             v_strong, si_min_wave = sa.measure_velocity(comp.wavelength[comp.x1:comp.x2],comp.flux[comp.x1:comp.x2], 5900., 6300.)
-            print 'v = ', v_strong
+            print ('v = ', v_strong)
 
         for boot in boot_sn_arrays:
             vs = []
@@ -241,7 +241,7 @@ def make_composite(query_strings, boot=False, nboots=100, medmean = 1, selection
                 v_strong, si_min_wave = sa.measure_velocity(b.wavelength[b.x1:b.x2],b.flux[b.x1:b.x2], 5900., 6300.)
                 vs.append(v_strong)
             v_err = np.nanstd(vs)
-            print 'v_err = ', v_err
+            print ('v_err = ', v_err)
 
     if get_og_arr:
         return composites, sn_arrays, og_sn_arrays, boot_sn_arrays
@@ -265,7 +265,7 @@ def save_spectra_as_flm(spectra, path = '', undo_z=False):
         txt_header = txt_header + 'Velocity: {}\n'.format(spec.velocity)
         txt_header = txt_header + 'Velocity Error: {}\n'.format(spec.velocity_err)
         # txt_header = txt_header + 'AV_MW: {}\n'.format(spec.event_data['Av_MW'])
-        print i, path+spec.filename[:-4] + '-kaepora.flm'
+        print (i, path+spec.filename[:-4] + '-kaepora.flm')
         np.savetxt(path+spec.filename[:-4] + '-kaepora.flm',np.transpose([wave,flux,err]), header=txt_header)
 
 def save_comp_and_boots(SN, boots, prefix, num_avg = 2, scale_region=None, folder = '../../'):
@@ -278,7 +278,7 @@ def save_comp_and_boots(SN, boots, prefix, num_avg = 2, scale_region=None, folde
     z = np.round(np.average(SN.red_array[SN.x1:SN.x2]), 3)
     num = np.amax(np.array(SN.spec_bin[SN.x1:SN.x2]))
     vel = np.round(np.average(SN.vel[SN.x1:SN.x2]), 2)
-    print phase, dm15, z
+    print (phase, dm15, z)
     set_min_num_spec([SN], 1)
 
     if phase >= 0.:
@@ -294,7 +294,7 @@ def save_comp_and_boots(SN, boots, prefix, num_avg = 2, scale_region=None, folde
     num_spec_str = str(SN.num_spec)
 
     file_path = folder + prefix + '_N=' + num_str + '_Nspec=' + num_spec_str + '_phase='+ sign + phase_str + '.txt'
-    print file_path
+    print (file_path)
 
     data = []
 
@@ -337,7 +337,7 @@ def save_comps_to_files(composites, prefix, num_avg = 5, boot=True, scale_region
         z = np.round(np.average(SN.red_array[SN.x1:SN.x2]), 3)
         num = np.amax(np.array(SN.spec_bin[SN.x1:SN.x2]))
         vel = np.round(np.average(SN.vel[SN.x1:SN.x2]), 2)
-        print phase, dm15, z
+        print (phase, dm15, z)
         set_min_num_spec(composites, 1)
 
         if phase >= 0.:
@@ -353,7 +353,7 @@ def save_comps_to_files(composites, prefix, num_avg = 5, boot=True, scale_region
         num_spec_str = str(SN.num_spec)
 
         file_path = folder + prefix + '_N=' + num_str + '_Nspec=' + num_spec_str + '_phase='+ sign + phase_str + '_x1=' + dm15_str + '.txt'
-        print file_path
+        print (file_path)
         with open(file_path, 'w') as file:
             file.write('# SQL Query: ' + SN.query + '\n')
             file.write('# N = ' + num_str + '\n')

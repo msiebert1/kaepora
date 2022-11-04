@@ -1,7 +1,8 @@
 import os
 import glob
-from specutils import extinction as ex
+# from specutils import extinction as ex
 from specutils import Spectrum1D
+from dust_extinction.parameter_averages import F99
 from astropy import units as u
 import test_dered
 from astropy.table import Table
@@ -53,7 +54,10 @@ def dered(sne, snname, wave, flux):
             #or use fm07 model
             #test1 = spectra_data[i][:,1] * ex.reddening(spectra_data[i][:,0],ebv = bv, model='ccm89')
             #test2 = spectra_data[i][:,1] * ex.reddening(spectra_data[i][:,0],ebv = bv, model='od94')
-            flux *= ex.reddening(wave, ebv=bv, r_v=3.1, model='f99')
+            ext = F99(Rv=3.1)
+            red = ext.extinguish(wave*u.AA, ebv = bv)
+
+            # flux *= ex.reddening(wave, ebv=bv, r_v=3.1, model='f99')
 #            wave /= (1+z)
 
             #print "de-reddened by host galaxy\n",flux*ex.reddening(wave,ebv = 0, r_v = r, model='f99')
@@ -69,7 +73,9 @@ def host_correction(sne, snname, wave, flux):
         sn = sne[j][0]
         if sn in snname:  # SN with parameter matches the path
             a_v = sne[j][2].astype(float)
-            flux *= ex.reddening(wave, ebv=3.1*a_v, r_v=3.1, model='f99')
+            ext = F99(Rv=3.1)
+            red = ext.extinguish(wave*u.AA, ebv = 3.1*a_v)
+            # flux *= ex.reddening(wave, ebv=3.1*a_v, r_v=3.1, model='f99')
     return flux
 
 
@@ -430,7 +436,7 @@ def compprep(spectrum, sn_name, z, source, use_old_error=True, testing=False, fi
     # old_var = None
     vexp, SNR = df.find_vexp(old_wave, old_flux, var_y=old_var)
     if testing:
-        print vexp, SNR
+        print (vexp, SNR)
 
     if source != 'csp' and source != 'marion09': #already deredshifted
         old_wave = old_wave/(1.+z) #deredshift for clipping 
@@ -462,7 +468,7 @@ def compprep(spectrum, sn_name, z, source, use_old_error=True, testing=False, fi
     #     file.write(table)
 
     if testing:
-        print SNR
+        print (SNR)
 
     if old_var is not None:
         old_ivar = 1./old_var
