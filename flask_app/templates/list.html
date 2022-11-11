@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<!--   <head>
+    <title>Flask app</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  </head> -->
+<h1 class="pt-5 pb-2">List of Spectra</h1>
+
+      <p class="lead alert alert-warning">This is a list of all the spectra in kaepora</p>
+
+		<table class="table">
+			<tr>
+				<th>SN Name</th>
+				<th>Filename</th>
+			</tr>
+
+			<!-- here is a for-loop to give us all the socks -->
+			{% for spec in spectra %}
+			<tr>
+				<td>{{ spec.sn }}</td>
+				<td>{{ spec.filename }}</td>
+			</tr>
+			{% endfor %}
+		</table>
+<html>

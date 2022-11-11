@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html>
+<!--   <head>
+    <title>User query parameters</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  </head> -->
+{% for key,value in form_data.items() %}
+<h2> {{key}}</h2>
+<p> {{value}}</p>
+{% endfor %}
+<html>

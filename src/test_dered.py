@@ -7,7 +7,7 @@ Created on Mon Sep 19 15:14:33 2016
 import numpy as np
 import matplotlib.pyplot as plt
 # from specutils import extinction as ex
-from specutils import Spectrum1D
+# from specutils import Spectrum1D
 from dust_extinction.parameter_averages import F99
 from astropy import units as u
 
@@ -52,8 +52,8 @@ def dered(sne, snname, wave, flux, ivar, source='not_swift_uv', ):
                     ext = F99(Rv=3.1)
                     red = ext.extinguish(wave*u.AA, Av = 3.1*bv)
 
-                    flux *= red
-                    ivar *= 1./(red**2.)
+                    flux /= red
+                    ivar /= 1./(red**2.)
                     corrected = True
                 else:
                     Av = sne[j][1].astype(float)
@@ -61,8 +61,8 @@ def dered(sne, snname, wave, flux, ivar, source='not_swift_uv', ):
                     ext = F99(Rv=3.1)
                     red = ext.extinguish(wave*u.AA, Av = Av)
 
-                    flux *= red
-                    ivar *= 1./(red**2.)
+                    flux /= red
+                    ivar /= 1./(red**2.)
                     corrected = True
 
     if not corrected:
@@ -75,8 +75,8 @@ def host_correction(a_v, r_v, snname, wave, flux, ivar, model = 'f99'):
     # red = ex.reddening(wave, a_v = a_v, r_v = r_v, model=model)
     ext = F99(Rv=r_v)
     red = ext.extinguish(wave*u.AA, Av = a_v)
-    flux *= red
-    ivar *= 1./(red**2.) #correct ivar too
+    flux /= red
+    ivar /= 1./(red**2.) #correct ivar too
     return flux, ivar
 
 

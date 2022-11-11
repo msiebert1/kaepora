@@ -18,7 +18,6 @@ from scipy.special import erf
 import scipy.optimize as opt
 import copy
 from astropy import units as u
-from specutils import Spectrum1D
 import glob
 
 #routines in repository:
@@ -1240,7 +1239,7 @@ def apply_host_corrections(SN_Array, r_v = 2.5, verbose=True, low_av_test=None, 
                 corrected_SNs.append(SN)
 
         elif SN.av_mlcs31 != None and SN.av_mlcs31 < cutoff:
-            if SN.av_mlcs31 > low_av_test or low_av_test == None:
+            if low_av_test == None or SN.av_mlcs31 > low_av_test:
                 pre_scale = (1./np.amax(SN.flux[SN.x1:SN.x2]))
                 SN.flux = pre_scale*SN.flux
                 SN.ivar = SN.ivar/(pre_scale*pre_scale)
@@ -1263,7 +1262,7 @@ def apply_host_corrections(SN_Array, r_v = 2.5, verbose=True, low_av_test=None, 
                 corrected_SNs.append(SN)
 
         elif SN.av_mlcs17 != None and SN.av_mlcs17 < cutoff:
-            if SN.av_mlcs17 > low_av_test or low_av_test == None:
+            if low_av_test == None or SN.av_mlcs17 > low_av_test:
                 pre_scale = (1./np.amax(SN.flux[SN.x1:SN.x2]))
                 SN.flux = pre_scale*SN.flux
                 SN.ivar = SN.ivar/(pre_scale*pre_scale)

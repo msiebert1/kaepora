@@ -9,7 +9,7 @@ import random
 import kaepora as kpora
 import copy
 # from specutils import extinction as ex
-from specutils import Spectrum1D
+# from specutils import Spectrum1D
 from dust_extinction.parameter_averages import F99
 from astropy import units as u
 from optparse import OptionParser
@@ -109,8 +109,8 @@ def deredden(a_v, r_v, wave, flux, var, model = 'f99'):
     ext = F99(Rv=3.1)
     red = ext.extinguish(wave*u.AA, Av = av_mw)
 
-    flux *= red
-    var  *= (red**2.) #correct var too
+    flux /= red
+    var  /= (red**2.) #correct var too
 
     return flux.value, var.value
 
