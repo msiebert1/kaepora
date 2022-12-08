@@ -106,8 +106,8 @@ def deredden(a_v, r_v, wave, flux, var, model = 'f99'):
     # spec1d_var = Spectrum1D.from_array(wave, var)
     # red = ex.reddening(spec1d.wavelength, a_v = a_v, r_v = r_v, model=model)
 
-    ext = F99(Rv=3.1)
-    red = ext.extinguish(wave*u.AA, Av = av_mw)
+    ext = F99(Rv=r_v)
+    red = ext.extinguish(wave, Av = a_v)
 
     flux /= red
     var  /= (red**2.) #correct var too
@@ -786,6 +786,14 @@ def measure_comp_1m2(comps, filts = ['GROUND_JOHNSON_B','GROUND_JOHNSON_V'], boo
         errors = [low_errors, up_errors]
         
     return phases, comp_1, comp_2, errors
+
+
+def calc_x1_from_dm15(dm15):
+    a = 0.01828958
+    b = -0.13430543
+    c = 1.02585001 - dm15
+    sol = (-b-np.sqrt(b**2.-4.*a*c))/(2*a)
+    return sol
 
 def spectres(new_wavs, spec_wavs, spec_fluxes, spec_errs=None, fill=None,
              verbose=True):

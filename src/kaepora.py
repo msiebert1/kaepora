@@ -315,6 +315,71 @@ def save_comp_and_boots(SN, boots, prefix, num_avg = 2, scale_region=None, folde
 
     np.savetxt(file_path, np.transpose(np.asarray(data)))
 
+def create_composites_from_files():
+    s19_composites = glob.glob('../data/S19_Composite_spectra/siebert_phase*.txt')
+    composites = {}
+    for comp_file in s19_composites:
+        data = np.genfromtxt(comp_file, unpack=True, skip_header=9)
+        low_conf = data[2]
+        up_conf = data[3]
+        var_est = (low_conf + up_conf)/2.
+        spec = composite.spectrum(wavelength = data[0], flux=data[1], ivar=(1./var_est)**2.)
+        with open(comp_file) as comp:
+            phase = comp.readlines()[3].split()[-1]
+            spec.phase = float(phase)
+            spec.mjd = float(phase)
+        spec.spec_bin = data[7]
+        if float(phase) < 90:
+            composites[float(phase)] = spec
+    return composites
+
+def create_query_strings_for_sequence(phase_range, dm15_range, velocity_range=None, phase_step = 1, phase_bin_size=3, phase_step_bin_scale = True):
+
+    if velocity_range:
+        v_beg = velocity_range[0]
+        v_end = velocity_range[1]
+
+    p_beg = phase_range[0]
+    p_end = phase_range[1]
+    dm_beg = dm15_range[0]
+    dm_end = dm15_range[1]
+    query_strings = ["SELECT * from Spectra inner join Events ON Spectra.SN = Events.SN and " \
+                     "phase < {p_beg} and ((dm15_source >= {dm_beg} and dm15_source < {dm_end}) or " \
+                     "(dm15_from_fits >= {dm_beg} and dm15_from_fits < {dm_end}))".format(p_beg=str(p_beg), dm_beg=str(dm_beg), dm_end=str(dm_end))]
+    p1 = p_beg
+    k = phase_bin_size
+    p2 = p1+k
+
+    p_scale1 = 30
+    p_scale2 = 60
+    while p1 < p_end:
+        query_strings.append("SELECT * from Spectra inner join Events ON Spectra.SN = Events.SN and " \
+                              "phase >= {p1} and phase < {p2} and ((dm15_source >= {dm_beg} and dm15_source < {dm_end}) or " \
+                              "(dm15_from_fits >= {dm_beg} and dm15_from_fits < {dm_end}))".format(p1=str(p1), p2=str(p2), dm_beg=str(dm_beg), dm_end=str(dm_end)))
+        if phase_step_bin_scale:
+            if p1 > p_scale1 and p1 < p_scale2:
+                p1+=phase_step
+                p2 = p1+7
+            elif p1 > p_scale2:
+                p1 += phase_step
+                p2 = p1+14
+            else:
+                p1 += phase_step
+                p2 += phase_step
+
+        else:
+            p1 += phase_step
+            p2 += phase_step
+
+    if velocity_range:
+        query_strings_v = []
+        for q in query_strings:
+            v_query = q = q + "and v_at_max between {v_beg} and {v_end}".format(v_beg=str(v_beg), v_end=str(v_end))
+            query_strings_v.append(v_query)
+        query_strings = query_strings_v
+    for q in query_strings:
+        print (q)
+    return query_strings
 
 def save_comps_to_files(composites, prefix, num_avg = 5, boot=True, scale_region=None, folder = '../../'):
     """Saves the data contained in a composite spectrum object to a text file.

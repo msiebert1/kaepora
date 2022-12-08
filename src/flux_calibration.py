@@ -2,11 +2,13 @@ import matplotlib
 import matplotlib.pyplot as plt
 import kaepora as kpora
 import kaepora_plot as kplot
+import composite
 import flux_calibration as fc
 # import pyphot
 import pysynphot
 import numpy as np
 from scipy.interpolate import splrep, splev
+from scipy.interpolate import interp2d
 import scipy.optimize as opt
 # from specutils import extinction as ex
 from specutils import Spectrum1D
@@ -14,6 +16,7 @@ from dust_extinction.parameter_averages import F99
 from astropy import units as u
 import sys,os
 import copy
+
 
 # color_dict = {'U': 'magenta',
 #               'B': 'blue',
@@ -586,6 +589,180 @@ def plot_calibrated_spectra(spec_array):
     plt.ylabel('Flux', fontsize = 35)
     plt.colorbar(s_m, label='Phase')
     plt.show()
+
+
+def create_salt_phot(x1):
+    phase_s, wavelength_salt, flux_salt = np.loadtxt('../data/info_files/SALT/salt2-4/salt2_template_0.dat', unpack = True)
+    phase_s_corr, wavelength_salt_corr, salt_corr = np.loadtxt('../data/info_files/SALT/salt2-4/salt2_template_1.dat', unpack = True)
+    flux_salt = flux_salt + x1*salt_corr #dm15=1.1
+
+    salt_temps = {}
+    phase_list = []
+    first = True
+    for i, phase in enumerate(phase_s):
+        if phase not in phase_list:
+            phase_list.append(phase)
+            if not first:
+                salt_temps[float(phase_s[i-1])] = [temp_wave, temp_flux]
+            temp_wave = [wavelength_salt[i]]
+            temp_flux = [flux_salt[i]]
+        else:
+            temp_wave.append(wavelength_salt[i])
+            temp_flux.append(flux_salt[i])
+        first = False
+        
+    i=-19.
+    phases_s = []
+
+    # band_dict = {
+    #     b'B':pysynphot.ObsBandpass('johnson,b'),
+    #     b'V':pysynphot.ObsBandpass('johnson,v'),
+    #     b'R':pysynphot.ObsBandpass('johnson,r'),
+    #     b'I':pysynphot.ObsBandpass('johnson,i') # this is wacky right now
+    # }
+
+    band_dict = {
+        b'B':pysynphot.ObsBandpass('johnson,b'),
+        b'V':pysynphot.ObsBandpass('johnson,v'),
+        b'R':pysynphot.ObsBandpass('johnson,r')
+    }
+
+    salt_lcs = {}
+    while i <= np.amax(list(salt_temps.keys())):
+        sp = pysynphot.ArraySpectrum(np.asarray(salt_temps[i][0]), np.asarray(np.asarray(salt_temps[i][1])), fluxunits='flam')
+        for band in band_dict.keys():
+            bp = band_dict[band]
+            spec_obs = pysynphot.Observation(sp, bp, force='extrap')
+            mag_from_spec = spec_obs.effstim('vegamag')
+            if salt_lcs.get(band, None) is not None:
+                salt_lcs[band].append(mag_from_spec)
+            else:
+                salt_lcs[band] = [mag_from_spec]
+
+        phases_s.append(i)
+        i+=1
+        
+    phot = {}
+    err_h = 0.01*np.ones(len(phases_s))
+    for band in band_dict.keys():
+        phot[band] = [phases_s,salt_lcs[band],err_h,'salt']
+    return phot
+
+
+def create_hsiao_phot():
+    t_h, U_h, B_h, V_h, R_h, I_h, Y_h, J_h, H_h, K_h = np.loadtxt('../data/info_files/hsiao_lc_template.dat', unpack = True)
+    err_h = 0.01*np.ones(len(t_h))
+    phot = {}
+    phot[b'B'] = [t_h[5:],B_h[5:],err_h[5:],'hsiao']
+    phot[b'V'] = [t_h[5:],V_h[5:],err_h[5:],'hsiao']
+    phot[b'R'] = [t_h[5:],R_h[5:],err_h[5:],'hsiao']
+    phot[b'I'] = [t_h[5:],I_h[5:],err_h[5:],'hsiao']
+    return phot
+
+def scale_composites_to_photometry(composite_dict, verbose=False):
+    spec_array = composite.prelim_norm(composite_dict.values())
+    for spec in spec_array:
+        spec.mjd = np.average(spec.phase_array[spec.x1:spec.x2])
+        vbs = fc.valid_bands(spec)
+        scale, mags_from_phot = fc.scale_flux_to_photometry_pysyn(spec, vbs)
+        if ~np.isnan(scale):
+            spec.scale_to_phot = scale
+        else:
+            spec.scale_to_phot = None
+
+    for spec in spec_array:
+        if verbose:
+            print (spec.scale_to_phot)
+        spec.flux *= spec.scale_to_phot
+        spec.ivar /= spec.scale_to_phot**2
+
+    return spec_array
+
+def prepare_spec(spec_array,waverange=[3500,9000],plot=False):
+    specnew = {}
+    phases = []
+    for spec in spec_array:
+        snew = {}
+        wave = spec.wavelength[spec.x1:spec.x2]
+        flux = spec.flux[spec.x1:spec.x2]
+        ivar = spec.ivar[spec.x1:spec.x2]
+        if plot:
+            plt.plot(wave,flux)
+#         output, scale, var_final = prep.Interpo_flux_conserving(wave,flux,ivar,dw=dw)
+#         wave,flux,ivar = output[0],output[1],output[2]
+        
+        idx = np.array((wave>waverange[0]) & (wave<waverange[1]))
+        idx_nan = ~np.isnan(flux)
+        
+        idx_nan_w1 = (wave<spec.wavelength[spec.x1])
+        flux[idx_nan_w1] = np.median(flux[idx_nan][0:10])
+        print (np.median(flux[idx_nan][0:10]))
+        ivar[idx_nan_w1] = ivar[idx_nan][0]/1e3
+        
+        idx_nan_w2 = (wave>spec.wavelength[spec.x2])
+        flux[idx_nan_w2] = np.median(flux[idx_nan][-10:])
+        print (np.median(flux[idx_nan][-10:]))
+        ivar[idx_nan_w2] = ivar[idx_nan][-1]/1e3
+        
+        print (wave[idx])
+        snew['wavelength_interp'] = wave[idx]
+        snew['flux_interp'] = flux[idx]
+        snew['ivar_interp'] = ivar[idx]
+        
+#         flux[idx_nan] = 0.
+#         ivar[idx_nan] = 0.
+        
+        phase = np.average(spec.phase_array[spec.x1:spec.x2])
+        phases.append(phase)
+        
+        specnew[phase] = snew
+        if plot:
+            plt.plot(wave[idx],flux[idx])
+#             plt.plot(wave,flux)
+        plt.title(str(phase))
+        plt.show()
+    return specnew, np.sort(phases), wave[idx]
+
+def linear_interpolation(spec, waves, phases):
+    nwave = np.shape(spec[list(spec.keys())[0]]['wavelength_interp'])[0]
+    nphase = len(list(spec.keys()))
+#     print(nwave,nphase)
+#     arr2d = np.ones((nphase*nwave,4))
+    arr2d = []
+    for i,phase in enumerate(np.sort(list(spec.keys()))):
+#         print (spec[phase]['flux_interp'])
+        nan_locs = np.where(np.isnan(spec[phase]['flux_interp']))[0]
+        for nanl in nan_locs:
+            if nanl - 5 < 0:
+                spec[phase]['flux_interp'][nanl] = np.nanmedian(spec[phase]['flux_interp'][nanl:nanl+5])
+            elif nanl + 5 >= len(spec[phase]['flux_interp']):
+                spec[phase]['flux_interp'][nanl] = np.nanmedian(spec[phase]['flux_interp'][nanl-5:nanl])
+            else: 
+                spec[phase]['flux_interp'][nanl] = np.nanmedian(spec[phase]['flux_interp'][nanl-5:nanl+5])
+        arr2d.append(spec[phase]['flux_interp'])
+#         arr2d[i*nwave:(i+1)*nwave,0] = [float(phase)]*nwave
+#         arr2d[i*nwave:(i+1)*nwave,1] = spec[phase]['wavelength_interp']
+#         arr2d[i*nwave:(i+1)*nwave,2] = spec[phase]['flux_interp']
+#         arr2d[i*nwave:(i+1)*nwave,3] = spec[phase]['ivar_interp']
+
+    x = waves
+    y = phases
+    X, Y = np.meshgrid(x, y)
+    Z = arr2d
+    # Z = np.sin(np.pi*X/2) * np.exp(Y/2)
+    print (np.shape(x))
+    print(np.shape(y))
+    print (np.shape(Z))
+
+    x2 = waves
+    y2 = np.linspace(-15, 90, 200)
+    # f = interp2d(x, y, Z, kind='cubic')
+    f = interp2d(x, y, Z, kind='linear')
+    Z2 = f(x2, y2)
+
+    X2, Y2 = np.meshgrid(x2, y2)
+
+    return X2,Y2,Z2
 
 def plot_spectra(spec_array):
 

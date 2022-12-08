@@ -1261,26 +1261,26 @@ def apply_host_corrections(SN_Array, r_v = 2.5, verbose=True, low_av_test=None, 
                 print (SN.filename, 'has low reddening!')
                 corrected_SNs.append(SN)
 
-        elif SN.av_mlcs17 != None and SN.av_mlcs17 < cutoff:
-            if low_av_test == None or SN.av_mlcs17 > low_av_test:
-                pre_scale = (1./np.amax(SN.flux[SN.x1:SN.x2]))
-                SN.flux = pre_scale*SN.flux
-                SN.ivar = SN.ivar/(pre_scale*pre_scale)
-                # old_wave = SN.wavelength*u.Angstrom
-                # old_flux = SN.flux*u.Unit('W m-2 angstrom-1 sr-1')
-                # spec1d = Spectrum1D.from_array(old_wave, old_flux)
-                # old_ivar = SN.ivar*u.Unit('W m-2 angstrom-1 sr-1')
-                old_flux = SN.flux
-                old_wave = SN.wavelength
-                old_ivar = SN.ivar
-                new_flux, new_ivar = test_dered.host_correction(SN.av_mlcs17, 1.7, SN.name, 
-                                                                old_wave, old_flux, old_ivar)
-                SN.flux = new_flux.value
-                SN.ivar = new_ivar.value
-                corrected_SNs.append(SN)
-            else:
-                print (SN.filename, 'has low reddening!')
-                corrected_SNs.append(SN)
+        # elif SN.av_mlcs17 != None and SN.av_mlcs17 < cutoff:
+        #     if low_av_test == None or SN.av_mlcs17 > low_av_test:
+        #         pre_scale = (1./np.amax(SN.flux[SN.x1:SN.x2]))
+        #         SN.flux = pre_scale*SN.flux
+        #         SN.ivar = SN.ivar/(pre_scale*pre_scale)
+        #         # old_wave = SN.wavelength*u.Angstrom
+        #         # old_flux = SN.flux*u.Unit('W m-2 angstrom-1 sr-1')
+        #         # spec1d = Spectrum1D.from_array(old_wave, old_flux)
+        #         # old_ivar = SN.ivar*u.Unit('W m-2 angstrom-1 sr-1')
+        #         old_flux = SN.flux
+        #         old_wave = SN.wavelength
+        #         old_ivar = SN.ivar
+        #         new_flux, new_ivar = test_dered.host_correction(SN.av_mlcs17, 1.7, SN.name, 
+        #                                                         old_wave, old_flux, old_ivar)
+        #         SN.flux = new_flux.value
+        #         SN.ivar = new_ivar.value
+        #         corrected_SNs.append(SN)
+        #     else:
+        #         print (SN.filename, 'has low reddening!')
+        #         corrected_SNs.append(SN)
 
     SN_Array = corrected_SNs
     # print len(SN_Array), 'SNe with host corrections'
