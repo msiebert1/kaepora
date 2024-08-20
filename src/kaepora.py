@@ -345,7 +345,7 @@ def create_query_strings_for_sequence(phase_range, dm15_range, velocity_range=No
     dm_end = dm15_range[1]
     query_strings = ["SELECT * from Spectra inner join Events ON Spectra.SN = Events.SN and " \
                      "phase < {p_beg} and ((dm15_source >= {dm_beg} and dm15_source < {dm_end}) or " \
-                     "(dm15_from_fits >= {dm_beg} and dm15_from_fits < {dm_end}))".format(p_beg=str(p_beg), dm_beg=str(dm_beg), dm_end=str(dm_end))]
+                     "(dm15_from_fits >= {dm_beg} and dm15_from_fits < {dm_end})) and Spectra.SN != '2011fe' and Spectra.SN != '1994d'".format(p_beg=str(p_beg), dm_beg=str(dm_beg), dm_end=str(dm_end))]
     p1 = p_beg
     k = phase_bin_size
     p2 = p1+k
@@ -355,7 +355,7 @@ def create_query_strings_for_sequence(phase_range, dm15_range, velocity_range=No
     while p1 < p_end:
         query_strings.append("SELECT * from Spectra inner join Events ON Spectra.SN = Events.SN and " \
                               "phase >= {p1} and phase < {p2} and ((dm15_source >= {dm_beg} and dm15_source < {dm_end}) or " \
-                              "(dm15_from_fits >= {dm_beg} and dm15_from_fits < {dm_end}))".format(p1=str(p1), p2=str(p2), dm_beg=str(dm_beg), dm_end=str(dm_end)))
+                              "(dm15_from_fits >= {dm_beg} and dm15_from_fits < {dm_end})) and Spectra.SN != '2011fe' and Spectra.SN != '1994d'".format(p1=str(p1), p2=str(p2), dm_beg=str(dm_beg), dm_end=str(dm_end)))
         if phase_step_bin_scale:
             if p1 > p_scale1 and p1 < p_scale2:
                 p1+=phase_step

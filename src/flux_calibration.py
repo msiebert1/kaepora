@@ -9,6 +9,7 @@ import pysynphot
 import numpy as np
 from scipy.interpolate import splrep, splev
 from scipy.interpolate import interp2d
+import scipy
 import scipy.optimize as opt
 # from specutils import extinction as ex
 from specutils import Spectrum1D
@@ -18,113 +19,113 @@ import sys,os
 import copy
 
 
-# color_dict = {'U': 'magenta',
-#               'B': 'blue',
-#               'V': 'green',
-#               'R': 'red',
-#               'I': 'brown',
+color_dict = {'U': 'magenta',
+              'B': 'blue',
+              'V': 'green',
+              'R': 'red',
+              'I': 'brown',
 
-#               'u': 'purple',
-#               'g': 'seagreen',
-#               'r': 'crimson',
-#               'i': 'orangered',
-#               'z': 'darkred',
+              'u': 'purple',
+              'g': 'seagreen',
+              'r': 'crimson',
+              'i': 'orangered',
+              'z': 'darkred',
 
-#               "u'": 'purple',
-#               "g'": 'seagreen',
-#               "r'": 'crimson',
-#               "i'": 'orangered',
-#               "z'": 'darkred',
+              "u'": 'purple',
+              "g'": 'seagreen',
+              "r'": 'crimson',
+              "i'": 'orangered',
+              "z'": 'darkred',
 
-#               'H': 'yellow',
-#               'K': 'teal',
-#               'J': 'crimson',
-#               'V': 'orange',
-#               'Y': 'pink',
+              'H': 'yellow',
+              'K': 'teal',
+              'J': 'crimson',
+              'V': 'orange',
+              'Y': 'pink',
 
-#               'W1': 'gray',
-#               'W2': 'black',
-#               'M2': 'darkgray',
+              'W1': 'gray',
+              'W2': 'black',
+              'M2': 'darkgray',
 
-#               'C': 'limegreen',
-#               'Js': 'gold',
-#               'Ks': 'lightgray'}
+              'C': 'limegreen',
+              'Js': 'gold',
+              'Ks': 'lightgray'}
 
-# color_dict = {'U': 'magenta',
-#           'B': 'blue',
-#           'V': 'green',
-#           'R': 'red',
-#           'I': 'brown',
+color_dict = {'U': 'magenta',
+          'B': 'blue',
+          'V': 'green',
+          'R': 'red',
+          'I': 'brown',
 
-#           'u': 'purple',
-#           'g': 'seagreen',
-#           'r': 'crimson',
-#           'i': 'orangered',
-#           'z': 'darkred',
+          'u': 'purple',
+          'g': 'seagreen',
+          'r': 'crimson',
+          'i': 'orangered',
+          'z': 'darkred',
 
-#           "u'": 'purple',
-#           "g'": 'seagreen',
-#           "r'": 'crimson',
-#           "i'": 'orangered',
-#           "z'": 'darkred',
+          "u'": 'purple',
+          "g'": 'seagreen',
+          "r'": 'crimson',
+          "i'": 'orangered',
+          "z'": 'darkred',
 
-#           'H': 'yellow',
-#           'K': 'teal',
-#           'J': 'crimson',
-#           'V': 'orange',
-#           'V0': 'orange',
-#           'Y': 'pink',
+          'H': 'yellow',
+          'K': 'teal',
+          'J': 'crimson',
+          'V': 'orange',
+          'V0': 'orange',
+          'Y': 'pink',
 
-#           'W1': 'gray',
-#           'W2': 'black',
-#           'M2': 'darkgray',
+          'W1': 'gray',
+          'W2': 'black',
+          'M2': 'darkgray',
 
-#           'C': 'limegreen',
-#           'Js': 'gold',
-#           'Ks': 'lightgray',
-#           'Jrc2': 'lavender',
-#           'Hdw': 'darkblue',
-#           'Ydw': 'darkgreen',
-#           'Jdw': 'darkgray',
-#              }
-
-color_dict = {b'U': 'magenta',
-          b'B': 'blue',
-          b'V': 'green',
-          b'R': 'red',
-          b'I': 'brown',
-
-          b'u': 'purple',
-          b'g': 'seagreen',
-          b'r': 'crimson',
-          b'i': 'orangered',
-          b'z': 'darkred',
-
-          b"u'": 'purple',
-          b"g'": 'seagreen',
-          b"r'": 'crimson',
-          b"i'": 'orangered',
-          b"z'": 'darkred',
-
-          b'H': 'yellow',
-          b'K': 'teal',
-          b'J': 'crimson',
-          b'V': 'orange',
-          b'V0': 'orange',
-          b'Y': 'pink',
-
-          b'W1': 'gray',
-          b'W2': 'black',
-          b'M2': 'darkgray',
-
-          b'C': 'limegreen',
-          b'Js': 'gold',
-          b'Ks': 'lightgray',
-          b'Jrc2': 'lavender',
-          b'Hdw': 'darkblue',
-          b'Ydw': 'darkgreen',
-          b'Jdw': 'darkgray',
+          'C': 'limegreen',
+          'Js': 'gold',
+          'Ks': 'lightgray',
+          'Jrc2': 'lavender',
+          'Hdw': 'darkblue',
+          'Ydw': 'darkgreen',
+          'Jdw': 'darkgray',
              }
+
+# color_dict = {b'U': 'magenta',
+#           b'B': 'blue',
+#           b'V': 'green',
+#           b'R': 'red',
+#           b'I': 'brown',
+
+#           b'u': 'purple',
+#           b'g': 'seagreen',
+#           b'r': 'crimson',
+#           b'i': 'orangered',
+#           b'z': 'darkred',
+
+#           b"u'": 'purple',
+#           b"g'": 'seagreen',
+#           b"r'": 'crimson',
+#           b"i'": 'orangered',
+#           b"z'": 'darkred',
+
+#           b'H': 'yellow',
+#           b'K': 'teal',
+#           b'J': 'crimson',
+#           b'V': 'orange',
+#           b'V0': 'orange',
+#           b'Y': 'pink',
+
+#           b'W1': 'gray',
+#           b'W2': 'black',
+#           b'M2': 'darkgray',
+
+#           b'C': 'limegreen',
+#           b'Js': 'gold',
+#           b'Ks': 'lightgray',
+#           b'Jrc2': 'lavender',
+#           b'Hdw': 'darkblue',
+#           b'Ydw': 'darkgreen',
+#           b'Jdw': 'darkgray',
+#              }
 
 def get_band_data(phot, band):
     mjds = []
@@ -137,9 +138,8 @@ def get_band_data(phot, band):
     instrument_dict = {"None": 0}
 
     for mag in phot[band][1]:
-
-        if mag[1].get('telescope', None) is not None:
-            tscope = mag[1].get('telescope', None)
+        if mag[1].get(b'telescope', None) is not None:
+            tscope = mag[1].get(b'telescope', None)
             if tscope not in telescope_dict:
                 telescope_dict[tscope] = 1
             else:
@@ -147,8 +147,8 @@ def get_band_data(phot, band):
         else:
             telescope_dict['None'] = telescope_dict['None'] + 1
 
-        if mag[1].get('system', None) is not None:
-            sys = mag[1].get('system', None)
+        if mag[1].get(b'system', None) is not None:
+            sys = mag[1].get(b'system', None)
             if sys not in system_dict:
                 system_dict[sys] = 1
             else:
@@ -156,8 +156,8 @@ def get_band_data(phot, band):
         else:
             system_dict['None'] = system_dict['None'] + 1
 
-        if mag[1].get('observatory', None) is not None:
-            obs = mag[1].get('observatory', None)
+        if mag[1].get(b'observatory', None) is not None:
+            obs = mag[1].get(b'observatory', None)
             if obs not in observatory_dict:
                 observatory_dict[obs] = 1
             else:
@@ -165,8 +165,8 @@ def get_band_data(phot, band):
         else:
             observatory_dict['None'] = observatory_dict['None'] + 1
 
-        if mag[1].get('instrument', None) is not None:
-            inst = mag[1].get('instrument', None)
+        if mag[1].get(b'instrument', None) is not None:
+            inst = mag[1].get(b'instrument', None)
             if inst not in instrument_dict:
                 instrument_dict[inst] = 1
             else:
@@ -187,9 +187,9 @@ def get_band_data(phot, band):
         if  sys == max_sys:
             mjds.append(float(phot[band][0][i]))
             mags.append(float(mag[0]))
-            if 'e_magnitude' in mag[1]:
-                errs.append(float(mag[1]['e_magnitude']))
-            elif 'upperlimit' in mag[1] and mag[1]['upperlimit']:
+            if b'e_magnitude' in mag[1]:
+                errs.append(float(mag[1][b'e_magnitude']))
+            elif b'upperlimit' in mag[1] and mag[1][b'upperlimit']:
                 errs.append(np.nan)
             else:
                 errs.append(0.5)
@@ -207,42 +207,37 @@ def get_band_data(phot, band):
     return mjds, mags, errs
 
 
-def interp_LC(mjds, mags, errs, s = 100):
+def interp_LC(mjds, mags, errs, s = 100, linear=False):
     weights = 1./errs
-    min_points = 2 
-    linear_points = 15
-    if len(mjds) > 1:
-        max_diff = max(np.diff(mjds))
+    if not linear:
+        m_spline = splrep(mjds, mags, w = weights)
     else:
-        max_diff = 0
-    if len(mjds) > linear_points and max_diff < 20.:
-        m_spline = splrep(mjds, mags, w = weights) #s smoothing factor?
-        return m_spline
-    elif len(mjds) > linear_points and max_diff >= 20.:
         m_spline = splrep(mjds, mags, w = weights, k=1)
-        return m_spline
-    elif len(mjds) <= linear_points and len(mjds) > min_points:
-        m_spline = splrep(mjds, mags, w = weights, k=1)
-        return m_spline
-    else:
-        return None
+    return m_spline
 
 
-def generate_photometry_for_epoch_OSC(spec, valid_bands):
+def generate_photometry_for_epoch_OSC(spec, valid_bands, template=None):
     phot = spec.light_curves
     phot_dict = {}
     for band in valid_bands:
         mjds, mags, errs = get_band_data(phot, band)
-        m_spline = interp_LC(mjds, mags, errs)
+        if template == 'salt' and spec.mjd > 48:
+            m_spline_ext = interp_LC(mjds[-4:], mags[-4:], errs[-4:],linear=True)
+        else:
+            m_spline = interp_LC(mjds, mags, errs)
+
         if mjds[0] < spec.mjd  and mjds[-1] > spec.mjd:
             m_smooth = splev(spec.mjd, m_spline)
             phot_dict[band] = float(m_smooth)
             #TODO: error estimation
+        elif mjds[-1] < spec.mjd and template =='salt':
+            m_ext = splev(spec.mjd, m_spline_ext, ext=0)
+            phot_dict[band] = float(m_ext)
         else:
             phot_dict[band] = np.nan
     return phot_dict
 
-def generate_photometry_for_epoch(spec, valid_bands):
+def generate_photometry_for_epoch(spec, valid_bands, template=None):
     # phot = spec.homog_light_curves
     phot = spec.event_data["Homogenized_Photometry"]
     phot_dict = {}
@@ -253,11 +248,20 @@ def generate_photometry_for_epoch(spec, valid_bands):
             mjds, mags, errs = np.asarray(phot[band][0]), np.asarray(phot[band][1]), np.asarray(phot[band][2])
             if band == 'V0':
                 band = 'V'
-            m_spline = interp_LC(mjds, mags, errs)
+
+            if template == 'salt' and spec.mjd > 49:
+                m_spline_ext = interp_LC(mjds[-4:], mags[-4:], errs[-4:],linear=True)
+            else:
+                m_spline = interp_LC(mjds, mags, errs)
+
+            # print (mjds[0], mjds[-1], spec.mjd)
             if mjds[0] < spec.mjd  and mjds[-1] > spec.mjd:
                 m_smooth = splev(spec.mjd, m_spline)
                 phot_dict[band] = float(m_smooth)
                 #TODO: error estimation
+            elif mjds[-1] < spec.mjd and template =='salt':
+                m_ext = splev(spec.mjd, m_spline_ext)
+                phot_dict[band] = float(m_ext)
             else:
                 phot_dict[band] = np.nan
     return phot_dict
@@ -382,7 +386,7 @@ def scale_flux_to_photometry(spec, valid_bands):
     return scale, mags_from_phot
 
 
-def scale_flux_to_photometry_pysyn(spec, valid_bands):
+def scale_flux_to_photometry_pysyn(spec, valid_bands, template=None):
     # lib = pyphot.get_library()
     # band_dict = {'U': 'johnson,u', 'B': 'johnson,b', 'V': 'johnson,v',  'V0': 'johnson,v',
     #              'R': 'johnson,r', 'I': 'johnson,i', 
@@ -392,7 +396,7 @@ def scale_flux_to_photometry_pysyn(spec, valid_bands):
                  b'u': 'sdss,u', b'g': 'sdss,g', b'r': 'sdss,r', b'i': 'sdss,i', b'z': 'sdss,z'}
     
     if len(valid_bands) > 0:
-        mags_from_phot = generate_photometry_for_epoch(spec, valid_bands)
+        mags_from_phot = generate_photometry_for_epoch(spec, valid_bands, template=template)
         
         valid_mjds = []
         for band in mags_from_phot:
@@ -544,6 +548,33 @@ def plot_light_curves_OSC(phot, fit = False, filt_list = None):
     # plt.legend()
     plt.show()
 
+def fit_lc_lecho(data, fit = False, filt_list = None, linear=False):
+
+    kplot.basic_format()
+
+    if filt_list is None:
+        filt_list = phot.keys()
+
+    splines = []
+    for i, band in enumerate(filt_list):
+        mjds, mags, errs = data[i]
+        if fit and len(mjds) > 1:
+            tnew = np.linspace(mjds[0], mjds[-1], 2000)
+            m_spline = interp_LC(mjds, mags, errs, linear=linear)
+            if m_spline is not None:
+                m_smooth = splev(tnew, m_spline)
+                plt.plot(tnew, m_smooth, color = color_dict[band])
+                splines.append(m_spline)
+        plt.errorbar(mjds, mags, yerr = errs, label = band, fmt='o', markersize=10, color = color_dict[band])
+    plt.gca().invert_yaxis()
+    plt.xlabel('MJD (days)', fontsize = 35)
+    plt.ylabel('Magnitude', fontsize = 35)
+    # plt.xlim(55800,55840)
+    # plt.ylim(14,9.9)
+    plt.show()
+    return splines
+
+
 def plot_light_curves(phot, name, spec_dates = None, fit = False, filt_list = None):
     
     kplot.basic_format()
@@ -555,10 +586,14 @@ def plot_light_curves(phot, name, spec_dates = None, fit = False, filt_list = No
         mjds, mags, errs = np.asarray(phot[band][0]), np.asarray(phot[band][1]), np.asarray(phot[band][2])
         if fit and len(mjds) > 1:
             tnew = np.linspace(mjds[0], mjds[-1], 2000)
+            tnew_ext = np.linspace(mjds[-3], 100, 2000)
             m_spline = fc.interp_LC(mjds, mags, errs)
+            m_spline_ext = fc.interp_LC(mjds[-4:], mags[-4:], errs[-4:],linear=True)
             if m_spline is not None:
                 m_smooth = splev(tnew, m_spline)
+                m_ext = splev(tnew_ext, m_spline_ext,ext=0)
                 plt.plot(tnew, m_smooth, color = color_dict[band])
+                plt.plot(tnew_ext, m_ext, color = 'k')
         plt.errorbar(mjds, mags, yerr = errs, label = band, fmt='o', markersize=10, color = color_dict[band])
     if spec_dates:
         for i, d in enumerate(spec_dates):
@@ -659,12 +694,12 @@ def create_hsiao_phot():
     phot[b'I'] = [t_h[5:],I_h[5:],err_h[5:],'hsiao']
     return phot
 
-def scale_composites_to_photometry(composite_dict, verbose=False):
+def scale_composites_to_photometry(composite_dict, verbose=False, template=None):
     spec_array = composite.prelim_norm(composite_dict.values())
     for spec in spec_array:
         spec.mjd = np.average(spec.phase_array[spec.x1:spec.x2])
         vbs = fc.valid_bands(spec)
-        scale, mags_from_phot = fc.scale_flux_to_photometry_pysyn(spec, vbs)
+        scale, mags_from_phot = fc.scale_flux_to_photometry_pysyn(spec, vbs, template=template)
         if ~np.isnan(scale):
             spec.scale_to_phot = scale
         else:
@@ -723,46 +758,54 @@ def prepare_spec(spec_array,waverange=[3500,9000],plot=False):
         plt.show()
     return specnew, np.sort(phases), wave[idx]
 
-def linear_interpolation(spec, waves, phases):
+def linear_interpolation(spec, waves, phases, pint_range=[-20,90]):
     nwave = np.shape(spec[list(spec.keys())[0]]['wavelength_interp'])[0]
     nphase = len(list(spec.keys()))
-#     print(nwave,nphase)
-#     arr2d = np.ones((nphase*nwave,4))
     arr2d = []
     for i,phase in enumerate(np.sort(list(spec.keys()))):
-#         print (spec[phase]['flux_interp'])
-        nan_locs = np.where(np.isnan(spec[phase]['flux_interp']))[0]
-        for nanl in nan_locs:
-            if nanl - 5 < 0:
-                spec[phase]['flux_interp'][nanl] = np.nanmedian(spec[phase]['flux_interp'][nanl:nanl+5])
-            elif nanl + 5 >= len(spec[phase]['flux_interp']):
-                spec[phase]['flux_interp'][nanl] = np.nanmedian(spec[phase]['flux_interp'][nanl-5:nanl])
-            else: 
-                spec[phase]['flux_interp'][nanl] = np.nanmedian(spec[phase]['flux_interp'][nanl-5:nanl+5])
+        # nan_locs = np.where(np.isnan(spec[phase]['flux_interp']))[0]
+        # for nanl in nan_locs:
+        #     if nanl - 5 < 0:
+        #         spec[phase]['flux_interp'][nanl] = np.nanmedian(spec[phase]['flux_interp'][nanl:nanl+5])
+        #     elif nanl + 5 >= len(spec[phase]['flux_interp']):
+        #         spec[phase]['flux_interp'][nanl] = np.nanmedian(spec[phase]['flux_interp'][nanl-5:nanl])
+        #     else: 
+        #         spec[phase]['flux_interp'][nanl] = np.nanmedian(spec[phase]['flux_interp'][nanl-5:nanl+5])
         arr2d.append(spec[phase]['flux_interp'])
-#         arr2d[i*nwave:(i+1)*nwave,0] = [float(phase)]*nwave
-#         arr2d[i*nwave:(i+1)*nwave,1] = spec[phase]['wavelength_interp']
-#         arr2d[i*nwave:(i+1)*nwave,2] = spec[phase]['flux_interp']
-#         arr2d[i*nwave:(i+1)*nwave,3] = spec[phase]['ivar_interp']
 
+    weight2d = []
+    for i,phase in enumerate(np.sort(list(spec.keys()))):
+        weight2d.append(spec[phase]['weight_interp'])
     x = waves
     y = phases
     X, Y = np.meshgrid(x, y)
-    Z = arr2d
+    Z = np.asarray(arr2d)
+    W = np.asarray(weight2d)
+
+    plt.figure(figsize=[10,10])
+    plt.imshow(Z,aspect=20, origin='lower', interpolation='none')
+    plt.show()
     # Z = np.sin(np.pi*X/2) * np.exp(Y/2)
     print (np.shape(x))
     print(np.shape(y))
     print (np.shape(Z))
+    print (np.shape(W))
 
     x2 = waves
-    y2 = np.linspace(-15, 90, 200)
-    # f = interp2d(x, y, Z, kind='cubic')
-    f = interp2d(x, y, Z, kind='linear')
-    Z2 = f(x2, y2)
+    y2 = np.arange(pint_range[0], pint_range[1], 1)
+    # y2 = np.arange(0, 90, 1)
+
+    # f = interp2d(x, y, Z, kind='linear')
+    # Z2 = f(x2, y2)
+
+    tx = x
+    ty = y
+    splrep = scipy.interpolate.LSQBivariateSpline(X.ravel(), Y.ravel(), Z.ravel(), tx, ty, w=W.ravel(), kx=1, ky=1)
+    Z2 = np.transpose(splrep(x2,y2))
 
     X2, Y2 = np.meshgrid(x2, y2)
 
-    return X2,Y2,Z2
+    return X2,Y2,Z2,X,Y,Z
 
 def plot_spectra(spec_array):
 

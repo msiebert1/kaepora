@@ -521,23 +521,23 @@ def compprep(spectrum, sn_name, z, source, use_old_error=True, testing=False, fi
     old_wave = old_wave.value
 
     if testing:
-        av_specific = 0.2384 #2005lz
-        av_specific = 0.4089 #2007af
-        r_v=2.5
-        new_flux_host, new_ivar_host = test_dered.host_correction(av_specific, r_v, sn_name, old_wave_plot, new_flux_plot, new_ivar_plot)
-        new_flux_host = new_flux_host.value
+        # av_specific = 0.2384 #2005lz
+        # av_specific = 0.4089 #2007af
+        # r_v=2.5
+        # new_flux_host, new_ivar_host = test_dered.host_correction(av_specific, r_v, sn_name, old_wave_plot, new_flux_plot, new_ivar_plot)
+        # new_flux_host = new_flux_host.value
         old_flux = old_flux.value
 
         s = scale_composites_in_range(new_flux, old_flux)
         new_flux_scaled = s*new_flux
-        s = scale_composites_in_range(new_flux_host, old_flux)
-        new_flux_host_scaled = s*new_flux_host
+        # s = scale_composites_in_range(new_flux_host, old_flux)
+        # new_flux_host_scaled = s*new_flux_host
 
         valid_data = np.where(old_wave > 4000)
-        norm = 10./np.nanmax(new_flux_host_scaled[valid_data])
+        norm = 10./np.nanmax(new_flux_scaled[valid_data])
         old_flux_norm = old_flux*norm
         new_flux_norm = new_flux_scaled*norm
-        new_flux_host_norm = new_flux_host_scaled*norm
+        # new_flux_host_norm = new_flux_host_scaled*norm
 
         plt.rc('font', family='serif')
         fig, ax = plt.subplots(1,1)

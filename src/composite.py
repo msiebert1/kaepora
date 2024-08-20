@@ -107,9 +107,9 @@ def store_phot_data(SN, row, event_index, phot_cols):
     SN.hubble_res = phot_row[83]
 
     if phot_row[84] != None:
-        SN.light_curves = msg.unpackb(phot_row[84])
+        SN.light_curves = msg.unpackb(phot_row[84], raw=True)
     if phot_row[85] != None:
-        SN.csp_light_curves = msg.unpackb(phot_row[85])
+        SN.csp_light_curves = msg.unpackb(phot_row[85], raw=True)
 
     if len(phot_row) >= 86:
         SN.other_meta_data = {}
@@ -118,7 +118,7 @@ def store_phot_data(SN, row, event_index, phot_cols):
                 SN.other_meta_data[phot_cols[i+86]] = pr
             else:
                 if pr:
-                    SN.homog_light_curves = msg.unpackb(pr)
+                    SN.homog_light_curves = msg.unpackb(pr, raw=True)
                 else:
                     SN.homog_light_curves = None
     else:
@@ -171,7 +171,7 @@ def new_grab(sql_input, shape_param, make_corr = True, db_file = None):
         SN.minwave   = row[4]
         SN.maxwave   = row[5]        
         SN.SNR       = row[6]
-        interp       = msg.unpackb(row[7])
+        interp       = msg.unpackb(row[7], raw=True)
         SN.interp    = interp
         SN.mjd       = row[8]
         SN.ref       = row[9]
@@ -183,16 +183,18 @@ def new_grab(sql_input, shape_param, make_corr = True, db_file = None):
 
         event_cols = all_cols[event_index:]
         event_rows = row[event_index:]
-
         for i, r in enumerate(middle_rows):
             SN.other_spectral_data[middle_cols[i]] = r
+
+        if len(event_rows) > len(event_cols):
+            event_rows = event_rows[2:] # this is an ugly hack for a query i was messing with sorry 
 
         for i, r in enumerate(event_rows):
             if event_cols[i] != 'Photometry' and event_cols[i] != 'csp_photometry' and event_cols[i] != 'Homogenized_Photometry':
                 SN.event_data[event_cols[i]] = r
             else:
-                if r != None:
-                    SN.event_data[event_cols[i]] = msg.unpackb(r)
+                if r != None and r!=0.0:
+                    SN.event_data[event_cols[i]] = msg.unpackb(r, raw=True)
                 else:
                     SN.event_data[event_cols[i]] = None
 
@@ -461,7 +463,7 @@ def grab(sql_input, multi_epoch = True, make_corr = True,
         SN.minwave   = row[4]
         SN.maxwave   = row[5]        
         SN.SNR       = row[6]
-        interp       = msg.unpackb(row[7])
+        interp       = msg.unpackb(row[7],raw=True)
         SN.interp    = interp
         SN.mjd         = row[8]
         SN.ref       = row[9]

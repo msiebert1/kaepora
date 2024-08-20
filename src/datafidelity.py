@@ -76,7 +76,7 @@ def gsmooth(x_array, y_array, var_y, vexp , nsig = 5.0):
     return new_y
 
 
-def clip(wave, flux, var, vexp, testing=False, filename=None):
+def clip(wave, flux, var, vexp, testing=False, filename=None, tol1=5, tol2=10):
     """Uses sigma clipping to find and interpolate over unwanted cosmic rays, and emission lines.
     """
     
@@ -88,11 +88,10 @@ def clip(wave, flux, var, vexp, testing=False, filename=None):
     err = abs(flux - sflux)
     serr = gsmooth(wave, err, var, 0.008)
 
-    # Avoid clipping absorption at Ca H&K 3934, Na I D 5890/5896, K I 7665/7699, DIB 5780
-    regions_avoid = np.where(((wave > 3919.0) & (wave < 3949.0)) | ((wave > 5875.0) & (wave < 5911.0)) | 
+    # Avoid clipping absorption at Fe/Mg near 2700, Ca H&K 3934, Na I D 5890/5896, K I 7665/7699, DIB 5780
+    regions_avoid = np.where(((wave > 2500.0) & (wave < 3000.0)) |((wave > 3919.0) & (wave < 3949.0)) | ((wave > 5875.0) & (wave < 5911.0)) | 
                              ((wave > 7650.0) & (wave < 7714.0)) | ((wave > 5765.0) & (wave < 5795.0)))
-    tol1 = 5.
-    tol2 = 10.
+
     bad_inds_pos_avoid = np.where((diff[regions_avoid] > 0) & (err[regions_avoid]/serr[regions_avoid] > tol1))
     bad_inds_neg_avoid = np.where((diff[regions_avoid] < 0) & (err[regions_avoid]/serr[regions_avoid] > tol2))
 

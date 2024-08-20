@@ -34,7 +34,7 @@ def add_arbitrary_event_column(col_name, data, dtype, db_file):
             if SN not in sn_names:
                 cur.execute("INSERT INTO Events (SN, "+ col_name + ") VALUES (?,?)", (SN, data[SN]))
             else:
-                print SN, data[SN], col_name
+                print (SN, data[SN], col_name)
                 cur.execute("UPDATE Events SET " + col_name + " = ? where SN = ?", (data[SN], SN))
     con.commit()
 

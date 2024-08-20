@@ -642,7 +642,7 @@ def ew_stat_error(wavelength, flux, ivar, w1, w2, w3, roi, vexp=.001, num=100):
 
     return stat_err
 
-def ew_sys_error(wavelength, flux, ivar, w1, w2, w3, roi, vexp=.001, num=100):
+def ew_sys_error(wavelength, flux, w1, w2, w3, roi, vexp=.001, num=100):
     ews = []
     for i in range(0, num):
         vexp = random.uniform(0.001, 0.0045)
@@ -1223,7 +1223,7 @@ if __name__ == "__main__":
     # v = c*((5876/5857.85)**2. - 1)/(1+((5876/5857.85)**2.))
     print (v)
 
-    spec_file_names = raw_input("Choose an fits/ascii/csv spectrum file: ")
+    spec_file_names = input("Choose an fits/ascii/csv spectrum file: ")
     spec_files = []
     for spec_file in spec_file_names.split(' '):
         spec_files.append(spec_file)
@@ -1370,6 +1370,7 @@ if __name__ == "__main__":
     # spec_labels = ['2021bls', '2020wnt']
     waves = []
     fluxes = []
+    buff=.5
     for j, spec_file in enumerate(spec_files):
         if spec_file.endswith('.flm'):
             data = np.genfromtxt(spec_file, unpack=True)
@@ -1383,20 +1384,20 @@ if __name__ == "__main__":
         #         err = None
         #         data = [wave, flux]
         else:
-            tscope = raw_input("Which telescope? [keck]: ") or 'keck'
+            tscope = input("Which telescope? [keck]: ") or 'keck'
             if tscope == 'keck':
                 wave, flux, err, meta_dict = process_keck_file(spec_file)
             elif tscope == 'lick':
                 wave, flux, err, meta_dict = process_lick_file(spec_file)
             data = [wave,flux]
 
-        redshift = raw_input("Redshift [0]: ") or 0.
+        redshift = input("Redshift [0]: ") or 0.
         redshift=float(redshift)
         wavelength = data[0]
         flux = data[1]
 
         if _interp:
-            dw = raw_input("New A/pix? [2]: ") or 2.
+            dw = input("New A/pix? [2]: ") or 2.
             dw = float(dw)
             # interp_wave = np.arange(math.ceil(wavelength[0])+1.*dw, math.floor(wavelength[-1])-1.*dw, dtype=float, step=dw)
             interp_wave = np.arange(3200, 10100, dtype=float, step=dw)
@@ -1431,15 +1432,15 @@ if __name__ == "__main__":
             
             # sca = 1./np.median(flux[0:10])
         # plt.plot(wavelength,sca*flux, linewidth=1, drawstyle='steps-mid', label=spec_labels[j])
-        plt.plot(wavelength,sca*flux, linewidth=1, drawstyle='steps-mid', label=spec_file)
+        plt.plot(wavelength,sca*flux-buff*j, linewidth=1, drawstyle='steps-mid', label=spec_file)
         waves.append(wavelength)
         fluxes.append(sca*flux)
 
 
         if _vel:
-            r_wave = raw_input("Rest Wavelength [6355]: ") or 6355.
+            r_wave = input("Rest Wavelength [6355]: ") or 6355.
             r_wave = float(r_wave)
-            wave_range = raw_input("Wavelength Range [5800 6400]: ") or '5800 6400'
+            wave_range = input("Wavelength Range [5800 6400]: ") or '5800 6400'
             wave1 = float(wave_range.split()[0])
             wave2 = float(wave_range.split()[1])
             vexp, SNR = find_vexp(wavelength, flux)
