@@ -23,8 +23,6 @@ import glob
 #routines in repository:
 import test_dered
 import questionable_spectra as qspec
-import telluric_spectra as tspec
-import query_db as qdb
 import spectral_analysis as sa
 import gini
 import kaepora as kpora
