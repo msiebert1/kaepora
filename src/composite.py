@@ -1665,8 +1665,8 @@ def main(Full_query, boot = False, nboots=100, medmean = 1, make_corr=True, av_c
         # SN_Array = grab(Full_query, make_corr=make_corr, multi_epoch=multi_epoch, 
         #                 selection = selection, db_file=db_file)
 
-    SN_Array_wo_tell = remove_tell_files(SN_Array)
-    print (len(SN_Array) - len(SN_Array_wo_tell), 'spectra may have telluric contamination')
+    # SN_Array_wo_tell = remove_tell_files(SN_Array)
+    # print (len(SN_Array) - len(SN_Array_wo_tell), 'spectra may have telluric contamination')
 
     SN_Array = prelim_norm(SN_Array)
     SN_Array = fix_negative_ivars(SN_Array)
